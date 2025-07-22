@@ -1,13 +1,13 @@
-from codegames.agents.abstract import Agent
 from pathlib import Path
+
+from codegames.agents.abstract import Agent
+
 
 class DummyAgent(Agent):
     """A dummy agent that does nothing. Mainly for testing purposes."""
 
     def __init__(self, config: dict, game):
         super().__init__(config, game)
-    
+
     def step(self, game_state: Path):
         return
-        
-

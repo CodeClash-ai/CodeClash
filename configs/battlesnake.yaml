@@ -1,10 +1,10 @@
 game:
   name: battlesnake
-  rounds: 5
-  visualize: true
+  rounds: 3
   args:
     width: 11
     height: 11
+    browser: true
 players:
 - agent: dummy
   name: p1

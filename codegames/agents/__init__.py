@@ -3,6 +3,7 @@ from codegames.agents.dummy import DummyAgent
 from codegames.agents.simple import SimpleAgent
 from codegames.games.abstract import CodeGame
 
+
 def get_agent(config: dict, game: CodeGame) -> Agent:
     agents = {
         "dummy": DummyAgent,
