@@ -24,3 +24,6 @@ dependencies = [
     "litellm",
     "python-dotenv",
 ]
+
+[tool.setuptools.packages.find]
+include = ["codegames*"]

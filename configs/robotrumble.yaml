@@ -1,0 +1,8 @@
+game:
+  name: robotrumble
+  rounds: 3
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2

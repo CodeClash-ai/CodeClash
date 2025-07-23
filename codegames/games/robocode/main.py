@@ -115,5 +115,4 @@ robocode.battle.selectedRobots={selected_robots}
 
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
         self.round += 1
-
         return self.round_log_path
