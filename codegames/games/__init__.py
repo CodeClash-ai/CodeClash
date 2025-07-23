@@ -12,4 +12,4 @@ def get_game(config: dict) -> CodeGame:
     }.get(config["game"]["name"])
     if game is None:
         raise ValueError(f"Unknown game: {config['game']['name']}")
-    return game(config)
+    return game(config["game"])

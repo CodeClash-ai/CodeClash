@@ -6,9 +6,9 @@ from codegames.games.utils import clone
 
 
 class BattlesnakeGame(CodeGame):
-    name: str = "battlesnake"
+    name: str = "Battlesnake"
 
-    url_server: str = "git@github.com:emagedoc/battlesnake.git"
+    url_server: str = "git@github.com:emagedoc/BattleSnake.git"
     url_starter: str = "git@github.com:emagedoc/battlesnake-starter.git"
     build_server: str = "go build -o battlesnake ./cli/battlesnake/main.go"
     run_cmd_player: str = "python main.py"
@@ -16,7 +16,6 @@ class BattlesnakeGame(CodeGame):
     def __init__(self, config):
         super().__init__(config)
         self.run_cmd_round: str = "./battlesnake play"
-        self.artifacts: list[Path] = []
         for arg, val in config.get("args", {}).items():
             if isinstance(val, bool):
                 if val:
@@ -24,19 +23,12 @@ class BattlesnakeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def cleanup(self):
-        for artifact in self.artifacts:
-            if artifact.exists():
-                subprocess.run(f"rm -rf {artifact}", shell=True)
-        self.logger.info("🧼 Cleaned up Battlesnake game environment")
-
     def setup(self):
-        self.logger.info("🐍 Setting up Battlesnake game environment...")
-        dest = clone(self.url_server)
-        self.artifacts.append(dest)
-        subprocess.run(self.build_server, shell=True, cwd=dest)
-        self.logger.info("✅ Cloned and built Battlesnake local client")
-        self.server_path = Path(dest)
+        self.logger.info(f"🐍 Setting up {self.name} game environment...")
+        self.server_path = clone(self.url_server)
+        self.artifacts.append(self.server_path)
+        subprocess.run(self.build_server, shell=True, cwd=self.server_path)
+        self.logger.info(f"✅ Cloned and built {self.name} local client")
 
     def setup_codebase(self, dest: str) -> Path:
         dest = clone(self.url_starter, dest)
@@ -44,7 +36,7 @@ class BattlesnakeGame(CodeGame):
         return dest
 
     def run_round(self, agents: list[any]) -> Path:
-        self.logger.info(f"▶️ Running Battlesnake round {self.round}...")
+        self.logger.info(f"▶️ Running {self.name} round {self.round}...")
         cmd = self.run_cmd_round
         server_processes = []
 
@@ -67,8 +59,13 @@ class BattlesnakeGame(CodeGame):
         self.logger.info(f"Running command: {cmd}")
 
         try:
-            # Run the actual game
-            subprocess.run(cmd, shell=True, cwd=self.server_path)
+            result = subprocess.run(
+                cmd, shell=True, cwd=self.server_path, capture_output=True, text=True
+            )
+            with open(self.round_log_path, "a") as log_file:
+                log_file.write(result.stdout)
+                if result.stderr:
+                    log_file.write(result.stderr)
         finally:
             # Shut down all server processes
             self.logger.info("🛑 Shutting down player servers...")
@@ -82,5 +79,7 @@ class BattlesnakeGame(CodeGame):
                     except subprocess.TimeoutExpired:
                         process.kill()  # Force kill if it doesn't shut down gracefully
             self.logger.info("✅ All player servers shut down")
-        self.logger.info(f"✅ Completed Battlesnake round {self.round}")
+        self.logger.info(f"✅ Completed {self.name} round {self.round}")
         self.round += 1
+
+        return self.round_log_path

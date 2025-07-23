@@ -4,7 +4,7 @@ game:
   args:
     width: 11
     height: 11
-    browser: true
+    browser: false
 players:
 - agent: dummy
   name: p1
