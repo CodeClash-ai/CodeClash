@@ -15,4 +15,4 @@ def clone(url: str, to_path: str = None) -> Path:
         subprocess.run(
             command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
-    return Path(dest)
+    return Path(dest).resolve()

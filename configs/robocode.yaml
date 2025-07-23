@@ -1,0 +1,21 @@
+game:
+  name: robocode
+  rounds: 3
+  battle:
+    battle:
+      numRounds: 10
+      gunCoolingRate: 0.1
+      rules:
+        inactivityTime: 450
+      hideEnemyNames: true
+    battleField:
+      width: 800
+      height: 600
+  args:
+    nodisplay: true
+    nosound: true
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2

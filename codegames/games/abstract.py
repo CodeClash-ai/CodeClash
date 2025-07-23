@@ -1,4 +1,5 @@
 import logging
+import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from uuid import uuid4
@@ -8,10 +9,11 @@ from codegames.constants import LOGS_DIR
 
 class CodeGame(ABC):
     def __init__(self, config: dict):
+        self.artifacts: list[Path] = []
         self.config = config
-        self.rounds = self.config["game"].get("rounds", 1)
+        self.rounds = self.config.get("rounds", 1)
         self.round = 0
-        self.game_id = f"{self.name}-{uuid4().hex[:6]}"
+        self.game_id = f"{self.name}{uuid4().hex[:6]}"
         self.logger = logging.getLogger(self.game_id)
         self.log_path = (LOGS_DIR / self.game_id).resolve()
         self.log_path.mkdir(parents=True, exist_ok=True)
@@ -39,9 +41,11 @@ class CodeGame(ABC):
             self.logger.addHandler(console_handler)
             self.logger.setLevel(logging.INFO)
 
-    @abstractmethod
     def cleanup(self):
-        """Cleanup any artifacts created by the game."""
+        for artifact in self.artifacts:
+            if artifact.exists():
+                subprocess.run(f"rm -rf {artifact}", shell=True)
+        self.logger.info(f"🧼 Cleaned up {self.name} game")
 
     @abstractmethod
     def setup(self, config: dict):
