@@ -65,6 +65,7 @@ class RoboCodeGame(CodeGame):
         return "\n".join(battle_lines)
 
     def run_round(self, agents: list[any]) -> Path:
+        super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 
         compiled = []
@@ -114,5 +115,4 @@ robocode.battle.selectedRobots={selected_robots}
             pass
 
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
-        self.round += 1
         return self.round_log_path

@@ -1,5 +1,5 @@
 game:
-  name: robotrumble
+  name: RobotRumble
   rounds: 3
 players:
 - agent: dummy

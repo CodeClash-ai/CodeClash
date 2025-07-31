@@ -11,5 +11,5 @@ class Agent(ABC):
         self.codebase = game.setup_codebase(self.name).resolve()
 
     @abstractmethod
-    def step(self, game_state: Path):
-        """Given the observation / recap, upgrade the codebase"""
+    def step(self, round_log: Path):
+        """Given the observation / recap, update the codebase"""

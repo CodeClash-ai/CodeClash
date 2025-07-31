@@ -55,13 +55,13 @@ class CodeGame(ABC):
     def setup_codebase(self, dest: str) -> Path:
         """Setup the codebase for a player. Returns the path to the codebase."""
 
-    @abstractmethod
     def run_round(self, agents: list[any]) -> Path:
         """
         Run a single round of the game with the given agents.
 
         Returns a directory containing logs and results of the round(s).
         """
+        self.round += 1
 
     @property
     def round_log_path(self) -> Path:

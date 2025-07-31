@@ -9,5 +9,5 @@ class DummyAgent(Agent):
     def __init__(self, config: dict, game):
         super().__init__(config, game)
 
-    def step(self, game_state: Path):
+    def step(self, round_log: Path):
         return

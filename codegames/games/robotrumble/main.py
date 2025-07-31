@@ -28,11 +28,12 @@ class RobotRumbleGame(CodeGame):
         return dest
 
     def run_round(self, agents: list[any]) -> Path:
+        super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
         cmd = self.run_cmd_round
 
         args = []
-        for idx, agent in enumerate(agents):
+        for _, agent in enumerate(agents):
             subprocess.run(
                 f"cp -r {agent.codebase}/{self.robot_file} {agent.name}.py",
                 shell=True,
@@ -57,5 +58,4 @@ class RobotRumbleGame(CodeGame):
             pass
 
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
-        self.round += 1
         return self.round_log_path

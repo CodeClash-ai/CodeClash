@@ -7,10 +7,10 @@ from codegames.games.robotrumble.main import RobotRumbleGame
 
 def get_game(config: dict) -> CodeGame:
     game = {
-        "battlesnake": BattlesnakeGame,
-        "corewars": CoreWarsGame,
-        "robocode": RoboCodeGame,
-        "robotrumble": RobotRumbleGame,
+        BattlesnakeGame.name: BattlesnakeGame,
+        CoreWarsGame.name: CoreWarsGame,
+        RoboCodeGame.name: RoboCodeGame,
+        RobotRumbleGame.name: RobotRumbleGame,
     }.get(config["game"]["name"])
     if game is None:
         raise ValueError(f"Unknown game: {config['game']['name']}")

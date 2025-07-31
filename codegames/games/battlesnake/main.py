@@ -8,8 +8,8 @@ from codegames.games.utils import clone
 class BattlesnakeGame(CodeGame):
     name: str = "Battlesnake"
 
-    url_server: str = "git@github.com:emagedoc/BattleSnake.git"
-    url_starter: str = "git@github.com:emagedoc/battlesnake-starter.git"
+    url_server: str = "git@github.com:emagedoc/Battlesnake.git"
+    url_starter: str = "git@github.com:emagedoc/Battlesnake-starter.git"
     build_server: str = "go build -o battlesnake ./cli/battlesnake/main.go"
     run_cmd_player: str = "python main.py"
 
@@ -36,6 +36,7 @@ class BattlesnakeGame(CodeGame):
         return dest
 
     def run_round(self, agents: list[any]) -> Path:
+        super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
         cmd = self.run_cmd_round
         server_processes = []
@@ -80,6 +81,5 @@ class BattlesnakeGame(CodeGame):
                         process.kill()  # Force kill if it doesn't shut down gracefully
             self.logger.info("✅ All player servers shut down")
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
-        self.round += 1
 
         return self.round_log_path
