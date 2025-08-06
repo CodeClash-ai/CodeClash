@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from codegames.agents.abstract import Agent
+from codeclash.agents.abstract import Agent
 
 
 class DummyAgent(Agent):

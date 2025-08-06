@@ -2,10 +2,10 @@ import argparse
 
 import yaml
 
-from codegames.agents import get_agent
-from codegames.agents.abstract import Agent
-from codegames.games import get_game
-from codegames.games.abstract import CodeGame
+from codeclash.agents import get_agent
+from codeclash.agents.abstract import Agent
+from codeclash.games import get_game
+from codeclash.games.abstract import CodeGame
 
 
 def main(config_path: str, no_cleanup: bool = False):
@@ -30,7 +30,7 @@ def main(config_path: str, no_cleanup: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CodeGames")
+    parser = argparse.ArgumentParser(description="CodeClash")
     parser.add_argument(
         "config_path",
         type=str,

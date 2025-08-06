@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from codegames.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame
 
 
 class Agent(ABC):

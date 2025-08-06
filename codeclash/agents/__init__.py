@@ -1,7 +1,7 @@
-from codegames.agents.abstract import Agent
-from codegames.agents.dummy import DummyAgent
-from codegames.agents.simple import SimpleAgent
-from codegames.games.abstract import CodeGame
+from codeclash.agents.abstract import Agent
+from codeclash.agents.dummy import DummyAgent
+from codeclash.agents.simple import SimpleAgent
+from codeclash.games.abstract import CodeGame
 
 
 def get_agent(config: dict, game: CodeGame) -> Agent:

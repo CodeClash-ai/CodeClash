@@ -2,8 +2,8 @@ from pathlib import Path
 
 import litellm
 
-from codegames.agents.abstract import Agent
-from codegames.agents.utils import resolve_api_key
+from codeclash.agents.abstract import Agent
+from codeclash.agents.utils import resolve_api_key
 
 GAME_TO_FILE = {
     "Battlesnake": "main.py",

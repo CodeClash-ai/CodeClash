@@ -3,12 +3,12 @@ requires = ['setuptools>=42']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = "codegames"
+name = "codeclash"
 dynamic = ["version"]
 authors = [
     {name = "John Yang", email = "byjohnyang@gmail.com"},
 ]
-description = "CodeGames"
+description = "CodeClash"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = []
@@ -26,4 +26,4 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["codegames*"]
+include = ["codeclash*"]

@@ -1,4 +1,4 @@
-from codegames.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame
 
 
 class CoreWarsGame(CodeGame):

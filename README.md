@@ -1,4 +1,4 @@
-# CodeGames: Evaluating LMs as Adaptive Coding Agents
+# CodeClash: Evaluating LMs as Adaptive Coding Agents
 John Yang
 
 ### Setup

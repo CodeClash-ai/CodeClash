@@ -1,8 +1,8 @@
-from codegames.games.abstract import CodeGame
-from codegames.games.battlesnake.main import BattlesnakeGame
-from codegames.games.corewars.main import CoreWarsGame
-from codegames.games.robocode.main import RoboCodeGame
-from codegames.games.robotrumble.main import RobotRumbleGame
+from codeclash.games.abstract import CodeGame
+from codeclash.games.battlesnake.main import BattlesnakeGame
+from codeclash.games.corewars.main import CoreWarsGame
+from codeclash.games.robocode.main import RoboCodeGame
+from codeclash.games.robotrumble.main import RobotRumbleGame
 
 
 def get_game(config: dict) -> CodeGame:

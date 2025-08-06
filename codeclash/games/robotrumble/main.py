@@ -1,8 +1,8 @@
 import subprocess
 from pathlib import Path
 
-from codegames.games.abstract import CodeGame
-from codegames.games.utils import clone
+from codeclash.games.abstract import CodeGame
+from codeclash.games.utils import clone
 
 
 class RobotRumbleGame(CodeGame):
