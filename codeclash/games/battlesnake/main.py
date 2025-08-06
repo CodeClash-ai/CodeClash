@@ -1,17 +1,13 @@
 import subprocess
-from pathlib import Path
+import time
 
+from codeclash.constants import LOGS_DIR
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import clone
 
 
-class BattlesnakeGame(CodeGame):
-    name: str = "Battlesnake"
-
-    url_server: str = "git@github.com:emagedoc/Battlesnake.git"
-    url_starter: str = "git@github.com:emagedoc/Battlesnake-starter.git"
-    build_server: str = "go build -o battlesnake ./cli/battlesnake/main.go"
-    run_cmd_player: str = "python main.py"
+class BattleSnakeGame(CodeGame):
+    name: str = "BattleSnake"
+    url_gh: str = "git@github.com:emagedoc/BattleSnake.git"
 
     def __init__(self, config):
         super().__init__(config)
@@ -24,34 +20,48 @@ class BattlesnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def setup(self):
-        self.logger.info(f"🐍 Setting up {self.name} game environment...")
-        self.server_path = clone(self.url_server)
-        self.artifacts.append(self.server_path)
-        subprocess.run(self.build_server, shell=True, cwd=self.server_path)
-        self.logger.info(f"✅ Cloned and built {self.name} local client")
+        self.game_server = self.get_codebase()
+        for cmd in [
+            "cd game; go build -o battlesnake ./cli/battlesnake/main.go",
+            "pip install -r requirements.txt",
+        ]:
+            subprocess.run(
+                cmd,
+                shell=True,
+                cwd=self.game_server,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
 
-    def setup_codebase(self, dest: str) -> Path:
-        dest = clone(self.url_starter, dest)
-        self.artifacts.append(dest)
-        return dest
+    def _cleanup_ports(self, ports: list[int]):
+        """Clean up any existing processes on the specified ports"""
+        for port in ports:
+            try:
+                result = subprocess.run(
+                    f"lsof -ti :{port} | xargs -r kill", shell=True, capture_output=True
+                )
+                if result.returncode == 0:
+                    self.logger.info(f"🧹 Cleaned up port {port}")
+            except Exception as e:
+                self.logger.warning(f"Error cleaning port {port}: {e}")
+        time.sleep(0.5)
 
-    def run_round(self, agents: list[any]) -> Path:
+    def run_round(self, agents: list[any]):
         super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
+
         cmd = self.run_cmd_round
-        server_processes = []
+        server_processes, ports = [], []
 
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             # Start server in background and keep track of the process
             process = subprocess.Popen(
-                f"PORT={port} {self.run_cmd_player}", shell=True, cwd=agent.codebase
+                f"PORT={port} python main.py", shell=True, cwd=agent.codebase
             )
             server_processes.append(process)
             cmd += f" --url http://0.0.0.0:{port} -n {agent.name}"
-
-        # Give servers a moment to start up
-        import time
+            ports.append(port)
 
         time.sleep(1)
 
@@ -61,7 +71,11 @@ class BattlesnakeGame(CodeGame):
 
         try:
             result = subprocess.run(
-                cmd, shell=True, cwd=self.server_path, capture_output=True, text=True
+                cmd,
+                shell=True,
+                cwd=self.game_server / "game",
+                capture_output=True,
+                text=True,
             )
             with open(self.round_log_path, "a") as log_file:
                 log_file.write(result.stdout)
@@ -71,15 +85,20 @@ class BattlesnakeGame(CodeGame):
             # Shut down all server processes
             self.logger.info("🛑 Shutting down player servers...")
             for process in server_processes:
-                if process.poll() is None:  # Process is still running
+                try:
                     process.terminate()
-                    try:
-                        process.wait(
-                            timeout=5
-                        )  # Wait up to 5 seconds for graceful shutdown
-                    except subprocess.TimeoutExpired:
-                        process.kill()  # Force kill if it doesn't shut down gracefully
+                except:
+                    pass
+            # Give processes time to die after cleanup
+            time.sleep(1.5)
+            self._cleanup_ports(ports)
             self.logger.info("✅ All player servers shut down")
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
 
-        return self.round_log_path
+        # Copy round log to agents' codebases
+        for agent in agents:
+            copy_path = agent.codebase / LOGS_DIR / self.round_log_path.name
+            copy_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.round_log_path, "rb") as src_file:
+                with open(copy_path, "wb") as dest_file:
+                    dest_file.write(src_file.read())

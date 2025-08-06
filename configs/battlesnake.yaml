@@ -1,14 +1,12 @@
 game:
-  name: Battlesnake
+  name: BattleSnake
   rounds: 3
   args:
     width: 11
     height: 11
     browser: false
 players:
-- agent: simple
+- agent: dummy
   name: p1
-  model: claude-3-7-sonnet-20250219
-- agent: simple
+- agent: dummy
   name: p2
-  model: gpt-4o-2024-08-06
