@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from codeclash.constants import LOGS_DIR
+from codeclash.games.utils import clone
 
 
 class CodeGame(ABC):
@@ -47,13 +48,20 @@ class CodeGame(ABC):
                 subprocess.run(f"rm -rf {artifact}", shell=True)
         self.logger.info(f"🧼 Cleaned up {self.name} game")
 
-    @abstractmethod
-    def setup(self, config: dict):
+    def get_codebase(self, dest: str = None) -> Path:
         """Setup the logic necessary for running a game."""
+        dest = clone(f"git@github.com:emagedoc/{self.name}.git", dest=dest)
+        self.artifacts.append(dest)
+        self.logger.info(f"✅ Created {self.name} codebase at {dest}")
+        return Path(dest).resolve()
 
     @abstractmethod
-    def setup_codebase(self, dest: str) -> Path:
-        """Setup the codebase for a player. Returns the path to the codebase."""
+    def setup(self):
+        """
+        Setup the game environment, including cloning repositories and preparing the game server.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement the setup method.")
 
     def run_round(self, agents: list[any]) -> Path:
         """

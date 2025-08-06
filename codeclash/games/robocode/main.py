@@ -1,14 +1,12 @@
 import subprocess
-from pathlib import Path
 
+from codeclash.constants import LOGS_DIR
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import clone
 
 
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
-
-    url_server: str = "git@github.com:emagedoc/RoboCode.git"
+    url_gh: str = "git@github.com:emagedoc/RoboCode.git"
 
     def __init__(self, config):
         super().__init__(config)
@@ -21,15 +19,7 @@ class RoboCodeGame(CodeGame):
                 self.run_cmd_round += f" -{arg} {val}"
 
     def setup(self):
-        self.logger.info(f"🤖 Setting up {self.name} game environment...")
-        self.server_path = clone(self.url_server)
-        self.artifacts.append(self.server_path)
-        self.logger.info(f"✅ Cloned and built {self.name} local client")
-
-    def setup_codebase(self, dest: str) -> Path:
-        dest = clone(self.url_server, dest)
-        self.artifacts.append(dest)
-        return dest
+        self.game_server = self.get_codebase()
 
     def _get_battle_config(self) -> str:
         default_battle_config = {
@@ -64,14 +54,14 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def run_round(self, agents: list[any]) -> Path:
+    def run_round(self, agents: list[any]):
         super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 
         compiled = []
         for agent in agents:
             # Create destination directory for agent robots
-            agent_robot_dir = self.server_path / "robots" / agent.name
+            agent_robot_dir = self.game_server / "robots" / agent.name
             agent_robot_dir.mkdir(parents=True, exist_ok=True)
 
             for idx, cmd in enumerate(
@@ -84,13 +74,13 @@ class RoboCodeGame(CodeGame):
                 ]
             ):
                 self.logger.info(f"Running command: {cmd}")
-                result = subprocess.run(cmd, shell=True, cwd=self.server_path)
+                result = subprocess.run(cmd, shell=True, cwd=self.game_server)
                 if idx == 2:
                     compiled.append(result.returncode == 0)
 
         # Create .battle file
         battle_file = (
-            self.server_path / f"battles/{self.game_id}-round{self.round}.battle"
+            self.game_server / f"battles/{self.game_id}-round{self.round}.battle"
         )
 
         selected_robots = ",".join([f"{agent.name}.MyTank*" for agent in agents])
@@ -106,13 +96,20 @@ robocode.battle.selectedRobots={selected_robots}
             f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
         )
 
-        subprocess.run(f"touch {self.round_log_path}", shell=True, cwd=self.server_path)
+        subprocess.run(f"touch {self.round_log_path}", shell=True, cwd=self.game_server)
         self.logger.info(f"Running command: {cmd}")
 
         try:
-            subprocess.run(cmd, shell=True, cwd=self.server_path)
+            subprocess.run(cmd, shell=True, cwd=self.game_server)
         finally:
             pass
 
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
-        return self.round_log_path
+
+        # Copy round log to agents' codebases
+        for agent in agents:
+            copy_path = agent.codebase / LOGS_DIR / self.round_log_path.name
+            copy_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.round_log_path, "rb") as src_file:
+                with open(copy_path, "wb") as dest_file:
+                    dest_file.write(src_file.read())

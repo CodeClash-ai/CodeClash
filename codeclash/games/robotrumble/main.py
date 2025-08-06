@@ -1,33 +1,22 @@
 import subprocess
 from pathlib import Path
 
+from codeclash.constants import LOGS_DIR
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import clone
 
 
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
-
-    robot_file: str = "robot.py"
-    url_server: str = "git@github.com:emagedoc/RobotRumble.git"
-    url_starter: str = "git@github.com:emagedoc/RobotRumble-starter.git"
+    url_gh: str = "git@github.com:emagedoc/RobotRumble.git"
 
     def __init__(self, config):
         super().__init__(config)
         self.run_cmd_round: str = "./rumblebot run term"
 
     def setup(self):
-        self.logger.info(f"🤖 Setting up {self.name} game environment...")
-        self.server_path = clone(self.url_server)
-        self.artifacts.append(self.server_path)
-        self.logger.info(f"✅ Cloned {self.name} server")
+        self.game_server = self.get_codebase()
 
-    def setup_codebase(self, dest: str) -> Path:
-        dest = clone(self.url_starter, dest)
-        self.artifacts.append(dest)
-        return dest
-
-    def run_round(self, agents: list[any]) -> Path:
+    def run_round(self, agents: list[any]):
         super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
         cmd = self.run_cmd_round
@@ -35,9 +24,9 @@ class RobotRumbleGame(CodeGame):
         args = []
         for _, agent in enumerate(agents):
             subprocess.run(
-                f"cp -r {agent.codebase}/{self.robot_file} {agent.name}.py",
+                f"cp -r {agent.codebase}/robot.py {agent.name}.py",
                 shell=True,
-                cwd=self.server_path,
+                cwd=self.game_server,
             )
             args.append(f"{agent.name}.py")
 
@@ -47,7 +36,7 @@ class RobotRumbleGame(CodeGame):
 
         try:
             result = subprocess.run(
-                cmd, shell=True, cwd=self.server_path, capture_output=True, text=True
+                cmd, shell=True, cwd=self.game_server, capture_output=True, text=True
             )
             with open(self.round_log_path, "w") as f:
                 f.write(result.stdout)
@@ -58,4 +47,11 @@ class RobotRumbleGame(CodeGame):
             pass
 
         self.logger.info(f"✅ Completed {self.name} round {self.round}")
-        return self.round_log_path
+
+        # Copy round log to agents' codebases
+        for agent in agents:
+            copy_path = agent.codebase / LOGS_DIR / self.round_log_path.name
+            copy_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.round_log_path, "rb") as src_file:
+                with open(copy_path, "wb") as dest_file:
+                    dest_file.write(src_file.read())
