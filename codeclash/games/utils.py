@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 
-def clone(url: str, dest: str = None) -> Path:
+def clone(url: str, dest: str | Path | None = None) -> Path:
     """
     Clone a git repository if it does not already exist.
 

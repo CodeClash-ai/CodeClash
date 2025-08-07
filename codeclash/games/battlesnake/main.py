@@ -1,5 +1,6 @@
 import subprocess
 import time
+from typing import Any
 
 from codeclash.constants import LOGS_DIR
 from codeclash.games.abstract import CodeGame
@@ -46,7 +47,7 @@ class BattleSnakeGame(CodeGame):
                 self.logger.warning(f"Error cleaning port {port}: {e}")
         time.sleep(0.5)
 
-    def run_round(self, agents: list[any]):
+    def run_round(self, agents: list[Any]):
         super().run_round(agents)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 

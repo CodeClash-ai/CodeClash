@@ -2,6 +2,7 @@ import logging
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 from codeclash.constants import LOGS_DIR
@@ -9,6 +10,8 @@ from codeclash.games.utils import clone
 
 
 class CodeGame(ABC):
+    name: str
+
     def __init__(self, config: dict):
         self.artifacts: list[Path] = []
         self.config = config
@@ -48,7 +51,7 @@ class CodeGame(ABC):
                 subprocess.run(f"rm -rf {artifact}", shell=True)
         self.logger.info(f"🧼 Cleaned up {self.name} game")
 
-    def get_codebase(self, dest: str = None) -> Path:
+    def get_codebase(self, dest: str | Path | None = None) -> Path:
         """Setup the logic necessary for running a game."""
         dest = clone(f"git@github.com:emagedoc/{self.name}.git", dest=dest)
         self.artifacts.append(dest)
@@ -63,7 +66,7 @@ class CodeGame(ABC):
         """
         raise NotImplementedError("Subclasses must implement the setup method.")
 
-    def run_round(self, agents: list[any]) -> Path:
+    def run_round(self, agents: list[Any]) -> Path:
         """
         Run a single round of the game with the given agents.
 
