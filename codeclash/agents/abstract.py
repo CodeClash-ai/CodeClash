@@ -8,7 +8,7 @@ class Agent(ABC):
     def __init__(self, config: dict, game: CodeGame):
         self.config = config
         self.name = f"{game.game_id}_{config['name']}"
-        self.codebase = game.get_codebase(self.name).resolve()
+        self.container = game.get_container()
 
     @abstractmethod
     def step(self, round_log: Path):

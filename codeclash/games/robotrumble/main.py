@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from codeclash.constants import LOGS_DIR
+from codeclash.constants import DIR_LOGS
 from codeclash.games.abstract import CodeGame
 
 
@@ -50,7 +50,7 @@ class RobotRumbleGame(CodeGame):
 
         # Copy round log to agents' codebases
         for agent in agents:
-            copy_path = agent.codebase / LOGS_DIR / self.round_log_path.name
+            copy_path = agent.codebase / DIR_LOGS / self.round_log_path.name
             copy_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.round_log_path, "rb") as src_file:
                 with open(copy_path, "wb") as dest_file:
