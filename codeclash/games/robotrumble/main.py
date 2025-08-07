@@ -1,8 +1,5 @@
-import subprocess
-from pathlib import Path
-
-from codeclash.constants import DIR_LOGS
 from codeclash.games.abstract import CodeGame
+from codeclash.games.utils import copy_between_containers
 
 
 class RobotRumbleGame(CodeGame):
@@ -13,45 +10,22 @@ class RobotRumbleGame(CodeGame):
         super().__init__(config)
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def setup(self):
-        self.game_server = self.get_codebase()
-
     def run_round(self, agents: list[any]):
         super().run_round(agents)
-        self.logger.info(f"▶️ Running {self.name} round {self.round}...")
         cmd = self.run_cmd_round
 
-        args = []
-        for _, agent in enumerate(agents):
-            subprocess.run(
-                f"cp -r {agent.codebase}/robot.py {agent.name}.py",
-                shell=True,
-                cwd=self.game_server,
-            )
-            args.append(f"{agent.name}.py")
-
-        cmd = f"{self.run_cmd_round} {' '.join(args)}"
-        subprocess.run(f"touch {self.round_log_path}", shell=True)
-        self.logger.info(f"Running command: {cmd}")
-
-        try:
-            result = subprocess.run(
-                cmd, shell=True, cwd=self.game_server, capture_output=True, text=True
-            )
-            with open(self.round_log_path, "w") as f:
-                f.write(result.stdout)
-                if result.stderr:
-                    f.write("\n\nErrors:\n")
-                    f.write(result.stderr)
-        finally:
-            pass
-
-        self.logger.info(f"✅ Completed {self.name} round {self.round}")
+        args = [f"/{agent.name}/robot.py" for agent in agents]
+        cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
+        print(f"Running command: {cmd}")
+        self.container.execute(cmd)
+        print(f"Round {self.round} completed.")
 
         # Copy round log to agents' codebases
         for agent in agents:
-            copy_path = agent.codebase / DIR_LOGS / self.round_log_path.name
-            copy_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.round_log_path, "rb") as src_file:
-                with open(copy_path, "wb") as dest_file:
-                    dest_file.write(src_file.read())
+            copy_between_containers(
+                self.container,
+                agent.container,
+                self.round_log_path,
+                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
+            )
+            print(f"Copied round logs to {agent.name}'s codebase.")

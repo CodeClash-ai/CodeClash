@@ -20,6 +20,7 @@ class CodeGame(ABC):
         self.round = 0
         self.game_id = f"{self.name}{uuid4().hex[:6]}"
         self.log_path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.container = self.get_container()
 
     @property
     def image_name(self) -> str:
@@ -69,14 +70,6 @@ class CodeGame(ABC):
         print(f"Started container {container.container_id}")
         return container
 
-    @abstractmethod
-    def setup(self):
-        """
-        Setup the game environment, including cloning repositories and preparing the game server.
-        This method should be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement the setup method.")
-
     def run_round(self, agents: list[Any]) -> Path:
         """
         Run a single round of the game with the given agents.
@@ -84,6 +77,7 @@ class CodeGame(ABC):
         Returns a directory containing logs and results of the round(s).
         """
         self.round += 1
+        print(f"▶️ Running {self.name} round {self.round}...")
 
         # Copy agent codebases into game's container
         for agent in agents:

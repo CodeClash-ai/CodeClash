@@ -1,7 +1,6 @@
 import time
 from typing import Any
 
-from codeclash.constants import DIR_WORK
 from codeclash.games.abstract import CodeGame
 from codeclash.games.utils import copy_between_containers
 
@@ -20,13 +19,8 @@ class BattleSnakeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def setup(self):
-        self.container = self.get_container()
-
     def run_round(self, agents: list[Any]):
         super().run_round(agents)
-        print(f"▶️ Running {self.name} round {self.round}...")
-
         cmd = self.run_cmd_round
 
         for idx, agent in enumerate(agents):
@@ -40,7 +34,6 @@ class BattleSnakeGame(CodeGame):
         time.sleep(3)  # Give servers time to start
 
         cmd += f" -o {self.round_log_path}"
-        self.container.execute(f"touch {self.round_log_path}")
         print(f"Running command: {cmd}")
 
         try:
@@ -60,6 +53,6 @@ class BattleSnakeGame(CodeGame):
                 self.container,
                 agent.container,
                 self.round_log_path,
-                DIR_WORK / "logs" / f"round_{self.round}.log",
+                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
             )
             print(f"Copied round logs to {agent.name}'s codebase.")
