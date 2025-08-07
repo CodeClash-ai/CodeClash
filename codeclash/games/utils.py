@@ -45,3 +45,26 @@ def copy_between_containers(
             raise RuntimeError(
                 f"Failed to copy from local temp to {dest_container.container_id}"
             )
+
+
+def copy_file_to_container(
+    container: DockerEnvironment,
+    src_path: str | Path,
+    dest_path: str | Path,
+):
+    """
+    Copy a file from the local filesystem to a Docker container.
+    """
+    if not dest_path.startswith("/"):
+        dest_path = f"/{container.config.cwd}/{dest_path}"
+    cmd = [
+        "docker",
+        "cp",
+        str(src_path),
+        f"{container.container_id}:{dest_path}",
+    ]
+    result = subprocess.run(cmd, check=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to copy {src_path} to {container.container_id}:{dest_path}"
+        )
