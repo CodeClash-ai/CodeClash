@@ -1,3 +1,4 @@
 from pathlib import Path
 
-LOGS_DIR = Path("logs")
+DIR_LOGS = Path("logs")
+DIR_WORK = Path("/testbed")
