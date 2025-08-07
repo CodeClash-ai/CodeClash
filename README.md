@@ -2,11 +2,13 @@
 John Yang, Kilian Lieret
 
 ### Setup
+
 To install the codebase, run the following:
 ```bash
 conda create -n codeclash python=3.10 -y
 conda activate codeclash
-pip install -e .
+pip install -e '.[dev]'
+pre-commit install
 ```
 
 ### Usage
