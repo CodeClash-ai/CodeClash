@@ -11,10 +11,12 @@ RUN apt-get update \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
  && rm -rf /var/lib/apt/lists/*
 
-# Install Go 1.22
-RUN curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go.tar.gz \
- && tar -C /usr/local -xzf /tmp/go.tar.gz \
- && rm /tmp/go.tar.gz
+# Set architecture and install Go 1.22
+RUN ARCH=$(dpkg --print-architecture) && \
+    echo "Building for architecture: $ARCH" && \
+    curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz -o /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm /tmp/go.tar.gz
 
 RUN git clone https://github.com/emagedoc/BattleSnake.git /testbed
 
