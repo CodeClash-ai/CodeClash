@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 from codeclash.games.abstract import CodeGame
 
@@ -11,5 +10,5 @@ class Agent(ABC):
         self.container = game.get_container()
 
     @abstractmethod
-    def step(self, round_log: Path):
+    def step(self):
         """Given the observation / recap, update the codebase"""

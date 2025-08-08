@@ -6,7 +6,11 @@ game:
     height: 11
     browser: false
 players:
-- agent: dummy
+- agent: mini
   name: p1
-- agent: dummy
+  config: configs/mini/battlesnake.yaml
+  model: claude-sonnet-4-20250514
+- agent: mini
   name: p2
+  config: configs/mini/battlesnake.yaml
+  model: claude-3-7-sonnet-20250219

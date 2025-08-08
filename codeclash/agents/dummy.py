@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from codeclash.agents.abstract import Agent
 
 
@@ -9,5 +7,5 @@ class DummyAgent(Agent):
     def __init__(self, config: dict, game):
         super().__init__(config, game)
 
-    def step(self, round_log: Path):
+    def step(self):
         return

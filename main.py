@@ -18,11 +18,9 @@ def main(config_path: str, cleanup: bool = False):
 
     try:
         for _ in range(game.rounds):
-            recap = game.run_round(agents)
-
+            game.run_round(agents)
             for agent in agents:
-                # TODO: Parallelize this in the future
-                agent.step(recap)
+                agent.step()
     finally:
         if cleanup:
             game.cleanup()

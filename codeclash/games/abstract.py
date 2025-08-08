@@ -1,5 +1,5 @@
 import subprocess
-from abc import ABC, abstractmethod
+from abc import ABC
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -70,7 +70,7 @@ class CodeGame(ABC):
         print(f"Started container {container.container_id}")
         return container
 
-    def run_round(self, agents: list[Any]) -> Path:
+    def run_round(self, agents: list[Any]):
         """
         Run a single round of the game with the given agents.
 
