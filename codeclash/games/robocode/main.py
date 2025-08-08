@@ -1,7 +1,7 @@
 import subprocess
 
-from codeclash.constants import LOGS_DIR
 from codeclash.games.abstract import CodeGame
+from codeclash.games.utils import copy_between_containers, copy_file_to_container
 
 
 class RoboCodeGame(CodeGame):
@@ -17,9 +17,6 @@ class RoboCodeGame(CodeGame):
                     self.run_cmd_round += f" -{arg}"
             else:
                 self.run_cmd_round += f" -{arg} {val}"
-
-    def setup(self):
-        self.game_server = self.get_codebase()
 
     def _get_battle_config(self) -> str:
         default_battle_config = {
@@ -56,34 +53,20 @@ class RoboCodeGame(CodeGame):
 
     def run_round(self, agents: list[any]):
         super().run_round(agents)
-        self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 
-        compiled = []
         for agent in agents:
-            # Create destination directory for agent robots
-            agent_robot_dir = self.game_server / "robots" / agent.name
-            agent_robot_dir.mkdir(parents=True, exist_ok=True)
-
-            for idx, cmd in enumerate(
-                [
-                    f"cp -r {agent.codebase}/robots/custom/* robots/{agent.name}/",
-                    f"find robots/{agent.name}/ -name '*.java' -exec sed -i '' 's/custom/{agent.name}/g' {{}} +",
-                    # On Linux, use the following line instead:
-                    # f"find robots/{agent.name}/ -name '*.java' -exec sed -i 's/custom/{agent.name}/g' {{}} +",
-                    f'javac -cp "libs/robocode.jar" robots/{agent.name}/*.java',
-                ]
-            ):
-                self.logger.info(f"Running command: {cmd}")
-                result = subprocess.run(cmd, shell=True, cwd=self.game_server)
-                if idx == 2:
-                    compiled.append(result.returncode == 0)
+            # Copy the agent codebase into the game codebase and compile it
+            for cmd in [
+                f"mkdir -p robots/{agent.name}",
+                f"cp -r /{agent.name}/robots/custom/* robots/{agent.name}/",
+                f"find robots/{agent.name}/ -name '*.java' -exec sed -i 's/custom/{agent.name}/g' {{}} +",
+                f'javac -cp "libs/robocode.jar" robots/{agent.name}/*.java',
+            ]:
+                self.container.execute(cmd)
 
         # Create .battle file
-        battle_file = (
-            self.game_server / f"battles/{self.game_id}-round{self.round}.battle"
-        )
-
         selected_robots = ",".join([f"{agent.name}.MyTank*" for agent in agents])
+        battle_file = f"{self.game_id}-round{self.round}.battle"
         with open(battle_file, "w") as f:
             f.write(
                 f"""#Battle Properties
@@ -91,25 +74,24 @@ class RoboCodeGame(CodeGame):
 robocode.battle.selectedRobots={selected_robots}
 """
             )
+        copy_file_to_container(self.container, battle_file, f"battles/{battle_file}")
+        subprocess.run(f"rm -f {battle_file}", shell=True)
 
+        # Run battle
         cmd = (
             f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
         )
+        print(f"Running command: {cmd}")
+        self.container.execute(cmd)
 
-        subprocess.run(f"touch {self.round_log_path}", shell=True, cwd=self.game_server)
-        self.logger.info(f"Running command: {cmd}")
-
-        try:
-            subprocess.run(cmd, shell=True, cwd=self.game_server)
-        finally:
-            pass
-
-        self.logger.info(f"✅ Completed {self.name} round {self.round}")
+        print(f"✅ Completed {self.name} round {self.round}")
 
         # Copy round log to agents' codebases
         for agent in agents:
-            copy_path = agent.codebase / LOGS_DIR / self.round_log_path.name
-            copy_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.round_log_path, "rb") as src_file:
-                with open(copy_path, "wb") as dest_file:
-                    dest_file.write(src_file.read())
+            copy_between_containers(
+                self.container,
+                agent.container,
+                self.round_log_path,
+                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
+            )
+            print(f"Copied round logs to {agent.name}'s codebase.")
