@@ -1,12 +1,12 @@
-from codeclash.agents.abstract import Agent
-from codeclash.agents.dummy import DummyAgent
+from codeclash.agents.abstract import Player
+from codeclash.agents.dummy import Dummy
 from codeclash.agents.minisweagent import MiniSWEAgent
 from codeclash.games.abstract import CodeGame
 
 
-def get_agent(config: dict, game: CodeGame) -> Agent:
+def get_agent(config: dict, game: CodeGame) -> Player:
     agents = {
-        "dummy": DummyAgent,
+        "dummy": Dummy,
         "mini": MiniSWEAgent,
     }.get(config["agent"])
     if agents is None:
