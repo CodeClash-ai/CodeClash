@@ -13,16 +13,10 @@ pre-commit install
 
 ### Usage
 
-To build the Docker images for each game:
-```bash
-docker build -t codeclash/battlesnake -f docker/BattleSnake.Dockerfile .
-docker build -t codeclash/robotrumble -f docker/RobotRumble.Dockerfile .
-docker build -t codeclash/robocode -f docker/RoboCode.Dockerfile .
-```
-
 To run `n` rounds of 2+ models competing against one another on a game, run the following:
 ```bash
 python main.py configs/battlesnake.yaml
 python main.py configs/robocode.yaml
 python main.py configs/robotrumble.yaml
+python main.py configs/corewar.yaml
 ```

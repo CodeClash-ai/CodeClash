@@ -1,12 +1,13 @@
-import logging
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from codeclash.constants import LOGS_DIR
-from codeclash.games.utils import clone
+from minisweagent.environments.docker import DockerEnvironment
+
+from codeclash.constants import DIR_LOGS, DIR_WORK
+from codeclash.games.utils import copy_between_containers
 
 
 class CodeGame(ABC):
@@ -18,53 +19,56 @@ class CodeGame(ABC):
         self.rounds = self.config.get("rounds", 1)
         self.round = 0
         self.game_id = f"{self.name}{uuid4().hex[:6]}"
-        self.logger = logging.getLogger(self.game_id)
-        self.log_path = (LOGS_DIR / self.game_id).resolve()
-        self.log_path.mkdir(parents=True, exist_ok=True)
+        self.log_path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.container = self.get_container()
 
-        # Configure logger to write to file and console
-        if not self.logger.handlers:
-            # Create file handler
-            log_file = self.log_path / "main.log"
-            file_handler = logging.FileHandler(log_file)
-            file_handler.setLevel(logging.INFO)
+    @property
+    def image_name(self) -> str:
+        return f"codeclash/{self.name.lower()}"
 
-            # Create console handler
-            console_handler = logging.StreamHandler()
-            console_handler.setLevel(logging.INFO)
+    def build_image(self):
+        """
+        Build a Docker image for the game using the Dockerfile in the codebase.
+        """
 
-            # Create formatter
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            file_handler.setFormatter(formatter)
-            console_handler.setFormatter(formatter)
+        # Check if container exists using subprocess
+        result = subprocess.run(
+            f"docker images -q {self.image_name}",
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        if result.stdout.strip():
+            return
 
-            # Add handlers to logger
-            self.logger.addHandler(file_handler)
-            self.logger.addHandler(console_handler)
-            self.logger.setLevel(logging.INFO)
+        # Build the Docker image
+        result = subprocess.run(
+            f"docker build -t {self.image_name} -f docker/{self.name}.Dockerfile .",
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            print(f"✅ Built Docker image {self.image_name}")
+        else:
+            print(f"❌ Failed to build Docker image: {result.stderr}")
+            raise
 
     def cleanup(self):
         for artifact in self.artifacts:
             if artifact.exists():
                 subprocess.run(f"rm -rf {artifact}", shell=True)
-        self.logger.info(f"🧼 Cleaned up {self.name} game")
+        print(f"🧼 Cleaned up {self.name} game")
 
-    def get_codebase(self, dest: str | Path | None = None) -> Path:
-        """Setup the logic necessary for running a game."""
-        dest = clone(f"git@github.com:emagedoc/{self.name}.git", dest=dest)
-        self.artifacts.append(dest)
-        self.logger.info(f"✅ Created {self.name} codebase at {dest}")
-        return Path(dest).resolve()
-
-    @abstractmethod
-    def setup(self):
-        """
-        Setup the game environment, including cloning repositories and preparing the game server.
-        This method should be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement the setup method.")
+    def get_container(self) -> DockerEnvironment:
+        """Get docker container ID with the game code installed."""
+        self.build_image()
+        container = DockerEnvironment(
+            image=self.image_name,
+            cwd=str(DIR_WORK),
+        )
+        print(f"Started container {container.container_id}")
+        return container
 
     def run_round(self, agents: list[Any]) -> Path:
         """
@@ -73,6 +77,20 @@ class CodeGame(ABC):
         Returns a directory containing logs and results of the round(s).
         """
         self.round += 1
+        print(f"▶️ Running {self.name} round {self.round}...")
+
+        # Copy agent codebases into game's container
+        for agent in agents:
+            copy_between_containers(
+                src_container=agent.container,
+                dest_container=self.container,
+                src_path=DIR_WORK,
+                dest_path=f"/{agent.name}",
+            )
+
+        # Ensure the log path + file exists
+        self.container.execute(f"mkdir -p {self.log_path}")
+        self.container.execute(f"touch {self.round_log_path}")
 
     @property
     def round_log_path(self) -> Path:

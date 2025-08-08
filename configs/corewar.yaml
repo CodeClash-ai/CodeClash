@@ -1,0 +1,10 @@
+game:
+  name: CoreWar
+  rounds: 3
+  args:
+    r: 100
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2

@@ -12,7 +12,6 @@ def main(config_path: str, cleanup: bool = False):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
     game: CodeGame = get_game(config)
-    game.setup()
     agents: list[Agent] = []
     for agent in config["players"]:
         agents.append(get_agent(agent, game))
