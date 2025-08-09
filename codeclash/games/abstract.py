@@ -67,7 +67,6 @@ class CodeGame(ABC):
             image=self.image_name,
             cwd=str(DIR_WORK),
         )
-        print(f"Started container {container.container_id}")
         return container
 
     def run_round(self, agents: list[Any]):
