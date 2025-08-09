@@ -85,13 +85,3 @@ robocode.battle.selectedRobots={selected_robots}
         self.container.execute(cmd)
 
         print(f"✅ Completed {self.name} round {self.round}")
-
-        # Copy round log to agents' codebases
-        for agent in agents:
-            copy_between_containers(
-                self.container,
-                agent.container,
-                self.round_log_path,
-                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
-            )
-            print(f"Copied round logs to {agent.name}'s codebase.")

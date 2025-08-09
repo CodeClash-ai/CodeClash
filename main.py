@@ -24,6 +24,7 @@ def main(config_path: str, cleanup: bool = False):
                 # TODO: Parallelize this in the future
                 agent.step(recap)
     finally:
+        game.end()
         if cleanup:
             game.cleanup()
 

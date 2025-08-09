@@ -19,13 +19,3 @@ class RobotRumbleGame(CodeGame):
         print(f"Running command: {cmd}")
         self.container.execute(cmd)
         print(f"Round {self.round} completed.")
-
-        # Copy round log to agents' codebases
-        for agent in agents:
-            copy_between_containers(
-                self.container,
-                agent.container,
-                self.round_log_path,
-                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
-            )
-            print(f"Copied round log to {agent.name}'s container.")

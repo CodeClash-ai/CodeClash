@@ -15,6 +15,7 @@ class CodeGame(ABC):
 
     def __init__(self, config: dict):
         self.artifacts: list[Path] = []
+        self.scoreboard: list[tuple[int, str]] = []
         self.config = config
         self.rounds = self.config.get("rounds", 1)
         self.round = 0
@@ -60,6 +61,9 @@ class CodeGame(ABC):
                 subprocess.run(f"rm -rf {artifact}", shell=True)
         print(f"🧼 Cleaned up {self.name} game")
 
+    def end(self):
+        print(self.scoreboard)
+
     def get_container(self) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
         self.build_image()
@@ -70,12 +74,8 @@ class CodeGame(ABC):
         print(f"Started container {container.container_id}")
         return container
 
-    def run_round(self, agents: list[Any]) -> Path:
-        """
-        Run a single round of the game with the given agents.
-
-        Returns a directory containing logs and results of the round(s).
-        """
+    def _pre_round_setup(self, agents: list[Any]):
+        """Copy agent codebases into game's container and make round log file"""
         self.round += 1
         print(f"▶️ Running {self.name} round {self.round}...")
 
@@ -91,6 +91,31 @@ class CodeGame(ABC):
         # Ensure the log path + file exists
         self.container.execute(f"mkdir -p {self.log_path}")
         self.container.execute(f"touch {self.round_log_path}")
+
+    @abstractmethod
+    def execute_round(self, agents: list[Any]):
+        """Subclasses implement their game-specific logic here"""
+        pass
+
+    def _post_round_setup(self, agents: list[Any]):
+        for agent in agents:
+            copy_between_containers(
+                self.container,
+                agent.container,
+                self.round_log_path,
+                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
+            )
+            print(f"Copied round log to {agent.name}'s container.")
+
+    def run_round(self, agents: list[Any]):
+        """
+        Run a single round of the game with the given agents.
+
+        Returns a directory containing logs and results of the round(s).
+        """
+        self._pre_round_setup(agents)
+        self.execute_round(agents)
+        self._post_round_setup(agents)
 
     @property
     def round_log_path(self) -> Path:
