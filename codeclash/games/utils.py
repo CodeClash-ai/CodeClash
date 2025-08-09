@@ -40,7 +40,9 @@ def copy_between_containers(
             str(temp_path),
             f"{dest_container.container_id}:{dest_path}",
         ]
-        result_dest = subprocess.run(cmd_dest, check=True)
+        result_dest = subprocess.run(
+            cmd_dest, check=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
+        )
         if result_dest.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from local temp to {dest_container.container_id}"
@@ -63,7 +65,9 @@ def copy_file_to_container(
         str(src_path),
         f"{container.container_id}:{dest_path}",
     ]
-    result = subprocess.run(cmd, check=True)
+    result = subprocess.run(
+        cmd, check=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
+    )
     if result.returncode != 0:
         raise RuntimeError(
             f"Failed to copy {src_path} to {container.container_id}:{dest_path}"

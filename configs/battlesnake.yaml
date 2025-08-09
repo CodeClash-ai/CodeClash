@@ -10,7 +10,5 @@ players:
   name: p1
   config: configs/mini/battlesnake.yaml
   model: claude-sonnet-4-20250514
-- agent: mini
+- agent: dummy
   name: p2
-  config: configs/mini/battlesnake.yaml
-  model: claude-3-7-sonnet-20250219
