@@ -8,6 +8,7 @@ class RobotRumbleGame(CodeGame):
 
     def __init__(self, config):
         super().__init__(config)
+        assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
     def determine_winner(self, agents: list[any]):

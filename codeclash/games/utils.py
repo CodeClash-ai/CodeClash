@@ -24,7 +24,9 @@ def copy_between_containers(
             f"{src_container.container_id}:{src_path}",
             str(temp_path),
         ]
-        result_src = subprocess.run(cmd_src, check=True)
+        result_src = subprocess.run(
+            cmd_src, check=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
+        )
         if result_src.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from {src_container.container_id} to local temp"

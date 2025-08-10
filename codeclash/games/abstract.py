@@ -16,12 +16,13 @@ class CodeGame(ABC):
     def __init__(self, config: dict):
         self.artifacts: list[Path] = []
         self.scoreboard: list[tuple[int, str]] = []
-        self.config = config
+        self.config = config["game"]
         self.rounds = self.config.get("rounds", 1)
         self.round = 0
         self.game_id = f"{self.name}{uuid4().hex[:6]}"
         self.log_path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
         self.container = self.get_container()
+        assert len(config["players"]) >= 2, "At least two players are required"
 
     @property
     def image_name(self) -> str:
