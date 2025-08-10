@@ -1,12 +1,14 @@
 game:
   name: BattleSnake
-  rounds: 3
+  rounds: 2
   args:
     width: 11
     height: 11
     browser: false
 players:
-- agent: dummy
+- agent: mini
   name: p1
+  config: configs/mini/battlesnake.yaml
+  model: claude-sonnet-4-20250514
 - agent: dummy
   name: p2
