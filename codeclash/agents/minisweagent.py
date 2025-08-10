@@ -1,4 +1,3 @@
-import json
 import os
 import platform
 import traceback
@@ -13,10 +12,10 @@ from minisweagent.agents.default import (
     AgentConfig,
     DefaultAgent,
     NonTerminatingException,
-    Submitted,
     TerminatingException,
 )
 from minisweagent.models.litellm_model import LitellmModel
+from minisweagent.run.utils.save import save_traj
 from rich.console import Console
 
 from codeclash.agents.abstract import Player
@@ -79,15 +78,14 @@ class ClashAgent(DefaultAgent):
 
     def has_finished(self, output: dict[str, str]):
         """Raises Submitted exception with final output if the agent has finished its task."""
-        with open(f"{self.name}_r{self.game.round}.json", "w") as f:
-            json.dump(self.messages, fp=f, indent=2)
+        save_traj(self, f"{self.name}_r{self.game.round}.json")
         super().has_finished(output)
 
 
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, game):
+    def __init__(self, config: dict, game: CodeGame):
         super().__init__(config, game)
         self.agent = ClashAgent(
             LitellmModel(
@@ -106,3 +104,4 @@ class MiniSWEAgent(Player):
         except Exception as e:
             result = str(e)
             print(traceback.format_exc())
+        self.commit()
