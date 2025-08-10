@@ -1,7 +1,7 @@
 import subprocess
 
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import copy_between_containers, copy_file_to_container
+from codeclash.games.utils import copy_file_to_container
 
 
 class RoboCodeGame(CodeGame):
@@ -51,9 +51,12 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def run_round(self, agents: list[any]):
-        super().run_round(agents)
+    def determine_winner(self, agents: list[any]):
+        response = self.container.execute(f"head -3 {self.round_log_path} | tail -1")
+        winner = response["output"].split()[1].rsplit(".", 1)[0]
+        self.scoreboard.append((self.round, winner))
 
+    def execute_round(self, agents: list[any]):
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
             for cmd in [
@@ -82,6 +85,5 @@ robocode.battle.selectedRobots={selected_robots}
             f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
         )
         print(f"Running command: {cmd}")
-        self.container.execute(cmd)
-
-        print(f"✅ Completed {self.name} round {self.round}")
+        response = self.container.execute(cmd)
+        assert response["returncode"] == 0

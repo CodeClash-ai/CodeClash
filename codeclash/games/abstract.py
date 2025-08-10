@@ -1,7 +1,7 @@
 import subprocess
 from abc import ABC, abstractmethod
+from collections import Counter
 from pathlib import Path
-from typing import Any
 from uuid import uuid4
 
 from minisweagent.environments.docker import DockerEnvironment
@@ -55,14 +55,13 @@ class CodeGame(ABC):
             print(f"❌ Failed to build Docker image: {result.stderr}")
             raise
 
-    def cleanup(self):
-        for artifact in self.artifacts:
-            if artifact.exists():
-                subprocess.run(f"rm -rf {artifact}", shell=True)
-        print(f"🧼 Cleaned up {self.name} game")
-
-    def end(self):
-        print(self.scoreboard)
+    def end(self, cleanup: bool = False):
+        print(Counter([x[1] for x in self.scoreboard]))
+        if cleanup:
+            for artifact in self.artifacts:
+                if artifact.exists():
+                    subprocess.run(f"rm -rf {artifact}", shell=True)
+            print(f"🧼 Cleaned up {self.name} game")
 
     def get_container(self) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
@@ -74,7 +73,7 @@ class CodeGame(ABC):
         print(f"Started container {container.container_id}")
         return container
 
-    def _pre_round_setup(self, agents: list[Any]):
+    def _pre_round_setup(self, agents: list[any]):
         """Copy agent codebases into game's container and make round log file"""
         self.round += 1
         print(f"▶️ Running {self.name} round {self.round}...")
@@ -93,11 +92,16 @@ class CodeGame(ABC):
         self.container.execute(f"touch {self.round_log_path}")
 
     @abstractmethod
-    def execute_round(self, agents: list[Any]):
-        """Subclasses implement their game-specific logic here"""
+    def determine_winner(self, agents: list[any]) -> any:
+        """Determine the winner of the game based on the round results, updates scoreboard"""
         pass
 
-    def _post_round_setup(self, agents: list[Any]):
+    @abstractmethod
+    def execute_round(self, agents: list[any]):
+        """Subclasses implement their game-specific logic here, must write results to round_log_path"""
+        pass
+
+    def _post_round_setup(self, agents: list[any]):
         for agent in agents:
             copy_between_containers(
                 self.container,
@@ -106,8 +110,9 @@ class CodeGame(ABC):
                 f"{agent.container.config.cwd}/logs/round_{self.round}.log",
             )
             print(f"Copied round log to {agent.name}'s container.")
+        print(f"Round {self.round} completed.")
 
-    def run_round(self, agents: list[Any]):
+    def run_round(self, agents: list[any]):
         """
         Run a single round of the game with the given agents.
 
@@ -115,6 +120,7 @@ class CodeGame(ABC):
         """
         self._pre_round_setup(agents)
         self.execute_round(agents)
+        self.determine_winner(agents)
         self._post_round_setup(agents)
 
     @property
