@@ -22,8 +22,7 @@ def main(config_path: str, cleanup: bool = False):
             for agent in agents:
                 agent.run()
     finally:
-        if cleanup:
-            game.cleanup()
+        game.end(cleanup)
 
 
 if __name__ == "__main__":

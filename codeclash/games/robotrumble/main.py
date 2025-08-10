@@ -1,5 +1,5 @@
+from codeclash.constants import RESULT_TIE
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import copy_between_containers
 
 
 class RobotRumbleGame(CodeGame):
@@ -10,22 +10,18 @@ class RobotRumbleGame(CodeGame):
         super().__init__(config)
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def run_round(self, agents: list[any]):
-        super().run_round(agents)
-        cmd = self.run_cmd_round
+    def determine_winner(self, agents: list[any]):
+        response = self.container.execute(f"tail -2 {self.round_log_path}")
+        if "Blue won" in response["output"]:
+            self.scoreboard.append((self.round, agents[0].name))
+        elif "Red won" in response["output"]:
+            self.scoreboard.append((self.round, agents[1].name))
+        elif "it was a tie" in response["output"]:
+            self.scoreboard.append((self.round, RESULT_TIE))
 
+    def execute_round(self, agents: list[any]):
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
         print(f"Running command: {cmd}")
-        self.container.execute(cmd)
-        print(f"Round {self.round} completed.")
-
-        # Copy round log to agents' codebases
-        for agent in agents:
-            copy_between_containers(
-                self.container,
-                agent.container,
-                self.round_log_path,
-                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
-            )
-            print(f"Copied round log to {agent.name}'s container.")
+        response = self.container.execute(cmd)
+        assert response["returncode"] == 0
