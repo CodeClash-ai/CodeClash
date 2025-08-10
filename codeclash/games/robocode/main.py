@@ -6,7 +6,6 @@ from codeclash.games.utils import copy_file_to_container
 
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
-    url_gh: str = "git@github.com:emagedoc/RoboCode.git"
 
     def __init__(self, config):
         super().__init__(config)

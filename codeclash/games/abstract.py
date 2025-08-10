@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from minisweagent.environments.docker import DockerEnvironment
 
-from codeclash.constants import DIR_LOGS, DIR_WORK
+from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.games.utils import copy_between_containers
 
 
@@ -14,14 +14,15 @@ class CodeGame(ABC):
     name: str
 
     def __init__(self, config: dict):
+        self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         self.scoreboard: list[tuple[int, str]] = []
-        self.config = config["game"]
-        self.rounds = self.config.get("rounds", 1)
-        self.round = 0
-        self.game_id = f"{self.name}{uuid4().hex[:6]}"
-        self.log_path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
-        self.container = self.get_container()
+        self.config: dict = config["game"]
+        self.rounds: int = self.config.get("rounds", 1)
+        self.round: int = 0
+        self.game_id: str = f"{self.name}{uuid4().hex[:6]}"
+        self.log_path: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.container: DockerEnvironment = self.get_container()
         assert len(config["players"]) >= 2, "At least two players are required"
 
     @property
@@ -71,6 +72,9 @@ class CodeGame(ABC):
             image=self.image_name,
             cwd=str(DIR_WORK),
         )
+        # Reinitialize git
+        for cmd in ["rm -rf .git/", "git init", "git add -A", "git commit -m 'init'"]:
+            container.execute(cmd)
         return container
 
     def _pre_round_setup(self, agents: list[any]):
