@@ -86,7 +86,10 @@ class CodeGame(ABC):
             "git add -A",
             "git commit -m 'init'",
         ]:
-            container.execute(cmd)
+            out = container.execute(cmd)
+            if out.get("returncode", 0) != 0:
+                msg = f"Failed to execute command: {cmd}. Output so far:\n{out.get('output')}"
+                raise RuntimeError(msg)
         return container
 
     def _pre_round_setup(self, agents: list[Any]):
