@@ -3,6 +3,7 @@ import subprocess
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 from minisweagent.environments.docker import DockerEnvironment
@@ -87,7 +88,7 @@ class CodeGame(ABC):
             container.execute(cmd)
         return container
 
-    def _pre_round_setup(self, agents: list[any]):
+    def _pre_round_setup(self, agents: list[Any]):
         """Copy agent codebases into game's container and make round log file"""
         self.round += 1
         print(f"▶️ Running {self.name} round {self.round}...")
@@ -106,16 +107,16 @@ class CodeGame(ABC):
         self.container.execute(f"touch {self.round_log_path}")
 
     @abstractmethod
-    def determine_winner(self, agents: list[any]) -> any:
+    def determine_winner(self, agents: list[Any]) -> Any:
         """Determine the winner of the game based on the round results, updates scoreboard"""
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[any]):
+    def execute_round(self, agents: list[Any]):
         """Subclasses implement their game-specific logic here, must write results to round_log_path"""
         pass
 
-    def _post_round_setup(self, agents: list[any]):
+    def _post_round_setup(self, agents: list[Any]):
         for agent in agents:
             copy_between_containers(
                 self.container,
@@ -126,7 +127,7 @@ class CodeGame(ABC):
             print(f"Copied round log to {agent.name}'s container.")
         print(f"Round {self.round} completed.")
 
-    def run_round(self, agents: list[any]):
+    def run_round(self, agents: list[Any]):
         """
         Run a single round of the game with the given agents.
 

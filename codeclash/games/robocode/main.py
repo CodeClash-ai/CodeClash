@@ -1,4 +1,5 @@
 import subprocess
+from typing import Any
 
 from codeclash.games.abstract import CodeGame
 from codeclash.games.utils import copy_file_to_container
@@ -50,12 +51,12 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def determine_winner(self, agents: list[any]):
+    def determine_winner(self, agents: list[Any]):
         response = self.container.execute(f"head -3 {self.round_log_path} | tail -1")
         winner = response["output"].split()[1].rsplit(".", 1)[0]
         self.scoreboard.append((self.round, winner))
 
-    def execute_round(self, agents: list[any]):
+    def execute_round(self, agents: list[Any]):
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
             for cmd in [

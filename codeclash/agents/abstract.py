@@ -35,7 +35,7 @@ class Player(ABC):
             raise ValueError("GITHUB_TOKEN environment variable is required")
 
         # Use HTTPS URL with token embedded for simple authentication
-        GhApi(token=token).repos.create_in_org(GH_ORG, self.name)
+        GhApi(token=token).repos.create_in_org(GH_ORG, self.name)  # type: ignore[attr-defined]
 
         for cmd in [
             f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.name}.git",

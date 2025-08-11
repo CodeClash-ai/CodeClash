@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from codeclash.games.abstract import CodeGame
 
@@ -16,7 +17,7 @@ class CoreWarGame(CodeGame):
             else:
                 self.run_cmd_round += f" -{arg} {val}"
 
-    def determine_winner(self, agents: list[any]):
+    def determine_winner(self, agents: list[Any]):
         scores = []
         n = len(agents) * 2
         response = self.container.execute(f"tail -{n} {self.round_log_path}")
@@ -27,7 +28,7 @@ class CoreWarGame(CodeGame):
         winner = agents[scores.index(max(scores))].name
         self.scoreboard.append((self.round, winner))
 
-    def execute_round(self, agents: list[any]):
+    def execute_round(self, agents: list[Any]):
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
         print(f"Running command: {cmd}")
