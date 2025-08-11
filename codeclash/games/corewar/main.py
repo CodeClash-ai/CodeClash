@@ -20,7 +20,7 @@ class CoreWarGame(CodeGame):
     def determine_winner(self, agents: list[Any]):
         scores = []
         n = len(agents) * 2
-        response = self.container.execute(f"tail -{n} {self.round_log_path}")
+        response = self.environment.execute(f"tail -{n} {self.round_log_path}")
         for line in response["output"].splitlines():
             match = re.search(r".*\sby\s.*\sscores\s(\d+)", line)
             if match:
@@ -32,5 +32,5 @@ class CoreWarGame(CodeGame):
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
         print(f"Running command: {cmd}")
-        response = self.container.execute(cmd)
+        response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

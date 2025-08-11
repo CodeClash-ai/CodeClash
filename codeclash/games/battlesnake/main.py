@@ -19,7 +19,7 @@ class BattleSnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def determine_winner(self, agents: list[Any]):
-        response = self.container.execute(f"tail -1 {self.round_log_path}")
+        response = self.environment.execute(f"tail -1 {self.round_log_path}")
         winner = json.loads(response["output"].strip("\n"))["winnerName"]
         self.scoreboard.append((self.round, winner))
 
@@ -28,7 +28,7 @@ class BattleSnakeGame(CodeGame):
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             # Start server in background - just add & to run in background!
-            self.container.execute(
+            self.environment.execute(
                 f"PORT={port} python main.py &", cwd=f"/{agent.name}"
             )
             cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
@@ -40,11 +40,11 @@ class BattleSnakeGame(CodeGame):
         print(f"Running command: {cmd}")
 
         try:
-            response = self.container.execute(
+            response = self.environment.execute(
                 f"{self.run_cmd_round} {cmd}",
-                cwd=f"{self.container.config.cwd}/game",
+                cwd=f"{self.environment.config.cwd}/game",
             )
             assert response["returncode"] == 0, response
         finally:
             # Kill all python servers when done
-            self.container.execute("pkill -f 'python main.py' || true")
+            self.environment.execute("pkill -f 'python main.py' || true")

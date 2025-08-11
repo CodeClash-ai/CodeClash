@@ -14,7 +14,7 @@ class Player(ABC):
     def __init__(self, config: dict, game: CodeGame):
         self.config = config
         self.name = f"{game.game_id}_{config['name']}"
-        self.container = game.get_container()
+        self.container = game.get_environment()
         self.game = game
 
     def commit(self):

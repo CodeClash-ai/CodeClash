@@ -24,7 +24,7 @@ class CodeGame(ABC):
         self.round: int = 0
         self.game_id: str = f"{self.name}{uuid4().hex[:6]}"
         self.log_path: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
-        self.container: DockerEnvironment = self.get_container()
+        self.environment: DockerEnvironment = self.get_environment()
         assert len(config["players"]) >= 2, "At least two players are required"
 
     @property
@@ -67,10 +67,10 @@ class CodeGame(ABC):
                     subprocess.run(f"rm -rf {artifact}", shell=True)
             print(f"🧼 Cleaned up {self.name} game")
 
-    def get_container(self) -> DockerEnvironment:
+    def get_environment(self) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
         self.build_image()
-        container = DockerEnvironment(
+        environment = DockerEnvironment(
             image=self.image_name,
             cwd=str(DIR_WORK),
             env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
@@ -86,11 +86,11 @@ class CodeGame(ABC):
             "git add -A",
             "git commit -m 'init'",
         ]:
-            out = container.execute(cmd)
+            out = environment.execute(cmd)
             if out.get("returncode", 0) != 0:
                 msg = f"Failed to execute command: {cmd}. Output so far:\n{out.get('output')}"
                 raise RuntimeError(msg)
-        return container
+        return environment
 
     def _pre_round_setup(self, agents: list[Any]):
         """Copy agent codebases into game's container and make round log file"""
@@ -101,14 +101,14 @@ class CodeGame(ABC):
         for agent in agents:
             copy_between_containers(
                 src_container=agent.container,
-                dest_container=self.container,
+                dest_container=self.environment,
                 src_path=DIR_WORK,
                 dest_path=f"/{agent.name}",
             )
 
         # Ensure the log path + file exists
-        self.container.execute(f"mkdir -p {self.log_path}")
-        self.container.execute(f"touch {self.round_log_path}")
+        self.environment.execute(f"mkdir -p {self.log_path}")
+        self.environment.execute(f"touch {self.round_log_path}")
 
     @abstractmethod
     def determine_winner(self, agents: list[Any]) -> Any:
@@ -123,7 +123,7 @@ class CodeGame(ABC):
     def _post_round_setup(self, agents: list[Any]):
         for agent in agents:
             copy_between_containers(
-                self.container,
+                self.environment,
                 agent.container,
                 self.round_log_path,
                 f"{agent.container.config.cwd}/logs/round_{self.round}.log",

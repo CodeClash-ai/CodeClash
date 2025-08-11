@@ -52,7 +52,7 @@ class RoboCodeGame(CodeGame):
         return "\n".join(battle_lines)
 
     def determine_winner(self, agents: list[Any]):
-        response = self.container.execute(f"head -3 {self.round_log_path} | tail -1")
+        response = self.environment.execute(f"head -3 {self.round_log_path} | tail -1")
         winner = response["output"].split()[1].rsplit(".", 1)[0]
         self.scoreboard.append((self.round, winner))
 
@@ -65,7 +65,7 @@ class RoboCodeGame(CodeGame):
                 f"find robots/{agent.name}/ -name '*.java' -exec sed -i 's/custom/{agent.name}/g' {{}} +",
                 f'javac -cp "libs/robocode.jar" robots/{agent.name}/*.java',
             ]:
-                self.container.execute(cmd)
+                self.environment.execute(cmd)
 
         # Create .battle file
         selected_robots = ",".join([f"{agent.name}.MyTank*" for agent in agents])
@@ -77,7 +77,7 @@ class RoboCodeGame(CodeGame):
 robocode.battle.selectedRobots={selected_robots}
 """
             )
-        copy_file_to_container(self.container, battle_file, f"battles/{battle_file}")
+        copy_file_to_container(self.environment, battle_file, f"battles/{battle_file}")
         subprocess.run(f"rm -f {battle_file}", shell=True)
 
         # Run battle
@@ -85,5 +85,5 @@ robocode.battle.selectedRobots={selected_robots}
             f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
         )
         print(f"Running command: {cmd}")
-        response = self.container.execute(cmd)
+        response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
