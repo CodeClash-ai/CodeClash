@@ -24,6 +24,8 @@ dependencies = [
     "litellm",
     "mini-swe-agent",
     "python-dotenv",
+    "ghapi",
+    "mini-swe-agent",
 ]
 
 [project.optional-dependencies]
