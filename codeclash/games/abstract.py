@@ -82,6 +82,7 @@ class CodeGame(ABC):
             "git branch -m main",
             'git config --global user.email "player@codeclash.com"',
             'git config --global user.name "Player"',
+            "git config --global commit.gpgsign false",
             "git add -A",
             "git commit -m 'init'",
         ]:
