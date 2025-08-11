@@ -7,7 +7,6 @@ from codeclash.games.abstract import CodeGame
 
 class BattleSnakeGame(CodeGame):
     name: str = "BattleSnake"
-    url_gh: str = "git@github.com:emagedoc/BattleSnake.git"
 
     def __init__(self, config):
         super().__init__(config)

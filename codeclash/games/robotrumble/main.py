@@ -4,7 +4,6 @@ from codeclash.games.abstract import CodeGame
 
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
-    url_gh: str = "git@github.com:emagedoc/RobotRumble.git"
 
     def __init__(self, config):
         super().__init__(config)

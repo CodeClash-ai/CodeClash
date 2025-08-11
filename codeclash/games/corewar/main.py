@@ -5,7 +5,6 @@ from codeclash.games.abstract import CodeGame
 
 class CoreWarGame(CodeGame):
     name: str = "CoreWar"
-    url_gh: str = "git@github.com:emagedoc/CoreWar.git"
 
     def __init__(self, config):
         super().__init__(config)
