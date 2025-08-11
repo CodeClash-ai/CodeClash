@@ -44,7 +44,7 @@ class BattleSnakeGame(CodeGame):
                 f"{self.run_cmd_round} {cmd}",
                 cwd=f"{self.container.config.cwd}/game",
             )
-            assert response["returncode"] == 0
+            assert response["returncode"] == 0, response
         finally:
             # Kill all python servers when done
             self.container.execute("pkill -f 'python main.py' || true")

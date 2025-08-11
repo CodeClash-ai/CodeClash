@@ -26,4 +26,4 @@ class RobotRumbleGame(CodeGame):
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
         print(f"Running command: {cmd}")
         response = self.container.execute(cmd)
-        assert response["returncode"] == 0
+        assert response["returncode"] == 0, response

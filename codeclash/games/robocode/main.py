@@ -86,4 +86,4 @@ robocode.battle.selectedRobots={selected_robots}
         )
         print(f"Running command: {cmd}")
         response = self.container.execute(cmd)
-        assert response["returncode"] == 0
+        assert response["returncode"] == 0, response
