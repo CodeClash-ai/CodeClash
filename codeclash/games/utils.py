@@ -59,7 +59,7 @@ def copy_file_to_container(
     """
     Copy a file from the local filesystem to a Docker container.
     """
-    if not dest_path.startswith("/"):
+    if not str(dest_path).startswith("/"):
         dest_path = f"/{container.config.cwd}/{dest_path}"
     cmd = [
         "docker",
