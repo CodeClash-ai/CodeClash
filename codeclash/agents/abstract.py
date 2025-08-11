@@ -24,12 +24,23 @@ class Player(ABC):
             f"git commit --allow-empty -m 'Round {self.game.round}/{self.game.rounds} Update'",
         ]:
             self.container.execute(cmd)
+        print(
+            f"Committed changes for {self.name} for round {self.game.round}/{self.game.rounds}"
+        )
 
     def push(self):
         """Push codebase to a new repository."""
-        repo_url = f"git@github.com:{GH_ORG}/{self.name}"
-        GhApi(token=os.getenv("GITHUB_TOKEN")).repos.create_in_org(GH_ORG, self.name)
-        for cmd in [f"git remote add origin {repo_url}", "git push -u origin main"]:
+        token = os.getenv("GITHUB_TOKEN")
+        if not token:
+            raise ValueError("GITHUB_TOKEN environment variable is required")
+
+        # Use HTTPS URL with token embedded for simple authentication
+        GhApi(token=token).repos.create_in_org(GH_ORG, self.name)
+
+        for cmd in [
+            f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.name}.git",
+            "git push -u origin main",
+        ]:
             self.container.execute(cmd)
 
     @abstractmethod

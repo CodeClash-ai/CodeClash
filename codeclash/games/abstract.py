@@ -1,3 +1,4 @@
+import os
 import subprocess
 from abc import ABC, abstractmethod
 from collections import Counter
@@ -71,9 +72,18 @@ class CodeGame(ABC):
         container = DockerEnvironment(
             image=self.image_name,
             cwd=str(DIR_WORK),
+            env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
         )
         # Reinitialize git
-        for cmd in ["rm -rf .git/", "git init", "git add -A", "git commit -m 'init'"]:
+        for cmd in [
+            "rm -rf .git/",
+            "git init",
+            "git branch -m main",
+            'git config --global user.email "player@codeclash.com"',
+            'git config --global user.name "Player"',
+            "git add -A",
+            "git commit -m 'init'",
+        ]:
             container.execute(cmd)
         return container
 
