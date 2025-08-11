@@ -78,7 +78,7 @@ class ClashAgent(DefaultAgent):
 
     def has_finished(self, output: dict[str, str]):
         """Raises Submitted exception with final output if the agent has finished its task."""
-        save_traj(self, f"{self.name}_r{self.game.round}.json")
+        save_traj(self, Path(f"{self.name}_r{self.game.round}.json"))  # type: ignore
         super().has_finished(output)
 
 
