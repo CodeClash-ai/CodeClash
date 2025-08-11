@@ -8,4 +8,4 @@ class Dummy(Player):
         super().__init__(config, game)
 
     def run(self):
-        return
+        self.commit()
