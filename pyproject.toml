@@ -31,6 +31,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
 ]
 
 [tool.setuptools.packages.find]

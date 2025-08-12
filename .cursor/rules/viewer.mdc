@@ -1,0 +1,126 @@
+---
+description: Writing the viewer/inspector/trajectory viewer
+globs:
+alwaysApply: false
+---
+
+You are building a trajectory viewer for an AI agent benchmark that pits
+two AI agent in a round-based game against each other.
+
+## Framework notes
+
+* Write a python server using flask
+* As much output as possible should be formatted uses jinja templates
+* JS should be kept to a minimum
+* Your input is a game folder (described below)
+* Use clean modern CSS, but don't go too crazy, simplicity is key
+* This is a single page application
+
+## Input folder
+
+The input folders are all subfolders of `logs/`
+
+The input folder has the following files
+
+* results.json
+* main.log
+* round_$i.log, where $i is the round. Infer the number of rounds from how many of these files we have
+* .*_p$i_r$j.traj.log, where $i$ is the player (there's always 1 or 2 players and $j is the round number
+* Trajectory files do not exist for the last round
+
+Here's how a `.traj.log` file looks:
+
+
+```
+{
+  "info": {
+    "exit_status": null,
+    "submission": null,
+    "memory": null,
+    "model_stats": {
+      "instance_cost": 0.0661002,
+      "api_calls": 11
+    }
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant that can interact with a computer.\n\nYour response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).\nInclude a THOUGHT section before your command where you explain your reasoning process.\nFormat your response as shown in <format_example>.\n\n<format_example>\nYour reasoning and analysis here. Explain why you want to perform the action.\n\n```bash\nyour_command_here\n```\n</format_example>\n\nFailure to follow these rules will cause your response to be rejected.\nTo finish, issue the following command: `echo MINI_SWE_AGENT_FINAL_OUTPUT`\nwithout any other command."
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Please solve this issue: in gitconfig, add a new alias ldc which copies the last diff ..."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "THOUGHT: I need to first look at the current directory to see the gitconfig file and understand its structure. Then I'll examine the existing aliases to understand the pattern and add the new 'ldc' alias that combines 'ld' (last diff) with clipboard functionality.\n\n```bash\nls -la\n```"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "<returncode>0</returncode>\n<output>\ntotal 1232\ndrwxr-xr-x  ..."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "THOUGHT: I can see there's a `gitconfig.sh` file in the current directory. Let me examine its contents to understand the current structure and find the existing aliases, particularly looking for the 'ld' alias and any clipboard-related aliases that I need to combine.\n\n```bash\ncat gitconfig.sh\n```"
+    },
+  "trajectory_format": "mini-swe-agent-1"
+}
+```
+
+## Page design
+
+### Header
+
+* Here's some control elements to choose the input folder or visualization settings
+* There's a dark/light mode switch
+
+### Main body
+
+#### Overall results
+
+* At the top, we show the content of `metadata.json`
+* There's a foldout that displays main.log (hidden by default)
+
+#### Rounds
+
+First, show a foldout of `round_1.log`.
+
+Then, show a foldout with the trajectory view of player 1 round 1 (see below for trajectory view)
+Then, show a foldout with the content of trajectory player 1 round 1 ["submission"]
+Then, show a foldout with the content of trajectory player 1 round 1 ["memory"]
+Then, show a foldout with the trajectory view of player 2 round 1 (see below for trajectory view).
+Then, show a foldout with the content of trajectory player 2 round 1 ["submission"]
+Then, show a foldout with the content of trajectory player 2 round 1 ["memory"]
+
+Then, show a foldout of `round_2.log`.
+
+Then, show a foldout with the trajectory view of player 1 round 2 (see below for trajectory view)
+Then, show a foldout with the trajectory view of player 2 round 2 (see below for trajectory view).
+Then, show a foldout with the content of trajectory player 2 round 2 ["submission"]
+Then, show a foldout with the content of trajectory player 2 round 2 ["memory"]
+
+etc.
+
+Note that he last round only has the `round_n.log`, but there's no more trajectories for the last one.
+
+#### Trajectory view
+
+This should be its own jinja template.
+
+First show the following properties from the `info` section
+
+* Number of LM calls (api calls)
+* Cost (instance cost)
+
+Then, show all the messages. Each message should be its own block together with the role.
+Because the content can be long, make sure to have a foldout for the content.

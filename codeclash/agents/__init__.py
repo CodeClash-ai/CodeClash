@@ -11,4 +11,10 @@ def get_agent(config: dict, game: CodeGame) -> Player:
     }.get(config["agent"])
     if agents is None:
         raise ValueError(f"Unknown agent type: {config['agent']}")
-    return agents(config, game)
+    environment = game.get_environment()
+    format_vars = {
+        "game_id": game.game_id,
+        "rounds": game.rounds,
+        "round": game.round,
+    }
+    return agents(config, environment, format_vars)

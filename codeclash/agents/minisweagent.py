@@ -8,19 +8,13 @@ from pathlib import Path
 import yaml
 from jinja2 import Template
 from minisweagent import Environment, Model
-from minisweagent.agents.default import (
-    AgentConfig,
-    DefaultAgent,
-    NonTerminatingException,
-    TerminatingException,
-)
+from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.models.litellm_model import LitellmModel
 from minisweagent.run.utils.save import save_traj
 from rich.console import Console
 
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import resolve_api_key
-from codeclash.games.abstract import CodeGame
 
 
 class ClashAgent(DefaultAgent):
@@ -34,15 +28,22 @@ class ClashAgent(DefaultAgent):
         model: Model,
         env: Environment,
         name: str,
-        game: CodeGame,
+        format_vars: dict,
         *,
         config_class: Callable = AgentConfig,
         **kwargs,
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.name = name
-        self.game = game
+        self.format_vars = format_vars
         self.console = Console()
+
+    def add_message(self, role: str, content: str, **kwargs):
+        super().add_message(role, content, **kwargs)
+        if role == "assistant":
+            self.console.print(
+                f"[{self.name}] Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})"
+            )
 
     def render_template(self, template: str, **kwargs) -> str:
         cs = (
@@ -50,58 +51,47 @@ class ClashAgent(DefaultAgent):
             | asdict(self.env.config)
             | asdict(self.model.config)
             | platform.uname()._asdict()
-            | {
-                "rounds": self.game.rounds,
-                "round": self.game.round,
-            }
+            | self.format_vars
         )
         return Template(template).render(**kwargs, **cs, **os.environ)
 
     def run(self) -> tuple[str, str]:
         """Run step() until agent is finished. Return exit status & message"""
-        self.messages = []
-        self.add_message("system", self.render_template(self.config.system_template))
-        self.add_message("user", self.render_template(self.config.instance_template))
-
-        # Start rich spinner
-        with self.console.status(
-            f"[bold green]{self.name} updating codebase..."
-        ) as status:
-            while True:
-                try:
-                    self.step()
-                except NonTerminatingException as e:
-                    self.add_message("user", str(e))
-                except TerminatingException as e:
-                    self.add_message("user", str(e))
-                    return type(e).__name__, str(e)
-
-    def has_finished(self, output: dict[str, str]):
-        """Raises Submitted exception with final output if the agent has finished its task."""
-        save_traj(self, Path(f"{self.name}_r{self.game.round}.traj.json"))  # type: ignore
-        super().has_finished(output)
+        with self.console.status(f"[bold green]{self.name} updating codebase..."):
+            return super().run(task="")
 
 
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, game: CodeGame):
-        super().__init__(config, game)
+    def __init__(self, config: dict, environment: Environment, format_vars: dict):
+        super().__init__(config, environment=environment, format_vars=format_vars)
         self.agent = ClashAgent(
             LitellmModel(
                 model_name=config["model"],
                 model_kwargs={"api_key": resolve_api_key(config["model"])},
             ),
-            self.container,
+            self.environment,
             self.name,
-            game,
+            format_vars,
             **yaml.safe_load(Path(config["config"]).read_text())["agent"],
         )
 
     def run(self):
+        exit_status = None
+        result = None
         try:
             exit_status, result = self.agent.run()
         except Exception as e:
-            result = str(e)
-            print(traceback.format_exc())
-        self.commit()
+            exit_status = str(e)
+            exc_message = traceback.format_exc()
+            result = exc_message
+            print(exc_message)
+        finally:
+            save_traj(
+                self.agent,  # type: ignore
+                Path(f"{self.name}_r{self.format_vars['round']}.traj.json"),
+                exit_status=exit_status,
+                result=result,
+            )
+            self.commit()
