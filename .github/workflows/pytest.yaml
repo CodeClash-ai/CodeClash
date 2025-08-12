@@ -1,0 +1,48 @@
+name: Pytest
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+on:
+  push:
+    branches:
+      - main
+      - add-gha
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '.cursor/**'
+      - '.github/workflows/build-docs.yaml'
+      - '.github/workflows/release.yaml'
+      - '.github/workflows/pylint.yaml'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '.cursor/**'
+      - '.github/workflows/build-docs.yaml'
+      - '.github/workflows/release.yaml'
+      - '.github/workflows/pylint.yaml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Install dependencies
+        run: |
+          uv pip install --python $(which python) -e '.[dev]'
+      - name: Run pytest
+        run: pytest -v --cov --cov-branch --cov-report=xml -n auto
