@@ -1,7 +1,7 @@
 import re
 from typing import Any
 
-from codeclash.constants import RESULT_TIE
+from codeclash.constants import DIR_WORK, RESULT_TIE
 from codeclash.games.abstract import CodeGame
 
 
@@ -26,8 +26,13 @@ class BattleCodeGame(CodeGame):
         self.scoreboard.append((self.round, winner))
 
     def execute_round(self, agents: list[Any]):
+        for agent in agents:
+            src, dest = f"/{agent.name}/src/mysubmission/", str(
+                DIR_WORK / "src" / agent.name
+            )
+            self.environment.execute(f"cp -r {src} {dest}")
         args = [
-            f" --p{idx+1}-dir /{agent.name}/src/ --p{idx+1} {agent.name}"
+            f"--p{idx+1}-dir src --p{idx+1} {agent.name}"
             for idx, agent in enumerate(agents)
         ]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"

@@ -140,6 +140,8 @@ class CodeGame(ABC):
         self._pre_round_setup(agents)
         self.execute_round(agents)
         self.determine_winner(agents)
+        last_winner = self.scoreboard[-1][1]
+        print(f"Round {self.round} winner: {last_winner}")
         self._post_round_setup(agents)
 
     @property
