@@ -15,7 +15,6 @@ from rich.console import Console
 
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import resolve_api_key
-from codeclash.games.abstract import CodeGame
 
 
 class ClashAgent(DefaultAgent):
@@ -29,14 +28,14 @@ class ClashAgent(DefaultAgent):
         model: Model,
         env: Environment,
         name: str,
-        game: CodeGame,
+        format_vars: dict,
         *,
         config_class: Callable = AgentConfig,
         **kwargs,
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.name = name
-        self.game = game
+        self.format_vars = format_vars
         self.console = Console()
 
     def add_message(self, role: str, content: str, **kwargs):
@@ -52,10 +51,7 @@ class ClashAgent(DefaultAgent):
             | asdict(self.env.config)
             | asdict(self.model.config)
             | platform.uname()._asdict()
-            | {
-                "rounds": self.game.rounds,
-                "round": self.game.round,
-            }
+            | self.format_vars
         )
         return Template(template).render(**kwargs, **cs, **os.environ)
 
@@ -68,16 +64,16 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, game: CodeGame):
-        super().__init__(config, game)
+    def __init__(self, config: dict, environment: Environment, format_vars: dict):
+        super().__init__(config, environment=environment, format_vars=format_vars)
         self.agent = ClashAgent(
             LitellmModel(
                 model_name=config["model"],
                 model_kwargs={"api_key": resolve_api_key(config["model"])},
             ),
-            self.container,
+            self.environment,
             self.name,
-            game,
+            format_vars,
             **yaml.safe_load(Path(config["config"]).read_text())["agent"],
         )
 
@@ -94,7 +90,7 @@ class MiniSWEAgent(Player):
         finally:
             save_traj(
                 self.agent,  # type: ignore
-                Path(f"{self.name}_r{self.game.round}.traj.json"),
+                Path(f"{self.name}_r{self.format_vars['round']}.traj.json"),
                 exit_status=exit_status,
                 result=result,
             )

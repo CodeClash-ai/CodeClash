@@ -100,7 +100,7 @@ class CodeGame(ABC):
         # Copy agent codebases into game's container
         for agent in agents:
             copy_between_containers(
-                src_container=agent.container,
+                src_container=agent.environment,
                 dest_container=self.environment,
                 src_path=DIR_WORK,
                 dest_path=f"/{agent.name}",
@@ -124,9 +124,9 @@ class CodeGame(ABC):
         for agent in agents:
             copy_between_containers(
                 self.environment,
-                agent.container,
+                agent.environment,
                 self.round_log_path,
-                f"{agent.container.config.cwd}/logs/round_{self.round}.log",
+                f"{agent.environment.config.cwd}/logs/round_{self.round}.log",
             )
             print(f"Copied round log to {agent.name}'s container.")
         print(f"Round {self.round} completed.")
