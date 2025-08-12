@@ -2,7 +2,6 @@ import os
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
-from ghapi.all import GhApi
 from minisweagent import Environment
 
 from codeclash.constants import GH_ORG
@@ -34,13 +33,10 @@ class Player(ABC):
         print(f"Committed changes for {self.name} for round {self.round}/{rounds}")
 
     def push(self):
-        """Push codebase to a new repository."""
+        """Push codebase to a branch on the game's remote repository."""
         token = os.getenv("GITHUB_TOKEN")
         if not token:
             raise ValueError("GITHUB_TOKEN environment variable is required")
-
-        # Use HTTPS URL with token embedded for simple authentication
-        GhApi(token=token).repos.create_in_org(GH_ORG, self.name)  # type: ignore[attr-defined]
 
         for cmd in [
             f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.name}.git",
