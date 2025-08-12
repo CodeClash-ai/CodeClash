@@ -29,14 +29,14 @@ class ClashAgent(DefaultAgent):
         model: Model,
         env: Environment,
         name: str,
-        format_vars: dict,
+        template_vars: dict,
         *,
         config_class: Callable = AgentConfig,
         **kwargs,
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.name = name
-        self.format_vars = format_vars
+        self.template_vars = template_vars
         self.console = Console()
 
     def add_message(self, role: str, content: str, **kwargs):
@@ -52,7 +52,7 @@ class ClashAgent(DefaultAgent):
             | asdict(self.env.config)
             | asdict(self.model.config)
             | platform.uname()._asdict()
-            | self.format_vars
+            | self.template_vars
         )
         return Template(template).render(**kwargs, **cs, **os.environ)
 
@@ -65,8 +65,8 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, environment: Environment, format_vars: dict):
-        super().__init__(config, environment=environment, format_vars=format_vars)
+    def __init__(self, config: dict, environment: Environment, template_vars: dict):
+        super().__init__(config, environment=environment, template_vars=template_vars)
         self.agent = ClashAgent(
             LitellmModel(
                 model_name=config["model"],
@@ -74,7 +74,7 @@ class MiniSWEAgent(Player):
             ),
             self.environment,
             self.name,
-            format_vars,
+            template_vars,
             **yaml.safe_load(Path(config["config"]).read_text())["agent"],
         )
 
@@ -93,7 +93,7 @@ class MiniSWEAgent(Player):
             save_traj(
                 self.agent,  # type: ignore
                 DIR_LOGS
-                / f"{self.format_vars['game_id']}/{player_id}_r{self.format_vars['round']}.traj.json",
+                / f"{self.template_vars['game_id']}/{player_id}_r{self.template_vars['round']}.traj.json",
                 exit_status=exit_status,
                 result=result,
             )
