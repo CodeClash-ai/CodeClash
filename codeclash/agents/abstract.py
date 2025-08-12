@@ -6,6 +6,7 @@ from ghapi.all import GhApi
 from minisweagent import Environment
 
 from codeclash.constants import GH_ORG
+from codeclash.utils.environment import assert_zero_exit_code
 
 load_dotenv()
 
@@ -30,7 +31,7 @@ class Player(ABC):
             "git add -A",
             f"git commit --allow-empty -m 'Round {self.round}/{rounds} Update'",
         ]:
-            self.environment.execute(cmd)
+            assert_zero_exit_code(self.environment.execute(cmd))
         print(f"Committed changes for {self.name} for round {self.round}/{rounds}")
 
     def push(self):
@@ -46,7 +47,7 @@ class Player(ABC):
             f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.name}.git",
             "git push -u origin main",
         ]:
-            self.environment.execute(cmd)
+            assert_zero_exit_code(self.environment.execute(cmd))
 
     @abstractmethod
     def run(self):
