@@ -1,5 +1,4 @@
-from typing import Any
-
+from codeclash.agents.abstract import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.abstract import CodeGame
 
@@ -12,7 +11,7 @@ class RobotRumbleGame(CodeGame):
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def determine_winner(self, agents: list[Any]):
+    def determine_winner(self, agents: list[Player]):
         response = self.environment.execute(f"tail -2 {self.round_log_path}")
         if "Blue won" in response["output"]:
             self.scoreboard.append((self.round, agents[0].name))
@@ -21,7 +20,7 @@ class RobotRumbleGame(CodeGame):
         elif "it was a tie" in response["output"]:
             self.scoreboard.append((self.round, RESULT_TIE))
 
-    def execute_round(self, agents: list[Any]):
+    def execute_round(self, agents: list[Player]):
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
         print(f"Running command: {cmd}")
