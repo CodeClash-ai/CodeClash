@@ -1,5 +1,6 @@
 import os
 import subprocess
+import traceback
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
@@ -10,7 +11,7 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
-from codeclash.games.utils import copy_between_containers
+from codeclash.games.utils import copy_between_containers, copy_file_from_container
 from codeclash.utils.environment import assert_zero_exit_code
 
 
@@ -121,13 +122,34 @@ class CodeGame(ABC):
 
     def _post_round_setup(self, agents: list[Player]):
         for agent in agents:
-            copy_between_containers(
-                self.environment,
-                agent.environment,
-                self.round_log_path,
-                f"{agent.environment.config.cwd}/logs/round_{self.round}.log",
-            )
-            print(f"Copied round log to {agent.name}'s container.")
+            try:
+                copy_between_containers(
+                    self.environment,
+                    agent.environment,
+                    self.round_log_path,
+                    f"{agent.environment.config.cwd}/logs/round_{self.round}.log",
+                )
+            except Exception:
+                print(
+                    f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
+                )
+            else:
+                print(f"Copied round log to {agent.name}'s container.")
+
+            try:
+                copy_file_from_container(
+                    self.environment,
+                    self.round_log_path,
+                    DIR_LOGS / f"{self.game_id}/round_{self.round}.log",
+                )
+            except Exception:
+                print(
+                    f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
+                )
+            else:
+                print(
+                    f"Copied round log from {agent.name}'s container to local log dir."
+                )
         print(f"Round {self.round} completed.")
 
     def run_round(self, agents: list[Player]):
