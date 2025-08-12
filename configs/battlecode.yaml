@@ -1,6 +1,8 @@
 game:
   name: BattleCode
   rounds: 2
+  args:
+    maps: quack
 players:
 - agent: dummy
   name: p1
