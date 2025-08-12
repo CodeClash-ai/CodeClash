@@ -67,7 +67,7 @@ class CodeGame(ABC):
                     subprocess.run(f"rm -rf {artifact}", shell=True)
             print(f"🧼 Cleaned up {self.name} game")
 
-    def get_environment(self) -> DockerEnvironment:
+    def get_environment(self, branch_name: str | None = None) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
         self.build_image()
         environment = DockerEnvironment(
@@ -76,15 +76,13 @@ class CodeGame(ABC):
             env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
         )
         # Reinitialize git
+        branch_name = self.game_id if branch_name is None else branch_name
         for cmd in [
-            "rm -rf .git/",
-            "git init",
-            "git branch -m main",
+            f"git branch {branch_name}",
+            f"git checkout {branch_name}",
             'git config --global user.email "player@codeclash.com"',
             'git config --global user.name "Player"',
             "git config --global commit.gpgsign false",
-            "git add -A",
-            "git commit -m 'init'",
         ]:
             out = environment.execute(cmd)
             if out.get("returncode", 0) != 0:
