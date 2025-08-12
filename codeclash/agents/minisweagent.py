@@ -8,12 +8,7 @@ from pathlib import Path
 import yaml
 from jinja2 import Template
 from minisweagent import Environment, Model
-from minisweagent.agents.default import (
-    AgentConfig,
-    DefaultAgent,
-    NonTerminatingException,
-    TerminatingException,
-)
+from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.models.litellm_model import LitellmModel
 from minisweagent.run.utils.save import save_traj
 from rich.console import Console
@@ -44,6 +39,13 @@ class ClashAgent(DefaultAgent):
         self.game = game
         self.console = Console()
 
+    def add_message(self, role: str, content: str, **kwargs):
+        super().add_message(role, content, **kwargs)
+        if role == "assistant":
+            self.console.print(
+                f"[{self.name}] Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})"
+            )
+
     def render_template(self, template: str, **kwargs) -> str:
         cs = (
             asdict(self.config)
@@ -59,27 +61,8 @@ class ClashAgent(DefaultAgent):
 
     def run(self) -> tuple[str, str]:
         """Run step() until agent is finished. Return exit status & message"""
-        self.messages = []
-        self.add_message("system", self.render_template(self.config.system_template))
-        self.add_message("user", self.render_template(self.config.instance_template))
-
-        # Start rich spinner
-        with self.console.status(
-            f"[bold green]{self.name} updating codebase..."
-        ) as status:
-            while True:
-                try:
-                    self.step()
-                except NonTerminatingException as e:
-                    self.add_message("user", str(e))
-                except TerminatingException as e:
-                    self.add_message("user", str(e))
-                    return type(e).__name__, str(e)
-
-    def has_finished(self, output: dict[str, str]):
-        """Raises Submitted exception with final output if the agent has finished its task."""
-        save_traj(self, Path(f"{self.name}_r{self.game.round}.traj.json"))  # type: ignore
-        super().has_finished(output)
+        with self.console.status(f"[bold green]{self.name} updating codebase..."):
+            return super().run(task="")
 
 
 class MiniSWEAgent(Player):
@@ -99,9 +82,20 @@ class MiniSWEAgent(Player):
         )
 
     def run(self):
+        exit_status = None
+        result = None
         try:
             exit_status, result = self.agent.run()
         except Exception as e:
-            result = str(e)
-            print(traceback.format_exc())
-        self.commit()
+            exit_status = str(e)
+            exc_message = traceback.format_exc()
+            result = exc_message
+            print(exc_message)
+        finally:
+            save_traj(
+                self.agent,  # type: ignore
+                Path(f"{self.name}_r{self.game.round}.traj.json"),
+                exit_status=exit_status,
+                result=result,
+            )
+            self.commit()
