@@ -16,17 +16,17 @@ class Player(ABC):
         self,
         config: dict,
         environment: Environment,
-        format_vars: dict,
+        template_vars: dict,
     ):
         self.config = config
-        self.name = f"{format_vars['game_id']}_{config['name']}"
+        self.name = f"{template_vars['game_id']}_{config['name']}"
         self.environment = environment
-        self.round = format_vars["round"]
-        self.format_vars = format_vars
+        self.round = template_vars["round"]
+        self.template_vars = template_vars
 
     def commit(self):
         """Commit changes to the agent's codebase."""
-        rounds = self.format_vars["rounds"]
+        rounds = self.template_vars["rounds"]
         for cmd in [
             "git add -A",
             f"git commit --allow-empty -m 'Round {self.round}/{rounds} Update'",
