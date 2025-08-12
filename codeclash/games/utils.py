@@ -76,3 +76,26 @@ def copy_file_to_container(
         raise RuntimeError(
             f"Failed to copy {src_path} to {container.container_id}:{dest_path}: {result.stdout}{result.stderr}"
         )
+
+
+def copy_file_from_container(
+    container: DockerEnvironment,
+    src_path: str | Path,
+    dest_path: str | Path,
+):
+    """
+    Copy a file from a Docker container to the local filesystem.
+    """
+    cmd = [
+        "docker",
+        "cp",
+        f"{container.container_id}:{src_path}",
+        str(dest_path),
+    ]
+    Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to copy {container.container_id}:{src_path} to {dest_path}: {result.stdout}{result.stderr}"
+        )
+    return result

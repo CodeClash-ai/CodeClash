@@ -15,6 +15,7 @@ from rich.console import Console
 
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import resolve_api_key
+from codeclash.constants import DIR_LOGS
 
 
 class ClashAgent(DefaultAgent):
@@ -88,9 +89,11 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
+            player_id = self.name.split("_")[-1]
             save_traj(
                 self.agent,  # type: ignore
-                Path(f"{self.name}_r{self.format_vars['round']}.traj.json"),
+                DIR_LOGS
+                / f"{self.format_vars['game_id']}/{player_id}_r{self.format_vars['round']}.traj.json",
                 exit_status=exit_status,
                 result=result,
             )
