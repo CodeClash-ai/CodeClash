@@ -78,7 +78,7 @@ class CodeGame(ABC):
             cwd=str(DIR_WORK),
             env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
         )
-        # Reinitialize git
+        # Ensure all future branches occur against branch
         branch_name = self.game_id if branch_name is None else branch_name
         for cmd in [
             f"git branch {branch_name}",

@@ -13,8 +13,8 @@ def get_agent(config: dict, game: CodeGame) -> Player:
         raise ValueError(f"Unknown agent type: {config['agent']}")
     environment = game.get_environment(f"{game.game_id}_{config['name']}")
     format_vars = {
+        "game_name": game.name,
         "game_id": game.game_id,
         "rounds": game.rounds,
-        "round": game.round,
     }
     return agents(config, environment, format_vars)
