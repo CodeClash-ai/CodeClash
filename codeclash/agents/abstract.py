@@ -42,7 +42,7 @@ class Player(ABC):
 
         for cmd in [
             f"git remote remove origin",
-            f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.format_vars['game_name']}.git",
+            f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.template_vars['game_name']}.git",
             f"git push origin {self.name}",
         ]:
             assert_zero_exit_code(self.environment.execute(cmd))
