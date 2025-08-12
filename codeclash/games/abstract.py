@@ -10,6 +10,7 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.games.utils import copy_between_containers
+from codeclash.utils.environment import assert_zero_exit_code
 
 
 class CodeGame(ABC):
@@ -86,10 +87,7 @@ class CodeGame(ABC):
             "git add -A",
             "git commit -m 'init'",
         ]:
-            out = environment.execute(cmd)
-            if out.get("returncode", 0) != 0:
-                msg = f"Failed to execute command: {cmd}. Output so far:\n{out.get('output')}"
-                raise RuntimeError(msg)
+            assert_zero_exit_code(environment.execute(cmd))
         return environment
 
     def _pre_round_setup(self, agents: list[Any]):
@@ -107,8 +105,8 @@ class CodeGame(ABC):
             )
 
         # Ensure the log path + file exists
-        self.environment.execute(f"mkdir -p {self.log_path}")
-        self.environment.execute(f"touch {self.round_log_path}")
+        assert_zero_exit_code(self.environment.execute(f"mkdir -p {self.log_path}"))
+        assert_zero_exit_code(self.environment.execute(f"touch {self.round_log_path}"))
 
     @abstractmethod
     def determine_winner(self, agents: list[Any]) -> Any:

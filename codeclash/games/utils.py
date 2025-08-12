@@ -4,6 +4,8 @@ from pathlib import Path
 
 from minisweagent.environments.docker import DockerEnvironment
 
+from codeclash.utils.environment import assert_zero_exit_code
+
 
 def copy_between_containers(
     src_container: DockerEnvironment,
@@ -33,7 +35,9 @@ def copy_between_containers(
             )
 
         # Ensure destination folder exists
-        dest_container.execute(f"mkdir -p {Path(dest_path).parent}")
+        assert_zero_exit_code(
+            dest_container.execute(f"mkdir -p {Path(dest_path).parent}")
+        )
 
         # Copy from temporary local directory to destination container
         cmd_dest = [

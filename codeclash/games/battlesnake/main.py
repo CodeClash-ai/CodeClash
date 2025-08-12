@@ -3,6 +3,7 @@ import time
 from typing import Any
 
 from codeclash.games.abstract import CodeGame
+from codeclash.utils.environment import assert_zero_exit_code
 
 
 class BattleSnakeGame(CodeGame):
@@ -19,7 +20,9 @@ class BattleSnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def determine_winner(self, agents: list[Any]):
-        response = self.environment.execute(f"tail -1 {self.round_log_path}")
+        response = assert_zero_exit_code(
+            self.environment.execute(f"tail -1 {self.round_log_path}")
+        )
         winner = json.loads(response["output"].strip("\n"))["winnerName"]
         self.scoreboard.append((self.round, winner))
 
@@ -39,12 +42,14 @@ class BattleSnakeGame(CodeGame):
         cmd = " ".join(cmd)
         print(f"Running command: {cmd}")
 
+        # todo: should probably keep output somewhere?
         try:
-            response = self.environment.execute(
-                f"{self.run_cmd_round} {cmd}",
-                cwd=f"{self.environment.config.cwd}/game",
+            assert_zero_exit_code(
+                self.environment.execute(
+                    f"{self.run_cmd_round} {cmd}",
+                    cwd=f"{self.environment.config.cwd}/game",
+                )
             )
-            assert response["returncode"] == 0, response
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")
