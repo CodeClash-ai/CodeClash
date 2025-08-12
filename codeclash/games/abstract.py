@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from minisweagent.environments.docker import DockerEnvironment
 
+from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.games.utils import copy_between_containers
 from codeclash.utils.environment import assert_zero_exit_code
@@ -90,7 +91,7 @@ class CodeGame(ABC):
             assert_zero_exit_code(environment.execute(cmd))
         return environment
 
-    def _pre_round_setup(self, agents: list[Any]):
+    def _pre_round_setup(self, agents: list[Player]):
         """Copy agent codebases into game's container and make round log file"""
         self.round += 1
         print(f"▶️ Running {self.name} round {self.round}...")
@@ -109,16 +110,16 @@ class CodeGame(ABC):
         assert_zero_exit_code(self.environment.execute(f"touch {self.round_log_path}"))
 
     @abstractmethod
-    def determine_winner(self, agents: list[Any]) -> Any:
+    def determine_winner(self, agents: list[Player]) -> Any:
         """Determine the winner of the game based on the round results, updates scoreboard"""
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[Any]):
+    def execute_round(self, agents: list[Player]):
         """Subclasses implement their game-specific logic here, must write results to round_log_path"""
         pass
 
-    def _post_round_setup(self, agents: list[Any]):
+    def _post_round_setup(self, agents: list[Player]):
         for agent in agents:
             copy_between_containers(
                 self.environment,
@@ -129,7 +130,7 @@ class CodeGame(ABC):
             print(f"Copied round log to {agent.name}'s container.")
         print(f"Round {self.round} completed.")
 
-    def run_round(self, agents: list[Any]):
+    def run_round(self, agents: list[Player]):
         """
         Run a single round of the game with the given agents.
 

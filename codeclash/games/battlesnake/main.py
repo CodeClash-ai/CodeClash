@@ -1,7 +1,7 @@
 import json
 import time
-from typing import Any
 
+from codeclash.agents.abstract import Player
 from codeclash.games.abstract import CodeGame
 from codeclash.utils.environment import assert_zero_exit_code
 
@@ -19,14 +19,14 @@ class BattleSnakeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def determine_winner(self, agents: list[Any]):
+    def determine_winner(self, agents: list[Player]):
         response = assert_zero_exit_code(
             self.environment.execute(f"tail -1 {self.round_log_path}")
         )
         winner = json.loads(response["output"].strip("\n"))["winnerName"]
         self.scoreboard.append((self.round, winner))
 
-    def execute_round(self, agents: list[Any]):
+    def execute_round(self, agents: list[Player]):
         cmd = []
         for idx, agent in enumerate(agents):
             port = 8001 + idx
