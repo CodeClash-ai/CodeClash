@@ -93,6 +93,10 @@ class CodeGame(ABC):
     def _pre_round_setup(self, agents: list[Player]):
         """Copy agent codebases into game's container and make round log file"""
         self.round += 1
+        # Notify agents of round update
+        for agent in agents:
+            if hasattr(agent, "on_round_update"):
+                agent.on_round_update(self.round)
         print(f"▶️ Running {self.name} round {self.round}...")
 
         # Copy agent codebases into game's container

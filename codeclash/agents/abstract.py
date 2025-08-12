@@ -21,7 +21,6 @@ class Player(ABC):
         self.name = f"{template_vars['game_id']}_{config['name']}"
         self.environment = environment
         self.template_vars = template_vars
-        self.round = 1  # TODO: This is disconnected from game.round right now
 
     def commit(self):
         """Commit changes to the agent's codebase."""
@@ -32,7 +31,10 @@ class Player(ABC):
         ]:
             assert_zero_exit_code(self.environment.execute(cmd))
         print(f"Committed changes for {self.name} for round {self.round}/{rounds}")
-        self.round += 1  # TODO: This is disconnected from game.round right now
+
+    def on_round_update(self, new_round: int):
+        """Update the agent's round to match the game round."""
+        self.round = new_round
 
     def push(self):
         """Push codebase to a branch on the game's remote repository."""

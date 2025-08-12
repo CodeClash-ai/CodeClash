@@ -93,7 +93,7 @@ class MiniSWEAgent(Player):
             save_traj(
                 self.agent,  # type: ignore
                 DIR_LOGS
-                / f"{self.template_vars['game_id']}/{player_id}_r{self.template_vars['round']}.traj.json",
+                / f"{self.template_vars['game_id']}/{player_id}_r{self.round}.traj.json",
                 exit_status=exit_status,
                 result=result,
             )
