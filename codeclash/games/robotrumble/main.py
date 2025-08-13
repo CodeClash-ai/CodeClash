@@ -23,6 +23,6 @@ class RobotRumbleGame(CodeGame):
     def execute_round(self, agents: list[Player]):
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
-        print(f"Running command: {cmd}")
+        self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

@@ -11,7 +11,7 @@ class RoboCodeGame(CodeGame):
     def __init__(self, config):
         super().__init__(config)
         self.run_cmd_round: str = "./robocode.sh"
-        for arg, val in config.get("args", {}).items():
+        for arg, val in self.config.get("args", {}).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" -{arg}"
@@ -84,6 +84,6 @@ robocode.battle.selectedRobots={selected_robots}
         cmd = (
             f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
         )
-        print(f"Running command: {cmd}")
+        self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

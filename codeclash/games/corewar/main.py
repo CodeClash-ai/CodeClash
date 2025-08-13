@@ -10,7 +10,7 @@ class CoreWarGame(CodeGame):
     def __init__(self, config):
         super().__init__(config)
         self.run_cmd_round: str = "./src/pmars"
-        for arg, val in config.get("args", {}).items():
+        for arg, val in self.config.get("args", {}).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" -{arg}"
@@ -31,6 +31,6 @@ class CoreWarGame(CodeGame):
     def execute_round(self, agents: list[Player]):
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
         cmd = f"{self.run_cmd_round} {' '.join(args)} > {self.round_log_path}"
-        print(f"Running command: {cmd}")
+        self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
