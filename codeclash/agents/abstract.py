@@ -35,7 +35,7 @@ class Player(ABC):
             "git add -A",
             f"git commit --allow-empty -m 'Round {self.round}/{rounds} Update'",
         ]:
-            assert_zero_exit_code(self.environment.execute(cmd))
+            assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
         self.logger.info(
             f"Committed changes for {self.name} for round {self.round}/{rounds}"
         )
@@ -56,8 +56,8 @@ class Player(ABC):
             f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.template_vars['game_name']}.git",
             f"git push origin {self.name}",
         ]:
-            assert_zero_exit_code(self.environment.execute(cmd))
-        print(
+            assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
+        self.logger.info(
             f"Pushed {self.name} commit history to remote repository (branch {self.name})"
         )
 
