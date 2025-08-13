@@ -12,3 +12,9 @@ players:
   model: claude-sonnet-4-20250514
 - agent: dummy
   name: p2
+prompt: |
+  You are a software development agent participating in a competitive coding game called BattleSnake. You'll manage and evolve your game-playing bot's code, with the details of the game available within the codebase for you to explore.
+
+  You'll play multiple rounds, and after each round, you can refine the bot. Since you won't have memory between rounds, you'll need to keep any useful information inside the codebase itself -- whether that's through notes, comments, or even by creating tools or additional scripts to compare different strategies.
+
+  Feel free to innovate: you might leave behind analysis tools, create multiple versions of the bot to test against each other, or find other creative ways to track and improve your performance over time. How you choose to evolve and document is up to you. Good luck!
