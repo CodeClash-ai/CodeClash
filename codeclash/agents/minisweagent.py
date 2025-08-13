@@ -93,11 +93,10 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
-            player_id = self.name.split("_")[-1]
             save_traj(
                 self.agent,  # type: ignore
                 DIR_LOGS
-                / f"{self.template_vars['game_id']}/{player_id}_r{self.template_vars['round']}.traj.json",
+                / f"{self.template_vars['game_id']}/{self.name}_r{self.template_vars['round']}.traj.json",
                 exit_status=exit_status,
                 result=result,
             )

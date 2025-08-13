@@ -19,7 +19,7 @@ class Player(ABC):
         template_vars: dict,
     ):
         self.config = config
-        self.name = f"{template_vars['game_id']}_{config['name']}"
+        self.name = config["name"]
         self.environment = environment
         self.template_vars = template_vars
         self.logger = get_logger(
@@ -27,6 +27,11 @@ class Player(ABC):
             log_path=DIR_LOGS / template_vars["game_id"] / f"{self.name}.log",
             emoji="👤",
         )
+
+    @property
+    def branch_name(self):
+        """Get the branch name for the agent's codebase."""
+        return f"{self.template_vars['game_id']}.{self.name}"
 
     def commit(self):
         """Commit changes to the agent's codebase."""
@@ -54,11 +59,11 @@ class Player(ABC):
         for cmd in [
             "git remote remove origin",
             f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.template_vars['game_name']}.git",
-            f"git push origin {self.name}",
+            f"git push origin {self.branch_name}",
         ]:
             assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
         self.logger.info(
-            f"Pushed {self.name} commit history to remote repository (branch {self.name})"
+            f"Pushed {self.name} commit history to remote repository (branch {self.branch_name})"
         )
 
     @abstractmethod

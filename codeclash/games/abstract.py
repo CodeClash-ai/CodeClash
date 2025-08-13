@@ -26,7 +26,7 @@ class CodeGame(ABC):
         self.config: dict = config["game"]
         self.rounds: int = self.config.get("rounds", 1)
         self.round: int = 0
-        self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M')}"
+        self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
         self.log_path: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
         self.logger = get_logger(
             self.name, log_path=DIR_LOGS / self.game_id / "game.log", emoji="🏓"

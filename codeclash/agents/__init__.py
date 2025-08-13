@@ -11,7 +11,9 @@ def get_agent(config: dict, game: CodeGame) -> Player:
     }.get(config["agent"])
     if agents is None:
         raise ValueError(f"Unknown agent type: {config['agent']}")
-    environment = game.get_environment(f"{game.game_id}_{config['name']}")
+    environment = game.get_environment(
+        f"{game.game_id}.{config['name']}"
+    )  # NOTE: MUST be branch_name (defined in agents/abstract.py)
     template_vars = {
         "game_name": game.name,
         "game_id": game.game_id,
