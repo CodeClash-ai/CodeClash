@@ -16,6 +16,7 @@ def get_agent(config: dict, game: CodeGame) -> Player:
         "game_name": game.name,
         "game_id": game.game_id,
         "rounds": game.rounds,
+        "round": 1,
         "player_id": config["name"],
         "game_description": game.config.get("description", ""),
     }

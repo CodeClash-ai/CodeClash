@@ -13,6 +13,7 @@ from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.games.utils import copy_between_containers, copy_file_from_container
 from codeclash.utils.environment import assert_zero_exit_code
+from codeclash.utils.log import get_logger
 
 
 class CodeGame(ABC):
@@ -27,6 +28,9 @@ class CodeGame(ABC):
         self.round: int = 0
         self.game_id: str = f"{self.name}{uuid4().hex[:6]}"
         self.log_path: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.logger = get_logger(
+            self.name, log_path=DIR_LOGS / self.game_id / "game.log", emoji="🏓"
+        )
         self.environment: DockerEnvironment = self.get_environment()
         assert len(config["players"]) >= 2, "At least two players are required"
 
@@ -57,18 +61,20 @@ class CodeGame(ABC):
             text=True,
         )
         if result.returncode == 0:
-            print(f"✅ Built Docker image {self.image_name}")
+            self.logger.info(f"✅ Built Docker image {self.image_name}")
         else:
-            print(f"❌ Failed to build Docker image: {result.stderr}")
+            self.logger.error(
+                f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}"
+            )
             raise
 
     def end(self, cleanup: bool = False):
-        print(Counter([x[1] for x in self.scoreboard]))
+        self.logger.info(Counter([x[1] for x in self.scoreboard]))
         if cleanup:
             for artifact in self.artifacts:
                 if artifact.exists():
                     subprocess.run(f"rm -rf {artifact}", shell=True)
-            print(f"🧼 Cleaned up {self.name} game")
+            self.logger.info(f"🧼 Cleaned up {self.name} game")
 
     def get_environment(self, branch_name: str | None = None) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
@@ -87,7 +93,7 @@ class CodeGame(ABC):
             'git config --global user.name "Player"',
             "git config --global commit.gpgsign false",
         ]:
-            assert_zero_exit_code(environment.execute(cmd))
+            assert_zero_exit_code(environment.execute(cmd), logger=self.logger)
         return environment
 
     def _pre_round_setup(self, agents: list[Player]):
@@ -97,10 +103,11 @@ class CodeGame(ABC):
         for agent in agents:
             if hasattr(agent, "on_round_update"):
                 agent.on_round_update(self.round)
-        print(f"▶️ Running {self.name} round {self.round}...")
+        self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 
         # Copy agent codebases into game's container
         for agent in agents:
+            self.logger.debug(f"Copying {agent.name}'s codebase")
             copy_between_containers(
                 src_container=agent.environment,
                 dest_container=self.environment,
@@ -109,8 +116,12 @@ class CodeGame(ABC):
             )
 
         # Ensure the log path + file exists
-        assert_zero_exit_code(self.environment.execute(f"mkdir -p {self.log_path}"))
-        assert_zero_exit_code(self.environment.execute(f"touch {self.round_log_path}"))
+        assert_zero_exit_code(
+            self.environment.execute(f"mkdir -p {self.log_path}"), logger=self.logger
+        )
+        assert_zero_exit_code(
+            self.environment.execute(f"touch {self.round_log_path}"), logger=self.logger
+        )
 
     @abstractmethod
     def determine_winner(self, agents: list[Player]) -> Any:
@@ -132,11 +143,11 @@ class CodeGame(ABC):
                     f"{agent.environment.config.cwd}/logs/round_{self.round}.log",
                 )
             except Exception:
-                print(
+                self.logger.error(
                     f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
                 )
             else:
-                print(f"Copied round log to {agent.name}'s container.")
+                self.logger.info(f"Copied round log to {agent.name}'s container.")
 
             try:
                 copy_file_from_container(
@@ -145,14 +156,14 @@ class CodeGame(ABC):
                     DIR_LOGS / f"{self.game_id}/round_{self.round}.log",
                 )
             except Exception:
-                print(
+                self.logger.error(
                     f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
                 )
             else:
-                print(
+                self.logger.info(
                     f"Copied round log from {agent.name}'s container to local log dir."
                 )
-        print(f"Round {self.round} completed.")
+        self.logger.info(f"Round {self.round} completed.")
 
     def run_round(self, agents: list[Player]):
         """
@@ -164,7 +175,7 @@ class CodeGame(ABC):
         self.execute_round(agents)
         self.determine_winner(agents)
         last_winner = self.scoreboard[-1][1]
-        print(f"Round {self.round} winner: {last_winner}")
+        self.logger.info(f"Round {self.round} winner: {last_winner}")
         self._post_round_setup(agents)
 
     @property

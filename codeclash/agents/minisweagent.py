@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import traceback
@@ -31,6 +32,7 @@ class ClashAgent(DefaultAgent):
         name: str,
         template_vars: dict,
         *,
+        logger: logging.Logger,
         config_class: Callable = AgentConfig,
         **kwargs,
     ):
@@ -38,12 +40,14 @@ class ClashAgent(DefaultAgent):
         self.name = name
         self.template_vars = template_vars
         self.console = Console()
+        self.logger = logger
 
     def add_message(self, role: str, content: str, **kwargs):
         super().add_message(role, content, **kwargs)
+        self.logger.debug(f"[{role}] {content}", extra={"highlighter": None})
         if role == "assistant":
-            self.console.print(
-                f"[{self.name}] Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})"
+            self.logger.info(
+                f"Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})"
             )
 
     def render_template(self, template: str, **kwargs) -> str:
@@ -58,8 +62,7 @@ class ClashAgent(DefaultAgent):
 
     def run(self) -> tuple[str, str]:
         """Run step() until agent is finished. Return exit status & message"""
-        with self.console.status(f"[bold green]{self.name} updating codebase..."):
-            return super().run(task="")
+        return super().run(task="")
 
 
 class MiniSWEAgent(Player):
@@ -75,6 +78,7 @@ class MiniSWEAgent(Player):
             self.environment,
             self.name,
             template_vars,
+            logger=self.logger,
             **yaml.safe_load(Path(config["config"]).read_text())["agent"],
         )
 
@@ -93,7 +97,7 @@ class MiniSWEAgent(Player):
             save_traj(
                 self.agent,  # type: ignore
                 DIR_LOGS
-                / f"{self.template_vars['game_id']}/{player_id}_r{self.round}.traj.json",
+                / f"{self.template_vars['game_id']}/{player_id}_r{self.template_vars['round']}.traj.json",
                 exit_status=exit_status,
                 result=result,
             )

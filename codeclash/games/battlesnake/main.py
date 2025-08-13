@@ -40,7 +40,7 @@ class BattleSnakeGame(CodeGame):
 
         cmd.append(f"-o {self.round_log_path}")
         cmd = " ".join(cmd)
-        print(f"Running command: {cmd}")
+        self.logger.info(f"Running command: {cmd}")
 
         # todo: should probably keep output somewhere?
         try:
