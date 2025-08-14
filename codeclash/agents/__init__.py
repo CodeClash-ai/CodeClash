@@ -21,6 +21,8 @@ def get_agent(config: dict, prompts: dict, game: CodeGame) -> Player:
         environment,
         GameContext(
             id=game.game_id,
+            log_env=game.log_env,
+            log_local=game.log_local,
             name=game.name,
             player_id=config["name"],
             prompts=prompts,
