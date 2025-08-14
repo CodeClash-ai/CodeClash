@@ -17,6 +17,28 @@ agent:
     Failure to follow these rules will cause your response to be rejected.
   instance_template: |
     {{game_description}}
+
+    The details of the game are fully available within this codebase.
+    - `docs/`: Game documentation
+    - `logs/`: Past rounds and outcomes
+    - `trajs/`: History of your edits
+    - and a lot more. It's up to you to explore and utilize these resources.
+
+    ⚠️ You won't remember past rounds.
+    So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
+    Good documentation means you (and others) can pick up right where you left off.
+
+    If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
+
+    Improve the bot however you like — experiment, document, iterate. Some ideas:
+    - Build analysis tools
+    - Create bot variants to test
+    - Track strategies across rounds
+    How you choose to evolve and document is up to you. Good luck!
+
+    <important>
+    When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
+    </important>
     ========================================================
     You can execute bash commands and edit files to implement the necessary changes.
 

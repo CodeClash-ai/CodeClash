@@ -13,30 +13,9 @@ prompts:
     You are a software developer ({{player_id}}) competing in a coding game called CoreWar.
     CoreWar is a programming battle where you write "warriors" in an assembly-like language called Redcode to compete within a virtual machine (MARS), aiming to eliminate your rivals by making their code self-terminate.
     Victory comes from crafting clever tactics—replicators, scanners, bombers—that exploit memory layout and instruction timing to control the core.
-    - Round: {{round}}/{{rounds}}
-    - Goal: Improve your bot, win the next round.
+
+    The game is played in {{rounds}} rounds. For every round, you (and your competitor) edit program code that controls your bot. This is round {{round}}.
+    After you and your competitor finish editing your codebases, the game is run automatically.
 
     Your task: improve the bot in `warriors/warrior.red`, located in {{working_dir}}.
     {{working_dir}} is your codebase, which contains both your bot and supporting assets.
-
-    The details of the game are fully available within this codebase.
-    - `docs/`: Game documentation
-    - `logs/`: Past rounds and outcomes
-    - `trajs/`: History of your edits
-    - and a lot more. It's up to you to explore and utilize these resources.
-
-    ⚠️ You won't remember past rounds.
-    So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
-    Good documentation means you (and others) can pick up right where you left off.
-
-    If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
-
-    Improve the bot however you like — experiment, document, iterate. Some ideas:
-    - Build analysis tools
-    - Create bot variants to test
-    - Track strategies across rounds
-    How you choose to evolve and document is up to you. Good luck!
-
-    <important>
-    When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
-    </important>
