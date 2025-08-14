@@ -15,8 +15,9 @@ from minisweagent.run.utils.save import save_traj
 from rich.console import Console
 
 from codeclash.agents.abstract import Player
-from codeclash.agents.utils import resolve_api_key
+from codeclash.agents.utils import GameContext, resolve_api_key
 from codeclash.constants import DIR_LOGS
+from codeclash.utils.environment import copy_file_to_container
 
 
 class ClashAgent(DefaultAgent):
@@ -30,7 +31,7 @@ class ClashAgent(DefaultAgent):
         model: Model,
         env: Environment,
         name: str,
-        template_vars: dict,
+        game_context: GameContext,
         *,
         logger: logging.Logger,
         config_class: Callable = AgentConfig,
@@ -38,7 +39,7 @@ class ClashAgent(DefaultAgent):
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.name = name
-        self.template_vars = template_vars
+        self.game_context = game_context
         self.console = Console()
         self.logger = logger
 
@@ -56,7 +57,7 @@ class ClashAgent(DefaultAgent):
             | asdict(self.env.config)
             | asdict(self.model.config)
             | platform.uname()._asdict()
-            | self.template_vars
+            | self.game_context.to_dict()
         )
         return Template(template).render(**kwargs, **cs, **os.environ)
 
@@ -68,8 +69,10 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, environment: Environment, template_vars: dict):
-        super().__init__(config, environment=environment, template_vars=template_vars)
+    def __init__(
+        self, config: dict, environment: Environment, game_context: GameContext
+    ):
+        super().__init__(config, environment=environment, game_context=game_context)
         self.agent = ClashAgent(
             LitellmModel(
                 model_name=config["model"],
@@ -77,7 +80,7 @@ class MiniSWEAgent(Player):
             ),
             self.environment,
             self.name,
-            template_vars,
+            game_context,
             logger=self.logger,
             **yaml.safe_load(Path(config["config"]).read_text())["agent"],
         )
@@ -93,11 +96,16 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
+            traj_path = (
+                DIR_LOGS
+                / self.game_context.id
+                / f"{self.name}_r{self.game_context.round}.traj.json"
+            )
             save_traj(
                 self.agent,  # type: ignore
-                DIR_LOGS
-                / f"{self.template_vars['game_id']}/{self.name}_r{self.template_vars['round']}.traj.json",
+                traj_path,
                 exit_status=exit_status,
                 result=result,
             )
+            copy_file_to_container(self.environment, traj_path, traj_path)
             self.commit()

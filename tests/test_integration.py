@@ -42,8 +42,8 @@ def test_main_battlesnake_integration():
         def mock_get_agent(original_get_agent):
             """Wrapper to replace agent models with DeterministicModel"""
 
-            def wrapper(agent_config, game):
-                agent = original_get_agent(agent_config, game)
+            def wrapper(config, prompts, game):
+                agent = original_get_agent(config, prompts, game)
                 print("In wrapper, got agent of type ", type(agent))
 
                 # Replace model if the agent has one (specifically for MiniSWEAgent)
