@@ -111,103 +111,7 @@ function initializeKeyboardShortcuts() {
     });
 }
 
-// Search functionality (basic)
-function initializeSearch() {
-    // Add search input to header if it doesn't exist
-    const controls = document.querySelector('.controls');
-    if (controls && !document.getElementById('search-input')) {
-        const searchGroup = document.createElement('div');
-        searchGroup.className = 'control-group';
 
-        const searchLabel = document.createElement('label');
-        searchLabel.setAttribute('for', 'search-input');
-        searchLabel.textContent = 'Search:';
-
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.id = 'search-input';
-        searchInput.placeholder = 'Search messages...';
-        searchInput.style.padding = '0.5rem';
-        searchInput.style.border = '1px solid var(--border-color)';
-        searchInput.style.borderRadius = '0.375rem';
-        searchInput.style.backgroundColor = 'var(--bg-primary)';
-        searchInput.style.color = 'var(--text-primary)';
-        searchInput.style.fontSize = '0.875rem';
-        searchInput.style.minWidth = '200px';
-
-        searchGroup.appendChild(searchLabel);
-        searchGroup.appendChild(searchInput);
-        controls.insertBefore(searchGroup, controls.lastElementChild);
-
-        // Add search functionality
-        let searchTimeout;
-        searchInput.addEventListener('input', function(e) {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                performSearch(e.target.value);
-            }, 300);
-        });
-    }
-}
-
-function performSearch(searchTerm) {
-    const messages = document.querySelectorAll('.message-content');
-    const highlights = document.querySelectorAll('.search-highlight');
-
-    // Clear previous highlights
-    highlights.forEach(highlight => {
-        const parent = highlight.parentNode;
-        parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
-        parent.normalize();
-    });
-
-    if (!searchTerm.trim()) {
-        return;
-    }
-
-    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-
-    messages.forEach(messageContent => {
-        const textNodes = getTextNodes(messageContent);
-        textNodes.forEach(node => {
-            if (regex.test(node.textContent)) {
-                const parent = node.parentNode;
-                const highlighted = node.textContent.replace(regex, '<mark class="search-highlight">$1</mark>');
-                const wrapper = document.createElement('span');
-                wrapper.innerHTML = highlighted;
-                parent.replaceChild(wrapper, node);
-
-                // Open the containing details if closed
-                let detailsParent = parent.closest('details');
-                while (detailsParent) {
-                    detailsParent.setAttribute('open', '');
-                    detailsParent = detailsParent.parentElement.closest('details');
-                }
-            }
-        });
-    });
-}
-
-function getTextNodes(element) {
-    const textNodes = [];
-    const walker = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-
-    let node;
-    while (node = walker.nextNode()) {
-        textNodes.push(node);
-    }
-
-    return textNodes;
-}
-
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 // Code highlighting (basic syntax highlighting)
 function initializeCodeHighlighting() {
@@ -274,39 +178,44 @@ function initializePerformanceMonitoring() {
 }
 
 // Message expand/collapse functionality
-function toggleMessageExpand(clickedElement) {
+function expandMessage(clickedElement) {
     const messageContent = clickedElement.closest('.message-content');
     const previewShort = messageContent.querySelector('.message-preview-short');
     const contentFull = messageContent.querySelector('.message-content-full');
     const contentExpanded = messageContent.querySelector('.message-content-expanded');
 
-    if (clickedElement.classList.contains('message-preview-short')) {
-        // Expanding - hide preview, show full content
-        if (previewShort) previewShort.style.display = 'none';
-        if (contentFull) contentFull.style.display = 'block';
-        if (contentExpanded) contentExpanded.style.display = 'block';
+    // Expanding - hide preview, show full content
+    if (previewShort) previewShort.style.display = 'none';
+    if (contentFull) contentFull.style.display = 'block';
+    if (contentExpanded) contentExpanded.style.display = 'block';
 
-        // Smooth scroll to keep the content in view
-        setTimeout(() => {
-            messageContent.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            });
-        }, 100);
-    } else if (clickedElement.classList.contains('message-content-full') || clickedElement.classList.contains('message-content-expanded')) {
-        // Collapsing - show preview, hide full content
-        if (contentFull) contentFull.style.display = 'none';
-        if (contentExpanded) contentExpanded.style.display = 'none';
-        if (previewShort) previewShort.style.display = 'block';
+    // Smooth scroll to keep the content in view
+    setTimeout(() => {
+        messageContent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
+    }, 100);
+}
 
-        // Smooth scroll to keep the content in view
-        setTimeout(() => {
-            messageContent.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            });
-        }, 100);
-    }
+function collapseMessage(clickedElement) {
+    const messageContent = clickedElement.closest('.message-content');
+    const previewShort = messageContent.querySelector('.message-preview-short');
+    const contentFull = messageContent.querySelector('.message-content-full');
+    const contentExpanded = messageContent.querySelector('.message-content-expanded');
+
+    // Collapsing - show preview, hide full content
+    if (contentFull) contentFull.style.display = 'none';
+    if (contentExpanded) contentExpanded.style.display = 'none';
+    if (previewShort) previewShort.style.display = 'block';
+
+    // Smooth scroll to keep the content in view
+    setTimeout(() => {
+        messageContent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
+    }, 100);
 }
 
 
@@ -316,7 +225,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTheme();
     initializeFoldouts();
     initializeKeyboardShortcuts();
-    initializeSearch();
     initializeCodeHighlighting();
     initializePerformanceMonitoring();
 
