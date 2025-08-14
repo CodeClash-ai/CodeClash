@@ -139,8 +139,9 @@ app.jinja_env.filters["nl2br"] = nl2br
 @app.route("/")
 def index():
     """Main viewer page"""
-    # Get available log directories
-    logs_dir = Path("logs")
+    # Get available log directories (relative to project root)
+    project_root = Path(__file__).parent.parent.parent
+    logs_dir = project_root / "logs"
     log_folders = []
     if logs_dir.exists():
         log_folders = [d.name for d in logs_dir.iterdir() if d.is_dir()]
@@ -182,7 +183,8 @@ def trajectory_detail(player_id: int, round_num: int):
     if not selected_folder:
         return jsonify({"error": "No folder specified"})
 
-    logs_dir = Path("logs")
+    project_root = Path(__file__).parent.parent.parent
+    logs_dir = project_root / "logs"
     parser = LogParser(logs_dir / selected_folder)
     trajectory = parser.parse_trajectory(player_id, round_num)
 
@@ -192,5 +194,4 @@ def trajectory_detail(player_id: int, round_num: int):
     return render_template("trajectory.html", trajectory=trajectory)
 
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+# Use run_viewer.py to launch the application
