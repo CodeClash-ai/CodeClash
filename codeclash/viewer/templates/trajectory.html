@@ -51,7 +51,7 @@
                         </div>
                     {% else %}
                     <!-- Show preview with expand button -->
-                    <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                    <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                             <div class="message-text">
                                 <pre>{{ content_lines[:5] | join('\n') }}</pre>
                             </div>
@@ -59,7 +59,7 @@
                                 ▼ {{ content_lines|length - 5 }} more lines
                             </div>
                     </div>
-                    <div class="message-content-full clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
+                    <div class="message-content-full" style="display: none;" title="Content expanded - click collapse button below to hide">
                             {% if message.role == 'assistant' and '```' in message.content %}
                                 <!-- Special handling for assistant messages with code blocks -->
                                 {% set parts = message.content.split('```') %}
@@ -80,7 +80,7 @@
                                     <pre>{{ message.content }}</pre>
                                 </div>
                             {% endif %}
-                            <div class="collapse-indicator">
+                            <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
                                 ▲ Click to collapse
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                                         <pre>{{ content_part.text }}</pre>
                                     </div>
                                 {% else %}
-                                    <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                    <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                                         <div class="message-text">
                                             <pre>{{ content_lines[:5] | join('\n') }}</pre>
                                         </div>
@@ -104,11 +104,11 @@
                                             ▼ {{ content_lines|length - 5 }} more lines
                                         </div>
                                     </div>
-                                    <div class="message-content-expanded clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
+                                    <div class="message-content-expanded" style="display: none;" title="Content expanded - click collapse button below to hide">
                                         <div class="message-text">
                                             <pre>{{ content_part.text }}</pre>
                                         </div>
-                                        <div class="collapse-indicator">
+                                        <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
                                             ▲ Click to collapse
                                         </div>
                                     </div>
