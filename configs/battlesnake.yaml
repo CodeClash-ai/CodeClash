@@ -15,12 +15,13 @@ players:
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.
-    Your bot (`main.py`) controls a snake on a grid-based board. Snakes collect food, avoid collisions, and try to outlast their opponents.
-    - Round: {{round}} / {{rounds}}
-    - Opponents: {{player_ids}}
-    - Goal: Win the next round.
+    Your bot (`main.py`) controls a snake on a grid-based board.
+    Snakes collect food, avoid collisions, and try to outlast their opponents.
+    - Round: {{round}}/{{rounds}}
+    - Goal: Improve your bot, win the next round.
 
-    Your task: improve the bot in `main.py`, located in {{working_dir}}, the codebase containing both your bot and supporting assets.
+    Your task: improve the bot in `main.py`, located in {{working_dir}}.
+    {{working_dir}} is your codebase, which contains both your bot and supporting assets.
 
     The details of the game are fully available within this codebase.
     - `docs/`: Game documentation

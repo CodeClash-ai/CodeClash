@@ -2,6 +2,7 @@ from codeclash.agents.abstract import Player
 from codeclash.agents.dummy import Dummy
 from codeclash.agents.minisweagent import MiniSWEAgent
 from codeclash.agents.utils import GameContext
+from codeclash.constants import DIR_WORK
 from codeclash.games.abstract import CodeGame
 
 
@@ -21,11 +22,10 @@ def get_agent(config: dict, prompts: dict, game: CodeGame) -> Player:
         GameContext(
             id=game.game_id,
             name=game.name,
-            num_players=len(game.config["players"]),
-            player_ids=[p["name"] for p in game.config["players"]],
             player_id=config["name"],
             prompts=prompts,
             round=1,
             rounds=game.rounds,
+            working_dir=str(DIR_WORK),
         ),
     )

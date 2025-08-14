@@ -31,6 +31,7 @@ class GameContext:
     prompts: dict
     round: int
     rounds: int
+    working_dir: str
 
     def render_and_set_prompts(self):
         """Render and set prompts using the current game context."""
