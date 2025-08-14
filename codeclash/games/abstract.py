@@ -60,7 +60,10 @@ class CodeGame(ABC):
 
         # Build the Docker image
         result = subprocess.run(
-            f"docker build -t {self.image_name} -f docker/{self.name}.Dockerfile .",
+            (
+                "export $(cat .env | xargs);"
+                f"docker build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f docker/{self.name}.Dockerfile ."
+            ),
             shell=True,
             capture_output=True,
             text=True,
@@ -71,7 +74,7 @@ class CodeGame(ABC):
             self.logger.error(
                 f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}"
             )
-            raise
+            raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
     def end(self, cleanup: bool = False):
         self.logger.info(Counter([x[1] for x in self.scoreboard]))

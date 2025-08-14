@@ -11,6 +11,10 @@ ant \
 unzip \
 && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/emagedoc/RoboCode.git testbed
+ARG GITHUB_TOKEN
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/RoboCode.git /testbed \
+    && cd /testbed \
+    && git remote set-url origin https://github.com/emagedoc/RoboCode.git \
+    && unset GITHUB_TOKEN
 
 WORKDIR /testbed

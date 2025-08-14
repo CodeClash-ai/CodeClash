@@ -9,6 +9,10 @@ RUN apt-get update \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
  && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/emagedoc/RobotRumble.git /testbed
+ARG GITHUB_TOKEN
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/RobotRumble.git /testbed \
+    && cd /testbed \
+    && git remote set-url origin https://github.com/emagedoc/RobotRumble.git \
+    && unset GITHUB_TOKEN
 
 WORKDIR /testbed

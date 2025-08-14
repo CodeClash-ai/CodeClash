@@ -18,7 +18,12 @@ RUN ARCH=$(dpkg --print-architecture) && \
     tar -C /usr/local -xzf /tmp/go.tar.gz && \
     rm /tmp/go.tar.gz
 
-RUN git clone https://github.com/emagedoc/BattleSnake.git /testbed
+# Inject GitHub token for private repo access
+ARG GITHUB_TOKEN
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/BattleSnake.git /testbed \
+    && cd /testbed \
+    && git remote set-url origin https://github.com/emagedoc/BattleSnake.git \
+    && unset GITHUB_TOKEN
 
 WORKDIR /testbed
 

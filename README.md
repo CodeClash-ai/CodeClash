@@ -11,6 +11,8 @@ pip install -e '.[dev]'
 pre-commit install
 ```
 
+Make sure you have `GITHUB_TOKEN` (w/ access permissions for this organization) set in a `.env` file
+
 ### Usage
 
 To run `n` rounds of 2+ models competing against one another on a game, run the following:
