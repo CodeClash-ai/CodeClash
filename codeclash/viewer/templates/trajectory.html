@@ -21,14 +21,13 @@
 <div class="messages-container">
     {% for message in trajectory.messages %}
     <div class="message-block {{ message.role }}">
-        <div class="message-header">
-            <span class="message-role-inline">{{ message.role.title() }} #{{ loop.index }}</span>
-            <div class="message-preview">
-                {% if message.content is string %}
-                    {% set content_lines = message.content.split('\n') %}
-                    {% if content_lines|length <= 5 %}
-                        <!-- Show full content if 5 lines or less -->
-                        <div class="message-content-full">
+        <span class="message-role-badge">{{ message.role.title() }} #{{ loop.index }}</span>
+        <div class="message-content">
+            {% if message.content is string %}
+                {% set content_lines = message.content.split('\n') %}
+                {% if content_lines|length <= 5 %}
+                    <!-- Show full content if 5 lines or less -->
+                    <div class="message-content-full">
                             {% if message.role == 'assistant' and '```' in message.content %}
                                 <!-- Special handling for assistant messages with code blocks -->
                                 {% set parts = message.content.split('```') %}
@@ -51,16 +50,16 @@
                             {% endif %}
                         </div>
                     {% else %}
-                        <!-- Show preview with expand button -->
-                        <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                    <!-- Show preview with expand button -->
+                    <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                             <div class="message-text">
                                 <pre>{{ content_lines[:5] | join('\n') }}</pre>
                             </div>
                             <div class="expand-indicator">
                                 ▼ {{ content_lines|length - 5 }} more lines
                             </div>
-                        </div>
-                        <div class="message-content-full clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
+                    </div>
+                    <div class="message-content-full clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
                             {% if message.role == 'assistant' and '```' in message.content %}
                                 <!-- Special handling for assistant messages with code blocks -->
                                 {% set parts = message.content.split('```') %}
@@ -129,8 +128,7 @@
                             <pre>{{ message.content | tojson(indent=2) }}</pre>
                         </div>
                     </div>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

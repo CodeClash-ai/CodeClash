@@ -275,10 +275,10 @@ function initializePerformanceMonitoring() {
 
 // Message expand/collapse functionality
 function toggleMessageExpand(clickedElement) {
-    const messageHeader = clickedElement.closest('.message-header');
-    const previewShort = messageHeader.querySelector('.message-preview-short');
-    const contentFull = messageHeader.querySelector('.message-content-full');
-    const contentExpanded = messageHeader.querySelector('.message-content-expanded');
+    const messageContent = clickedElement.closest('.message-content');
+    const previewShort = messageContent.querySelector('.message-preview-short');
+    const contentFull = messageContent.querySelector('.message-content-full');
+    const contentExpanded = messageContent.querySelector('.message-content-expanded');
 
     if (clickedElement.classList.contains('message-preview-short')) {
         // Expanding - hide preview, show full content
@@ -288,7 +288,7 @@ function toggleMessageExpand(clickedElement) {
 
         // Smooth scroll to keep the content in view
         setTimeout(() => {
-            messageHeader.scrollIntoView({
+            messageContent.scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest'
             });
@@ -299,9 +299,9 @@ function toggleMessageExpand(clickedElement) {
         if (contentExpanded) contentExpanded.style.display = 'none';
         if (previewShort) previewShort.style.display = 'block';
 
-        // Smooth scroll to keep the header in view
+        // Smooth scroll to keep the content in view
         setTimeout(() => {
-            messageHeader.scrollIntoView({
+            messageContent.scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest'
             });
