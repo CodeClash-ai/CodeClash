@@ -2,7 +2,7 @@ import subprocess
 
 from codeclash.agents.abstract import Player
 from codeclash.games.abstract import CodeGame
-from codeclash.games.utils import copy_file_to_container
+from codeclash.utils.environment import copy_file_to_container
 
 
 class RoboCodeGame(CodeGame):

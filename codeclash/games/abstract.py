@@ -11,8 +11,11 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
-from codeclash.games.utils import copy_between_containers, copy_file_from_container
-from codeclash.utils.environment import assert_zero_exit_code
+from codeclash.utils.environment import (
+    assert_zero_exit_code,
+    copy_between_containers,
+    copy_file_from_container,
+)
 from codeclash.utils.log import get_logger
 
 
