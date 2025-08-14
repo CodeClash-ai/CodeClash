@@ -17,6 +17,7 @@ from rich.console import Console
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext, resolve_api_key
 from codeclash.constants import DIR_LOGS
+from codeclash.utils.environment import copy_file_to_container
 
 
 class ClashAgent(DefaultAgent):
@@ -95,11 +96,16 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
+            traj_path = (
+                DIR_LOGS
+                / self.game_context.id
+                / f"{self.name}_r{self.game_context.round}.traj.json"
+            )
             save_traj(
                 self.agent,  # type: ignore
-                DIR_LOGS
-                / f"{self.game_context.id}/{self.name}_r{self.game_context.round}.traj.json",
+                traj_path,
                 exit_status=exit_status,
                 result=result,
             )
+            copy_file_to_container(self.environment, traj_path, traj_path)
             self.commit()
