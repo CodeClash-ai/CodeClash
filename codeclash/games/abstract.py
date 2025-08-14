@@ -1,3 +1,4 @@
+import getpass
 import os
 import subprocess
 import time
@@ -30,9 +31,10 @@ class CodeGame(ABC):
         self.rounds: int = self.config.get("rounds", 1)
         self.round: int = 0
         self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
-        self.log_path: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
+        self.log_local: Path = (DIR_LOGS / getpass.getuser() / self.game_id).resolve()
         self.logger = get_logger(
-            self.name, log_path=DIR_LOGS / self.game_id / "game.log", emoji="🏓"
+            self.name, log_path=self.log_local / "game.log", emoji="🏓"
         )
         self.environment: DockerEnvironment = self.get_environment()
         assert len(config["players"]) >= 2, "At least two players are required"
@@ -120,7 +122,8 @@ class CodeGame(ABC):
 
         # Ensure the log path + file exists
         assert_zero_exit_code(
-            self.environment.execute(f"mkdir -p {self.log_path}"), logger=self.logger
+            self.environment.execute(f"mkdir -p {self.log_env}"),
+            logger=self.logger,
         )
         assert_zero_exit_code(
             self.environment.execute(f"touch {self.round_log_path}"), logger=self.logger
@@ -156,7 +159,7 @@ class CodeGame(ABC):
                 copy_file_from_container(
                     self.environment,
                     self.round_log_path,
-                    DIR_LOGS / f"{self.game_id}/round_{self.round}.log",
+                    self.log_local / self.round_log_path.name,
                 )
             except Exception:
                 self.logger.error(
@@ -186,4 +189,4 @@ class CodeGame(ABC):
         """
         Get the path to the current round's log file.
         """
-        return self.log_path / f"round_{self.round}.log"
+        return self.log_env / f"round_{self.round}.log"

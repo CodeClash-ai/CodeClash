@@ -1,5 +1,6 @@
 import os
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 from jinja2 import Template
@@ -26,6 +27,8 @@ class GameContext:
     """
 
     id: str
+    log_env: Path
+    log_local: Path
     name: str
     player_id: str
     prompts: dict

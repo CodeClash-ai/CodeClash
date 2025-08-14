@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from minisweagent import Environment
 
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_LOGS, GH_ORG
+from codeclash.constants import GH_ORG
 from codeclash.utils.environment import assert_zero_exit_code
 from codeclash.utils.log import get_logger
 
@@ -26,7 +26,7 @@ class Player(ABC):
         self.game_context.render_and_set_prompts()
         self.logger = get_logger(
             self.name,
-            log_path=DIR_LOGS / game_context.id / f"{self.name}.log",
+            log_path=self.game_context.log_local / f"{self.name}.log",
             emoji="👤",
         )
 
