@@ -16,27 +16,9 @@ agent:
 
     Failure to follow these rules will cause your response to be rejected.
   instance_template: |
-    You are currently writing a bot to play a game called BattleSnake.
-    - The game is currently on round {{round}} of {{rounds}}.
-    - The logs and information about past games are in the `logs/` directory.
-
-    Your goal is to write a bot that beats the other players.
-    Your bot must be written and represented entirely by the `main.py` file.
-    Any other files or directories will not be included.
-
+    {{game_description}}
+    ========================================================
     You can execute bash commands and edit files to implement the necessary changes.
-
-    ## Recommended Workflow
-
-    This workflows should be done step-by-step so that you can iterate on your changes and Any possible problems.
-
-    1. Analyze the codebase by finding and reading relevant files
-    2. Create a script to reproduce the issue
-    3. Edit the source code to resolve the issue
-    4. Verify your fix works by running your script again
-    5. Test edge cases to ensure your fix is robust
-    6. Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
-       Do not combine it with Any other command. <important>After this command, you cannot continue working on this task.</important>
 
     ## Important Rules
 

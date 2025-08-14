@@ -8,13 +8,38 @@ game:
 players:
 - agent: mini
   name: p1
-  config: configs/mini/battlesnake.yaml
+  config: configs/mini/default.yaml
   model: claude-sonnet-4-20250514
 - agent: dummy
   name: p2
-prompt: |
-  You are a software development agent participating in a competitive coding game called BattleSnake. You'll manage and evolve your game-playing bot's code, with the details of the game available within the codebase for you to explore.
+prompts:
+  game_description: |
+    You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.
+    Your bot (`main.py`) controls a snake on a grid-based board. Snakes collect food, avoid collisions, and try to outlast their opponents.
+    - Round: {{round}} / {{rounds}}
+    - Opponents: {{player_ids}}
+    - Goal: Win the next round.
 
-  You'll play multiple rounds, and after each round, you can refine the bot. Since you won't have memory between rounds, you'll need to keep any useful information inside the codebase itself -- whether that's through notes, comments, or even by creating tools or additional scripts to compare different strategies.
+    Your task: improve the bot in `main.py`, located in {{working_dir}}, the codebase containing both your bot and supporting assets.
 
-  Feel free to innovate: you might leave behind analysis tools, create multiple versions of the bot to test against each other, or find other creative ways to track and improve your performance over time. How you choose to evolve and document is up to you. Good luck!
+    The details of the game are fully available within this codebase.
+    - `docs/`: Game documentation
+    - `logs/`: Past rounds and outcomes
+    - `trajs/`: History of your edits
+    - and a lot more. It's up to you to explore and utilize these resources.
+
+    ⚠️ You won't remember past rounds.
+    So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
+    Good documentation means you (and others) can pick up right where you left off.
+
+    If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
+
+    Improve the bot however you like — experiment, document, iterate. Some ideas:
+    - Build analysis tools
+    - Create bot variants to test
+    - Track strategies across rounds
+    How you choose to evolve and document is up to you. Good luck!
+
+    <important>
+    When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
+    </important>

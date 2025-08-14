@@ -13,8 +13,8 @@ def main(config_path: str, cleanup: bool = False, push_agent: bool = False):
         config = yaml.safe_load(f)
     game: CodeGame = get_game(config)
     agents: list[Player] = []
-    for agent in config["players"]:
-        agents.append(get_agent(agent, game))
+    for agent_conf in config["players"]:
+        agents.append(get_agent(agent_conf, config["prompts"], game))
 
     try:
         for _ in range(game.rounds):

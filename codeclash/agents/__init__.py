@@ -1,10 +1,11 @@
 from codeclash.agents.abstract import Player
 from codeclash.agents.dummy import Dummy
 from codeclash.agents.minisweagent import MiniSWEAgent
+from codeclash.agents.utils import GameContext
 from codeclash.games.abstract import CodeGame
 
 
-def get_agent(config: dict, game: CodeGame) -> Player:
+def get_agent(config: dict, prompts: dict, game: CodeGame) -> Player:
     agents = {
         "dummy": Dummy,
         "mini": MiniSWEAgent,
@@ -14,12 +15,17 @@ def get_agent(config: dict, game: CodeGame) -> Player:
     environment = game.get_environment(
         f"{game.game_id}.{config['name']}"
     )  # NOTE: MUST be branch_name (defined in agents/abstract.py)
-    template_vars = {
-        "game_name": game.name,
-        "game_id": game.game_id,
-        "rounds": game.rounds,
-        "round": 1,
-        "player_id": config["name"],
-        "game_description": game.config.get("description", ""),
-    }
-    return agents(config, environment, template_vars)
+    return agents(
+        config,
+        environment,
+        GameContext(
+            id=game.game_id,
+            name=game.name,
+            num_players=len(game.config["players"]),
+            player_ids=[p["name"] for p in game.config["players"]],
+            player_id=config["name"],
+            prompts=prompts,
+            round=1,
+            rounds=game.rounds,
+        ),
+    )
