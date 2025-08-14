@@ -106,6 +106,8 @@ function initializeKeyboardShortcuts() {
                 details.removeAttribute('open');
             });
         }
+
+
     });
 }
 
@@ -270,6 +272,44 @@ function initializePerformanceMonitoring() {
         console.log(`Rendered ${messageCount} messages and ${foldoutCount} foldouts`);
     });
 }
+
+// Message expand/collapse functionality
+function toggleMessageExpand(clickedElement) {
+    const messageHeader = clickedElement.closest('.message-header');
+    const previewShort = messageHeader.querySelector('.message-preview-short');
+    const contentFull = messageHeader.querySelector('.message-content-full');
+    const contentExpanded = messageHeader.querySelector('.message-content-expanded');
+
+    if (clickedElement.classList.contains('message-preview-short')) {
+        // Expanding - hide preview, show full content
+        if (previewShort) previewShort.style.display = 'none';
+        if (contentFull) contentFull.style.display = 'block';
+        if (contentExpanded) contentExpanded.style.display = 'block';
+
+        // Smooth scroll to keep the content in view
+        setTimeout(() => {
+            messageHeader.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }, 100);
+    } else if (clickedElement.classList.contains('message-content-full') || clickedElement.classList.contains('message-content-expanded')) {
+        // Collapsing - show preview, hide full content
+        if (contentFull) contentFull.style.display = 'none';
+        if (contentExpanded) contentExpanded.style.display = 'none';
+        if (previewShort) previewShort.style.display = 'block';
+
+        // Smooth scroll to keep the header in view
+        setTimeout(() => {
+            messageHeader.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }, 100);
+    }
+}
+
+
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {

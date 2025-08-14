@@ -22,75 +22,116 @@
     {% for message in trajectory.messages %}
     <div class="message-block {{ message.role }}">
         <div class="message-header">
-            <span class="message-role">{{ message.role.title() }}</span>
-            <span class="message-index">#{{ loop.index }}</span>
-        </div>
-
-        <details class="message-content-foldout" {% if loop.index <= 2 %}open{% endif %}>
-            <summary class="message-summary">
-                {% if message.role == 'system' %}
-                    System instructions...
-                {% elif message.role == 'user' %}
-                    {% if message.content is string %}
-                        {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
-                    {% else %}
-                        User input with {{ message.content|length }} parts
-                    {% endif %}
-                {% elif message.role == 'assistant' %}
-                    {% if 'THOUGHT:' in message.content %}
-                        {{ message.content.split('THOUGHT:')[1].split('```')[0][:100] }}...
-                    {% else %}
-                        {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
-                    {% endif %}
-                {% else %}
-                    {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
-                {% endif %}
-            </summary>
-
-            <div class="message-content">
+            <span class="message-role-inline">{{ message.role.title() }} #{{ loop.index }}</span>
+            <div class="message-preview">
                 {% if message.content is string %}
-                    {% if message.role == 'assistant' and '```' in message.content %}
-                        <!-- Special handling for assistant messages with code blocks -->
-                        {% set parts = message.content.split('```') %}
-                        {% for part in parts %}
-                            {% if loop.index is odd %}
-                                <!-- Text part -->
-                                <div class="message-text">{{ part | nl2br | safe }}</div>
+                    {% set content_lines = message.content.split('\n') %}
+                    {% if content_lines|length <= 5 %}
+                        <!-- Show full content if 5 lines or less -->
+                        <div class="message-content-full">
+                            {% if message.role == 'assistant' and '```' in message.content %}
+                                <!-- Special handling for assistant messages with code blocks -->
+                                {% set parts = message.content.split('```') %}
+                                {% for part in parts %}
+                                    {% if loop.index is odd %}
+                                        <!-- Text part -->
+                                        <div class="message-text"><pre>{{ part }}</pre></div>
+                                    {% else %}
+                                        <!-- Code part -->
+                                        <div class="code-block">
+                                            <pre><code>{{ part }}</code></pre>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
                             {% else %}
-                                <!-- Code part -->
-                                <div class="code-block">
-                                    <pre><code>{{ part }}</code></pre>
+                                <!-- Regular text content -->
+                                <div class="message-text">
+                                    <pre>{{ message.content }}</pre>
                                 </div>
                             {% endif %}
-                        {% endfor %}
+                        </div>
                     {% else %}
-                        <!-- Regular text content -->
-                        <div class="message-text">
-                            <pre>{{ message.content }}</pre>
+                        <!-- Show preview with expand button -->
+                        <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                            <div class="message-text">
+                                <pre>{{ content_lines[:5] | join('\n') }}</pre>
+                            </div>
+                            <div class="expand-indicator">
+                                ▼ {{ content_lines|length - 5 }} more lines
+                            </div>
+                        </div>
+                        <div class="message-content-full clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
+                            {% if message.role == 'assistant' and '```' in message.content %}
+                                <!-- Special handling for assistant messages with code blocks -->
+                                {% set parts = message.content.split('```') %}
+                                {% for part in parts %}
+                                    {% if loop.index is odd %}
+                                        <!-- Text part -->
+                                        <div class="message-text"><pre>{{ part }}</pre></div>
+                                    {% else %}
+                                        <!-- Code part -->
+                                        <div class="code-block">
+                                            <pre><code>{{ part }}</code></pre>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <!-- Regular text content -->
+                                <div class="message-text">
+                                    <pre>{{ message.content }}</pre>
+                                </div>
+                            {% endif %}
+                            <div class="collapse-indicator">
+                                ▲ Click to collapse
+                            </div>
                         </div>
                     {% endif %}
                 {% elif message.content is iterable %}
                     <!-- Handle complex content (e.g., user messages with multiple parts) -->
-                    {% for content_part in message.content %}
-                        {% if content_part.type == 'text' %}
-                            <div class="message-text">
-                                <pre>{{ content_part.text }}</pre>
-                            </div>
-                        {% else %}
-                            <div class="message-part">
-                                <strong>{{ content_part.type.title() }}:</strong>
-                                <pre>{{ content_part | tojson(indent=2) }}</pre>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
+                    <div class="message-content-full">
+                        {% for content_part in message.content %}
+                            {% if content_part.type == 'text' %}
+                                {% set content_lines = content_part.text.split('\n') %}
+                                {% if content_lines|length <= 5 %}
+                                    <div class="message-text">
+                                        <pre>{{ content_part.text }}</pre>
+                                    </div>
+                                {% else %}
+                                    <div class="message-preview-short clickable-message" onclick="toggleMessageExpand(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                        <div class="message-text">
+                                            <pre>{{ content_lines[:5] | join('\n') }}</pre>
+                                        </div>
+                                        <div class="expand-indicator">
+                                            ▼ {{ content_lines|length - 5 }} more lines
+                                        </div>
+                                    </div>
+                                    <div class="message-content-expanded clickable-message" style="display: none;" onclick="toggleMessageExpand(this)" title="Click to collapse">
+                                        <div class="message-text">
+                                            <pre>{{ content_part.text }}</pre>
+                                        </div>
+                                        <div class="collapse-indicator">
+                                            ▲ Click to collapse
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="message-part">
+                                    <strong>{{ content_part.type.title() }}:</strong>
+                                    <pre>{{ content_part | tojson(indent=2) }}</pre>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 {% else %}
                     <!-- Fallback for other content types -->
-                    <div class="message-text">
-                        <pre>{{ message.content | tojson(indent=2) }}</pre>
+                    <div class="message-content-full">
+                        <div class="message-text">
+                            <pre>{{ message.content | tojson(indent=2) }}</pre>
+                        </div>
                     </div>
                 {% endif %}
             </div>
-        </details>
+        </div>
     </div>
     {% endfor %}
 </div>
