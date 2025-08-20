@@ -57,7 +57,7 @@ class LogParser:
             results = json.loads(results_file.read_text())
 
         # Parse main.log if it exists
-        main_log_file = self.log_dir / "main.log"
+        main_log_file = self.log_dir / "game.log"
         main_log = (
             main_log_file.read_text() if main_log_file.exists() else "No main log found"
         )
