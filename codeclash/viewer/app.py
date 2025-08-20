@@ -12,6 +12,15 @@ from typing import Any, Dict, List, Optional
 
 from flask import Flask, jsonify, render_template, request
 
+# Global variable to store the directory to search for logs
+LOG_BASE_DIR = Path.cwd() / "logs"
+
+
+def set_log_base_directory(directory: str | Path):
+    """Set the logs directory directly"""
+    global LOG_BASE_DIR
+    LOG_BASE_DIR = Path(directory).resolve()
+
 
 @dataclass
 class GameMetadata:
@@ -139,9 +148,8 @@ app.jinja_env.filters["nl2br"] = nl2br
 @app.route("/")
 def index():
     """Main viewer page"""
-    # Get available log directories (relative to project root)
-    project_root = Path(__file__).parent.parent.parent
-    logs_dir = project_root / "logs"
+    # Get available log directories
+    logs_dir = LOG_BASE_DIR
     log_folders = []
     if logs_dir.exists():
         log_folders = [d.name for d in logs_dir.iterdir() if d.is_dir()]
@@ -183,8 +191,7 @@ def trajectory_detail(player_id: int, round_num: int):
     if not selected_folder:
         return jsonify({"error": "No folder specified"})
 
-    project_root = Path(__file__).parent.parent.parent
-    logs_dir = project_root / "logs"
+    logs_dir = LOG_BASE_DIR
     parser = LogParser(logs_dir / selected_folder)
     trajectory = parser.parse_trajectory(player_id, round_num)
 
