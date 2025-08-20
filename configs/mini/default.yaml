@@ -49,10 +49,6 @@ agent:
     3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
        However, you can prefix Any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
 
-    <system_information>
-    {{system}} {{release}} {{version}} {{machine}} {{processor}}
-    </system_information>
-
     ## Formatting your response
 
     Here is an example of a correct response:
@@ -78,12 +74,6 @@ agent:
     ```
 
     ### Edit files with sed:
-
-    {%- if system == "Darwin" -%}
-    <important>
-    You are on MacOS. For all the below examples, you need to use `sed -i ''` instead of `sed -i`.
-    </important>
-    {%- endif -%}
 
     ```bash
     # Replace all occurrences
