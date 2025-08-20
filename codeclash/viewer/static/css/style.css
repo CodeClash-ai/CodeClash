@@ -220,6 +220,78 @@ body {
   margin-bottom: 1rem;
 }
 
+.trajectory-header {
+  background-color: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.trajectory-header h3 {
+  color: var(--success-color);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.trajectory-messages-foldout {
+  margin-top: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.trajectory-messages-foldout summary {
+  padding: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+  transition: background-color 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.trajectory-messages-foldout summary:hover {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.trajectory-messages-foldout[open] summary {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.trajectory-messages-foldout .trajectory-content {
+  padding: 1rem;
+}
+
+.collapse-messages-button {
+  margin-top: 1rem;
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-collapse-messages {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-collapse-messages:hover {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
 .trajectory-stats {
   display: flex;
   gap: 2rem;

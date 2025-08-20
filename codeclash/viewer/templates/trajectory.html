@@ -1,5 +1,5 @@
-<!-- Trajectory Template - displays individual agent trajectory data -->
-<div class="trajectory-info">
+<!-- Trajectory Overview - always visible -->
+<div class="trajectory-overview">
     <div class="trajectory-stats">
         <div class="stat-item">
             <span class="stat-label">API Calls:</span>
@@ -7,7 +7,7 @@
         </div>
         <div class="stat-item">
             <span class="stat-label">Cost:</span>
-            <span class="stat-value">${{ "%.6f"|format(trajectory.cost) }}</span>
+            <span class="stat-value">${{ "%.2f"|format(trajectory.cost) }}</span>
         </div>
         {% if trajectory.exit_status %}
         <div class="stat-item">
@@ -18,6 +18,7 @@
     </div>
 </div>
 
+<!-- Messages Container - for foldout content -->
 <div class="messages-container">
     {% for message in trajectory.messages %}
     <div class="message-block {{ message.role }}">

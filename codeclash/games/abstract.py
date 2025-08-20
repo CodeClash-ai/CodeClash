@@ -27,6 +27,7 @@ class CodeGame(ABC):
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         self.scoreboard: list[tuple[int, str]] = []
+        """List of (round number, winner (player id))"""
         self.config: dict = config["game"]
         self.rounds: int = self.config.get("rounds", 1)
         self.round: int = 0

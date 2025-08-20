@@ -218,6 +218,27 @@ function collapseMessage(clickedElement) {
     }, 100);
 }
 
+function collapseTrajectoryMessages(clickedElement) {
+    // Find the parent trajectory messages foldout
+    const trajectoryFoldout = clickedElement.closest('.trajectory-messages-foldout');
+
+    if (trajectoryFoldout) {
+        // Close the details element
+        trajectoryFoldout.removeAttribute('open');
+
+        // Smooth scroll to the trajectory header
+        setTimeout(() => {
+            const trajectoryHeader = trajectoryFoldout.closest('.trajectory-header');
+            if (trajectoryHeader) {
+                trajectoryHeader.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                });
+            }
+        }, 100);
+    }
+}
+
 
 
 // Initialize everything when DOM is loaded
