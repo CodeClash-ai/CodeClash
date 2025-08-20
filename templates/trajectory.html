@@ -1,0 +1,96 @@
+<!-- Trajectory Template - displays individual agent trajectory data -->
+<div class="trajectory-info">
+    <div class="trajectory-stats">
+        <div class="stat-item">
+            <span class="stat-label">API Calls:</span>
+            <span class="stat-value">{{ trajectory.api_calls }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Cost:</span>
+            <span class="stat-value">${{ "%.6f"|format(trajectory.cost) }}</span>
+        </div>
+        {% if trajectory.exit_status %}
+        <div class="stat-item">
+            <span class="stat-label">Exit Status:</span>
+            <span class="stat-value status-{{ trajectory.exit_status.lower() }}">{{ trajectory.exit_status }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="messages-container">
+    {% for message in trajectory.messages %}
+    <div class="message-block {{ message.role }}">
+        <div class="message-header">
+            <span class="message-role">{{ message.role.title() }}</span>
+            <span class="message-index">#{{ loop.index }}</span>
+        </div>
+
+        <details class="message-content-foldout" {% if loop.index <= 2 %}open{% endif %}>
+            <summary class="message-summary">
+                {% if message.role == 'system' %}
+                    System instructions...
+                {% elif message.role == 'user' %}
+                    {% if message.content is string %}
+                        {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
+                    {% else %}
+                        User input with {{ message.content|length }} parts
+                    {% endif %}
+                {% elif message.role == 'assistant' %}
+                    {% if 'THOUGHT:' in message.content %}
+                        {{ message.content.split('THOUGHT:')[1].split('```')[0][:100] }}...
+                    {% else %}
+                        {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
+                    {% endif %}
+                {% else %}
+                    {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
+                {% endif %}
+            </summary>
+
+            <div class="message-content">
+                {% if message.content is string %}
+                    {% if message.role == 'assistant' and '```' in message.content %}
+                        <!-- Special handling for assistant messages with code blocks -->
+                        {% set parts = message.content.split('```') %}
+                        {% for part in parts %}
+                            {% if loop.index is odd %}
+                                <!-- Text part -->
+                                <div class="message-text">{{ part | nl2br | safe }}</div>
+                            {% else %}
+                                <!-- Code part -->
+                                <div class="code-block">
+                                    <pre><code>{{ part }}</code></pre>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <!-- Regular text content -->
+                        <div class="message-text">
+                            <pre>{{ message.content }}</pre>
+                        </div>
+                    {% endif %}
+                {% elif message.content is iterable %}
+                    <!-- Handle complex content (e.g., user messages with multiple parts) -->
+                    {% for content_part in message.content %}
+                        {% if content_part.type == 'text' %}
+                            <div class="message-text">
+                                <pre>{{ content_part.text }}</pre>
+                            </div>
+                        {% else %}
+                            <div class="message-part">
+                                <strong>{{ content_part.type.title() }}:</strong>
+                                <pre>{{ content_part | tojson(indent=2) }}</pre>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback for other content types -->
+                    <div class="message-text">
+                        <pre>{{ message.content | tojson(indent=2) }}</pre>
+                    </div>
+                {% endif %}
+            </div>
+        </details>
+    </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,40 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Style guide
+
+1. Target python 3.10 or higher
+2. Use python with type annotations. Use `list` instead of `List`.
+3. Use `pathlib` instead of `os.path`. Use `Path.read_text()` over `with ...open()` constructs.
+4. Keep code comments to a minimum and only highlight particularly logically challenging things
+5. Do not append to the README unless specifically requested
+6. Use `jinja` for formatting templates
+7. Use `dataclass` for keeping track config
+8. Do not catch exceptions unless explicitly told to.
+9. Write concise, short, minimal code.
+10. In most cases, avoid initializing variables just to pass them to a function. Instead just pass the expression to the function directly.
+11. Not every exception has to be caught. Exceptions are a good way to show problems to a user.
+12. Don't catch exceptions just to re-raise them slightly differently. This doesn't add any value.
+13. Write concise code and thing of elegant solution.
+
+## Test style
+
+1. Use `pytest`, not `unittest`.
+2. <IMPORTANT>Do not mock/patch anything that you're not explicitly asked to do</IMPORTANT>
+3. Avoid writing trivial tests. Every test should test for at least one, preferably multiple points of failure
+4. Avoid splitting up code in multiple lines like this: `a=func()\n assert a=b`. Instead, just do `assert func() == b`
+5. The first argument to `pytest.mark.parametrize` should be a tuple (not a string! not a list!), the second argument must be a list (not a tuple!).
+
+Here's an example for rule 4:
+
+```python
+# bad
+result = func()
+assert result == b
+
+# good
+assert func() == b
+```

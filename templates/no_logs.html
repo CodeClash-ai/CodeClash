@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeClash Trajectory Viewer - No Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>🎮 CodeClash Trajectory Viewer</h1>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="no-logs-message">
+            <h2>📂 No Game Logs Found</h2>
+            <p>No game log directories were found in the <code>logs/</code> folder.</p>
+
+            {% if log_folders %}
+                <p>Available folders: {{ log_folders | join(', ') }}</p>
+            {% else %}
+                <p>Please run some games first to generate log data.</p>
+            {% endif %}
+
+            <div class="help-text">
+                <h3>Expected Structure:</h3>
+                <pre><code>logs/
+├── game_session_1/
+│   ├── results.json
+│   ├── main.log
+│   ├── round_1.log
+│   ├── round_2.log
+│   ├── p1_r1.traj.json
+│   ├── p1_r2.traj.json
+│   ├── p2_r1.traj.json
+│   └── p2_r2.traj.json
+└── game_session_2/
+    └── ...</code></pre>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

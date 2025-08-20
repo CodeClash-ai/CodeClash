@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeClash Trajectory Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>🎮 CodeClash Trajectory Viewer</h1>
+
+            <div class="controls">
+                <!-- Folder Selection -->
+                <div class="control-group">
+                    <label for="folder-select">Game Session:</label>
+                    <select id="folder-select" onchange="changeFolder()">
+                        {% for folder in log_folders %}
+                        <option value="{{ folder }}"
+                                {% if folder == selected_folder %}selected{% endif %}>
+                            {{ folder }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <div class="control-group">
+                    <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Overall Results Section -->
+        <section class="results-section">
+            <h2>📊 Game Results</h2>
+
+            <div class="metadata-display">
+                <pre><code>{{ metadata.results | tojson(indent=2) }}</code></pre>
+            </div>
+
+            <!-- Main Log Foldout -->
+            <details class="foldout">
+                <summary>📝 Main Log</summary>
+                <div class="log-content">
+                    <pre><code>{{ metadata.main_log }}</code></pre>
+                </div>
+            </details>
+        </section>
+
+        <!-- Rounds Section -->
+        <section class="rounds-section">
+            <h2>🎯 Game Rounds</h2>
+
+            {% for round_data in metadata.rounds %}
+                {% set round_num = loop.index %}
+
+                <!-- Round Log -->
+                <details class="foldout round-foldout">
+                    <summary>🎮 Round {{ round_num }} Log</summary>
+                    <div class="log-content">
+                        <pre><code>{{ round_data.content }}</code></pre>
+                    </div>
+                </details>
+
+                <!-- Player Trajectories for this round -->
+                {% if round_num in trajectories_by_round %}
+                    {% for trajectory in trajectories_by_round[round_num] %}
+
+                        <!-- Trajectory View -->
+                        <details class="foldout trajectory-foldout">
+                            <summary>🤖 Player {{ trajectory.player_id }} Round {{ round_num }} - Trajectory</summary>
+                            <div class="trajectory-content">
+                                {% include 'trajectory.html' %}
+                            </div>
+                        </details>
+
+                        <!-- Submission -->
+                        {% if trajectory.submission %}
+                        <details class="foldout">
+                            <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
+                            <div class="log-content">
+                                <pre><code>{{ trajectory.submission }}</code></pre>
+                            </div>
+                        </details>
+                        {% endif %}
+
+                        <!-- Memory -->
+                        {% if trajectory.memory %}
+                        <details class="foldout">
+                            <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
+                            <div class="log-content">
+                                <pre><code>{{ trajectory.memory }}</code></pre>
+                            </div>
+                        </details>
+                        {% endif %}
+
+                    {% endfor %}
+                {% endif %}
+
+            {% endfor %}
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

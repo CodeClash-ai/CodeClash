@@ -25,6 +25,9 @@ dependencies = [
     "mini-swe-agent",
     "python-dotenv",
     "ghapi",
+    "flask",
+    "jinja2",
+    "markupsafe",
 ]
 
 [project.optional-dependencies]

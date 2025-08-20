@@ -24,8 +24,8 @@ The input folder has the following files
 
 * results.json
 * main.log
-* round_$i.log, where $i is the round. Infer the number of rounds from how many of these files we have
-* .*_p$i_r$j.traj.log, where $i$ is the player (there's always 1 or 2 players and $j is the round number
+* round_$i.log, where $i is the round.
+* p$i_r$j.traj.log, where $i$ is the player (there's always 1 or 2 players) and $j is the round number
 * Trajectory files do not exist for the last round
 
 Here's how a `.traj.log` file looks:
