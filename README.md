@@ -30,3 +30,7 @@ aws s3 sync logs/ s3://codeclash/logs/
 # To retrieve logs
 aws s3 sync s3://codeclash/logs/ logs/
 ```
+
+### Trajectory viewer
+
+Assuming that your logs ar in `logs/`, start the viewer with `python run_viewer.py`. Use `-d` (`--directory`) to specify a custom path to your logs.
