@@ -243,6 +243,11 @@
                     {% endfor %}
                 {% endif %}
 
+                <!-- Round separator (except after the last round) -->
+                {% if not loop.last %}
+                <div class="round-separator"></div>
+                {% endif %}
+
             {% endfor %}
         </section>
     </main>

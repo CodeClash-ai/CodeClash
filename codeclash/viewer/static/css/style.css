@@ -174,6 +174,17 @@ body {
   transition: all 0.2s ease;
 }
 
+/* Remove any browser default styling that might add blue lines */
+details {
+  border: none !important;
+  outline: none !important;
+}
+
+details summary {
+  outline: none !important;
+  border: none !important;
+}
+
 .foldout:hover {
   box-shadow: var(--shadow);
 }
@@ -204,12 +215,20 @@ body {
 
 /* Special foldout types */
 .round-foldout {
-  border-left: 4px solid var(--accent-color);
+  /* Removed distracting blue border */
 }
 
 .trajectory-foldout {
-  border-left: 4px solid var(--success-color);
+  /* Removed distracting green border */
   margin-left: 1rem;
+}
+
+/* Round separator */
+.round-separator {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+  margin: 2rem 0;
+  border-radius: 1px;
 }
 
 /* Trajectory specific styles */
@@ -503,10 +522,13 @@ body {
 
 /* Focus styles for accessibility */
 button:focus,
-select:focus,
-summary:focus {
+select:focus {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
+}
+
+summary:focus {
+  outline: none;
 }
 
 /* Scrollbar styling for webkit browsers */
