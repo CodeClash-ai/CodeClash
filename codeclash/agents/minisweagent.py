@@ -72,19 +72,19 @@ class MiniSWEAgent(Player):
         self, config: dict, environment: Environment, game_context: GameContext
     ):
         super().__init__(config, environment=environment, game_context=game_context)
+
+    def run(self):
         self.agent = ClashAgent(
             LitellmModel(
-                model_name=config["model"],
-                model_kwargs={"api_key": resolve_api_key(config["model"])},
+                model_name=self.config["model"],
+                model_kwargs={"api_key": resolve_api_key(self.config["model"])},
             ),
             self.environment,
             self.name,
-            game_context,
+            self.game_context,
             logger=self.logger,
-            **yaml.safe_load(Path(config["config"]).read_text())["agent"],
+            **yaml.safe_load(Path(self.config["config"]).read_text())["agent"],
         )
-
-    def run(self):
         exit_status = None
         result = None
         try:
