@@ -24,7 +24,7 @@ from codeclash.utils.log import get_logger
 class CodeGame(ABC):
     name: str
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, *, push_agent: bool = False):
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         """Artifact objects that we might want to clean up after the game."""
@@ -32,6 +32,7 @@ class CodeGame(ABC):
         """List of (round number, winner (player id))"""
         self.game_config: dict = config["game"]
         self.config: dict = config
+        self.push_agent: bool = push_agent
         self.rounds: int = self.game_config.get("rounds", 1)
         self.round: int = 0
         self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
@@ -42,6 +43,13 @@ class CodeGame(ABC):
         )
         self.environment: DockerEnvironment = self.get_environment()
         assert len(config["players"]) >= 2, "At least two players are required"
+
+        # Initialize agents
+        from codeclash.agents import get_agent
+
+        self.agents: list[Player] = []
+        for agent_conf in config["players"]:
+            self.agents.append(get_agent(agent_conf, config["prompts"], self))
 
     @property
     def image_name(self) -> str:
@@ -191,6 +199,21 @@ class CodeGame(ABC):
                     f"Copied round log from {agent.name}'s container to local log dir."
                 )
         self.logger.info(f"Round {self.round} completed.")
+
+    def run(self, cleanup: bool = False):
+        """
+        Run the full game with all configured agents.
+        """
+        try:
+            for _ in range(self.rounds):
+                self.run_round(self.agents)
+                for agent in self.agents:
+                    agent.run()
+        finally:
+            self.end(cleanup)
+            if self.push_agent:
+                for agent in self.agents:
+                    agent.push()
 
     def run_round(self, agents: list[Player]):
         """

@@ -9,8 +9,8 @@ from codeclash.utils.environment import assert_zero_exit_code
 class BattleSnakeGame(CodeGame):
     name: str = "BattleSnake"
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
         self.run_cmd_round: str = "./battlesnake play"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
