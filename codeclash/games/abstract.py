@@ -31,6 +31,7 @@ class CodeGame(ABC):
         self.scoreboard: list[tuple[int, str]] = []
         """List of (round number, winner (player id))"""
         self.game_config: dict = config["game"]
+        self.config: dict = config
         self.rounds: int = self.game_config.get("rounds", 1)
         self.round: int = 0
         self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
@@ -86,7 +87,7 @@ class CodeGame(ABC):
         return {
             "name": self.name,
             "scoreboard": self.scoreboard,
-            "config": self.game_config,
+            "config": self.config,
             "game_id": self.game_id,
         }
 
