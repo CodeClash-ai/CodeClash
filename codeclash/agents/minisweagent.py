@@ -8,9 +8,8 @@ from pathlib import Path
 
 import yaml
 from jinja2 import Template
-from minisweagent import Model
+from minisweagent import Environment, Model
 from minisweagent.agents.default import AgentConfig, DefaultAgent
-from minisweagent.environments.docker import DockerEnvironment
 from minisweagent.models.litellm_model import LitellmModel
 from minisweagent.run.utils.save import save_traj
 from rich.console import Console
@@ -29,7 +28,7 @@ class ClashAgent(DefaultAgent):
     def __init__(
         self,
         model: Model,
-        env: DockerEnvironment,
+        env: Environment,
         name: str,
         game_context: GameContext,
         *,
@@ -70,7 +69,7 @@ class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
     def __init__(
-        self, config: dict, environment: DockerEnvironment, game_context: GameContext
+        self, config: dict, environment: Environment, game_context: GameContext
     ):
         super().__init__(config, environment=environment, game_context=game_context)
 

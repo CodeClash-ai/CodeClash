@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
-from minisweagent.environments.docker import DockerEnvironment
+from minisweagent import Environment
 
 from codeclash.agents.utils import GameContext
 from codeclash.constants import GH_ORG
@@ -16,7 +16,7 @@ class Player(ABC):
     def __init__(
         self,
         config: dict,
-        environment: DockerEnvironment,
+        environment: Environment,
         game_context: GameContext,
     ):
         self.config = config

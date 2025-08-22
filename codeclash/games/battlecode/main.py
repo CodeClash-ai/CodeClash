@@ -8,8 +8,8 @@ from codeclash.games.abstract import CodeGame
 class BattleCodeGame(CodeGame):
     name: str = "BattleCode"
 
-    def __init__(self, config, **kwargs):
-        super().__init__(config, **kwargs)
+    def __init__(self, config):
+        super().__init__(config)
         assert len(config["players"]) == 2, "BattleCode is a two-player game"
         self.run_cmd_round: str = "python run.py run"
         for arg, val in self.game_config.get("args", {}).items():

@@ -8,8 +8,8 @@ from codeclash.utils.environment import copy_file_to_container
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
 
-    def __init__(self, config, **kwargs):
-        super().__init__(config, **kwargs)
+    def __init__(self, config):
+        super().__init__(config)
         self.run_cmd_round: str = "./robocode.sh"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):

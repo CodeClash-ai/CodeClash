@@ -7,8 +7,8 @@ from codeclash.games.abstract import CodeGame
 class CoreWarGame(CodeGame):
     name: str = "CoreWar"
 
-    def __init__(self, config, **kwargs):
-        super().__init__(config, **kwargs)
+    def __init__(self, config):
+        super().__init__(config)
         self.run_cmd_round: str = "./src/pmars"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
