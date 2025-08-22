@@ -1,4 +1,5 @@
 import getpass
+import json
 import os
 import subprocess
 import time
@@ -26,6 +27,7 @@ class CodeGame(ABC):
     def __init__(self, config: dict):
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
+        """Artifact objects that we might want to clean up after the game."""
         self.scoreboard: list[tuple[int, str]] = []
         """List of (round number, winner (player id))"""
         self.config: dict = config["game"]
@@ -77,8 +79,20 @@ class CodeGame(ABC):
             )
             raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
+    def get_metadata(self) -> dict:
+        """This is what we write to metadata.json.
+        You can subclass extend this to add more details for specific games.
+        """
+        return {
+            "name": self.name,
+            "scoreboard": self.scoreboard,
+            "config": self.config,
+            "game_id": self.game_id,
+        }
+
     def end(self, cleanup: bool = False):
-        self.logger.info(Counter([x[1] for x in self.scoreboard]))
+        self.logger.info("Overall score: %s", Counter([x[1] for x in self.scoreboard]))
+        (self.log_local / "metadata.json").write_text(json.dumps(self.get_metadata()))
         if cleanup:
             for artifact in self.artifacts:
                 if artifact.exists():
@@ -135,7 +149,9 @@ class CodeGame(ABC):
 
     @abstractmethod
     def determine_winner(self, agents: list[Player]) -> Any:
-        """Determine the winner of the game based on the round results, updates scoreboard"""
+        """Determine the winner of the game based on the round results,
+        Should update self.scoreboard
+        """
         pass
 
     @abstractmethod
