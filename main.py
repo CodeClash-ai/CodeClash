@@ -2,8 +2,6 @@ import argparse
 
 import yaml
 
-from codeclash.agents import get_agent
-from codeclash.agents.abstract import Player
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 
@@ -11,21 +9,8 @@ from codeclash.games.abstract import CodeGame
 def main(config_path: str, cleanup: bool = False, push_agent: bool = False):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-    game: CodeGame = get_game(config)
-    agents: list[Player] = []
-    for agent_conf in config["players"]:
-        agents.append(get_agent(agent_conf, config["prompts"], game))
-
-    try:
-        for _ in range(game.rounds):
-            game.run_round(agents)
-            for agent in agents:
-                agent.run()
-    finally:
-        game.end(cleanup)
-        if push_agent:
-            for agent in agents:
-                agent.push()
+    game: CodeGame = get_game(config, push_agent=push_agent)
+    game.run(cleanup=cleanup)
 
 
 if __name__ == "__main__":

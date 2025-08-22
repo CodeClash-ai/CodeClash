@@ -9,7 +9,6 @@ import os
 import tempfile
 from unittest.mock import patch
 
-import pytest
 import yaml
 from minisweagent.models.test_models import DeterministicModel
 
@@ -65,6 +64,6 @@ def test_main_battlesnake_integration():
         from codeclash.agents import get_agent
 
         # Run the main function with cleanup enabled
-        with patch("main.get_agent", side_effect=mock_get_agent(get_agent)):
+        with patch("codeclash.agents.get_agent", side_effect=mock_get_agent(get_agent)):
             # This should complete without raising any exceptions
             main(temp_config_path, cleanup=True, push_agent=False)

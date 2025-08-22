@@ -6,8 +6,8 @@ from codeclash.games.abstract import CodeGame
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
