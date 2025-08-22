@@ -11,7 +11,7 @@ class RoboCodeGame(CodeGame):
     def __init__(self, config):
         super().__init__(config)
         self.run_cmd_round: str = "./robocode.sh"
-        for arg, val in self.config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" -{arg}"
@@ -27,7 +27,7 @@ class RoboCodeGame(CodeGame):
             },
             "battleField": {"width": 800, "height": 600},
         }
-        user_battle_config = self.config.get("battle", {})
+        user_battle_config = self.game_config.get("battle", {})
 
         def merge_dicts(default, user):
             for key, value in user.items():

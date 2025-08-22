@@ -12,7 +12,7 @@ class BattleCodeGame(CodeGame):
         super().__init__(config)
         assert len(config["players"]) == 2, "BattleCode is a two-player game"
         self.run_cmd_round: str = "python run.py run"
-        for arg, val in self.config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" --{arg}"

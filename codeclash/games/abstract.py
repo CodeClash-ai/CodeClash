@@ -30,8 +30,8 @@ class CodeGame(ABC):
         """Artifact objects that we might want to clean up after the game."""
         self.scoreboard: list[tuple[int, str]] = []
         """List of (round number, winner (player id))"""
-        self.config: dict = config["game"]
-        self.rounds: int = self.config.get("rounds", 1)
+        self.game_config: dict = config["game"]
+        self.rounds: int = self.game_config.get("rounds", 1)
         self.round: int = 0
         self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
         self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
@@ -86,7 +86,7 @@ class CodeGame(ABC):
         return {
             "name": self.name,
             "scoreboard": self.scoreboard,
-            "config": self.config,
+            "config": self.game_config,
             "game_id": self.game_id,
         }
 
