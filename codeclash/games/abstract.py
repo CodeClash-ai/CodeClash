@@ -157,7 +157,10 @@ class CodeGame(ABC):
 
     @abstractmethod
     def execute_round(self, agents: list[Player]):
-        """Subclasses implement their game-specific logic here, must write results to round_log_path"""
+        """Subclasses implement their game-specific logic here, must write results to round_log_path.
+        This is the low level implementation, you probably want to use run_round instead, which
+        includes the pre-round setup, post-round setup, and winner determination.
+        """
         pass
 
     def _post_round_setup(self, agents: list[Player]):
@@ -196,7 +199,7 @@ class CodeGame(ABC):
         """
         Run a single round of the game with the given agents.
 
-        Returns a directory containing logs and results of the round(s).
+        Writes to directory containing logs and results of the round(s).
         """
         self._pre_round_setup(agents)
         self.execute_round(agents)
