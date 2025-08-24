@@ -2,32 +2,14 @@ import argparse
 
 import yaml
 
-from codeclash.agents import get_agent
-from codeclash.agents.abstract import Player
-from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame
+from codeclash.tournaments.pvp_training import PvpTraining
 
 
-def main(config_path: str, cleanup: bool = False, push_agent: bool = False):
+def main(config_path: str, *, cleanup: bool = False, push_agent: bool = False):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-    game: CodeGame = get_game(config)
-    agents: list[Player] = []
-    for agent_conf in config["players"]:
-        agents.append(get_agent(agent_conf, config["prompts"], game))
-
-    try:
-        for round in range(1, game.rounds + 1):
-            game.run_round(agents)
-            for agent in agents:
-                agent.pre_run_hook(new_round=round)
-                agent.run()
-                agent.post_run_hook(round=round)
-    finally:
-        game.end(cleanup)
-        if push_agent:
-            for agent in agents:
-                agent.push()
+    training = PvpTraining(config, cleanup=cleanup, push_agent=push_agent)
+    training.run()
 
 
 if __name__ == "__main__":
