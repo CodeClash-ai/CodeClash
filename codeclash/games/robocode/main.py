@@ -1,4 +1,6 @@
 import subprocess
+import time
+from pathlib import Path
 
 from codeclash.agents.abstract import Player
 from codeclash.games.abstract import CodeGame
@@ -8,8 +10,10 @@ from codeclash.utils.environment import copy_file_to_container
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
+        super().__init__(
+            config, tournament_id=tournament_id, local_output_dir=local_output_dir
+        )
         self.run_cmd_round: str = "./robocode.sh"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
@@ -51,12 +55,23 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def determine_winner(self, agents: list[Player]):
-        response = self.environment.execute(f"head -3 {self.round_log_path} | tail -1")
-        winner = response["output"].split()[1].rsplit(".", 1)[0]
-        self.scoreboard.append((self.round, winner))
+    def determine_winner(
+        self, result_output: str, agents: list[Player]
+    ) -> dict[str, str]:
+        self.logger.debug(f"Determining winner from result output: {result_output}")
+        lines = result_output.strip().split("\n")
+        # Get the second line which contains the winner info (closer to original)
+        winner_line = lines[1] if len(lines) >= 2 else ""
+        self.logger.debug(f"Winner line: {winner_line}")
+        if winner_line:
+            winner = winner_line.split()[1].rsplit(".", 1)[0]
+            self.logger.debug(f"Concluding winner: {winner}")
+            return {"winner": winner}
+        else:
+            self.logger.debug("No winner line found, returning unknown")
+            return {"winner": "unknown"}
 
-    def execute_round(self, agents: list[Player]):
+    def execute_round(self, agents: list[Player]) -> dict[str, str]:
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
             for cmd in [
@@ -69,7 +84,8 @@ class RoboCodeGame(CodeGame):
 
         # Create .battle file
         selected_robots = ",".join([f"{agent.name}.MyTank*" for agent in agents])
-        battle_file = f"{self.game_id}-round{self.round}.battle"
+        # Use timestamp for unique battle file name since rounds are managed by tournament
+        battle_file = f"{self.game_id}-battle{int(time.time())}.battle"
         with open(battle_file, "w") as f:
             f.write(
                 f"""#Battle Properties
@@ -80,10 +96,18 @@ robocode.battle.selectedRobots={selected_robots}
         copy_file_to_container(self.environment, battle_file, f"battles/{battle_file}")
         subprocess.run(f"rm -f {battle_file}", shell=True)
 
-        # Run battle
-        cmd = (
-            f"{self.run_cmd_round} -battle {battle_file} -results {self.round_log_path}"
-        )
+        # Run battle with results output to file
+        results_file = f"results_{int(time.time())}.txt"
+        cmd = f"{self.run_cmd_round} -battle {battle_file} -results {results_file}"
         self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
+
+        # Read the results file to get result output
+        cat_response = self.environment.execute(f"cat {results_file}")
+        result_output = cat_response["output"]
+
+        # Clean up the results file
+        self.environment.execute(f"rm -f {results_file}")
+
+        return {"log_output": response["output"], "result_output": result_output}

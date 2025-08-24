@@ -3,6 +3,7 @@ In single player mode, the agent runs always against its previous version.
 """
 
 import copy
+import traceback
 
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
@@ -16,9 +17,15 @@ from codeclash.utils.log import get_logger
 
 class SinglePlayerTraining(AbstractTournament):
     def __init__(self, config: dict, cleanup: bool = False):
-        self.config = config
+        super().__init__(config, name="SinglePlayerTraining")
         self.cleanup_on_end = cleanup
-        self.game: CodeGame = get_game(self.config)
+        self.game: CodeGame = get_game(
+            self.config,
+            tournament_id=self.tournament_id,
+            local_output_dir=self.local_output_dir,
+        )
+        # fixme: hack
+        self.game.rounds = self.config["game"]["rounds"]
         self.agent: Player = get_agent(
             self.config["player"], self.config["prompts"], self.game
         )
@@ -29,27 +36,47 @@ class SinglePlayerTraining(AbstractTournament):
         )
         self.logger = get_logger(self.game.name)
 
-    def run(self) -> None:
+    @property
+    def rounds(self) -> int:
+        return self.config["game"]["rounds"]
+
+    def run(self):
         """Main execution function that runs all rounds."""
         try:
-            for round_num in range(1, self.game.rounds + 1):
+            for round_num in range(1, self.rounds + 1):
                 self.run_training_round(round_num)
         finally:
             self.cleanup()
 
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round."""
-        self.game.run_round([self.agent, self.mirror_agent])
+        # Run the game round and get results
+        result = self.game.run_round([self.agent, self.mirror_agent])
+        log_output = result["log_output"]
+        result_output = result["result_output"]
+        winner = result["winner"]
+
+        # Handle bookkeeping that was previously in the game
+        self.game.scoreboard.append((round_num, winner))
+        self.logger.info(f"Round {round_num} winner: {winner}")
+
+        # Write log to file
+        round_log_path = self.game.log_local / f"round_{round_num}.log"
+        round_log_path.write_text(log_output)
+
+        # Copy log to main agent environment only
+        self._copy_game_log_to_agent([self.agent], round_num, log_output)
+
         self.run_main_agent(round_num)
         self.run_mirror_agent(round_num)
 
-    def run_main_agent(self, round_num: int) -> None:
+    def run_main_agent(self, round_num: int):
         """Run the main agent for the current round."""
         self.agent.pre_run_hook(new_round=round_num)
         self.agent.run()
         self.agent.post_run_hook(round=round_num)
 
-    def run_mirror_agent(self, round_num: int) -> None:
+    def run_mirror_agent(self, round_num: int):
         """Update mirror agent's codebase with the main agent's changes."""
         if round_num == 1:
             self.logger.info("Skipping updating mirror agent for round 1")
@@ -88,6 +115,26 @@ class SinglePlayerTraining(AbstractTournament):
         else:
             self.logger.info("No diff found for mirror agent, skipping update")
 
-    def cleanup(self) -> None:
+    def _copy_game_log_to_agent(
+        self, agents: list, round_num: int, log_output: str
+    ) -> None:
+        """Copy round logs to agent environments and local directory."""
+        for agent in agents:
+            try:
+                create_file_on_container(
+                    container=agent.environment,
+                    content=log_output,
+                    dest_path=f"logs/round_{round_num}.log",
+                )
+            except Exception:
+                self.logger.error(
+                    f"Error creating round log in {agent.name}'s container: {traceback.format_exc()}"
+                )
+            else:
+                self.logger.info(f"Created round log in {agent.name}'s container.")
+
+        self.logger.info("Round completed.")
+
+    def cleanup(self):
         """Clean up game resources."""
         self.game.end(self.cleanup_on_end)
