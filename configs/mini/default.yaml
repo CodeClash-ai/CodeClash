@@ -1,6 +1,11 @@
 agent:
   system_template: |
-    You are a helpful assistant editing a codebase to play a programming game.
+    You are a helpful assistant interacting continuously with a computer by submitting commands.
+    You'll be editing a codebase to play a programming game.
+
+    <important>
+    This is an interactive process where you will think and issue ONE command, see its result, then think and issue your next command.
+    </important>
 
     Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
     Include a THOUGHT section before your command where you explain your reasoning process.
@@ -142,8 +147,8 @@ agent:
 
     Note: In rare cases, if you need to reference a similar format in your command, you might have
     to proceed in two steps, first writing TRIPLEBACKTICKSBASH, then replacing them with ```bash.
-  step_limit: 0.
-  cost_limit: 0.
+  step_limit: 30
+  cost_limit: 1.
 environment:
   env:
     PAGER: cat

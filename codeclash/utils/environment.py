@@ -113,3 +113,23 @@ def copy_file_from_container(
             f"Failed to copy {container.container_id}:{src_path} to {dest_path}: {result.stdout}{result.stderr}"
         )
     return result
+
+
+def create_file_on_container(
+    container: DockerEnvironment,
+    *,
+    content: str,
+    dest_path: str | Path,
+):
+    """
+    Create a file with given content on a Docker container.
+    Uses a temporary file on the local filesystem for the transfer.
+    """
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+        tmp_file.write(content)
+        tmp_file_path = Path(tmp_file.name)
+
+    try:
+        copy_file_to_container(container, tmp_file_path, dest_path)
+    finally:
+        tmp_file_path.unlink()  # Clean up the temporary file

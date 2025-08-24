@@ -41,7 +41,7 @@ class CodeGame(ABC):
             self.name, log_path=self.log_local / "game.log", emoji="🏓"
         )
         self.environment: DockerEnvironment = self.get_environment()
-        assert len(config["players"]) >= 2, "At least two players are required"
+        # assert len(config["players"]) >= 2, "At least two players are required"
 
     @property
     def image_name(self) -> str:
@@ -124,9 +124,6 @@ class CodeGame(ABC):
         """Copy agent codebases into game's container and make round log file"""
         self.round += 1
         # Notify agents of round update
-        for agent in agents:
-            if hasattr(agent, "on_round_update"):
-                agent.on_round_update(self.round)
         self.logger.info(f"▶️ Running {self.name} round {self.round}...")
 
         # Copy agent codebases into game's container

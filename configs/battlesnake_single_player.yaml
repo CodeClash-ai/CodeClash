@@ -1,0 +1,23 @@
+game:
+  name: BattleSnake
+  rounds: 5
+  args:
+    width: 11
+    height: 11
+    browser: false
+player:
+  agent: mini
+  config: configs/mini/default.yaml
+  model: openai/gpt-5-mini
+  name: main
+prompts:
+  game_description: |
+    You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.
+    Your bot (`main.py`) controls a snake on a grid-based board.
+    Snakes collect food, avoid collisions, and try to outlast their opponents.
+
+    The game is played in {{rounds}} rounds. For every round, you (and your competitor) edit program code that controls your bot. This is round {{round}}.
+    After you and your competitor finish editing your codebases, the game is run automatically.
+
+    Your task: improve the bot in `main.py`, located in {{working_dir}}.
+    {{working_dir}} is your codebase, which contains both your bot and supporting assets.

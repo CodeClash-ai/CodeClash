@@ -110,4 +110,4 @@ class MiniSWEAgent(Player):
                 traj_path,
                 self.game_context.log_env / traj_path.name,
             )
-            self.commit()
+            # self.commit()  # now called in post_round_hook

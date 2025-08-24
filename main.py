@@ -17,10 +17,12 @@ def main(config_path: str, cleanup: bool = False, push_agent: bool = False):
         agents.append(get_agent(agent_conf, config["prompts"], game))
 
     try:
-        for _ in range(game.rounds):
+        for round in range(1, game.rounds + 1):
             game.run_round(agents)
             for agent in agents:
+                agent.pre_run_hook(new_round=round)
                 agent.run()
+                agent.post_run_hook(round=round)
     finally:
         game.end(cleanup)
         if push_agent:
