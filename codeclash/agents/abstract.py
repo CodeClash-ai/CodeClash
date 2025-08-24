@@ -7,7 +7,8 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.utils import GameContext
 from codeclash.constants import GH_ORG
-from codeclash.utils.environment import assert_zero_exit_code
+from codeclash.tournaments.utils.git_utils import filter_git_diff
+from codeclash.utils.environment import assert_zero_exit_code, create_file_on_container
 from codeclash.utils.log import get_logger
 
 load_dotenv()
@@ -80,6 +81,43 @@ class Player(ABC):
         self.logger.info(
             f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})"
         )
+
+    def reset_and_apply_patch(
+        self, patch: str, *, base_commit: str = "", filter_patch: bool = True
+    ) -> None:
+        """Clean all uncommited changes. If base_commit is provided, reset to that commit.
+        Then apply the patch to the codebase.
+        """
+        # Need to clean before we copy over the patch (else it's gonna be removed by git clean)
+        self.logger.debug(
+            assert_zero_exit_code(
+                self.environment.execute(
+                    f"git reset --hard {base_commit} && git clean -fd"
+                )
+            )
+        )
+
+        patch = filter_git_diff(patch) if filter_patch else patch
+
+        if not patch.strip():
+            self.logger.debug("No patch to apply, skipping")
+            return
+
+        create_file_on_container(
+            container=self.environment,  # type: ignore
+            content=patch,
+            dest_path="tmp_patch.txt",
+        )
+
+        self.logger.debug(f"Applying patch to agent's codebase: {patch}")
+
+        commands = ["git status", "git apply tmp_patch.txt", "rm -f tmp_patch.txt"]
+        for cmd in commands:
+            self.logger.debug(f"Executing command: {cmd}")
+            out = assert_zero_exit_code(
+                self.environment.execute(cmd), logger=self.logger
+            )
+            self.logger.debug(out)
 
     # --- Helper methods ---
 

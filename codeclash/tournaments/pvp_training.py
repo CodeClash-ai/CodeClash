@@ -2,14 +2,11 @@
 PvP training mode where multiple agents compete against each other.
 """
 
-import traceback
-
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
-from codeclash.utils.environment import create_file_on_container
 from codeclash.utils.log import get_logger
 
 
@@ -55,34 +52,19 @@ class PvpTraining(AbstractTournament):
         round_log_path.write_text(log_output)
 
         # Copy log to agent environments
-        self._post_round_setup(self.agents, round_num, log_output)
+        for agent in self.agents:
+            self._copy_game_log_to_agent(agent, round_num, log_output)
 
         for agent in self.agents:
             self.run_agent(agent, round_num)
+
+        self.logger.info("Round completed.")
 
     def run_agent(self, agent: Player, round_num: int) -> None:
         """Run a single agent for the current round."""
         agent.pre_run_hook(new_round=round_num)
         agent.run()
         agent.post_run_hook(round=round_num)
-
-    def _post_round_setup(self, agents: list, round_num: int, log_output: str) -> None:
-        """Copy round logs to agent environments and local directory."""
-        for agent in agents:
-            try:
-                create_file_on_container(
-                    container=agent.environment,
-                    content=log_output,
-                    dest_path=f"logs/round_{round_num}.log",
-                )
-            except Exception:
-                self.logger.error(
-                    f"Error creating round log in {agent.name}'s container: {traceback.format_exc()}"
-                )
-            else:
-                self.logger.info(f"Created round log in {agent.name}'s container.")
-
-        self.logger.info("Round completed.")
 
     def cleanup(self) -> None:
         """Clean up game resources and push agents if requested."""
