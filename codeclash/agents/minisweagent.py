@@ -105,6 +105,7 @@ class MiniSWEAgent(Player):
                 traj_path,
                 exit_status=exit_status,
                 result=result,
+                print_fct=self.logger.debug,
             )
             copy_file_to_container(
                 self.environment,

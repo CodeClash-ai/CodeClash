@@ -1,6 +1,5 @@
 game:
   name: RoboCode
-  rounds: 3
   battle:
     battle:
       numRounds: 10
@@ -14,6 +13,8 @@ game:
   args:
     nodisplay: true
     nosound: true
+tournament:
+  rounds: 3
 players:
 - agent: dummy
   name: p1

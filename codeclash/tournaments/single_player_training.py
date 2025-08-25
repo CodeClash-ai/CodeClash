@@ -29,12 +29,11 @@ class SinglePlayerTraining(AbstractTournament):
         mirror_agent_config = copy.deepcopy(self.config["player"])
         mirror_agent_config["name"] = "mirror"
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
-        self.logger = get_logger(self.game.name)
         self.scoreboard: list[tuple[int, str]] = []
 
     @property
     def rounds(self) -> int:
-        return self.config["game"]["rounds"]
+        return self.config["tournament"]["rounds"]
 
     def get_game_context(self, agent_config: dict, *, round: int) -> GameContext:
         """Create a game context for an agent."""
@@ -71,7 +70,8 @@ class SinglePlayerTraining(AbstractTournament):
         try:
             for round_num in range(1, self.rounds + 1):
                 self.run_training_round(round_num)
-            self.evaluate()
+            if self.config["tournament"]["evaluate_matrix"]:
+                self.evaluate()
         finally:
             self.cleanup()
 

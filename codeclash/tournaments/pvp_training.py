@@ -32,7 +32,7 @@ class PvpTraining(AbstractTournament):
 
     @property
     def rounds(self) -> int:
-        return self.config["game"]["rounds"]
+        return self.config["tournament"]["rounds"]
 
     def get_agent(self, agent_config: dict, prompts: dict) -> Player:
         """Create an agent with environment and game context."""

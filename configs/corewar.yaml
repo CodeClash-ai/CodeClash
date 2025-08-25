@@ -1,8 +1,9 @@
 game:
   name: CoreWar
-  rounds: 3
   args:
     r: 100
+tournament:
+  rounds: 3
 players:
 - agent: dummy
   name: p1

@@ -1,5 +1,6 @@
 game:
   name: RobotRumble
+tournament:
   rounds: 3
 players:
 - agent: dummy

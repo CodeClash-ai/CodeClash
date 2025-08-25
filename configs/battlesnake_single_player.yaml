@@ -1,10 +1,12 @@
 game:
   name: BattleSnake
-  rounds: 1
   args:
     width: 11
     height: 11
     browser: false
+tournament:
+  rounds: 1
+  evaluate_matrix: true
 player:
   agent: mini
   config: configs/mini/default.yaml

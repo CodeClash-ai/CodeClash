@@ -33,7 +33,7 @@ def test_main_battlesnake_integration():
         temp_config_path = os.path.join(temp_dir, "test_battlesnake.yaml")
 
         # Reduce rounds to 1 for faster testing
-        config["game"]["rounds"] = 1
+        config["tournament"]["rounds"] = 1
 
         # Write the modified config
         with open(temp_config_path, "w") as f:
