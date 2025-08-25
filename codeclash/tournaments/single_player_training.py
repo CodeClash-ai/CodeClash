@@ -80,12 +80,8 @@ class SinglePlayerTraining(AbstractTournament):
 
     def set_mirror_state_to_round(self, round_num: int):
         """Update mirror agent's codebase with the main agent's changes."""
-        if round_num == 0:
-            full_diff = ""
-        else:
-            full_diff = self.agent.get_metadata()["diff"][round_num]
-            full_diff = filter_git_diff(full_diff)
-
+        full_diff = self.agent.get_metadata()["diff"][round_num]
+        full_diff = filter_git_diff(full_diff)
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
     def cleanup(self):

@@ -36,8 +36,8 @@ class Player(ABC):
         self._metadata = {
             "name": self.name,
             "player_unique_id": self._player_unique_id,
-            "diff": {},  # mapping round -> diff
-            "incremental_diff": {},  # mapping round -> diff
+            "diff": {0: ""},  # mapping round -> diff
+            "incremental_diff": {0: ""},  # mapping round -> diff
         }
 
     # --- Main methods ---
