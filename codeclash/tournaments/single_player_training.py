@@ -6,6 +6,9 @@ import copy
 
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
+from codeclash.agents.dummy import Dummy
+from codeclash.agents.utils import GameContext
+from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
@@ -22,21 +25,46 @@ class SinglePlayerTraining(AbstractTournament):
             tournament_id=self.tournament_id,
             local_output_dir=self.local_output_dir,
         )
-        # fixme: hack
-        self.game.rounds = self.config["game"]["rounds"]
-        self.agent: Player = get_agent(
-            self.config["player"], self.config["prompts"], self.game
-        )
+        self.agent: Player = self.get_agent(self.config["player"], round=1)
         mirror_agent_config = copy.deepcopy(self.config["player"])
         mirror_agent_config["name"] = "mirror"
-        self.mirror_agent: Player = get_agent(
-            mirror_agent_config, self.config["prompts"], self.game
-        )
+        self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
         self.logger = get_logger(self.game.name)
+        self.scoreboard: list[tuple[int, str]] = []
 
     @property
     def rounds(self) -> int:
         return self.config["game"]["rounds"]
+
+    def get_game_context(self, agent_config: dict, *, round: int) -> GameContext:
+        """Create a game context for an agent."""
+        return GameContext(
+            id=self.game.game_id,
+            log_env=self.game.log_env,
+            log_local=self.game.log_local,
+            name=self.game.name,
+            player_id=agent_config["name"],
+            prompts=self.config["prompts"],
+            round=round,
+            rounds=self.rounds,
+            working_dir=str(DIR_WORK),
+        )
+
+    def get_agent(self, agent_config: dict, round: int) -> Player:
+        """Create an agent with environment and game context."""
+        environment = self.game.get_environment(
+            f"{self.game.game_id}.{agent_config['name']}"
+        )
+        game_context = self.get_game_context(agent_config, round=round)
+        return get_agent(agent_config, game_context, environment)
+
+    def get_dummy_agent(self) -> Player:
+        """Create a dummy agent that does nothing."""
+        return Dummy(
+            self.config["player"],
+            environment=self.game.get_environment(f"{self.game.game_id}.dummy"),
+            game_context=self.get_game_context(self.config["player"], round=0),
+        )
 
     def run(self):
         """Main execution function that runs all rounds."""
@@ -48,15 +76,14 @@ class SinglePlayerTraining(AbstractTournament):
             self.cleanup()
 
     def run_training_round(self, round_num: int) -> None:
-        """Execute a single training round."""
+        """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
         result = self.game.run_round([self.agent, self.mirror_agent])
         log_output = result["log_output"]
-        result_output = result["result_output"]
         winner = result["winner"]
 
         # Handle bookkeeping that was previously in the game
-        self.game.scoreboard.append((round_num, winner))
+        self.scoreboard.append((round_num, winner))
         self.logger.info(f"Round {round_num} winner: {winner}")
 
         # Write log to file
@@ -92,10 +119,13 @@ class SinglePlayerTraining(AbstractTournament):
         """Evaluate the agent's performance by
         calculating the matrix of every round against each other.
         """
-        p1 = get_agent(self.config["player"], self.config["prompts"], self.game)
-        p1.name = "p1"
-        p2 = get_agent(self.config["player"], self.config["prompts"], self.game)
-        p2.name = "p2"
+        p1_config = self.config["player"].copy()
+        p1_config["name"] = "p1"
+        p1 = self.get_dummy_agent()
+
+        p2_config = self.config["player"].copy()
+        p2_config["name"] = "p2"
+        p2 = self.get_dummy_agent()
         matrix = {
             p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)}
             for p1_round in range(0, self.rounds + 1)

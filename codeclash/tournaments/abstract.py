@@ -3,7 +3,10 @@ import time
 import traceback
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS
+from codeclash.agents import get_agent
+from codeclash.agents.abstract import Player
+from codeclash.agents.utils import GameContext
+from codeclash.constants import DIR_LOGS, DIR_WORK
 from codeclash.utils.environment import create_file_on_container
 from codeclash.utils.log import get_logger
 

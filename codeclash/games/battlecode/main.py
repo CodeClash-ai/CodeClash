@@ -1,4 +1,5 @@
 import re
+import shlex
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +53,7 @@ class BattleCodeGame(CodeGame):
             f"--p{idx+1}-dir src --p{idx+1} {agent.name}"
             for idx, agent in enumerate(agents)
         ]
-        cmd = f"{self.run_cmd_round} {' '.join(args)}"
+        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

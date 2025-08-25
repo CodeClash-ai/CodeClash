@@ -36,24 +36,15 @@ class GameContext:
     rounds: int
     working_dir: str
 
-    def render_and_set_prompts(self):
-        """Render and set prompts using the current game context."""
+    def _render_prompt_templates(self) -> dict:
         context = asdict(self)
-        del context["prompts"]
-        for key, template_str in self.prompts.items():
-            rendered = Template(template_str).render(**context)
-            setattr(self, key, rendered)
+        return {
+            key: Template(template_str).render(**context)
+            for key, template_str in self.prompts.items()
+        }
 
-    def to_dict(self):
-        """Convert the GameContext to a dictionary, including dynamically added attributes."""
-        result = asdict(self)
-        declared = set(self.__dataclass_fields__)
-        for attr in dir(self):
-            if (
-                not attr.startswith("_")
-                and attr not in declared
-                and not callable(getattr(self, attr))
-            ):
-                result[attr] = getattr(self, attr)
-        del result["prompts"]
-        return result
+    def to_template_vars(self) -> dict[str, str]:
+        """Convert the GameContext to a dictionary for rendering prompts in the agent"""
+        out = asdict(self) | self._render_prompt_templates()
+        out.pop("prompts")
+        return out

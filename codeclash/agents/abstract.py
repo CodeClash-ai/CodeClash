@@ -27,7 +27,6 @@ class Player(ABC):
         """Unique ID that doesn't clash even accross multiple games. Used for git tags."""
         self.environment = environment
         self.game_context = game_context
-        self.game_context.render_and_set_prompts()
         self.logger = get_logger(
             self.name,
             log_path=self.game_context.log_local / f"{self.name}.log",
@@ -47,7 +46,6 @@ class Player(ABC):
         if new_round == 1:
             self._tag_round(0)
         self.game_context.round = new_round
-        self.game_context.render_and_set_prompts()
 
     def post_run_hook(self, *, round: int) -> None:
         """Should be called after we called the run method."""

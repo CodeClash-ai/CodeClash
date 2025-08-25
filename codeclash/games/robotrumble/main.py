@@ -1,3 +1,4 @@
+import shlex
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
@@ -42,7 +43,7 @@ class RobotRumbleGame(CodeGame):
 
     def execute_round(self, agents: list[Player]) -> dict[str, str]:
         args = [f"/{agent.name}/robot.py" for agent in agents]
-        cmd = f"{self.run_cmd_round} {' '.join(args)}"
+        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

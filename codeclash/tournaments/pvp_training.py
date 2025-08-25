@@ -4,6 +4,8 @@ PvP training mode where multiple agents compete against each other.
 
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
+from codeclash.agents.utils import GameContext
+from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
@@ -24,13 +26,38 @@ class PvpTraining(AbstractTournament):
         )
         self.agents: list[Player] = []
         for agent_conf in self.config["players"]:
-            self.agents.append(get_agent(agent_conf, self.config["prompts"], self.game))
+            self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
         self.logger = get_logger(self.game.name)
+        self.scoreboard: list[tuple[int, str]] = []
+
+    @property
+    def rounds(self) -> int:
+        return self.config["game"]["rounds"]
+
+    def get_agent(self, agent_config: dict, prompts: dict) -> Player:
+        """Create an agent with environment and game context."""
+        environment = self.game.get_environment(
+            f"{self.game.game_id}.{agent_config['name']}"
+        )
+
+        game_context = GameContext(
+            id=self.game.game_id,
+            log_env=self.game.log_env,
+            log_local=self.game.log_local,
+            name=self.game.name,
+            player_id=agent_config["name"],
+            prompts=prompts,
+            round=1,
+            rounds=self.rounds,
+            working_dir=str(DIR_WORK),
+        )
+
+        return get_agent(agent_config, game_context, environment)
 
     def run(self) -> None:
         """Main execution function that runs all rounds."""
         try:
-            for round_num in range(1, self.game.rounds + 1):
+            for round_num in range(1, self.rounds + 1):
                 self.run_training_round(round_num)
         finally:
             self.cleanup()
@@ -44,7 +71,7 @@ class PvpTraining(AbstractTournament):
         winner = result["winner"]
 
         # Handle bookkeeping that was previously in the game
-        self.game.scoreboard.append((round_num, winner))
+        self.scoreboard.append((round_num, winner))
         self.logger.info(f"Round {round_num} winner: {winner}")
 
         # Write log to file

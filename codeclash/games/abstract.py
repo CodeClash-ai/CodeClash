@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 from abc import ABC, abstractmethod
-from collections import Counter
 from pathlib import Path
 
 from minisweagent.environments.docker import DockerEnvironment
@@ -24,12 +23,15 @@ class CodeGame(ABC):
         The central method is `run_round`, which takes a list of agents and returns the winner of the round.
 
         At the end of the the tournament, run the `end` method to clean up the game and agents and write the metadata.
+
+        Args:
+            config: The overall config for the tournament.
+            tournament_id: The id of the tournament.
+            local_output_dir: The host/local directory to write logs to.
         """
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         """Artifact objects that we might want to clean up after the game."""
-        self.scoreboard: list[tuple[int, str]] = []
-        """List of (round number, winner (player id))"""
         self.game_config: dict = config["game"]
         self.config: dict = config
         self.game_id: str = tournament_id
@@ -40,8 +42,6 @@ class CodeGame(ABC):
         )
         self.environment: DockerEnvironment = self.get_environment()
         """The running docker environment for executing the game"""
-        # assert len(config["players"]) >= 2, "At least two players are required"
-        """Total number of rounds to play"""
         self._metadata: dict = {
             "name": self.name,
             "config": self.config,
@@ -92,7 +92,6 @@ class CodeGame(ABC):
         return self._metadata
 
     def end(self, cleanup: bool = False):
-        self.logger.info("Overall score: %s", Counter([x[1] for x in self.scoreboard]))
         (self.log_local / "metadata.json").write_text(json.dumps(self.get_metadata()))
         if cleanup:
             for artifact in self.artifacts:
