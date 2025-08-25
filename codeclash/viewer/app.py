@@ -22,6 +22,25 @@ def set_log_base_directory(directory: str | Path):
     LOG_BASE_DIR = Path(directory).resolve()
 
 
+def is_probably_failed_run(log_dir: Path) -> bool:
+    """Check if a run probably failed by checking if metadata.json is missing"""
+    metadata_file = log_dir / "metadata.json"
+    return not metadata_file.exists()
+
+
+def get_round_count_from_metadata(log_dir: Path) -> Optional[int]:
+    """Extract round count from metadata.json if it exists"""
+    metadata_file = log_dir / "metadata.json"
+    if not metadata_file.exists():
+        return None
+
+    try:
+        metadata = json.loads(metadata_file.read_text())
+        return metadata.get("config", {}).get("game", {}).get("rounds")
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
 @dataclass
 class GameMetadata:
     """Metadata about a game session"""
@@ -150,9 +169,22 @@ def index():
     """Main viewer page"""
     # Get available log directories
     logs_dir = LOG_BASE_DIR
-    log_folders = []
+    log_folders_info = []
     if logs_dir.exists():
-        log_folders = [d.name for d in logs_dir.iterdir() if d.is_dir()]
+        for d in logs_dir.iterdir():
+            if d.is_dir():
+                folder_info = {
+                    "name": d.name,
+                    "is_failed": is_probably_failed_run(d),
+                    "round_count": get_round_count_from_metadata(d),
+                }
+                log_folders_info.append(folder_info)
+
+        # Sort folders alphabetically by name
+        log_folders_info.sort(key=lambda x: x["name"])
+
+    # Extract just the names for backwards compatibility
+    log_folders = [folder["name"] for folder in log_folders_info]
 
     selected_folder = request.args.get(
         "folder", log_folders[0] if log_folders else None
@@ -178,6 +210,7 @@ def index():
     return render_template(
         "index.html",
         log_folders=log_folders,
+        log_folders_info=log_folders_info,
         selected_folder=selected_folder,
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,

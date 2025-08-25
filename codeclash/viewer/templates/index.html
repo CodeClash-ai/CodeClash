@@ -16,10 +16,10 @@
                 <div class="control-group">
                     <label for="folder-select">Game Session:</label>
                     <select id="folder-select" onchange="changeFolder()">
-                        {% for folder in log_folders %}
-                        <option value="{{ folder }}"
-                                {% if folder == selected_folder %}selected{% endif %}>
-                            {{ folder }}
+                        {% for folder_info in log_folders_info %}
+                        <option value="{{ folder_info.name }}"
+                                {% if folder_info.name == selected_folder %}selected{% endif %}>
+                            {{ folder_info.name }}{% if folder_info.is_failed %} ⚠️{% endif %}{% if folder_info.round_count %} ({{ folder_info.round_count }} rounds){% endif %}
                         </option>
                         {% endfor %}
                     </select>
