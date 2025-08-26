@@ -33,7 +33,7 @@ def test_main_battlesnake_integration():
         temp_config_path = os.path.join(temp_dir, "test_battlesnake.yaml")
 
         # Reduce rounds to 1 for faster testing
-        config["game"]["rounds"] = 1
+        config["tournament"]["rounds"] = 1
 
         # Write the modified config
         with open(temp_config_path, "w") as f:
@@ -42,8 +42,8 @@ def test_main_battlesnake_integration():
         def mock_get_agent(original_get_agent):
             """Wrapper to replace agent models with DeterministicModel"""
 
-            def wrapper(config, prompts, game):
-                agent = original_get_agent(config, prompts, game)
+            def wrapper(config, game_context, environment):
+                agent = original_get_agent(config, game_context, environment)
                 print("In wrapper, got agent of type ", type(agent))
 
                 # Replace model if the agent has one (specifically for MiniSWEAgent)
@@ -61,10 +61,13 @@ def test_main_battlesnake_integration():
 
             return wrapper
 
-        # Import the get_agent function and patch it where it's used in main
+        # Import the get_agent function and patch it where it's used in the tournaments
         from codeclash.agents import get_agent
 
         # Run the main function with cleanup enabled
-        with patch("main.get_agent", side_effect=mock_get_agent(get_agent)):
+        with patch(
+            "codeclash.tournaments.pvp_training.get_agent",
+            side_effect=mock_get_agent(get_agent),
+        ):
             # This should complete without raising any exceptions
             main(temp_config_path, cleanup=True, push_agent=False)

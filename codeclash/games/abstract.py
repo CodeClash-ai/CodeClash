@@ -1,47 +1,52 @@
-import getpass
 import json
 import os
 import subprocess
-import time
-import traceback
 from abc import ABC, abstractmethod
-from collections import Counter
 from pathlib import Path
-from typing import Any
 
 from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
-from codeclash.utils.environment import (
-    assert_zero_exit_code,
-    copy_between_containers,
-    copy_file_from_container,
-)
+from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers
 from codeclash.utils.log import get_logger
 
 
 class CodeGame(ABC):
     name: str
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path):
+        """The CodeGame class is responsible for running games, i.e., taking a list of code
+        from different agents/players and running them against each other.
+        It also provides the environments for the game and agents to run in.
+
+        The central method is `run_round`, which takes a list of agents and returns the winner of the round.
+
+        At the end of the the tournament, run the `end` method to clean up the game and agents and write the metadata.
+
+        Args:
+            config: The overall config for the tournament.
+            tournament_id: The id of the tournament.
+            local_output_dir: The host/local directory to write logs to.
+        """
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         """Artifact objects that we might want to clean up after the game."""
-        self.scoreboard: list[tuple[int, str]] = []
-        """List of (round number, winner (player id))"""
         self.game_config: dict = config["game"]
         self.config: dict = config
-        self.rounds: int = self.game_config.get("rounds", 1)
-        self.round: int = 0
-        self.game_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
+        self.game_id: str = tournament_id
         self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
-        self.log_local: Path = (DIR_LOGS / getpass.getuser() / self.game_id).resolve()
+        self.log_local: Path = local_output_dir
         self.logger = get_logger(
             self.name, log_path=self.log_local / "game.log", emoji="🏓"
         )
         self.environment: DockerEnvironment = self.get_environment()
-        assert len(config["players"]) >= 2, "At least two players are required"
+        """The running docker environment for executing the game"""
+        self._metadata: dict = {
+            "name": self.name,
+            "config": self.config,
+            "game_id": self.game_id,
+        }
 
     @property
     def image_name(self) -> str:
@@ -84,15 +89,9 @@ class CodeGame(ABC):
         """This is what we write to metadata.json.
         You can subclass extend this to add more details for specific games.
         """
-        return {
-            "name": self.name,
-            "scoreboard": self.scoreboard,
-            "config": self.config,
-            "game_id": self.game_id,
-        }
+        return self._metadata
 
     def end(self, cleanup: bool = False):
-        self.logger.info("Overall score: %s", Counter([x[1] for x in self.scoreboard]))
         (self.log_local / "metadata.json").write_text(json.dumps(self.get_metadata()))
         if cleanup:
             for artifact in self.artifacts:
@@ -121,14 +120,7 @@ class CodeGame(ABC):
         return environment
 
     def _pre_round_setup(self, agents: list[Player]):
-        """Copy agent codebases into game's container and make round log file"""
-        self.round += 1
-        # Notify agents of round update
-        for agent in agents:
-            if hasattr(agent, "on_round_update"):
-                agent.on_round_update(self.round)
-        self.logger.info(f"▶️ Running {self.name} round {self.round}...")
-
+        """Copy agent codebases into game's container"""
         # Copy agent codebases into game's container
         for agent in agents:
             self.logger.debug(f"Copying {agent.name}'s codebase")
@@ -139,78 +131,55 @@ class CodeGame(ABC):
                 dest_path=f"/{agent.name}",
             )
 
-        # Ensure the log path + file exists
+        # Ensure the log directory exists
         assert_zero_exit_code(
             self.environment.execute(f"mkdir -p {self.log_env}"),
             logger=self.logger,
         )
-        assert_zero_exit_code(
-            self.environment.execute(f"touch {self.round_log_path}"), logger=self.logger
-        )
 
     @abstractmethod
-    def determine_winner(self, agents: list[Player]) -> Any:
-        """Determine the winner of the game based on the round results,
-        Should update self.scoreboard
+    def determine_winner(
+        self, result_output: str, agents: list[Player]
+    ) -> dict[str, str]:
+        """Determine the winner of the game based on the result output.
+
+        Args:
+            result_output: The specific output containing winning information
+            agents: List of agents participating in the round
+
+        Returns:
+            Dictionary with key "winner" containing the winner's name
         """
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[Player]):
-        """Subclasses implement their game-specific logic here, must write results to round_log_path.
+    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+        """Subclasses implement their game-specific logic here.
         This is the low level implementation, you probably want to use run_round instead, which
         includes the pre-round setup, post-round setup, and winner determination.
+
+        Returns:
+            Dictionary with keys "log_output" and "result_output"
         """
         pass
 
-    def _post_round_setup(self, agents: list[Player]):
-        for agent in agents:
-            try:
-                copy_between_containers(
-                    self.environment,
-                    agent.environment,
-                    self.round_log_path,
-                    f"{agent.environment.config.cwd}/logs/round_{self.round}.log",
-                )
-            except Exception:
-                self.logger.error(
-                    f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
-                )
-            else:
-                self.logger.info(f"Copied round log to {agent.name}'s container.")
-
-            try:
-                copy_file_from_container(
-                    self.environment,
-                    self.round_log_path,
-                    self.log_local / self.round_log_path.name,
-                )
-            except Exception:
-                self.logger.error(
-                    f"Error copying round log to {agent.name}'s container: {traceback.format_exc()}"
-                )
-            else:
-                self.logger.info(
-                    f"Copied round log from {agent.name}'s container to local log dir."
-                )
-        self.logger.info(f"Round {self.round} completed.")
-
-    def run_round(self, agents: list[Player]):
+    def run_round(self, agents: list[Player]) -> dict[str, str]:
         """
         Run a single round of the game with the given agents.
 
-        Writes to directory containing logs and results of the round(s).
+        Returns the log output, result output, and winner name. All bookkeeping should be
+        handled by the tournament class.
         """
         self._pre_round_setup(agents)
-        self.execute_round(agents)
-        self.determine_winner(agents)
-        last_winner = self.scoreboard[-1][1]
-        self.logger.info(f"Round {self.round} winner: {last_winner}")
-        self._post_round_setup(agents)
+        result = self.execute_round(agents)
+        log_output = result["log_output"]
+        result_output = result["result_output"]
 
-    @property
-    def round_log_path(self) -> Path:
-        """
-        Get the path to the current round's log file.
-        """
-        return self.log_env / f"round_{self.round}.log"
+        winner_result = self.determine_winner(result_output, agents)
+        winner_name = winner_result["winner"]
+
+        return {
+            "log_output": log_output,
+            "result_output": result_output,
+            "winner": winner_name,
+        }

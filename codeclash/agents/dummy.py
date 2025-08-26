@@ -5,4 +5,5 @@ class Dummy(Player):
     """A dummy player that does nothing. Mainly for testing purposes."""
 
     def run(self):
-        self.commit()
+        pass
+        # self.commit()  # now called in post_round_hook

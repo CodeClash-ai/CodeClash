@@ -2,13 +2,13 @@ import argparse
 
 import yaml
 
-from codeclash.tournaments.pvp_training import PvpTraining
+from codeclash.tournaments.single_player_training import SinglePlayerTraining
 
 
-def main(config_path: str, *, cleanup: bool = False, push_agent: bool = False):
+def main(config_path: str, cleanup: bool = False):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-    training = PvpTraining(config, cleanup=cleanup, push_agent=push_agent)
+    training = SinglePlayerTraining(config, cleanup)
     training.run()
 
 
@@ -25,12 +25,6 @@ if __name__ == "__main__":
         "--cleanup",
         action="store_true",
         help="If set, do not clean up the game environment after running.",
-    )
-    parser.add_argument(
-        "-p",
-        "--push_agent",
-        action="store_true",
-        help="If set, push each agent's codebase to a new repository after running.",
     )
     args = parser.parse_args()
     main(**vars(args))
