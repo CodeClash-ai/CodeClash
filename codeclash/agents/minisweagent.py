@@ -17,7 +17,7 @@ from rich.console import Console
 
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext, resolve_api_key
-from codeclash.utils.environment import copy_file_to_container
+from codeclash.utils.environment import copy_to_container
 
 
 class ClashAgent(DefaultAgent):
@@ -107,7 +107,7 @@ class MiniSWEAgent(Player):
                 result=result,
                 print_fct=self.logger.debug,
             )
-            copy_file_to_container(
+            copy_to_container(
                 self.environment,
                 traj_path,
                 self.game_context.log_env / traj_path.name,

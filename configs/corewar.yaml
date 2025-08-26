@@ -1,7 +1,6 @@
 game:
   name: CoreWar
-  args:
-    r: 100
+  sims_per_round: 10
 tournament:
   rounds: 3
 players:

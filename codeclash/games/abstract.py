@@ -7,7 +7,13 @@ from pathlib import Path
 from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.abstract import Player
-from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
+from codeclash.constants import (
+    DIR_LOGS,
+    DIR_WORK,
+    GH_ORG,
+    OUTPUTS_LOGS,
+    OUTPUTS_RESULTS,
+)
 from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers
 from codeclash.utils.log import get_logger
 
@@ -139,12 +145,12 @@ class CodeGame(ABC):
 
     @abstractmethod
     def determine_winner(
-        self, result_output: str, agents: list[Player]
+        self, result_outputs: list[str], agents: list[Player]
     ) -> dict[str, str]:
         """Determine the winner of the game based on the result output.
 
         Args:
-            result_output: The specific output containing winning information
+            result_outputs: The specific output(s) containing winning information
             agents: List of agents participating in the round
 
         Returns:
@@ -153,13 +159,13 @@ class CodeGame(ABC):
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
         """Subclasses implement their game-specific logic here.
         This is the low level implementation, you probably want to use run_round instead, which
         includes the pre-round setup, post-round setup, and winner determination.
 
         Returns:
-            Dictionary with keys "log_output" and "result_output"
+            Dictionary with keys "log_outputs" and "result_outputs"
         """
         pass
 
@@ -172,14 +178,14 @@ class CodeGame(ABC):
         """
         self._pre_round_setup(agents)
         result = self.execute_round(agents)
-        log_output = result["log_output"]
-        result_output = result["result_output"]
+        log_outputs = result[OUTPUTS_LOGS]
+        result_outputs = result[OUTPUTS_RESULTS]
 
-        winner_result = self.determine_winner(result_output, agents)
+        winner_result = self.determine_winner(result_outputs, agents)
         winner_name = winner_result["winner"]
 
         return {
-            "log_output": log_output,
-            "result_output": result_output,
+            OUTPUTS_LOGS: log_outputs,
+            OUTPUTS_RESULTS: result_outputs,
             "winner": winner_name,
         }

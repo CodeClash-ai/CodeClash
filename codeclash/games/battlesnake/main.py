@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
+from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS
 from codeclash.games.abstract import CodeGame
 from codeclash.utils.environment import assert_zero_exit_code
 
@@ -23,18 +24,20 @@ class BattleSnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def determine_winner(
-        self, result_output: str, agents: list[Player]
+        self, result_outputs: list[str], agents: list[Player]
     ) -> dict[str, str]:
-        self.logger.debug(f"Determining winner from result output: {result_output}")
-        lines = result_output.strip().split("\n")
-        # Get the last line which contains the game result
-        last_line = lines[-1] if lines else ""
-        self.logger.debug(f"Last line: {last_line}")
-        winner = json.loads(last_line)["winnerName"]
-        self.logger.debug(f"Concluding winner: {winner}")
+        winners = []
+        for ro in result_outputs:
+            lines = ro.strip().split("\n")
+            # Get the last line which contains the game result
+            last_line = lines[-1] if lines else ""
+            self.logger.debug(f"Last line: {last_line}")
+            winner = json.loads(last_line)["winnerName"]
+            winners.append(winner)
+        winner = max(set(winners), key=winners.count)
         return {"winner": winner}
 
-    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
         cmd = []
         for idx, agent in enumerate(agents):
             port = 8001 + idx
@@ -46,27 +49,33 @@ class BattleSnakeGame(CodeGame):
 
         time.sleep(3)  # Give servers time to start
 
-        # Create temporary output file for results
-        output_file = f"battlesnake_output_{int(time.time())}.json"
-        cmd_str = " ".join(cmd) + f" -o {output_file}"
-        self.logger.info(f"Running command: {self.run_cmd_round} {cmd_str}")
-
         try:
-            response = assert_zero_exit_code(
-                self.environment.execute(
-                    f"{self.run_cmd_round} {cmd_str}",
-                    cwd=f"{self.environment.config.cwd}/game",
+            log_outputs, result_outputs = [], []
+            for idx in range(self.game_config["sims_per_round"]):
+                # Create temporary output file for results
+                output_file = f"battlesnake_output_{idx}_{int(time.time())}.json"
+                cmd_str = " ".join(cmd) + f" -o {output_file}"
+                self.logger.info(f"Running command: {self.run_cmd_round} {cmd_str}")
+
+                response = assert_zero_exit_code(
+                    self.environment.execute(
+                        f"{self.run_cmd_round} {cmd_str}",
+                        cwd=f"{self.environment.config.cwd}/game",
+                    )
                 )
-            )
 
-            # Read the output file for result information
-            result_response = self.environment.execute(f"cat game/{output_file}")
-            result_output = result_response["output"]
+                # Read the output file for result information
+                result_response = self.environment.execute(f"cat game/{output_file}")
+                result_output = result_response["output"]
+                log_outputs.append(response["output"])
+                result_outputs.append(result_output)
 
-            # Clean up the output file
-            self.environment.execute(f"rm -f game/{output_file}")
+                # Clean up the output file
+                self.environment.execute(f"rm -f game/{output_file}")
 
-            return {"log_output": response["output"], "result_output": result_output}
+                time.sleep(0.1)
+
+            return {OUTPUTS_LOGS: log_outputs, OUTPUTS_RESULTS: result_outputs}
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")

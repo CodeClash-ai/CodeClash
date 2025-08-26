@@ -1,8 +1,9 @@
 import shlex
+from collections import Counter
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
-from codeclash.constants import RESULT_TIE
+from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS, RESULT_TIE
 from codeclash.games.abstract import CodeGame
 
 
@@ -17,36 +18,37 @@ class RobotRumbleGame(CodeGame):
         self.run_cmd_round: str = "./rumblebot run term"
 
     def determine_winner(
-        self, result_output: str, agents: list[Player]
+        self, result_outputs: list[str], agents: list[Player]
     ) -> dict[str, str]:
-        self.logger.debug(f"Determining winner from result output: {result_output}")
-        lines = result_output.strip().split("\n")
-        # Get the last 2 lines which contain the game result (same as original)
-        relevant_lines = lines[-2:] if len(lines) >= 2 else lines
-        log_text = "\n".join(relevant_lines)
-        self.logger.debug(f"Relevant lines: {log_text}")
+        winners = []
+        for ro in result_outputs:
+            lines = ro.strip().split("\n")
 
-        if "Blue won" in log_text:
-            winner = agents[0].name
-            self.logger.debug(f"Blue won - Concluding winner: {winner}")
-            return {"winner": winner}
-        elif "Red won" in log_text:
-            winner = agents[1].name
-            self.logger.debug(f"Red won - Concluding winner: {winner}")
-            return {"winner": winner}
-        elif "it was a tie" in log_text:
-            self.logger.debug("Game was a tie")
-            return {"winner": RESULT_TIE}
-        else:
-            self.logger.debug("No clear result found, treating as tie")
-            return {"winner": RESULT_TIE}
+            # Get the last 2 lines which contain the game result (same as original)
+            relevant_lines = lines[-2:] if len(lines) >= 2 else lines
+            log_text = "\n".join(relevant_lines)
+
+            if "Blue won" in log_text:
+                winner = agents[0].name
+                winners.append(winner)
+            elif "Red won" in log_text:
+                winner = agents[1].name
+                winners.append(winner)
+            elif "it was a tie" in log_text:
+                winners.append(RESULT_TIE)
+            else:
+                winners.append(RESULT_TIE)
+        print(Counter(winners))
+        winner = max(set(winners), key=winners.count)
+        return {"winner": winner}
 
     def execute_round(self, agents: list[Player]) -> dict[str, str]:
-        args = [f"/{agent.name}/robot.py" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
-        self.logger.info(f"Running command: {cmd}")
-        response = self.environment.execute(cmd)
-        assert response["returncode"] == 0, response
-        # For RobotRumble, log_output and result_output are the same
-        output = response["output"]
-        return {"log_output": output, "result_output": output}
+        outputs = []
+        for _ in range(self.game_config.get("sims_per_round", 100)):
+            args = [f"/{agent.name}/robot.py" for agent in agents]
+            cmd = f"{self.run_cmd_round} {shlex.join(args)}"
+            response = self.environment.execute(cmd)
+            assert response["returncode"] == 0, response
+            outputs.append(response["output"])
+        # For RobotRumble, log_outputs and result_outputs are the same
+        return {OUTPUTS_LOGS: outputs, OUTPUTS_RESULTS: outputs}

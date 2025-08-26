@@ -5,10 +5,11 @@ PvP training mode where multiple agents compete against each other.
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK
+from codeclash.constants import DIR_WORK, OUTPUTS_LOGS, OUTPUTS_RESULTS
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
+from codeclash.utils.environment import copy_to_container
 from codeclash.utils.log import get_logger
 
 
@@ -66,21 +67,34 @@ class PvpTraining(AbstractTournament):
         """Execute a single training round."""
         # Run the game round and get results
         result = self.game.run_round(self.agents)
-        log_output = result["log_output"]
-        result_output = result["result_output"]
+        log_outputs = result[OUTPUTS_LOGS]
+        result_outputs = result[OUTPUTS_RESULTS]
         winner = result["winner"]
 
         # Handle bookkeeping that was previously in the game
         self.scoreboard.append((round_num, winner))
         self.logger.info(f"Round {round_num} winner: {winner}")
 
+        # Create directory for round logs
+        (self.game.log_local / f"round_{round_num}").mkdir(parents=True, exist_ok=True)
+
         # Write log to file
-        round_log_path = self.game.log_local / f"round_{round_num}.log"
-        round_log_path.write_text(log_output)
+        for idx, lo in enumerate(log_outputs):
+            round_log_path = (
+                self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            )
+            round_log_path.write_text(lo)
 
         # Copy log to agent environments
         for agent in self.agents:
-            self._copy_game_log_to_agent(agent, round_num, log_output)
+            self.logger.info(
+                f"Copying round {round_num} log(s) to {agent.name}'s container..."
+            )
+            copy_to_container(
+                agent.environment,
+                self.game.log_local / f"round_{round_num}",
+                f"logs/round_{round_num}/",
+            )
 
         for agent in self.agents:
             self.run_agent(agent, round_num)

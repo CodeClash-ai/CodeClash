@@ -6,6 +6,7 @@ game:
     browser: false
 tournament:
   rounds: 2
+  sims_per_round: 10
 players:
 - agent: mini
   name: p1

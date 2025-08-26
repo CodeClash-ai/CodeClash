@@ -65,13 +65,15 @@ def copy_between_containers(
             )
 
 
-def copy_file_to_container(
+def copy_to_container(
     container: DockerEnvironment,
     src_path: str | Path,
     dest_path: str | Path,
 ):
     """
-    Copy a file from the local filesystem to a Docker container.
+    Copy a file or directory from the local filesystem to a Docker container.
+
+    The copy operation is recursive for directories.
     """
     if not str(dest_path).startswith("/"):
         # If not an absolute path, assume relative to container's cwd
@@ -130,6 +132,6 @@ def create_file_on_container(
         tmp_file_path = Path(tmp_file.name)
 
     try:
-        copy_file_to_container(container, tmp_file_path, dest_path)
+        copy_to_container(container, tmp_file_path, dest_path)
     finally:
         tmp_file_path.unlink()  # Clean up the temporary file

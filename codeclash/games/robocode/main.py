@@ -3,8 +3,9 @@ import time
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
+from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS
 from codeclash.games.abstract import CodeGame
-from codeclash.utils.environment import copy_file_to_container
+from codeclash.utils.environment import copy_to_container
 
 
 class RoboCodeGame(CodeGame):
@@ -25,7 +26,7 @@ class RoboCodeGame(CodeGame):
     def _get_battle_config(self) -> str:
         default_battle_config = {
             "battle": {
-                "numRounds": 10,
+                "numRounds": self.game_config.get("sims_per_round", 100),
                 "gunCoolingRate": 0.1,
                 "rules": {"inactivityTime": 450, "hideEnemyNames": True},
             },
@@ -56,12 +57,13 @@ class RoboCodeGame(CodeGame):
         return "\n".join(battle_lines)
 
     def determine_winner(
-        self, result_output: str, agents: list[Player]
+        self, result_outputs: list[str], agents: list[Player]
     ) -> dict[str, str]:
+        result_output = result_outputs[0]  # Get the first (and only) element
         self.logger.debug(f"Determining winner from result output: {result_output}")
         lines = result_output.strip().split("\n")
         # Get the second line which contains the winner info (closer to original)
-        winner_line = lines[1] if len(lines) >= 2 else ""
+        winner_line = lines[2] if len(lines) >= 3 else ""
         self.logger.debug(f"Winner line: {winner_line}")
         if winner_line:
             winner = winner_line.split()[1].rsplit(".", 1)[0]
@@ -71,7 +73,7 @@ class RoboCodeGame(CodeGame):
             self.logger.debug("No winner line found, returning unknown")
             return {"winner": "unknown"}
 
-    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
             for cmd in [
@@ -93,7 +95,7 @@ class RoboCodeGame(CodeGame):
 robocode.battle.selectedRobots={selected_robots}
 """
             )
-        copy_file_to_container(self.environment, battle_file, f"battles/{battle_file}")
+        copy_to_container(self.environment, battle_file, f"battles/{battle_file}")
         subprocess.run(f"rm -f {battle_file}", shell=True)
 
         # Run battle with results output to file
@@ -110,4 +112,4 @@ robocode.battle.selectedRobots={selected_robots}
         # Clean up the results file
         self.environment.execute(f"rm -f {results_file}")
 
-        return {"log_output": response["output"], "result_output": result_output}
+        return {OUTPUTS_LOGS: [response["output"]], OUTPUTS_RESULTS: [result_output]}

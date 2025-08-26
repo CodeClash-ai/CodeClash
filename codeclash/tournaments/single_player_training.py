@@ -8,12 +8,12 @@ from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.agents.dummy import Dummy
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK
+from codeclash.constants import DIR_WORK, OUTPUTS_LOGS
 from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
-from codeclash.utils.log import get_logger
+from codeclash.utils.environment import copy_to_container
 
 
 class SinglePlayerTraining(AbstractTournament):
@@ -79,7 +79,7 @@ class SinglePlayerTraining(AbstractTournament):
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
         result = self.game.run_round([self.agent, self.mirror_agent])
-        log_output = result["log_output"]
+        log_outputs = result[OUTPUTS_LOGS]
         winner = result["winner"]
 
         # Handle bookkeeping that was previously in the game
@@ -87,11 +87,21 @@ class SinglePlayerTraining(AbstractTournament):
         self.logger.info(f"Round {round_num} winner: {winner}")
 
         # Write log to file
-        round_log_path = self.game.log_local / f"round_{round_num}.log"
-        round_log_path.write_text(log_output)
+        for idx, lo in enumerate(log_outputs):
+            round_log_path = (
+                self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            )
+            round_log_path.write_text(lo)
 
         # Copy log to main agent environment only
-        self._copy_game_log_to_agent(self.agent, round_num, log_output)
+        self.logger.info(
+            f"Copying round {round_num} log(s) to {self.agent.name}'s container..."
+        )
+        copy_to_container(
+            self.agent,
+            self.game.log_local / f"round_{round_num}",
+            f"logs/round_{round_num}/",
+        )
 
         self.run_main_agent(round_num)
         mirror_agent_state = round_num - 1 if round_num > 1 else 0

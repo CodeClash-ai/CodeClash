@@ -3,6 +3,7 @@ import shlex
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
+from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS
 from codeclash.games.abstract import CodeGame
 
 
@@ -22,8 +23,9 @@ class CoreWarGame(CodeGame):
                 self.run_cmd_round += f" -{arg} {val}"
 
     def determine_winner(
-        self, result_output: str, agents: list[Player]
+        self, result_outputs: list[str], agents: list[Player]
     ) -> dict[str, str]:
+        result_output = result_outputs[0]  # Get the first (and only) element
         self.logger.debug(f"Determining winner from result output: {result_output}")
         scores = []
         n = len(agents) * 2
@@ -51,12 +53,13 @@ class CoreWarGame(CodeGame):
             self.logger.debug("No scores found, returning unknown")
             return {"winner": "unknown"}
 
-    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
+        cmd += f" -r {self.game_config['sims_per_round']}"
         self.logger.info(f"Running command: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
-        # For CoreWar, log_output and result_output are the same
-        output = response["output"]
-        return {"log_output": output, "result_output": output}
+        # For CoreWar, log_outputs and result_outputs are the same
+        output = [response["output"]]
+        return {OUTPUTS_LOGS: output, OUTPUTS_RESULTS: output}
