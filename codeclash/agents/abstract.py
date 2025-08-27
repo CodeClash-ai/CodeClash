@@ -24,7 +24,7 @@ class Player(ABC):
         self.config = config
         self.name = config["name"]
         self._player_unique_id = uuid.uuid4()
-        """Unique ID that doesn't clash even accross multiple games. Used for git tags."""
+        """Unique ID that doesn't clash even across multiple games. Used for git tags."""
         self.environment = environment
         self.game_context = game_context
         self.logger = get_logger(
@@ -51,9 +51,7 @@ class Player(ABC):
         """Should be called after we called the run method."""
         self._commit()
         self._metadata["diff"][round] = self._get_round_diff(round)
-        self._metadata["incremental_diff"][round] = self._get_round_diff(
-            round, incremental=True
-        )
+        self._metadata["incremental_diff"][round] = self._get_round_diff(round, incremental=True)
 
     @abstractmethod
     def run(self) -> None:
@@ -76,23 +74,15 @@ class Player(ABC):
             "git push origin --tags",
         ]:
             assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
-        self.logger.info(
-            f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})"
-        )
+        self.logger.info(f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})")
 
-    def reset_and_apply_patch(
-        self, patch: str, *, base_commit: str = "", filter_patch: bool = True
-    ) -> None:
-        """Clean all uncommited changes. If base_commit is provided, reset to that commit.
+    def reset_and_apply_patch(self, patch: str, *, base_commit: str = "", filter_patch: bool = True) -> None:
+        """Clean all uncommitted changes. If base_commit is provided, reset to that commit.
         Then apply the patch to the codebase.
         """
         # Need to clean before we copy over the patch (else it's gonna be removed by git clean)
         self.logger.debug(
-            assert_zero_exit_code(
-                self.environment.execute(
-                    f"git reset --hard {base_commit} && git clean -fd"
-                )
-            )
+            assert_zero_exit_code(self.environment.execute(f"git reset --hard {base_commit} && git clean -fd"))
         )
 
         patch = filter_git_diff(patch) if filter_patch else patch
@@ -112,9 +102,7 @@ class Player(ABC):
         commands = ["git status", "git apply tmp_patch.txt", "rm -f tmp_patch.txt"]
         for cmd in commands:
             self.logger.debug(f"Executing command: {cmd}")
-            out = assert_zero_exit_code(
-                self.environment.execute(cmd), logger=self.logger
-            )
+            out = assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
             self.logger.debug(out)
 
     # --- Helper methods ---
@@ -122,9 +110,7 @@ class Player(ABC):
     def _tag_round(self, round: int) -> None:
         """Git tag the codebase at the given round."""
         assert_zero_exit_code(
-            self.environment.execute(
-                f"git tag -a {self._get_round_tag_name(round)} -m 'Round {round} Update'"
-            ),
+            self.environment.execute(f"git tag -a {self._get_round_tag_name(round)} -m 'Round {round} Update'"),
             logger=self.logger,
         )
 
@@ -161,9 +147,7 @@ class Player(ABC):
             previous_round_tag = self._get_round_tag_name(0)
         current_round_tag = self._get_round_tag_name(round)
         out = assert_zero_exit_code(
-            self.environment.execute(
-                f"git diff {previous_round_tag}..{current_round_tag}"
-            ),
+            self.environment.execute(f"git diff {previous_round_tag}..{current_round_tag}"),
             logger=self.logger,
         )
         return out["output"]

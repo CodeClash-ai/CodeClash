@@ -5,11 +5,10 @@ This test verifies that the main execution flow works without exceptions,
 using DeterministicModel instead of real LLM models.
 """
 
-import os
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 import yaml
 from minisweagent.models.test_models import DeterministicModel
 
@@ -25,12 +24,12 @@ def test_main_battlesnake_integration():
     config_path = "configs/battlesnake.yaml"
 
     # Read the original config
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
     # Create a temporary directory for test artifacts
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_config_path = os.path.join(temp_dir, "test_battlesnake.yaml")
+        temp_config_path = Path(temp_dir) / "test_battlesnake.yaml"
 
         # Reduce rounds to 1 for faster testing
         config["tournament"]["rounds"] = 1
@@ -51,9 +50,7 @@ def test_main_battlesnake_integration():
                     print(f"Replacing model for agent {agent.name}")
                     # Create DeterministicModel with the specified command
                     deterministic_model = DeterministicModel(
-                        outputs=[
-                            "```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\n```"
-                        ]
+                        outputs=["```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\n```"]
                     )
                     agent.agent.model = deterministic_model
 

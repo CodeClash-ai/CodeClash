@@ -11,9 +11,7 @@ class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
 
     def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(
-            config, tournament_id=tournament_id, local_output_dir=local_output_dir
-        )
+        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
         self.run_cmd_round: str = "./robocode.sh"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
@@ -73,9 +71,7 @@ class RoboCodeGame(CodeGame):
                 if int(match.group(1)) == 1:
                     winner = player
 
-        return RoundStats(
-            winner=winner, scores=scores, details={"stdout": "\n".join(lines)}
-        )
+        return RoundStats(winner=winner, scores=scores, details={"stdout": "\n".join(lines)})
 
     def execute_round(self, agents: list[Player]) -> RoundData:
         for agent in agents:
@@ -96,9 +92,7 @@ class RoboCodeGame(CodeGame):
 {self._get_battle_config()}
 robocode.battle.selectedRobots={selected_robots}
 """
-        create_file_in_container(
-            self.environment, content=battle_content, dest_path=f"battles/{battle_file}"
-        )
+        create_file_in_container(self.environment, content=battle_content, dest_path=f"battles/{battle_file}")
 
         # Run battle with results output to file
         results_file = f"results_{int(time.time())}.txt"

@@ -10,9 +10,7 @@ class CoreWarGame(CodeGame):
     name: str = "CoreWar"
 
     def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(
-            config, tournament_id=tournament_id, local_output_dir=local_output_dir
-        )
+        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
         self.run_cmd_round: str = "./src/pmars"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
@@ -50,9 +48,7 @@ class CoreWarGame(CodeGame):
             )
         else:
             self.logger.debug("No scores found, returning unknown")
-            return RoundStats(
-                winner="unknown", scores={agent.name: 0 for agent in agents}
-            )
+            return RoundStats(winner="unknown", scores={agent.name: 0 for agent in agents})
 
     def execute_round(self, agents: list[Player]) -> RoundData:
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]

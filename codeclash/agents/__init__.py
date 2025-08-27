@@ -6,9 +6,7 @@ from codeclash.agents.minisweagent import MiniSWEAgent
 from codeclash.agents.utils import GameContext
 
 
-def get_agent(
-    config: dict, game_context: GameContext, environment: DockerEnvironment
-) -> Player:
+def get_agent(config: dict, game_context: GameContext, environment: DockerEnvironment) -> Player:
     agents = {
         "dummy": Dummy,
         "mini": MiniSWEAgent,

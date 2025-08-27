@@ -6,9 +6,7 @@ from pathlib import Path
 from minisweagent.environments.docker import DockerEnvironment
 
 
-def assert_zero_exit_code(
-    result: dict, *, logger: logging.Logger | None = None
-) -> dict:
+def assert_zero_exit_code(result: dict, *, logger: logging.Logger | None = None) -> dict:
     if result.get("returncode", 0) != 0:
         msg = f"Command failed with exit code {result.get('returncode')}:\n{result.get('output')}"
         if logger is not None:
@@ -36,18 +34,14 @@ def copy_between_containers(
             f"{src_container.container_id}:{src_path}",
             str(temp_path),
         ]
-        result_src = subprocess.run(
-            cmd_src, check=False, capture_output=True, text=True
-        )
+        result_src = subprocess.run(cmd_src, check=False, capture_output=True, text=True)
         if result_src.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from {src_container.container_id} to local temp: {result_src.stdout}{result_src.stderr}"
             )
 
         # Ensure destination folder exists
-        assert_zero_exit_code(
-            dest_container.execute(f"mkdir -p {Path(dest_path).parent}")
-        )
+        assert_zero_exit_code(dest_container.execute(f"mkdir -p {Path(dest_path).parent}"))
 
         # Copy from temporary local directory to destination container
         cmd_dest = [
@@ -56,9 +50,7 @@ def copy_between_containers(
             str(temp_path),
             f"{dest_container.container_id}:{dest_path}",
         ]
-        result_dest = subprocess.run(
-            cmd_dest, check=False, capture_output=True, text=True
-        )
+        result_dest = subprocess.run(cmd_dest, check=False, capture_output=True, text=True)
         if result_dest.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from local temp to {dest_container.container_id}: {result_dest.stdout}{result_dest.stderr}"

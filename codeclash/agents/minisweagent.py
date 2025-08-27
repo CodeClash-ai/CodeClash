@@ -47,9 +47,7 @@ class ClashAgent(DefaultAgent):
         super().add_message(role, content, **kwargs)
         self.logger.debug(f"[{role}] {content}", extra={"highlighter": None})
         if role == "assistant":
-            self.logger.info(
-                f"Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})"
-            )
+            self.logger.info(f"Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})")
 
     def render_template(self, template: str, **kwargs) -> str:
         cs = (
@@ -69,9 +67,7 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(
-        self, config: dict, environment: DockerEnvironment, game_context: GameContext
-    ):
+    def __init__(self, config: dict, environment: DockerEnvironment, game_context: GameContext):
         super().__init__(config, environment=environment, game_context=game_context)
 
     def run(self):
@@ -96,10 +92,7 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
-            traj_path = (
-                self.game_context.log_local
-                / f"{self.name}_r{self.game_context.round}.traj.json"
-            )
+            traj_path = self.game_context.log_local / f"{self.name}_r{self.game_context.round}.traj.json"
             save_traj(
                 self.agent,  # type: ignore
                 traj_path,

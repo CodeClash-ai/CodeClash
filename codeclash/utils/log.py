@@ -64,9 +64,7 @@ class RichFormatter(logging.Formatter):
         return capture.get().rstrip()
 
 
-def get_logger(
-    name: str, *, emoji: str = "", log_path: Path | None = None
-) -> logging.Logger:
+def get_logger(name: str, *, emoji: str = "", log_path: Path | None = None) -> logging.Logger:
     """Get logger. Use this instead of `logging.getLogger` to ensure
     that the logger is set up with the correct handlers.
     """

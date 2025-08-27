@@ -14,9 +14,7 @@ from codeclash.utils.log import get_logger
 
 
 class PvpTournament(AbstractTournament):
-    def __init__(
-        self, config: dict, *, cleanup: bool = False, push_agent: bool = False
-    ):
+    def __init__(self, config: dict, *, cleanup: bool = False, push_agent: bool = False):
         super().__init__(config, name="PvpTournament")
         self.cleanup_on_end = cleanup
         self.push_agent = push_agent
@@ -37,9 +35,7 @@ class PvpTournament(AbstractTournament):
 
     def get_agent(self, agent_config: dict, prompts: dict) -> Player:
         """Create an agent with environment and game context."""
-        environment = self.game.get_environment(
-            f"{self.game.game_id}.{agent_config['name']}"
-        )
+        environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
 
         game_context = GameContext(
             id=self.game.game_id,
@@ -77,16 +73,12 @@ class PvpTournament(AbstractTournament):
 
         # Write log to file
         for idx, lo in enumerate(record.data.logs):
-            round_log_path = (
-                self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
-            )
+            round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
             round_log_path.write_text(lo)
 
         # Copy log to agent environments
         for agent in self.agents:
-            self.logger.info(
-                f"Copying round {round_num} log(s) to {agent.name}'s container..."
-            )
+            self.logger.info(f"Copying round {round_num} log(s) to {agent.name}'s container...")
             copy_to_container(
                 agent.environment,
                 self.game.log_local / f"round_{round_num}",

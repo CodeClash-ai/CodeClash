@@ -12,9 +12,7 @@ class BattleCodeGame(CodeGame):
     name: str = "BattleCode"
 
     def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(
-            config, tournament_id=tournament_id, local_output_dir=local_output_dir
-        )
+        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
         assert len(config["players"]) == 2, "BattleCode is a two-player game"
         self.run_cmd_round: str = "python run.py run"
         for arg, val in self.game_config.get("args", {}).items():
@@ -36,9 +34,7 @@ class BattleCodeGame(CodeGame):
                 winner_key = match.group(1)
                 self.logger.debug(f"Winner key from match: {winner_key}")
                 # Map A/B to actual agent names (much closer to original code)
-                winner = {"A": agents[0].name, "B": agents[1].name}.get(
-                    winner_key, RESULT_TIE
-                )
+                winner = {"A": agents[0].name, "B": agents[1].name}.get(winner_key, RESULT_TIE)
                 winners.append(winner)
             else:
                 winners.append(RESULT_TIE)
@@ -49,14 +45,9 @@ class BattleCodeGame(CodeGame):
 
     def execute_round(self, agents: list[Any]) -> RoundData:
         for agent in agents:
-            src, dest = f"/{agent.name}/src/mysubmission/", str(
-                DIR_WORK / "src" / agent.name
-            )
+            src, dest = f"/{agent.name}/src/mysubmission/", str(DIR_WORK / "src" / agent.name)
             self.environment.execute(f"cp -r {src} {dest}")
-        args = [
-            f"--p{idx+1}-dir src --p{idx+1} {agent.name}"
-            for idx, agent in enumerate(agents)
-        ]
+        args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
         outputs = []

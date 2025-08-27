@@ -51,9 +51,7 @@ class SinglePlayerTraining(AbstractTournament):
 
     def get_agent(self, agent_config: dict, round: int) -> Player:
         """Create an agent with environment and game context."""
-        environment = self.game.get_environment(
-            f"{self.game.game_id}.{agent_config['name']}"
-        )
+        environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
         game_context = self.get_game_context(agent_config, round=round)
         return get_agent(agent_config, game_context, environment)
 
@@ -86,15 +84,11 @@ class SinglePlayerTraining(AbstractTournament):
 
         # Write log to file
         for idx, lo in enumerate(record.logs):
-            round_log_path = (
-                self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
-            )
+            round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
             round_log_path.write_text(lo)
 
         # Copy log to main agent environment only
-        self.logger.info(
-            f"Copying round {round_num} log(s) to {self.agent.name}'s container..."
-        )
+        self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")
         copy_to_container(
             self.agent,
             self.game.log_local / f"round_{round_num}",
@@ -135,28 +129,19 @@ class SinglePlayerTraining(AbstractTournament):
         p2_config["name"] = "p2"
         p2 = self.get_dummy_agent()
         matrix = {
-            p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)}
-            for p1_round in range(0, self.rounds + 1)
+            p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)} for p1_round in range(0, self.rounds + 1)
         }
         for p1_round in range(0, self.rounds + 1):
             for p2_round in range(0, self.rounds + 1):
-                self.logger.info(
-                    f"Evaluating agent at round {p1_round} against agent at round {p2_round}"
-                )
-                p1_patch = (
-                    self.agent.get_metadata()["diff"][p1_round] if p1_round > 0 else ""
-                )
-                p2_patch = (
-                    self.agent.get_metadata()["diff"][p2_round] if p2_round > 0 else ""
-                )
+                self.logger.info(f"Evaluating agent at round {p1_round} against agent at round {p2_round}")
+                p1_patch = self.agent.get_metadata()["diff"][p1_round] if p1_round > 0 else ""
+                p2_patch = self.agent.get_metadata()["diff"][p2_round] if p2_round > 0 else ""
                 p1.reset_and_apply_patch(p1_patch)
                 p2.reset_and_apply_patch(p2_patch)
                 for i_repetition in range(n_repetitions):
                     record = self.game.run_round([p1, p2])
                     winner = record.stats.winner
-                    self.logger.info(
-                        f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}"
-                    )
+                    self.logger.info(f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}")
                     matrix[p1_round][p2_round].append(winner)
         self.logger.info(f"Evaluation matrix: {matrix}")
         return matrix

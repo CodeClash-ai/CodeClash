@@ -17,9 +17,7 @@ from codeclash.utils.log import get_logger
 @dataclass
 class RoundStats:
     winner: str
-    scores: dict[
-        str, float
-    ]  # Map of player to game metric (e.g. # of wins, assets accumulated)
+    scores: dict[str, float]  # Map of player to game metric (e.g. # of wins, assets accumulated)
     details: dict[str, Any] = None  # Optional, for game-specific info
 
     def __str__(self) -> str:
@@ -63,9 +61,7 @@ class CodeGame(ABC):
         self.game_id: str = tournament_id
         self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
         self.log_local: Path = local_output_dir
-        self.logger = get_logger(
-            self.name, log_path=self.log_local / "game.log", emoji="🏓"
-        )
+        self.logger = get_logger(self.name, log_path=self.log_local / "game.log", emoji="🏓")
         self.environment: DockerEnvironment = self.get_environment()
         """The running docker environment for executing the game"""
         self._metadata: dict = {
@@ -106,9 +102,7 @@ class CodeGame(ABC):
         if result.returncode == 0:
             self.logger.info(f"✅ Built Docker image {self.image_name}")
         else:
-            self.logger.error(
-                f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}"
-            )
+            self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
             raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
     def get_metadata(self) -> dict:

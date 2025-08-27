@@ -14,9 +14,7 @@ class BattleSnakeGame(CodeGame):
     name: str = "BattleSnake"
 
     def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(
-            config, tournament_id=tournament_id, local_output_dir=local_output_dir
-        )
+        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
         self.run_cmd_round: str = "./battlesnake play"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
@@ -29,9 +27,7 @@ class BattleSnakeGame(CodeGame):
         winners = []
         for ro in result_outputs:
             lines = ro.strip().split("\n")
-            last_line = (
-                lines[-1] if lines else ""
-            )  # Get the last line which contains the game result
+            last_line = lines[-1] if lines else ""  # Get the last line which contains the game result
             winner = json.loads(last_line)["winnerName"]
             winners.append(winner)
 
@@ -48,9 +44,7 @@ class BattleSnakeGame(CodeGame):
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             # Start server in background - just add & to run in background!
-            self.environment.execute(
-                f"PORT={port} python main.py &", cwd=f"/{agent.name}"
-            )
+            self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
             cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
 
         time.sleep(3)  # Give servers time to start
