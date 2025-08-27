@@ -8,7 +8,7 @@ from minisweagent.environments.docker import DockerEnvironment
 from codeclash.agents.utils import GameContext
 from codeclash.constants import GH_ORG
 from codeclash.tournaments.utils.git_utils import filter_git_diff
-from codeclash.utils.environment import assert_zero_exit_code, create_file_on_container
+from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
 from codeclash.utils.log import get_logger
 
 load_dotenv()
@@ -101,7 +101,7 @@ class Player(ABC):
             self.logger.debug("No patch to apply, skipping")
             return
 
-        create_file_on_container(
+        create_file_in_container(
             container=self.environment,  # type: ignore
             content=patch,
             dest_path="tmp_patch.txt",

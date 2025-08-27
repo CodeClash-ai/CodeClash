@@ -66,7 +66,7 @@ def test_main_battlesnake_integration():
 
         # Run the main function with cleanup enabled
         with patch(
-            "codeclash.tournaments.pvp_training.get_agent",
+            "codeclash.tournaments.pvp.get_agent",
             side_effect=mock_get_agent(get_agent),
         ):
             # This should complete without raising any exceptions

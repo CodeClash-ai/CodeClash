@@ -8,9 +8,9 @@ from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.agents.dummy import Dummy
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK, OUTPUTS_LOGS
+from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame, RoundStats
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
@@ -29,7 +29,7 @@ class SinglePlayerTraining(AbstractTournament):
         mirror_agent_config = copy.deepcopy(self.config["player"])
         mirror_agent_config["name"] = "mirror"
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
-        self.scoreboard: list[tuple[int, str]] = []
+        self.scoreboard: list[RoundStats] = []
 
     @property
     def rounds(self) -> int:
@@ -78,16 +78,14 @@ class SinglePlayerTraining(AbstractTournament):
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
-        result = self.game.run_round([self.agent, self.mirror_agent])
-        log_outputs = result[OUTPUTS_LOGS]
-        winner = result["winner"]
+        record = self.game.run_round([self.agent, self.mirror_agent])
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append((round_num, winner))
-        self.logger.info(f"Round {round_num} winner: {winner}")
+        self.scoreboard.append(record.stats)
+        self.logger.info(f"Round {round_num}:\n{record.stats}")
 
         # Write log to file
-        for idx, lo in enumerate(log_outputs):
+        for idx, lo in enumerate(record.logs):
             round_log_path = (
                 self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
             )
@@ -154,8 +152,8 @@ class SinglePlayerTraining(AbstractTournament):
                 p1.reset_and_apply_patch(p1_patch)
                 p2.reset_and_apply_patch(p2_patch)
                 for i_repetition in range(n_repetitions):
-                    result = self.game.run_round([p1, p2])
-                    winner = result["winner"]
+                    record = self.game.run_round([p1, p2])
+                    winner = record.stats.winner
                     self.logger.info(
                         f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}"
                     )

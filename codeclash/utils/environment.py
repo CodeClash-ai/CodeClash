@@ -117,7 +117,7 @@ def copy_file_from_container(
     return result
 
 
-def create_file_on_container(
+def create_file_in_container(
     container: DockerEnvironment,
     *,
     content: str,

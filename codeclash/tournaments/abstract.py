@@ -4,7 +4,7 @@ import traceback
 from pathlib import Path
 
 from codeclash.constants import DIR_LOGS
-from codeclash.utils.environment import create_file_on_container
+from codeclash.utils.environment import create_file_in_container
 from codeclash.utils.log import get_logger
 
 
@@ -12,7 +12,9 @@ class AbstractTournament:
     def __init__(self, config: dict, *, name: str, **kwargs):
         self.config: dict = config
         self.name: str = name
-        self.tournament_id: str = f"{self.name}{time.strftime('%y%m%d%H%M%S')}"
+        self.tournament_id: str = (
+            f"{self.name}.{config['game']['name']}.{time.strftime('%y%m%d%H%M%S')}"
+        )
         self.local_output_dir: Path = (
             DIR_LOGS / getpass.getuser() / self.tournament_id
         ).resolve()
@@ -32,7 +34,7 @@ class AbstractTournament:
     ) -> None:
         """Copy round log to agent environment."""
         try:
-            create_file_on_container(
+            create_file_in_container(
                 container=agent.environment,
                 content=log_output,
                 dest_path=dest_path if dest_path else f"logs/round_{round_num}.log",

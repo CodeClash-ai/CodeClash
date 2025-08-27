@@ -5,19 +5,19 @@ PvP training mode where multiple agents compete against each other.
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK, OUTPUTS_LOGS, OUTPUTS_RESULTS
+from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame, RoundStats
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.utils.environment import copy_to_container
 from codeclash.utils.log import get_logger
 
 
-class PvpTraining(AbstractTournament):
+class PvpTournament(AbstractTournament):
     def __init__(
         self, config: dict, *, cleanup: bool = False, push_agent: bool = False
     ):
-        super().__init__(config, name="PvpTraining")
+        super().__init__(config, name="PvpTournament")
         self.cleanup_on_end = cleanup
         self.push_agent = push_agent
         self.game: CodeGame = get_game(
@@ -29,7 +29,7 @@ class PvpTraining(AbstractTournament):
         for agent_conf in self.config["players"]:
             self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
         self.logger = get_logger(self.game.name)
-        self.scoreboard: list[tuple[int, str]] = []
+        self.scoreboard: list[RoundStats] = []
 
     @property
     def rounds(self) -> int:
@@ -66,20 +66,17 @@ class PvpTraining(AbstractTournament):
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round."""
         # Run the game round and get results
-        result = self.game.run_round(self.agents)
-        log_outputs = result[OUTPUTS_LOGS]
-        result_outputs = result[OUTPUTS_RESULTS]
-        winner = result["winner"]
+        record = self.game.run_round(self.agents)
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append((round_num, winner))
-        self.logger.info(f"Round {round_num} winner: {winner}")
+        self.scoreboard.append(record.stats)
+        self.logger.info(f"Round {round_num}:\n{record.stats}")
 
         # Create directory for round logs
         (self.game.log_local / f"round_{round_num}").mkdir(parents=True, exist_ok=True)
 
         # Write log to file
-        for idx, lo in enumerate(log_outputs):
+        for idx, lo in enumerate(record.data.logs):
             round_log_path = (
                 self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
             )

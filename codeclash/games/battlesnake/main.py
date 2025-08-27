@@ -2,9 +2,11 @@ import json
 import time
 from pathlib import Path
 
+from tqdm.auto import tqdm
+
 from codeclash.agents.abstract import Player
-from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS
-from codeclash.games.abstract import CodeGame
+from codeclash.constants import RESULT_TIE
+from codeclash.games.abstract import CodeGame, RoundData, RoundStats
 from codeclash.utils.environment import assert_zero_exit_code
 
 
@@ -23,21 +25,25 @@ class BattleSnakeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def determine_winner(
-        self, result_outputs: list[str], agents: list[Player]
-    ) -> dict[str, str]:
+    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
         winners = []
         for ro in result_outputs:
             lines = ro.strip().split("\n")
-            # Get the last line which contains the game result
-            last_line = lines[-1] if lines else ""
-            self.logger.debug(f"Last line: {last_line}")
+            last_line = (
+                lines[-1] if lines else ""
+            )  # Get the last line which contains the game result
             winner = json.loads(last_line)["winnerName"]
             winners.append(winner)
-        winner = max(set(winners), key=winners.count)
-        return {"winner": winner}
 
-    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
+        win_counts = {agent.name: winners.count(agent.name) for agent in agents}
+        max_wins = max(win_counts.values())
+        winners = [name for name, wins in win_counts.items() if wins == max_wins]
+        return RoundStats(
+            winner=RESULT_TIE if len(winners) > 1 else winners[0],
+            scores=win_counts,
+        )
+
+    def execute_round(self, agents: list[Player]) -> RoundData:
         cmd = []
         for idx, agent in enumerate(agents):
             port = 8001 + idx
@@ -51,15 +57,16 @@ class BattleSnakeGame(CodeGame):
 
         try:
             log_outputs, result_outputs = [], []
-            for idx in range(self.game_config["sims_per_round"]):
+            cmd = self.run_cmd_round + " " + " ".join(cmd)
+            self.logger.info(f"Running game: {cmd}")
+            for idx in tqdm(range(self.game_config["sims_per_round"])):
                 # Create temporary output file for results
                 output_file = f"battlesnake_output_{idx}_{int(time.time())}.json"
-                cmd_str = " ".join(cmd) + f" -o {output_file}"
-                self.logger.info(f"Running command: {self.run_cmd_round} {cmd_str}")
 
+                # Run game
                 response = assert_zero_exit_code(
                     self.environment.execute(
-                        f"{self.run_cmd_round} {cmd_str}",
+                        cmd + f" -o {output_file}",
                         cwd=f"{self.environment.config.cwd}/game",
                     )
                 )
@@ -72,10 +79,9 @@ class BattleSnakeGame(CodeGame):
 
                 # Clean up the output file
                 self.environment.execute(f"rm -f game/{output_file}")
+                time.sleep(0.05)
 
-                time.sleep(0.1)
-
-            return {OUTPUTS_LOGS: log_outputs, OUTPUTS_RESULTS: result_outputs}
+            return RoundData(log_outputs, result_outputs)
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")

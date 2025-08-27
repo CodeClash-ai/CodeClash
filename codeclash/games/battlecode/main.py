@@ -4,8 +4,8 @@ from typing import Any
 
 from tqdm.auto import tqdm
 
-from codeclash.constants import DIR_WORK, OUTPUTS_LOGS, OUTPUTS_RESULTS, RESULT_TIE
-from codeclash.games.abstract import CodeGame
+from codeclash.constants import DIR_WORK, RESULT_TIE
+from codeclash.games.abstract import CodeGame, RoundData, RoundStats
 
 
 class BattleCodeGame(CodeGame):
@@ -24,9 +24,7 @@ class BattleCodeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def determine_winner(
-        self, result_outputs: list[str], agents: list[Any]
-    ) -> dict[str, str]:
+    def get_stats(self, result_outputs: list[str], agents: list[Any]) -> RoundStats:
         winners = []
         for ro in result_outputs:
             lines = ro.strip().split("\n")
@@ -44,10 +42,12 @@ class BattleCodeGame(CodeGame):
                 winners.append(winner)
             else:
                 winners.append(RESULT_TIE)
-        winner = max(set(winners), key=winners.count)
-        return {"winner": winner}
+        return RoundStats(
+            winner=max(set(winners), key=winners.count),
+            scores={agent.name: winners.count(agent.name) for agent in agents},
+        )
 
-    def execute_round(self, agents: list[Any]) -> dict[str, list[str]]:
+    def execute_round(self, agents: list[Any]) -> RoundData:
         for agent in agents:
             src, dest = f"/{agent.name}/src/mysubmission/", str(
                 DIR_WORK / "src" / agent.name
@@ -58,11 +58,11 @@ class BattleCodeGame(CodeGame):
             for idx, agent in enumerate(agents)
         ]
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
-        self.logger.info(f"Running command: {cmd}")
+        self.logger.info(f"Running game: {cmd}")
         outputs = []
         for _ in tqdm(range(self.game_config["sims_per_round"])):
             response = self.environment.execute(cmd)
             assert response["returncode"] == 0, response
             # For BattleCode, log_outputs and result_outputs are the same
             outputs.append(response["output"])
-        return {OUTPUTS_LOGS: outputs, OUTPUTS_RESULTS: outputs}
+        return RoundData(logs=outputs, results=outputs)

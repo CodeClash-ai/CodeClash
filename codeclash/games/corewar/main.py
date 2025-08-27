@@ -3,8 +3,7 @@ import shlex
 from pathlib import Path
 
 from codeclash.agents.abstract import Player
-from codeclash.constants import OUTPUTS_LOGS, OUTPUTS_RESULTS
-from codeclash.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame, RoundData, RoundStats
 
 
 class CoreWarGame(CodeGame):
@@ -22,44 +21,43 @@ class CoreWarGame(CodeGame):
             else:
                 self.run_cmd_round += f" -{arg} {val}"
 
-    def determine_winner(
-        self, result_outputs: list[str], agents: list[Player]
-    ) -> dict[str, str]:
+    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
         result_output = result_outputs[0]  # Get the first (and only) element
         self.logger.debug(f"Determining winner from result output: {result_output}")
         scores = []
         n = len(agents) * 2
         lines = result_output.strip().split("\n")
+
         # Get the last n lines which contain the scores (closer to original)
         relevant_lines = lines[-n:] if len(lines) >= n else lines
+        relevant_lines = [l for l in relevant_lines if len(l.strip()) > 0]
         self.logger.debug(f"Relevant lines for scoring: {relevant_lines}")
 
+        # Go through each line; we assume score position is correlated with agent index
         for line in relevant_lines:
             match = re.search(r".*\sby\s.*\sscores\s(\d+)", line)
             if match:
                 score = int(match.group(1))
                 scores.append(score)
-                self.logger.debug(f"Found score: {score} from line: {line}")
 
-        self.logger.debug(f"All scores: {scores}")
         if scores:
-            max_score_index = scores.index(max(scores))
-            winner = agents[max_score_index].name
-            self.logger.debug(
-                f"Concluding winner: {winner} with index {max_score_index}"
+            if len(scores) != len(agents):
+                self.logger.error(f"Have {len(scores)} scores but {len(agents)} agents")
+            return RoundStats(
+                winner=agents[scores.index(max(scores))].name,
+                scores={agent.name: score for agent, score in zip(agents, scores)},
+                details={"stdout": "\n".join(relevant_lines)},
             )
-            return {"winner": winner}
         else:
             self.logger.debug("No scores found, returning unknown")
-            return {"winner": "unknown"}
+            return RoundStats(
+                winner="unknown", scores={agent.name: 0 for agent in agents}
+            )
 
-    def execute_round(self, agents: list[Player]) -> dict[str, list[str]]:
+    def execute_round(self, agents: list[Player]) -> RoundData:
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
-        cmd += f" -r {self.game_config['sims_per_round']}"
-        self.logger.info(f"Running command: {cmd}")
+        cmd = f"{self.run_cmd_round} {shlex.join(args)} -r {self.game_config['sims_per_round']}"
+        self.logger.info(f"Running game: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
-        # For CoreWar, log_outputs and result_outputs are the same
-        output = [response["output"]]
-        return {OUTPUTS_LOGS: output, OUTPUTS_RESULTS: output}
+        return RoundData([response["output"]], [response["output"]])
