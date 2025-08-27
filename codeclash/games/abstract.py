@@ -107,6 +107,8 @@ class CodeGame(ABC):
             cwd=str(DIR_WORK),
             env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
         )
+        # Logger setting will likely not take effect for initial container creation logs
+        environment.logger = get_logger("environment", emoji="🪴")
         # Ensure all future branches occur against branch
         branch_name = self.game_id if branch_name is None else branch_name
         for cmd in [

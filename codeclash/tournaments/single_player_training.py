@@ -13,7 +13,6 @@ from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
-from codeclash.utils.log import get_logger
 
 
 class SinglePlayerTraining(AbstractTournament):
