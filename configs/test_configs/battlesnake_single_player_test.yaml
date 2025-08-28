@@ -7,13 +7,12 @@ game:
     browser: false
 tournament:
   rounds: 1
-players:
-- agent: mini
+  evaluate_matrix: true
+player:
+  agent: mini
   name: p1
   config:
     agent: !include mini/default.yaml
     model:  !include models/instant_submit.yaml
-- agent: dummy
-  name: p2
 prompts:
   game_description: "asdf"
