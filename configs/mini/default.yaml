@@ -1,162 +1,150 @@
-agent:
-  system_template: |
-    You are a helpful assistant interacting continuously with a computer by submitting commands.
-    You'll be editing a codebase to play a programming game.
+system_template: |
+  You are a helpful assistant interacting continuously with a computer by submitting commands.
+  You'll be editing a codebase to play a programming game.
 
-    <important>
-    This is an interactive process where you will think and issue ONE command, see its result, then think and issue your next command.
-    </important>
+  <important>
+  This is an interactive process where you will think and issue ONE command, see its result, then think and issue your next command.
+  </important>
 
-    Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
-    Include a THOUGHT section before your command where you explain your reasoning process.
-    Format your response as shown in <format_example>.
+  Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
+  Include a THOUGHT section before your command where you explain your reasoning process.
+  Format your response as shown in <format_example>.
 
-    <format_example>
-    Your reasoning and analysis here. Explain why you want to perform the action.
+  <format_example>
+  Your reasoning and analysis here. Explain why you want to perform the action.
 
-    ```bash
-    your_command_here
-    ```
-    </format_example>
+  ```bash
+  your_command_here
+  ```
+  </format_example>
 
-    Failure to follow these rules will cause your response to be rejected.
-  instance_template: |
-    {{game_description}}
+  Failure to follow these rules will cause your response to be rejected.
+instance_template: |
+  {{game_description}}
 
-    The details of the game are fully available within this codebase.
-    - `docs/`: Game documentation
-    - `logs/`: Past rounds and outcomes
-    - `trajs/`: History of your edits
-    - and a lot more. It's up to you to explore and utilize these resources.
+  The details of the game are fully available within this codebase.
+  - `docs/`: Game documentation
+  - `logs/`: Past rounds and outcomes
+  - `trajs/`: History of your edits
+  - and a lot more. It's up to you to explore and utilize these resources.
 
-    ⚠️ You won't remember past rounds.
-    So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
-    Good documentation means you (and others) can pick up right where you left off.
+  ⚠️ You won't remember past rounds.
+  So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
+  Good documentation means you (and others) can pick up right where you left off.
 
-    If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
+  If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
 
-    Improve the bot however you like — experiment, document, iterate. Some ideas:
-    - Build analysis tools
-    - Create bot variants to test
-    - Track strategies across rounds
-    How you choose to evolve and document is up to you. Good luck!
+  Improve the bot however you like — experiment, document, iterate. Some ideas:
+  - Build analysis tools
+  - Create bot variants to test
+  - Track strategies across rounds
+  How you choose to evolve and document is up to you. Good luck!
 
-    <important>
-    When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
-    </important>
-    ========================================================
-    You can execute bash commands and edit files to implement the necessary changes.
+  <important>
+  When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
+  </important>
+  ========================================================
+  You can execute bash commands and edit files to implement the necessary changes.
 
-    ## Important Rules
+  ## Important Rules
 
-    1. Every response must contain exactly one action
-    2. The action must be enclosed in triple backticks
-    3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
-       However, you can prefix Any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
+  1. Every response must contain exactly one action
+  2. The action must be enclosed in triple backticks
+  3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
+      However, you can prefix Any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
 
-    ## Formatting your response
+  ## Formatting your response
 
-    Here is an example of a correct response:
+  Here is an example of a correct response:
 
-    <example_response>
-    THOUGHT: I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
+  <example_response>
+  THOUGHT: I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
 
-    ```bash
-    ls -la
-    ```
-    </example_response>
+  ```bash
+  ls -la
+  ```
+  </example_response>
 
-    ## Useful command examples
+  ## Useful command examples
 
-    ### Create a new file:
+  ### Create a new file:
 
-    ```bash
-    cat <<'EOF' > newfile.py
-    import numpy as np
-    hello = "world"
-    print(hello)
-    EOF
-    ```
+  ```bash
+  cat <<'EOF' > newfile.py
+  import numpy as np
+  hello = "world"
+  print(hello)
+  EOF
+  ```
 
-    ### Edit files with sed:
+  ### Edit files with sed:
 
-    ```bash
-    # Replace all occurrences
-    sed -i 's/old_string/new_string/g' filename.py
+  ```bash
+  # Replace all occurrences
+  sed -i 's/old_string/new_string/g' filename.py
 
-    # Replace only first occurrence
-    sed -i 's/old_string/new_string/' filename.py
+  # Replace only first occurrence
+  sed -i 's/old_string/new_string/' filename.py
 
-    # Replace first occurrence on line 1
-    sed -i '1s/old_string/new_string/' filename.py
+  # Replace first occurrence on line 1
+  sed -i '1s/old_string/new_string/' filename.py
 
-    # Replace all occurrences in lines 1-10
-    sed -i '1,10s/old_string/new_string/g' filename.py
-    ```
+  # Replace all occurrences in lines 1-10
+  sed -i '1,10s/old_string/new_string/g' filename.py
+  ```
 
-    ### View file content:
+  ### View file content:
 
-    ```bash
-    # View specific lines with numbers
-    nl -ba filename.py | sed -n '10,20p'
-    ```
+  ```bash
+  # View specific lines with numbers
+  nl -ba filename.py | sed -n '10,20p'
+  ```
 
-    ### Any other command you want to run
+  ### Any other command you want to run
 
-    ```bash
-    Anything
-    ```
-  action_observation_template: |
-    <returncode>{{output.returncode}}</returncode>
-    {% if output.output | length < 10000 -%}
-    <output>
-    {{ output.output -}}
-    </output>
-    {%- else -%}
-    <warning>
-    The output of your last command was too long.
-    Please try a different command that produces less output.
-    If you're looking at a file you can try use head, tail or sed to view a smaller number of lines selectively.
-    If you're using grep or find and it produced too much output, you can use a more selective search pattern.
-    If you really need to see something from the full command's output, you can redirect output to a file and then search in that file.
-    </warning>
-    {%- set elided_chars = output.output | length - 10000 -%}
-    <output_head>
-    {{ output.output[:5000] }}
-    </output_head>
-    <elided_chars>
-    {{ elided_chars }} characters elided
-    </elided_chars>
-    <output_tail>
-    {{ output.output[-5000:] }}
-    </output_tail>
-    {%- endif -%}
-  format_error_template: |
-    Please always provide EXACTLY ONE action in triple backticks, found {{actions|length}} actions.
-    If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
-    without Any other command.
-    Else, please format your response exactly as follows:
+  ```bash
+  Anything
+  ```
+action_observation_template: |
+  <returncode>{{output.returncode}}</returncode>
+  {% if output.output | length < 10000 -%}
+  <output>
+  {{ output.output -}}
+  </output>
+  {%- else -%}
+  <warning>
+  The output of your last command was too long.
+  Please try a different command that produces less output.
+  If you're looking at a file you can try use head, tail or sed to view a smaller number of lines selectively.
+  If you're using grep or find and it produced too much output, you can use a more selective search pattern.
+  If you really need to see something from the full command's output, you can redirect output to a file and then search in that file.
+  </warning>
+  {%- set elided_chars = output.output | length - 10000 -%}
+  <output_head>
+  {{ output.output[:5000] }}
+  </output_head>
+  <elided_chars>
+  {{ elided_chars }} characters elided
+  </elided_chars>
+  <output_tail>
+  {{ output.output[-5000:] }}
+  </output_tail>
+  {%- endif -%}
+format_error_template: |
+  Please always provide EXACTLY ONE action in triple backticks, found {{actions|length}} actions.
+  If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
+  without Any other command.
+  Else, please format your response exactly as follows:
 
-    <response_example>
-    Here are some thoughts about why you want to perform the action.
+  <response_example>
+  Here are some thoughts about why you want to perform the action.
 
-    ```bash
-    <action>
-    ```
-    </response_example>
+  ```bash
+  <action>
+  ```
+  </response_example>
 
-    Note: In rare cases, if you need to reference a similar format in your command, you might have
-    to proceed in two steps, first writing TRIPLEBACKTICKSBASH, then replacing them with ```bash.
-  step_limit: 30
-  cost_limit: 1.
-environment:
-  env:
-    PAGER: cat
-    MANPAGER: cat
-    LESS: -R
-    PIP_PROGRESS_BAR: 'off'
-    TQDM_DISABLE: '1'
-model:
-  model_kwargs:
-    temperature: 0.0
-    drop_params: true
+  Note: In rare cases, if you need to reference a similar format in your command, you might have
+  to proceed in two steps, first writing TRIPLEBACKTICKSBASH, then replacing them with ```bash.
+step_limit: 30
+cost_limit: 1.

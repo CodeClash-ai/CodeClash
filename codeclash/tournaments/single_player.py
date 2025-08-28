@@ -10,7 +10,7 @@ from codeclash.agents.dummy import Dummy
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame
+from codeclash.games.abstract import CodeGame, RoundRecord
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
@@ -31,7 +31,7 @@ class SinglePlayerTraining(AbstractTournament):
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
 
     @property
-    def scoreboard(self) -> list[tuple[int, str]]:
+    def scoreboard(self) -> list[tuple[int, RoundRecord]]:
         return self._metadata.setdefault("scoreboard", [])
 
     @property
@@ -90,18 +90,19 @@ class SinglePlayerTraining(AbstractTournament):
         record = self.game.run_round([self.agent, self.mirror_agent])
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append(record.stats)
+        self.scoreboard.append((round_num, record))
         self.logger.info(f"Round {round_num}:\n{record.stats}")
 
         # Write log to file
-        for idx, lo in enumerate(record.logs):
+        for idx, lo in enumerate(record.data.logs):
             round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            round_log_path.parent.mkdir(parents=True, exist_ok=True)
             round_log_path.write_text(lo)
 
         # Copy log to main agent environment only
         self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")
         copy_to_container(
-            self.agent,
+            self.agent.environment,
             self.game.log_local / f"round_{round_num}",
             f"logs/round_{round_num}/",
         )

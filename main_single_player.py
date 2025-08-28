@@ -1,14 +1,17 @@
 import argparse
+from pathlib import Path
 
 import yaml
 
-from codeclash.tournaments.single_player_training import SinglePlayerTraining
+from codeclash.tournaments.single_player import SinglePlayerTraining
+from codeclash.utils.yaml_utils import resolve_includes
 
 
-def main(config_path: str, cleanup: bool = False):
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-    training = SinglePlayerTraining(config, cleanup)
+def main(config_path: Path, cleanup: bool = False):
+    yaml_content = config_path.read_text()
+    preprocessed_yaml = resolve_includes(yaml_content, base_dir=config_path.parent)
+    config = yaml.safe_load(preprocessed_yaml)
+    training = SinglePlayerTraining(config, cleanup=cleanup)
     training.run()
 
 
@@ -16,7 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CodeClash")
     parser.add_argument(
         "config_path",
-        type=str,
+        type=Path,
         default="configs/battlesnake.yaml",
         help="Path to the config file.",
     )

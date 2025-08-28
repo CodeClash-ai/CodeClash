@@ -10,9 +10,11 @@ tournament:
   evaluate_matrix: true
 player:
   agent: mini
-  config: configs/mini/default.yaml
-  model: openai/gpt-5-mini
   name: main
+  config:
+    agent: !include mini/default.yaml
+    model:
+      model_name: openai/gpt-5-mini
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.

@@ -4,19 +4,17 @@ import platform
 import traceback
 from collections.abc import Callable
 from dataclasses import asdict
-from pathlib import Path
 
-import yaml
 from jinja2 import Template
 from minisweagent import Model
 from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.environments.docker import DockerEnvironment
-from minisweagent.models.litellm_model import LitellmModel
+from minisweagent.models import get_model
 from minisweagent.run.utils.save import save_traj
 from rich.console import Console
 
 from codeclash.agents.abstract import Player
-from codeclash.agents.utils import GameContext, resolve_api_key
+from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
 
 
@@ -71,16 +69,14 @@ class MiniSWEAgent(Player):
         super().__init__(config, environment=environment, game_context=game_context)
 
     def run(self):
+        model = get_model(config=self.config["config"]["model"])
         self.agent = ClashAgent(
-            LitellmModel(
-                model_name=self.config["model"],
-                model_kwargs={"api_key": resolve_api_key(self.config["model"])},
-            ),
-            self.environment,
-            self.name,
-            self.game_context,
+            model=model,
+            env=self.environment,
+            name=self.name,
+            game_context=self.game_context,
             logger=self.logger,
-            **yaml.safe_load(Path(self.config["config"]).read_text())["agent"],
+            **self.config["config"]["agent"],
         )
         exit_status = None
         result = None

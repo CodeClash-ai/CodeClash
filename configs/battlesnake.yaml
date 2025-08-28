@@ -8,12 +8,14 @@ game:
 tournament:
   rounds: 2
 players:
-- agent: mini
-  name: p1
-  config: configs/mini/default.yaml
-  model: openai/gpt-5-mini
-- agent: dummy
-  name: p2
+  - agent: mini
+    name: p1
+    config:
+      agent: !include mini/default.yaml
+      model:
+        model_name: openai/gpt-5-mini
+  - agent: dummy
+    name: p2
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.

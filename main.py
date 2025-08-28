@@ -1,13 +1,16 @@
 import argparse
+from pathlib import Path
 
 import yaml
 
 from codeclash.tournaments.pvp import PvpTournament
+from codeclash.utils.yaml_utils import resolve_includes
 
 
-def main(config_path: str, *, cleanup: bool = False, push_agent: bool = False):
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
+def main(config_path: Path, *, cleanup: bool = False, push_agent: bool = False):
+    yaml_content = config_path.read_text()
+    preprocessed_yaml = resolve_includes(yaml_content, base_dir=config_path.parent)
+    config = yaml.safe_load(preprocessed_yaml)
     training = PvpTournament(config, cleanup=cleanup, push_agent=push_agent)
     training.run()
 
@@ -16,7 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CodeClash")
     parser.add_argument(
         "config_path",
-        type=str,
+        type=Path,
         default="configs/battlesnake.yaml",
         help="Path to the config file.",
     )
