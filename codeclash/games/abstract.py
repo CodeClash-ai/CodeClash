@@ -92,7 +92,6 @@ class CodeGame(ABC):
         return self._metadata
 
     def end(self, cleanup: bool = False):
-        (self.log_local / "metadata.json").write_text(json.dumps(self.get_metadata()))
         if cleanup:
             for artifact in self.artifacts:
                 if artifact.exists():

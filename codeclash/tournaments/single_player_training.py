@@ -34,6 +34,14 @@ class SinglePlayerTraining(AbstractTournament):
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
 
+    def get_metadata(self) -> dict:
+        return {
+            **super().get_metadata(),
+            "scoreboard": self.scoreboard,
+            "game": self.game.get_metadata(),
+            "agents": [self.agent.get_metadata(), self.mirror_agent.get_metadata()],
+        }
+
     def get_game_context(self, agent_config: dict, *, round: int) -> GameContext:
         """Create a game context for an agent."""
         return GameContext(
@@ -72,7 +80,7 @@ class SinglePlayerTraining(AbstractTournament):
             if self.config["tournament"]["evaluate_matrix"]:
                 self.evaluate()
         finally:
-            self.cleanup()
+            self.end()
 
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round, i.e., run the game, then run the agent."""
@@ -110,11 +118,11 @@ class SinglePlayerTraining(AbstractTournament):
         full_diff = filter_git_diff(full_diff)
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
-    def cleanup(self):
+    def end(self):
         """Clean up game resources."""
         self.game.end(self.cleanup_on_end)
 
-    def evaluate(self, n_repetitions: int = 3):
+    def evaluate(self, n_repetitions: int = 3) -> None:
         """Evaluate the agent's performance by
         calculating the matrix of every round against each other.
         """
@@ -150,4 +158,4 @@ class SinglePlayerTraining(AbstractTournament):
                     )
                     matrix[p1_round][p2_round].append(winner)
         self.logger.info(f"Evaluation matrix: {matrix}")
-        return matrix
+        self._metadata.setdefault("evaluation", {})["matrix"] = matrix
