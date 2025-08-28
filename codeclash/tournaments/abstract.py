@@ -19,6 +19,8 @@ class AbstractTournament:
         self._metadata: dict = {
             "name": self.name,
             "tournament_id": self.tournament_id,
+            "config": self.config,
+            "created_timestamp": int(time.time()),
         }
         self.logger = get_logger(
             self.name, log_path=self.local_output_dir / "tournament.log", emoji="🏆"

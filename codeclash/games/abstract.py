@@ -1,6 +1,6 @@
-import json
 import os
 import subprocess
+import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -32,9 +32,13 @@ class CodeGame(ABC):
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         """Artifact objects that we might want to clean up after the game."""
-        self.game_config: dict = config["game"]
         self.config: dict = config
-        self.game_id: str = tournament_id
+        self._metadata: dict = {
+            "name": self.name,
+            "config": self.config["game"],
+            "game_id": tournament_id,
+            "created_timestamp": int(time.time()),
+        }
         self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
         self.log_local: Path = local_output_dir
         self.logger = get_logger(
@@ -42,11 +46,14 @@ class CodeGame(ABC):
         )
         self.environment: DockerEnvironment = self.get_environment()
         """The running docker environment for executing the game"""
-        self._metadata: dict = {
-            "name": self.name,
-            "config": self.config,
-            "game_id": self.game_id,
-        }
+
+    @property
+    def game_config(self) -> dict:
+        return self.config["game"]
+
+    @property
+    def game_id(self) -> str:
+        return self._metadata["game_id"]
 
     @property
     def image_name(self) -> str:
