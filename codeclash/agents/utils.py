@@ -1,9 +1,9 @@
 import os
-from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
 from jinja2 import Template
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -16,8 +16,7 @@ def resolve_api_key(model: str) -> str:
     return ""
 
 
-@dataclass
-class GameContext:
+class GameContext(BaseModel):
     """
     A class that gives agent access to a partial view of the game state.
 
@@ -38,11 +37,11 @@ class GameContext:
     working_dir: str
 
     def _render_prompt_templates(self) -> dict:
-        context = asdict(self)
+        context = self.dict()
         return {key: Template(template_str).render(**context) for key, template_str in self.prompts.items()}
 
     def to_template_vars(self) -> dict[str, str]:
         """Convert the GameContext to a dictionary for rendering prompts in the agent"""
-        out = asdict(self) | self._render_prompt_templates()
+        out = self.dict() | self._render_prompt_templates()
         out.pop("prompts")
         return out

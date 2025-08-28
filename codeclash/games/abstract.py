@@ -2,11 +2,11 @@ import os
 import subprocess
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from minisweagent.environments.docker import DockerEnvironment
+from pydantic import BaseModel
 
 from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
@@ -14,24 +14,21 @@ from codeclash.utils.environment import assert_zero_exit_code, copy_between_cont
 from codeclash.utils.log import get_logger
 
 
-@dataclass
-class RoundStats:
+class RoundStats(BaseModel):
     winner: str
     scores: dict[str, float]  # Map of player to game metric (e.g. # of wins, assets accumulated)
-    details: dict[str, Any] = None  # Optional, for game-specific info
+    details: dict[str, Any] | None = None  # Optional, for game-specific info
 
     def __str__(self) -> str:
         return "\n".join([f"- Winner: {self.winner}", f"- Scores: {self.scores}"])
 
 
-@dataclass
-class RoundData:
+class RoundData(BaseModel):
     logs: list[str]
     results: list[str]
 
 
-@dataclass
-class RoundRecord:
+class RoundRecord(BaseModel):
     data: RoundData
     stats: RoundStats
 
