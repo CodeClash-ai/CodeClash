@@ -24,20 +24,16 @@ class BattleSnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
-        winners = []
+        scores = {}
         for ro in result_outputs:
             lines = ro.strip().split("\n")
-            last_line = lines[-1] if lines else ""  # Get the last line which contains the game result
-            winner = json.loads(last_line)["winnerName"]
-            winners.append(winner)
+            results = json.loads(lines[-1]) if lines else {}  # Get the last line which contains the game result
+            winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
+            scores[winner] = scores.get(winner, 0) + 1
 
-        win_counts = {agent.name: winners.count(agent.name) for agent in agents}
-        max_wins = max(win_counts.values())
-        winners = [name for name, wins in win_counts.items() if wins == max_wins]
-        return RoundStats(
-            winner=RESULT_TIE if len(winners) > 1 else winners[0],
-            scores=win_counts,
-        )
+        winner = max(scores, key=scores.get)
+        winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner
+        return RoundStats(winner=winner, scores=scores)
 
     def execute_round(self, agents: list[Player]) -> RoundData:
         cmd = []
