@@ -6,9 +6,7 @@ from pathlib import Path
 from minisweagent.environments.docker import DockerEnvironment
 
 
-def assert_zero_exit_code(
-    result: dict, *, logger: logging.Logger | None = None
-) -> dict:
+def assert_zero_exit_code(result: dict, *, logger: logging.Logger | None = None) -> dict:
     if result.get("returncode", 0) != 0:
         msg = f"Command failed with exit code {result.get('returncode')}:\n{result.get('output')}"
         if logger is not None:
@@ -36,18 +34,14 @@ def copy_between_containers(
             f"{src_container.container_id}:{src_path}",
             str(temp_path),
         ]
-        result_src = subprocess.run(
-            cmd_src, check=False, capture_output=True, text=True
-        )
+        result_src = subprocess.run(cmd_src, check=False, capture_output=True, text=True)
         if result_src.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from {src_container.container_id} to local temp: {result_src.stdout}{result_src.stderr}"
             )
 
         # Ensure destination folder exists
-        assert_zero_exit_code(
-            dest_container.execute(f"mkdir -p {Path(dest_path).parent}")
-        )
+        assert_zero_exit_code(dest_container.execute(f"mkdir -p {Path(dest_path).parent}"))
 
         # Copy from temporary local directory to destination container
         cmd_dest = [
@@ -56,22 +50,22 @@ def copy_between_containers(
             str(temp_path),
             f"{dest_container.container_id}:{dest_path}",
         ]
-        result_dest = subprocess.run(
-            cmd_dest, check=False, capture_output=True, text=True
-        )
+        result_dest = subprocess.run(cmd_dest, check=False, capture_output=True, text=True)
         if result_dest.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from local temp to {dest_container.container_id}: {result_dest.stdout}{result_dest.stderr}"
             )
 
 
-def copy_file_to_container(
+def copy_to_container(
     container: DockerEnvironment,
     src_path: str | Path,
     dest_path: str | Path,
 ):
     """
-    Copy a file from the local filesystem to a Docker container.
+    Copy a file or directory from the local filesystem to a Docker container.
+
+    The copy operation is recursive for directories.
     """
     if not str(dest_path).startswith("/"):
         # If not an absolute path, assume relative to container's cwd
@@ -115,7 +109,7 @@ def copy_file_from_container(
     return result
 
 
-def create_file_on_container(
+def create_file_in_container(
     container: DockerEnvironment,
     *,
     content: str,
@@ -130,6 +124,6 @@ def create_file_on_container(
         tmp_file_path = Path(tmp_file.name)
 
     try:
-        copy_file_to_container(container, tmp_file_path, dest_path)
+        copy_to_container(container, tmp_file_path, dest_path)
     finally:
         tmp_file_path.unlink()  # Clean up the temporary file

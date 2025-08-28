@@ -2,13 +2,13 @@ import argparse
 
 import yaml
 
-from codeclash.tournaments.pvp_training import PvpTraining
+from codeclash.tournaments.pvp import PvpTournament
 
 
 def main(config_path: str, *, cleanup: bool = False, push_agent: bool = False):
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
-    training = PvpTraining(config, cleanup=cleanup, push_agent=push_agent)
+    training = PvpTournament(config, cleanup=cleanup, push_agent=push_agent)
     training.run()
 
 

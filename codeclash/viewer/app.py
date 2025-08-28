@@ -8,7 +8,7 @@ A Flask-based web application to visualize AI agent game trajectories
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import Flask, jsonify, render_template, request
 
@@ -28,7 +28,7 @@ def is_probably_failed_run(log_dir: Path) -> bool:
     return not metadata_file.exists()
 
 
-def get_round_count_from_metadata(log_dir: Path) -> Optional[int]:
+def get_round_count_from_metadata(log_dir: Path) -> int | None:
     """Extract round count from metadata.json if it exists"""
     metadata_file = log_dir / "metadata.json"
     if not metadata_file.exists():
@@ -45,9 +45,9 @@ def get_round_count_from_metadata(log_dir: Path) -> Optional[int]:
 class GameMetadata:
     """Metadata about a game session"""
 
-    results: Dict[str, Any]
+    results: dict[str, Any]
     main_log: str
-    rounds: List[Dict[str, Any]]
+    rounds: list[dict[str, Any]]
 
 
 @dataclass
@@ -58,10 +58,10 @@ class TrajectoryInfo:
     round_num: int
     api_calls: int
     cost: float
-    exit_status: Optional[str]
-    submission: Optional[str]
-    memory: Optional[str]
-    messages: List[Dict[str, Any]]
+    exit_status: str | None
+    submission: str | None
+    memory: str | None
+    messages: list[dict[str, Any]]
 
 
 class LogParser:
@@ -86,9 +86,7 @@ class LogParser:
 
         # Parse main.log if it exists
         main_log_file = self.log_dir / "game.log"
-        main_log = (
-            main_log_file.read_text() if main_log_file.exists() else "No main log found"
-        )
+        main_log = main_log_file.read_text() if main_log_file.exists() else "No main log found"
 
         # Parse round logs
         rounds = []
@@ -99,9 +97,7 @@ class LogParser:
 
         return GameMetadata(results=results, main_log=main_log, rounds=rounds)
 
-    def parse_trajectory(
-        self, player_id: int, round_num: int
-    ) -> Optional[TrajectoryInfo]:
+    def parse_trajectory(self, player_id: int, round_num: int) -> TrajectoryInfo | None:
         """Parse a specific trajectory file"""
         # Try both .json and .log extensions
         for ext in [".json", ".log"]:
@@ -128,7 +124,7 @@ class LogParser:
 
         return None
 
-    def get_available_trajectories(self) -> List[tuple]:
+    def get_available_trajectories(self) -> list[tuple]:
         """Get list of available trajectory files as (player_id, round_num) tuples"""
         trajectories = []
         for traj_file in self.log_dir.glob("p*_r*.traj.*"):
@@ -186,9 +182,7 @@ def index():
     # Extract just the names for backwards compatibility
     log_folders = [folder["name"] for folder in log_folders_info]
 
-    selected_folder = request.args.get(
-        "folder", log_folders[0] if log_folders else None
-    )
+    selected_folder = request.args.get("folder", log_folders[0] if log_folders else None)
 
     if not selected_folder or not (logs_dir / selected_folder).exists():
         return render_template("no_logs.html", log_folders=log_folders)

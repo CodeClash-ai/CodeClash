@@ -13,6 +13,7 @@ from codeclash.games import get_game
 from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
+from codeclash.utils.environment import copy_to_container
 
 
 class SinglePlayerTraining(AbstractTournament):
@@ -61,9 +62,7 @@ class SinglePlayerTraining(AbstractTournament):
 
     def get_agent(self, agent_config: dict, round: int) -> Player:
         """Create an agent with environment and game context."""
-        environment = self.game.get_environment(
-            f"{self.game.game_id}.{agent_config['name']}"
-        )
+        environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
         game_context = self.get_game_context(agent_config, round=round)
         return get_agent(agent_config, game_context, environment)
 
@@ -88,20 +87,24 @@ class SinglePlayerTraining(AbstractTournament):
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
-        result = self.game.run_round([self.agent, self.mirror_agent])
-        log_output = result["log_output"]
-        winner = result["winner"]
+        record = self.game.run_round([self.agent, self.mirror_agent])
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append((round_num, winner))
-        self.logger.info(f"Round {round_num} winner: {winner}")
+        self.scoreboard.append(record.stats)
+        self.logger.info(f"Round {round_num}:\n{record.stats}")
 
         # Write log to file
-        round_log_path = self.game.log_local / f"round_{round_num}.log"
-        round_log_path.write_text(log_output)
+        for idx, lo in enumerate(record.logs):
+            round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            round_log_path.write_text(lo)
 
         # Copy log to main agent environment only
-        self._copy_game_log_to_agent(self.agent, round_num, log_output)
+        self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")
+        copy_to_container(
+            self.agent,
+            self.game.log_local / f"round_{round_num}",
+            f"logs/round_{round_num}/",
+        )
 
         self.run_main_agent(round_num)
         mirror_agent_state = round_num - 1 if round_num > 1 else 0
@@ -137,28 +140,19 @@ class SinglePlayerTraining(AbstractTournament):
         p2_config["name"] = "p2"
         p2 = self.get_dummy_agent()
         matrix = {
-            p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)}
-            for p1_round in range(0, self.rounds + 1)
+            p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)} for p1_round in range(0, self.rounds + 1)
         }
         for p1_round in range(0, self.rounds + 1):
             for p2_round in range(0, self.rounds + 1):
-                self.logger.info(
-                    f"Evaluating agent at round {p1_round} against agent at round {p2_round}"
-                )
-                p1_patch = (
-                    self.agent.get_metadata()["diff"][p1_round] if p1_round > 0 else ""
-                )
-                p2_patch = (
-                    self.agent.get_metadata()["diff"][p2_round] if p2_round > 0 else ""
-                )
+                self.logger.info(f"Evaluating agent at round {p1_round} against agent at round {p2_round}")
+                p1_patch = self.agent.get_metadata()["diff"][p1_round] if p1_round > 0 else ""
+                p2_patch = self.agent.get_metadata()["diff"][p2_round] if p2_round > 0 else ""
                 p1.reset_and_apply_patch(p1_patch)
                 p2.reset_and_apply_patch(p2_patch)
                 for i_repetition in range(n_repetitions):
-                    result = self.game.run_round([p1, p2])
-                    winner = result["winner"]
-                    self.logger.info(
-                        f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}"
-                    )
+                    record = self.game.run_round([p1, p2])
+                    winner = record.stats.winner
+                    self.logger.info(f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}")
                     matrix[p1_round][p2_round].append(winner)
         self.logger.info(f"Evaluation matrix: {matrix}")
         self._metadata.setdefault("evaluation", {})["matrix"] = matrix

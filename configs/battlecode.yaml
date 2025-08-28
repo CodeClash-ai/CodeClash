@@ -1,5 +1,6 @@
 game:
   name: BattleCode
+  sims_per_round: 2
   args:
     maps: quack
 tournament:

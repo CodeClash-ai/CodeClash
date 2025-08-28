@@ -1,5 +1,6 @@
 game:
   name: RobotRumble
+  sims_per_round: 10
 tournament:
   rounds: 3
 players:

@@ -13,6 +13,7 @@ def resolve_api_key(model: str) -> str:
         return os.getenv("ANTHROPIC_API_KEY")
     if "gpt" in model:
         return os.getenv("OPENAI_API_KEY")
+    return ""
 
 
 @dataclass
@@ -38,10 +39,7 @@ class GameContext:
 
     def _render_prompt_templates(self) -> dict:
         context = asdict(self)
-        return {
-            key: Template(template_str).render(**context)
-            for key, template_str in self.prompts.items()
-        }
+        return {key: Template(template_str).render(**context) for key, template_str in self.prompts.items()}
 
     def to_template_vars(self) -> dict[str, str]:
         """Convert the GameContext to a dictionary for rendering prompts in the agent"""

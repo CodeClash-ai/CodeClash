@@ -6,7 +6,7 @@ from codeclash.tournaments.single_player_training import SinglePlayerTraining
 
 
 def main(config_path: str, cleanup: bool = False):
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     training = SinglePlayerTraining(config, cleanup)
     training.run()

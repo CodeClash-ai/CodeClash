@@ -1,8 +1,8 @@
 game:
   name: RoboCode
+  sims_per_round: 10
   battle:
     battle:
-      numRounds: 10
       gunCoolingRate: 0.1
       rules:
         inactivityTime: 450
@@ -15,6 +15,7 @@ game:
     nosound: true
 tournament:
   rounds: 3
+  sims_per_round: 10
 players:
 - agent: dummy
   name: p1

@@ -2,7 +2,9 @@ import os
 import subprocess
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from minisweagent.environments.docker import DockerEnvironment
 
@@ -10,6 +12,28 @@ from codeclash.agents.abstract import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers
 from codeclash.utils.log import get_logger
+
+
+@dataclass
+class RoundStats:
+    winner: str
+    scores: dict[str, float]  # Map of player to game metric (e.g. # of wins, assets accumulated)
+    details: dict[str, Any] = None  # Optional, for game-specific info
+
+    def __str__(self) -> str:
+        return "\n".join([f"- Winner: {self.winner}", f"- Scores: {self.scores}"])
+
+
+@dataclass
+class RoundData:
+    logs: list[str]
+    results: list[str]
+
+
+@dataclass
+class RoundRecord:
+    data: RoundData
+    stats: RoundStats
 
 
 class CodeGame(ABC):
@@ -41,9 +65,7 @@ class CodeGame(ABC):
         }
         self.log_env: Path = (DIR_WORK / DIR_LOGS / self.game_id).resolve()
         self.log_local: Path = local_output_dir
-        self.logger = get_logger(
-            self.name, log_path=self.log_local / "game.log", emoji="🏓"
-        )
+        self.logger = get_logger(self.name, log_path=self.log_local / "game.log", emoji="🏓")
         self.environment: DockerEnvironment = self.get_environment()
         """The running docker environment for executing the game"""
 
@@ -87,9 +109,7 @@ class CodeGame(ABC):
         if result.returncode == 0:
             self.logger.info(f"✅ Built Docker image {self.image_name}")
         else:
-            self.logger.error(
-                f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}"
-            )
+            self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
             raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
     def get_metadata(self) -> dict:
@@ -146,32 +166,30 @@ class CodeGame(ABC):
         )
 
     @abstractmethod
-    def determine_winner(
-        self, result_output: str, agents: list[Player]
-    ) -> dict[str, str]:
+    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
         """Determine the winner of the game based on the result output.
 
         Args:
-            result_output: The specific output containing winning information
+            result_outputs: The specific output(s) containing winning information
             agents: List of agents participating in the round
 
         Returns:
-            Dictionary with key "winner" containing the winner's name
+            RoundStats object
         """
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[Player]) -> dict[str, str]:
+    def execute_round(self, agents: list[Player]) -> RoundData:
         """Subclasses implement their game-specific logic here.
         This is the low level implementation, you probably want to use run_round instead, which
         includes the pre-round setup, post-round setup, and winner determination.
 
         Returns:
-            Dictionary with keys "log_output" and "result_output"
+            RoundData object
         """
         pass
 
-    def run_round(self, agents: list[Player]) -> dict[str, str]:
+    def run_round(self, agents: list[Player]) -> RoundRecord:
         """
         Run a single round of the game with the given agents.
 
@@ -179,15 +197,6 @@ class CodeGame(ABC):
         handled by the tournament class.
         """
         self._pre_round_setup(agents)
-        result = self.execute_round(agents)
-        log_output = result["log_output"]
-        result_output = result["result_output"]
-
-        winner_result = self.determine_winner(result_output, agents)
-        winner_name = winner_result["winner"]
-
-        return {
-            "log_output": log_output,
-            "result_output": result_output,
-            "winner": winner_name,
-        }
+        data = self.execute_round(agents)
+        stats = self.get_stats(data.results, agents)
+        return RoundRecord(data=data, stats=stats)

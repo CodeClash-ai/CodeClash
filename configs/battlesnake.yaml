@@ -1,5 +1,6 @@
 game:
   name: BattleSnake
+  sims_per_round: 10
   args:
     width: 11
     height: 11
