@@ -56,4 +56,4 @@ class CoreWarGame(CodeGame):
         self.logger.info(f"Running game: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
-        return RoundData([response["output"]], [response["output"]])
+        return RoundData(logs=[response["output"]], results=[response["output"]])

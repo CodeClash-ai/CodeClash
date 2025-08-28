@@ -4,6 +4,7 @@ from codeclash.games.abstract import CodeGame
 from codeclash.games.battlecode.main import BattleCodeGame
 from codeclash.games.battlesnake.main import BattleSnakeGame
 from codeclash.games.corewar.main import CoreWarGame
+from codeclash.games.dummy.main import DummyGame
 from codeclash.games.robocode.main import RoboCodeGame
 from codeclash.games.robotrumble.main import RobotRumbleGame
 
@@ -16,6 +17,7 @@ def get_game(config: dict, *, tournament_id: str, local_output_dir: Path) -> Cod
             BattleCodeGame,
             BattleSnakeGame,
             CoreWarGame,
+            DummyGame,
             RoboCodeGame,
             RobotRumbleGame,
         ]

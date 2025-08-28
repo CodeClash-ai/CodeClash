@@ -1,0 +1,16 @@
+game:
+  name: DummyGame
+  sims_per_round: 100
+tournament:
+  rounds: 3
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2
+prompts:
+  game_description: |
+    You are a software developer ({{player_id}}) competing in a coding game.
+
+    The game is played in {{rounds}} rounds. For every round, you (and your competitor) edit program code that controls your bot. This is round {{round}}.
+    After you and your competitor finish editing your codebases, the game is run automatically.
