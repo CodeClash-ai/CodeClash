@@ -2,6 +2,8 @@
 PvP training mode where multiple agents compete against each other.
 """
 
+import json
+
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext
@@ -34,6 +36,15 @@ class PvpTraining(AbstractTournament):
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
 
+    def get_metadata(self) -> dict:
+        # will be saved in end()
+        return {
+            **super().get_metadata(),
+            "scoreboard": self.scoreboard,
+            "game": self.game.get_metadata(),
+            "agents": [agent.get_metadata() for agent in self.agents],
+        }
+
     def get_agent(self, agent_config: dict, prompts: dict) -> Player:
         """Create an agent with environment and game context."""
         environment = self.game.get_environment(
@@ -60,7 +71,7 @@ class PvpTraining(AbstractTournament):
             for round_num in range(1, self.rounds + 1):
                 self.run_training_round(round_num)
         finally:
-            self.cleanup()
+            self.end()
 
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round."""
@@ -93,8 +104,11 @@ class PvpTraining(AbstractTournament):
         agent.run()
         agent.post_run_hook(round=round_num)
 
-    def cleanup(self) -> None:
-        """Clean up game resources and push agents if requested."""
+    def end(self) -> None:
+        """Save output files, clean up game resources and push agents if requested."""
+        (self.local_output_dir / "metadata.json").write_text(
+            json.dumps(self.game.get_metadata())
+        )
         self.game.end(self.cleanup_on_end)
         if self.push_agent:
             for agent in self.agents:
