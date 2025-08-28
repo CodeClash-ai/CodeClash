@@ -1,4 +1,5 @@
 import os
+import time
 import uuid
 from abc import ABC, abstractmethod
 
@@ -37,6 +38,8 @@ class Player(ABC):
             "player_unique_id": self._player_unique_id,
             "diff": {0: ""},  # mapping round -> diff
             "incremental_diff": {0: ""},  # mapping round -> diff
+            "created_timestamp": int(time.time()),
+            "config": self.config,
         }
 
     # --- Main methods ---

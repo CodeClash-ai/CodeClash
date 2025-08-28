@@ -10,14 +10,14 @@ from codeclash.agents.dummy import Dummy
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame, RoundStats
+from codeclash.games.abstract import CodeGame
 from codeclash.tournaments.abstract import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
 
 
 class SinglePlayerTraining(AbstractTournament):
-    def __init__(self, config: dict, cleanup: bool = False):
+    def __init__(self, config: dict, *, cleanup: bool = False):
         super().__init__(config, name="SinglePlayerTraining")
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(
@@ -29,11 +29,22 @@ class SinglePlayerTraining(AbstractTournament):
         mirror_agent_config = copy.deepcopy(self.config["player"])
         mirror_agent_config["name"] = "mirror"
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
-        self.scoreboard: list[RoundStats] = []
+
+    @property
+    def scoreboard(self) -> list[tuple[int, str]]:
+        return self._metadata.setdefault("scoreboard", [])
 
     @property
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
+
+    def get_metadata(self) -> dict:
+        return {
+            **super().get_metadata(),
+            "scoreboard": self.scoreboard,
+            "game": self.game.get_metadata(),
+            "agents": [self.agent.get_metadata(), self.mirror_agent.get_metadata()],
+        }
 
     def get_game_context(self, agent_config: dict, *, round: int) -> GameContext:
         """Create a game context for an agent."""
@@ -71,7 +82,7 @@ class SinglePlayerTraining(AbstractTournament):
             if self.config["tournament"]["evaluate_matrix"]:
                 self.evaluate()
         finally:
-            self.cleanup()
+            self.end()
 
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round, i.e., run the game, then run the agent."""
@@ -113,11 +124,11 @@ class SinglePlayerTraining(AbstractTournament):
         full_diff = filter_git_diff(full_diff)
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
-    def cleanup(self):
+    def end(self):
         """Clean up game resources."""
         self.game.end(self.cleanup_on_end)
 
-    def evaluate(self, n_repetitions: int = 3):
+    def evaluate(self, n_repetitions: int = 3) -> None:
         """Evaluate the agent's performance by
         calculating the matrix of every round against each other.
         """
@@ -144,4 +155,4 @@ class SinglePlayerTraining(AbstractTournament):
                     self.logger.info(f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}")
                     matrix[p1_round][p2_round].append(winner)
         self.logger.info(f"Evaluation matrix: {matrix}")
-        return matrix
+        self._metadata.setdefault("evaluation", {})["matrix"] = matrix
