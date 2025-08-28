@@ -108,4 +108,4 @@ robocode.battle.selectedRobots={selected_robots}
         # Clean up the results file
         self.environment.execute(f"rm -f {results_file}")
 
-        return RoundData([response["output"]], [result_output])
+        return RoundData(logs=[response["output"]], results=[result_output])

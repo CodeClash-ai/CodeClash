@@ -75,7 +75,7 @@ class BattleSnakeGame(CodeGame):
                 self.environment.execute(f"rm -f game/{output_file}")
                 time.sleep(0.05)
 
-            return RoundData(log_outputs, result_outputs)
+            return RoundData(logs=log_outputs, results=result_outputs)
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")
