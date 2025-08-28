@@ -30,7 +30,10 @@ class PvpTraining(AbstractTournament):
         for agent_conf in self.config["players"]:
             self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
         self.logger = get_logger(self.game.name)
-        self.scoreboard: list[tuple[int, str]] = []
+
+    @property
+    def scoreboard(self) -> list[tuple[int, str]]:
+        return self._metadata.setdefault("scoreboard", [])
 
     @property
     def rounds(self) -> int:

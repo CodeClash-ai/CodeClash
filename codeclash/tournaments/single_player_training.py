@@ -16,7 +16,7 @@ from codeclash.tournaments.utils.git_utils import filter_git_diff
 
 
 class SinglePlayerTraining(AbstractTournament):
-    def __init__(self, config: dict, cleanup: bool = False):
+    def __init__(self, config: dict, *, cleanup: bool = False):
         super().__init__(config, name="SinglePlayerTraining")
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(
@@ -28,7 +28,10 @@ class SinglePlayerTraining(AbstractTournament):
         mirror_agent_config = copy.deepcopy(self.config["player"])
         mirror_agent_config["name"] = "mirror"
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
-        self.scoreboard: list[tuple[int, str]] = []
+
+    @property
+    def scoreboard(self) -> list[tuple[int, str]]:
+        return self._metadata.setdefault("scoreboard", [])
 
     @property
     def rounds(self) -> int:
