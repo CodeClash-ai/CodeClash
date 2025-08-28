@@ -3,24 +3,24 @@ from pathlib import Path
 
 import yaml
 
+from codeclash import CONFIG_DIR
 from codeclash.tournaments.pvp import PvpTournament
 from codeclash.utils.yaml_utils import resolve_includes
 
 
 def main(config_path: Path, *, cleanup: bool = False, push_agent: bool = False):
     yaml_content = config_path.read_text()
-    preprocessed_yaml = resolve_includes(yaml_content, base_dir=config_path.parent)
+    preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
     training = PvpTournament(config, cleanup=cleanup, push_agent=push_agent)
     training.run()
 
 
-if __name__ == "__main__":
+def main_cli(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(description="CodeClash")
     parser.add_argument(
         "config_path",
         type=Path,
-        default="configs/battlesnake.yaml",
         help="Path to the config file.",
     )
     parser.add_argument(
@@ -35,5 +35,9 @@ if __name__ == "__main__":
         action="store_true",
         help="If set, push each agent's codebase to a new repository after running.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     main(**vars(args))
+
+
+if __name__ == "__main__":
+    main_cli()

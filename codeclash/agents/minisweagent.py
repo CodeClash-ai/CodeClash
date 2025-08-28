@@ -10,6 +10,7 @@ from minisweagent import Model
 from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.environments.docker import DockerEnvironment
 from minisweagent.models import get_model
+from minisweagent.models.test_models import DeterministicModel
 from minisweagent.run.utils.save import save_traj
 from rich.console import Console
 
@@ -69,7 +70,11 @@ class MiniSWEAgent(Player):
         super().__init__(config, environment=environment, game_context=game_context)
 
     def run(self):
-        model = get_model(config=self.config["config"]["model"])
+        # temporary workaround around https://github.com/SWE-agent/mini-swe-agent/issues/477
+        if "DeterministicModel" not in self.config["config"]["model"].get("model_class", ""):
+            model = get_model(config=self.config["config"]["model"])
+        else:
+            model = DeterministicModel(outputs=self.config["config"]["model"]["outputs"])
         self.agent = ClashAgent(
             model=model,
             env=self.environment,
