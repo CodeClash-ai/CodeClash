@@ -1,4 +1,5 @@
 import getpass
+import os
 import time
 import traceback
 from pathlib import Path
@@ -13,7 +14,6 @@ class AbstractTournament:
         self.config: dict = config
         self.name: str = name
         self.tournament_id: str = f"{self.name}.{config['game']['name']}.{time.strftime('%y%m%d%H%M%S')}"
-        self.local_output_dir: Path = (DIR_LOGS / getpass.getuser() / self.tournament_id).resolve()
         self._metadata: dict = {
             "name": self.name,
             "tournament_id": self.tournament_id,
@@ -21,6 +21,13 @@ class AbstractTournament:
             "created_timestamp": int(time.time()),
         }
         self.logger = get_logger(self.name, log_path=self.local_output_dir / "tournament.log", emoji="🏆")
+
+    @property
+    def local_output_dir(self) -> Path:
+        base_dir = DIR_LOGS
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            base_dir = Path("/tmp/codeclash")
+        return (base_dir / getpass.getuser() / self.tournament_id).resolve()
 
     def get_metadata(self) -> dict:
         return self._metadata
