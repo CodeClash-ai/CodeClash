@@ -11,12 +11,12 @@ from codeclash import CONFIG_DIR
 def test_pvp_battlesnake():
     from main import main_cli
 
-    config_path = CONFIG_DIR / "test_configs" / "battlesnake_pvp_test.yaml"
+    config_path = CONFIG_DIR / "test" / "battlesnake_pvp_test.yaml"
     main_cli(["-c", str(config_path)])
 
 
 def test_single_player_battlesnake():
     from main_single_player import main_cli
 
-    config_path = CONFIG_DIR / "test_configs" / "battlesnake_single_player_test.yaml"
+    config_path = CONFIG_DIR / "test" / "battlesnake_single_player_test.yaml"
     main_cli(["-c", str(config_path)])
