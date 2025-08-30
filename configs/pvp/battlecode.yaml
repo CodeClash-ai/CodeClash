@@ -1,15 +1,19 @@
+tournament:
+  rounds: 25
 game:
   name: BattleCode
-  sims_per_round: 2
+  sims_per_round: 5
   args:
     maps: quack
-tournament:
-  rounds: 2
 players:
-- agent: dummy
-  name: p1
-- agent: dummy
-  name: p2
+  - agent: mini
+    name: p1
+    config:
+      agent: !include mini/default.yaml
+      model:
+        model_name: openai/gpt-5-mini
+  - agent: dummy
+    name: p2
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleCode.
