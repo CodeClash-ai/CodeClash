@@ -3,6 +3,7 @@ In single player mode, the agent runs always against its previous version.
 """
 
 import copy
+import json
 
 from codeclash.agents import get_agent
 from codeclash.agents.abstract import Player
@@ -95,16 +96,19 @@ class SinglePlayerTraining(AbstractTournament):
 
         # Write log to file
         for idx, lo in enumerate(record.data.logs):
-            round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            round_log_path = self.game.log_local / "rounds" / str(round_num) / f"sim_{idx}.log"
             round_log_path.parent.mkdir(parents=True, exist_ok=True)
             round_log_path.write_text(lo)
+        results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
+        with open(results_file, "w") as f:
+            json.dump(record.stats.model_dump(), fp=f, indent=2)
 
         # Copy log to main agent environment only
         self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")
         copy_to_container(
             self.agent.environment,
-            self.game.log_local / f"round_{round_num}",
-            f"logs/round_{round_num}/",
+            self.game.log_local / "rounds" / str(round_num),
+            f"logs/rounds/{round_num}/",
         )
 
         self.run_main_agent(round_num)

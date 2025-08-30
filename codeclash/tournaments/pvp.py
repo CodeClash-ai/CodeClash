@@ -83,20 +83,23 @@ class PvpTournament(AbstractTournament):
         self.logger.info(f"Round {round_num}:\n{record.stats}")
 
         # Create directory for round logs
-        (self.game.log_local / f"round_{round_num}").mkdir(parents=True, exist_ok=True)
+        (self.game.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
 
-        # Write log to file
+        # Write logs to file
         for idx, lo in enumerate(record.data.logs):
-            round_log_path = self.game.log_local / f"round_{round_num}" / f"sim_{idx}.log"
+            round_log_path = self.game.log_local / "rounds" / str(round_num) / f"sim_{idx}.log"
             round_log_path.write_text(lo)
+        results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
+        with open(results_file, "w") as f:
+            json.dump(record.stats.model_dump(), fp=f, indent=2)
 
         # Copy log to agent environments
         for agent in self.agents:
             self.logger.info(f"Copying round {round_num} log(s) to {agent.name}'s container...")
             copy_to_container(
                 agent.environment,
-                self.game.log_local / f"round_{round_num}",
-                f"logs/round_{round_num}/",
+                self.game.log_local / "rounds" / str(round_num),
+                f"logs/rounds/{round_num}/",
             )
 
         for agent in self.agents:
@@ -112,7 +115,8 @@ class PvpTournament(AbstractTournament):
 
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
-        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.game.get_metadata()))
+        with open(self.local_output_dir / "metadata.json", "w") as f:
+            json.dump(self.game.get_metadata(), fp=f, indent=2)
         self.game.end(self.cleanup_on_end)
         if self.push_agent:
             for agent in self.agents:

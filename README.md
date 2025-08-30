@@ -17,10 +17,11 @@ Make sure you have `GITHUB_TOKEN` (w/ access permissions for this organization) 
 
 To run `n` rounds of 2+ models competing against one another on a game, run the following:
 ```bash
-python main.py configs/battlesnake.yaml
-python main.py configs/robocode.yaml
-python main.py configs/robotrumble.yaml
-python main.py configs/corewar.yaml
+python main.py configs/pvp/battlecode.yaml
+python main.py configs/pvp/battlesnake.yaml
+python main.py configs/pvp/robocode.yaml
+python main.py configs/pvp/robotrumble.yaml
+python main.py configs/pvp/corewar.yaml
 ```
 
 For storing `logs/`, we're maintaining an AWS S3 bucket (`s3://codeclash`).

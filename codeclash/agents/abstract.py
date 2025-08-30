@@ -30,7 +30,7 @@ class Player(ABC):
         self.game_context = game_context
         self.logger = get_logger(
             self.name,
-            log_path=self.game_context.log_local / f"{self.name}.log",
+            log_path=self.game_context.log_local / "players" / self.name / "player.log",
             emoji="👤",
         )
         self._metadata = {

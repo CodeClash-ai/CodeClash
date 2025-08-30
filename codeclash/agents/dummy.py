@@ -6,4 +6,3 @@ class Dummy(Player):
 
     def run(self):
         pass
-        # self.commit()  # now called in post_round_hook

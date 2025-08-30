@@ -93,7 +93,12 @@ class MiniSWEAgent(Player):
             result = exc_message
             print(exc_message)
         finally:
-            traj_path = self.game_context.log_local / f"{self.name}_r{self.game_context.round}.traj.json"
+            traj_path = (
+                self.game_context.log_local
+                / "players"
+                / self.name
+                / f"{self.name}_r{self.game_context.round}.traj.json"
+            )
             save_traj(
                 self.agent,  # type: ignore
                 traj_path,
@@ -104,6 +109,5 @@ class MiniSWEAgent(Player):
             copy_to_container(
                 self.environment,
                 traj_path,
-                self.game_context.log_env / traj_path.name,
+                self.game_context.log_env / "past_edits" / traj_path.name,
             )
-            # self.commit()  # now called in post_round_hook
