@@ -128,7 +128,14 @@ class CodeGame(ABC):
         environment = DockerEnvironment(
             image=self.image_name,
             cwd=str(DIR_WORK),
-            env={"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
+            env={
+                "GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", ""),
+                "PAGER": "cat",
+                "MANPAGER": "cat",
+                "LESS": "-R",
+                "PIP_PROGRESS_BAR": "off",
+                "TQDM_DISABLE": "1",
+            },
         )
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")
@@ -146,7 +153,6 @@ class CodeGame(ABC):
 
     def _pre_round_setup(self, agents: list[Player]):
         """Copy agent codebases into game's container"""
-        # Copy agent codebases into game's container
         for agent in agents:
             self.logger.debug(f"Copying {agent.name}'s codebase")
             copy_between_containers(
@@ -156,7 +162,6 @@ class CodeGame(ABC):
                 dest_path=f"/{agent.name}",
             )
 
-        # Ensure the log directory exists
         assert_zero_exit_code(
             self.environment.execute(f"mkdir -p {self.log_env}"),
             logger=self.logger,
