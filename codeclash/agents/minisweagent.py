@@ -1,18 +1,13 @@
 import logging
-import os
-import platform
 import traceback
 from collections.abc import Callable
-from dataclasses import asdict
 
-from jinja2 import Template
 from minisweagent import Model
 from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.environments.docker import DockerEnvironment
 from minisweagent.models import get_model
 from minisweagent.models.test_models import DeterministicModel
 from minisweagent.run.utils.save import save_traj
-from rich.console import Console
 
 from codeclash.agents.abstract import Player
 from codeclash.agents.utils import GameContext
@@ -29,38 +24,17 @@ class ClashAgent(DefaultAgent):
         self,
         model: Model,
         env: DockerEnvironment,
-        name: str,
-        game_context: GameContext,
         *,
         logger: logging.Logger,
         config_class: Callable = AgentConfig,
         **kwargs,
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
-        self.name = name
-        self.game_context = game_context
-        self.console = Console()
         self.logger = logger
 
     def add_message(self, role: str, content: str, **kwargs):
         super().add_message(role, content, **kwargs)
         self.logger.debug(f"[{role}] {content}", extra={"highlighter": None})
-        if role == "assistant":
-            self.logger.info(f"Step taken (step {self.model.n_calls}, cost {self.model.cost:.2f})")
-
-    def render_template(self, template: str, **kwargs) -> str:
-        cs = (
-            asdict(self.config)
-            | asdict(self.env.config)
-            | asdict(self.model.config)
-            | platform.uname()._asdict()
-            | self.game_context.to_template_vars()
-        )
-        return Template(template).render(**kwargs, **cs, **os.environ)
-
-    def run(self) -> tuple[str, str]:
-        """Run step() until agent is finished. Return exit status & message"""
-        return super().run(task="")
 
 
 class MiniSWEAgent(Player):
@@ -78,15 +52,13 @@ class MiniSWEAgent(Player):
         self.agent = ClashAgent(
             model=model,
             env=self.environment,
-            name=self.name,
-            game_context=self.game_context,
             logger=self.logger,
             **self.config["config"]["agent"],
         )
         exit_status = None
         result = None
         try:
-            exit_status, result = self.agent.run()
+            exit_status, result = self.agent.run(task="", **self.game_context.to_template_vars())
         except Exception as e:
             exit_status = str(e)
             exc_message = traceback.format_exc()

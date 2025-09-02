@@ -32,7 +32,14 @@ instance_template: |
   - `trajs/`: History of your edits
   - and a lot more. It's up to you to explore and utilize these resources.
 
-  The game is played in rounds. You won't remember past rounds.
+  The game is played in rounds and you will be evaluated on the performance over all the rounds. You won't remember past rounds.
+
+  In every round, you have a limit of {{step_limit}} steps and a cost limit of {{cost_limit}} dollars.
+  We will show you the number of steps and cost used so far after every response in the `<limit_note>` tag.
+  After you've reached the step or cost limit, you cannot continue working on this task, and we will play the game with your codebase.
+  This means that it's fine to reach the step or cost limit while working on documentation or testing, but you shouldn't
+  reach the limit while working on the actual game logic to avoid submitting an invalid codebase.
+
   So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
   Good documentation means you (and others) can pick up right where you left off.
 
@@ -112,6 +119,7 @@ instance_template: |
   </example_response>
 
   If you need to run multiple commands, either:
+
   1. Combine them in one block using && or ||
   ```bash
   command1 && command2 || echo "Error occurred"
@@ -179,6 +187,7 @@ instance_template: |
   This command will submit your work.
   You cannot continue working (reading, editing, testing) in any way on this task after submitting.
 action_observation_template: |
+  <limit_note>This is the output of step {{n_model_calls}} ({{step_limit}} limit). You've used {{model_cost | round(2)}} USD ({{cost_limit}} USD limit).</limit_note>
   <returncode>{{output.returncode}}</returncode>
   {% if output.output | length < 10000 -%}
   <output>
