@@ -30,11 +30,9 @@ class BattleSnakeGame(CodeGame):
             for port in ports:
                 result = self.environment.execute(f"nc -z 0.0.0.0 {port}")
                 if result["returncode"] != 0:
-                    self.logger.debug(f"Port {port} is not ready")
                     break
             else:
                 # All ports are ready (loop completed without break)
-                self.logger.info("All ports are ready")
                 return
 
             time.sleep(0.1)
@@ -52,17 +50,20 @@ class BattleSnakeGame(CodeGame):
         return RoundStats(winner=winner, scores=scores)
 
     def execute_round(self, agents: list[Player]) -> RoundData:
+        self.logger.debug("Starting game servers")
         cmd = []
         ports = []
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             ports.append(port)
+            # Surprisingly slow despite using &
             # Start server in background - just add & to run in background!
             self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
             cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
 
-        # Wait for all servers to be ready (up to 3 seconds)
+        self.logger.debug(f"Waiting for ports: {ports}")
         self._wait_for_ports(ports)
+        self.logger.debug("All ports are ready")
 
         try:
             log_outputs, result_outputs = [], []
