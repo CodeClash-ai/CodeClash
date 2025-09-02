@@ -23,6 +23,22 @@ class BattleSnakeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
+    def _wait_for_ports(self, ports: list[int], timeout: float = 3.0) -> None:
+        """Wait for all ports to be available, up to timeout seconds."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            for port in ports:
+                result = self.environment.execute(f"nc -z 0.0.0.0 {port}")
+                if result["returncode"] != 0:
+                    self.logger.debug(f"Port {port} is not ready")
+                    break
+            else:
+                # All ports are ready (loop completed without break)
+                self.logger.info("All ports are ready")
+                return
+
+            time.sleep(0.1)
+
     def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
         scores = {}
         for ro in result_outputs:
@@ -37,13 +53,16 @@ class BattleSnakeGame(CodeGame):
 
     def execute_round(self, agents: list[Player]) -> RoundData:
         cmd = []
+        ports = []
         for idx, agent in enumerate(agents):
             port = 8001 + idx
+            ports.append(port)
             # Start server in background - just add & to run in background!
             self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
             cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
 
-        time.sleep(3)  # Give servers time to start
+        # Wait for all servers to be ready (up to 3 seconds)
+        self._wait_for_ports(ports)
 
         try:
             log_outputs, result_outputs = [], []
