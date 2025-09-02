@@ -20,7 +20,11 @@ system_template: |
 
   Failure to follow these rules will cause your response to be rejected.
 instance_template: |
+  ## Game Description
+
   {{game_description}}
+
+  ## General tips about how to play the game
 
   The details of the game are fully available within this codebase.
   - `docs/`: Game documentation
@@ -28,7 +32,7 @@ instance_template: |
   - `trajs/`: History of your edits
   - and a lot more. It's up to you to explore and utilize these resources.
 
-  ⚠️ You won't remember past rounds.
+  The game is played in rounds. You won't remember past rounds.
   So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
   Good documentation means you (and others) can pick up right where you left off.
 
@@ -40,23 +44,50 @@ instance_template: |
   - Track strategies across rounds
   How you choose to evolve and document is up to you. Good luck!
 
-  <important>
-  When you are finished making changes, issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
-  </important>
-  ========================================================
-  You can execute bash commands and edit files to implement the necessary changes.
+  ## Command Execution Rules
 
-  ## Important Rules
+  You are operating in an environment where
 
-  1. Every response must contain exactly one action
-  2. The action must be enclosed in triple backticks
+  1. You write a single bash command
+  2. The system executes that command in a subshell
+  3. You see the result
+  4. You write your next command
+
+  For each of your response:
+
+  1. Include a THOUGHT section explaining your reasoning and what you're trying to accomplish
+  2. Provide exactly ONE bash command to execute
+  3. The action must be enclosed in triple backticks (see below for formatting rules)
   3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
       However, you can prefix Any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
 
-  ## Formatting your response
+  Format your responses like this:
 
-  Here is an example of a correct response:
+  <format_example>
+  THOUGHT: Here I explain my reasoning process, analysis of the current situation,
+  and what I'm trying to accomplish with the command below.
 
+  ```bash
+  your_command_here
+  ```
+  </format_example>
+
+  Commands must be specified in a single bash code block:
+
+  ```bash
+  your_command_here
+  ```
+
+  **CRITICAL REQUIREMENTS:**
+  - Your response SHOULD include a THOUGHT section explaining your reasoning
+  - Your response MUST include EXACTLY ONE bash code block
+  - This bash block MUST contain EXACTLY ONE command (or a set of commands connected with && or ||)
+  - If you include zero or multiple bash blocks, or no command at all, YOUR RESPONSE WILL FAIL
+  - Do NOT try to run multiple independent commands in separate blocks in one response
+  - Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
+  - However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
+
+  Example of a CORRECT response:
   <example_response>
   THOUGHT: I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
 
@@ -64,6 +95,36 @@ instance_template: |
   ls -la
   ```
   </example_response>
+
+  Example of an INCORRECT response:
+  <example_response>
+  THOUGHT: I need to examine the codebase and then look at a specific file. I'll run multiple commands to do this.
+
+  ```bash
+  ls -la
+  ```
+
+  Now I'll read the file:
+
+  ```bash
+  cat file.txt
+  ```
+  </example_response>
+
+  If you need to run multiple commands, either:
+  1. Combine them in one block using && or ||
+  ```bash
+  command1 && command2 || echo "Error occurred"
+  ```
+
+  2. Wait for the first command to complete, see its output, then issue the next command in your following response.
+
+  ## Environment Details
+
+  - You have a full Linux shell environment
+  - Always use non-interactive flags (-y, -f) for commands
+  - Avoid interactive tools like vi, nano, or any that require user input
+  - If a command isn't available, you can install it
 
   ## Useful command examples
 
@@ -105,6 +166,18 @@ instance_template: |
   ```bash
   Anything
   ```
+
+  ## Submission
+
+  When you've completed your work (reading, editing, testing), and cannot make further progress
+  issue exactly the following command:
+
+  ```bash
+  echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
+  ```
+
+  This command will submit your work.
+  You cannot continue working (reading, editing, testing) in any way on this task after submitting.
 action_observation_template: |
   <returncode>{{output.returncode}}</returncode>
   {% if output.output | length < 10000 -%}
