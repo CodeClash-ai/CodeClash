@@ -1,5 +1,9 @@
+from codeclash.utils.log import get_logger
+
+
 def filter_git_diff(text: str) -> str:
     """Return a git diff with any file sections mentioning binary content removed."""
+    logger = get_logger(__name__)
     lines = text.splitlines(keepends=True)
     out: list[str] = []
     block: list[str] = []
@@ -15,10 +19,24 @@ def filter_git_diff(text: str) -> str:
                 return True
         return False
 
+    def extract_file_path_from_block(bl: list[str]) -> str:
+        """Extract file path from a git diff block."""
+        for ln in bl:
+            if ln.startswith("diff --git "):
+                # Format: "diff --git a/path/to/file b/path/to/file"
+                parts = ln.strip().split()
+                if len(parts) >= 4:
+                    # Remove 'a/' prefix from the file path
+                    return parts[2][2:] if parts[2].startswith("a/") else parts[2]
+        return "unknown file"
+
     for ln in lines:
         if ln.startswith("diff --git "):
             if in_block:
-                if not is_binary_block(block):
+                if is_binary_block(block):
+                    file_path = extract_file_path_from_block(block)
+                    logger.warning(f"Binary file detected in diff: {file_path}")
+                else:
                     out.extend(block)
                 block = []
             else:
@@ -31,7 +49,10 @@ def filter_git_diff(text: str) -> str:
             out.append(ln)
 
     if in_block and block:
-        if not is_binary_block(block):
+        if is_binary_block(block):
+            file_path = extract_file_path_from_block(block)
+            logger.warning(f"Binary file detected in diff: {file_path}")
+        else:
             out.extend(block)
 
     return "".join(out)
