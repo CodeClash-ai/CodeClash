@@ -40,6 +40,7 @@ class Player(ABC):
             "incremental_diff": {0: ""},  # mapping round -> diff
             "created_timestamp": int(time.time()),
             "config": self.config,
+            "initial_commit_hash": self._get_commit_hash(),
         }
 
     # --- Main methods ---
@@ -125,6 +126,14 @@ class Player(ABC):
     def _get_round_tag_name(self, round: int) -> str:
         """Get git tag name for the version of the codebase at the given round."""
         return f"{self._player_unique_id}-round-{round}"
+
+    def _get_commit_hash(self) -> str:
+        """Get the current commit hash."""
+        out = assert_zero_exit_code(
+            self.environment.execute("git rev-parse HEAD"),
+            logger=self.logger,
+        )
+        return out["output"].strip()
 
     def _commit(self) -> None:
         """Commit changes to the agent's codebase."""
