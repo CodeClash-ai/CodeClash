@@ -2,8 +2,8 @@ import re
 import shlex
 from pathlib import Path
 
-from codeclash.agents.abstract import Player
-from codeclash.games.abstract import CodeGame, RoundData, RoundStats
+from codeclash.agents.player import Player
+from codeclash.games.game import CodeGame, RoundData, RoundStats
 
 
 class CoreWarGame(CodeGame):

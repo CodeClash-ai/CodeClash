@@ -6,13 +6,13 @@ import copy
 import json
 
 from codeclash.agents import get_agent
-from codeclash.agents.abstract import Player
-from codeclash.agents.dummy import Dummy
+from codeclash.agents.dummy_agent import Dummy
+from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame, RoundRecord
-from codeclash.tournaments.abstract import AbstractTournament
+from codeclash.games.game import CodeGame, RoundRecord
+from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
 

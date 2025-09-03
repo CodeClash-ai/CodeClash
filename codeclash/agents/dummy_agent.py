@@ -1,4 +1,4 @@
-from codeclash.agents.abstract import Player
+from codeclash.agents.player import Player
 
 
 class Dummy(Player):

@@ -1,8 +1,8 @@
 from minisweagent.environments.docker import DockerEnvironment
 
-from codeclash.agents.abstract import Player
-from codeclash.agents.dummy import Dummy
+from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.minisweagent import MiniSWEAgent
+from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 
 

@@ -9,7 +9,7 @@ from minisweagent.models import get_model
 from minisweagent.models.test_models import DeterministicModel
 from minisweagent.run.utils.save import save_traj
 
-from codeclash.agents.abstract import Player
+from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
 
