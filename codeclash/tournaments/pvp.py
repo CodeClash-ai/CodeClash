@@ -3,6 +3,7 @@ PvP training mode where multiple agents compete against each other.
 """
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 from codeclash.agents import get_agent
 from codeclash.agents.player import Player
@@ -102,8 +103,14 @@ class PvpTournament(AbstractTournament):
                 f"logs/rounds/{round_num}/",
             )
 
-        for agent in self.agents:
-            self.run_agent(agent, round_num)
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.run_agent, agent, round_num) for agent in self.agents]
+            for future in futures:
+                try:
+                    future.result()
+                except Exception as e:
+                    self.logger.critical(f"Agent execution failed: {e}", exc_info=True)
+                    raise
 
         self.logger.info("Round completed.")
 
