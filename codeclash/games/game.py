@@ -8,7 +8,7 @@ from typing import Any
 from minisweagent.environments.docker import DockerEnvironment
 from pydantic import BaseModel
 
-from codeclash.agents.abstract import Player
+from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
 from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers
 from codeclash.utils.log import get_logger

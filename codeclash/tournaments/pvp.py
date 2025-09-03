@@ -5,12 +5,12 @@ PvP training mode where multiple agents compete against each other.
 import json
 
 from codeclash.agents import get_agent
-from codeclash.agents.abstract import Player
+from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.abstract import CodeGame
-from codeclash.tournaments.abstract import AbstractTournament
+from codeclash.games.game import CodeGame
+from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.utils.environment import copy_to_container
 from codeclash.utils.log import get_logger
 

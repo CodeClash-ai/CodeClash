@@ -4,9 +4,9 @@ from pathlib import Path
 
 from tqdm.auto import tqdm
 
-from codeclash.agents.abstract import Player
+from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
-from codeclash.games.abstract import CodeGame, RoundData, RoundStats
+from codeclash.games.game import CodeGame, RoundData, RoundStats
 from codeclash.utils.environment import assert_zero_exit_code
 
 

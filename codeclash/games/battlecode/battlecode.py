@@ -5,7 +5,7 @@ from typing import Any
 from tqdm.auto import tqdm
 
 from codeclash.constants import DIR_WORK, RESULT_TIE
-from codeclash.games.abstract import CodeGame, RoundData, RoundStats
+from codeclash.games.game import CodeGame, RoundData, RoundStats
 
 
 class BattleCodeGame(CodeGame):
