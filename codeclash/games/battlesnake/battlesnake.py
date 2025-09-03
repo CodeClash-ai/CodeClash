@@ -1,5 +1,7 @@
 import json
 import time
+import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from tqdm.auto import tqdm
@@ -69,29 +71,43 @@ class BattleSnakeGame(CodeGame):
             log_outputs, result_outputs = [], []
             cmd = self.run_cmd_round + " " + " ".join(cmd)
             self.logger.info(f"Running game: {cmd}")
-            for idx in tqdm(range(self.game_config["sims_per_round"])):
-                # Create temporary output file for results
-                output_file = f"battlesnake_output_{idx}_{int(time.time())}.json"
 
-                # Run game
-                response = assert_zero_exit_code(
-                    self.environment.execute(
-                        cmd + f" -o {output_file}",
-                        cwd=f"{self.environment.config.cwd}/game",
-                    )
-                )
+            # Use ThreadPoolExecutor for parallel execution
+            with ThreadPoolExecutor(20) as executor:
+                # Submit all simulations to the thread pool
+                futures = [
+                    executor.submit(self._run_single_simulation, cmd) for _ in range(self.game_config["sims_per_round"])
+                ]
 
-                # Read the output file for result information
-                result_response = self.environment.execute(f"cat game/{output_file}")
-                result_output = result_response["output"]
-                log_outputs.append(response["output"])
-                result_outputs.append(result_output)
-
-                # Clean up the output file
-                self.environment.execute(f"rm -f game/{output_file}")
-                time.sleep(0.05)
+                # Collect results as they complete
+                for future in tqdm(as_completed(futures), total=len(futures)):
+                    log_output, result_output = future.result()
+                    log_outputs.append(log_output)
+                    result_outputs.append(result_output)
 
             return RoundData(logs=log_outputs, results=result_outputs)
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")
+
+    def _run_single_simulation(self, cmd: str) -> tuple[str, str]:
+        """Run a single battlesnake simulation and return log and result outputs."""
+        # Create temporary output file for results
+        output_file = f"battlesnake_output_{uuid.uuid4().hex}.json"
+
+        # Run game
+        response = assert_zero_exit_code(
+            self.environment.execute(
+                cmd + f" -o {output_file}",
+                cwd=f"{self.environment.config.cwd}/game",
+            )
+        )
+
+        # Read the output file for result information
+        result_response = self.environment.execute(f"cat game/{output_file}")
+        result_output = result_response["output"]
+
+        # Clean up the output file
+        self.environment.execute(f"rm -f game/{output_file}")
+
+        return response["output"], result_output

@@ -2,7 +2,7 @@ tournament:
   rounds: 25
 game:
   name: BattleSnake
-  sims_per_round: 30
+  sims_per_round: 100
   args:
     width: 11
     height: 11
