@@ -81,5 +81,5 @@ class MiniSWEAgent(Player):
             copy_to_container(
                 self.environment,
                 traj_path,
-                self.game_context.log_env / "past_edits" / traj_path.name,
+                self.game_context.log_env / "edits" / traj_path.name,
             )
