@@ -413,6 +413,12 @@ details summary {
   border-radius: 0.25rem;
   border: 1px solid var(--border-color);
   z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Autohide message role badges on hover to improve readability */
+.message-block:hover .message-role-badge {
+  opacity: 0;
 }
 
 .message-content {

@@ -125,3 +125,5 @@ First show the following properties from the `info` section
 
 Then, show all the messages. Each message should be its own block together with the role.
 Because the content can be long, make sure to have a foldout for the content.
+
+**Message Role Badges**: Each message displays a small role badge (e.g., "User #1", "Assistant #2") in the top-right corner. These badges automatically hide on hover over the message block to improve readability and allow users to see text that might be obscured by the badge.
