@@ -123,7 +123,7 @@ class PvpTournament(AbstractTournament):
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
         with open(self.local_output_dir / "metadata.json", "w") as f:
-            json.dump(self.game.get_metadata(), fp=f, indent=2)
+            json.dump(self.get_metadata(), fp=f, indent=2)
         self.game.end(self.cleanup_on_end)
         if self.push_agent:
             for agent in self.agents:
