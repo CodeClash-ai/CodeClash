@@ -68,12 +68,13 @@ class PvpTournament(AbstractTournament):
         """Main execution function that runs all rounds."""
         try:
             for round_num in range(1, self.rounds + 1):
+                self.run_evaluation(round_num)
                 self.run_training_round(round_num)
+            self.run_evaluation(self.rounds + 1)
         finally:
             self.end()
 
-    def run_training_round(self, round_num: int) -> None:
-        """Execute a single training round."""
+    def run_evaluation(self, round_num: int) -> None:
         # Run the game round and get results
         record = self.game.run_round(self.agents)
 
@@ -89,9 +90,10 @@ class PvpTournament(AbstractTournament):
             round_log_path = self.game.log_local / "rounds" / str(round_num) / f"sim_{idx}.log"
             round_log_path.write_text(lo)
         results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
-        with open(results_file, "w") as f:
-            json.dump(record.stats.model_dump(), fp=f, indent=2)
+        results_file.write_text(json.dumps(record.stats.model_dump(), indent=2))
 
+    def run_training_round(self, round_num: int) -> None:
+        """Execute a single training round."""
         # Copy log to agent environments
         for agent in self.agents:
             self.logger.info(f"Copying round {round_num} log(s) to {agent.name}'s container...")
@@ -120,8 +122,7 @@ class PvpTournament(AbstractTournament):
 
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
-        with open(self.local_output_dir / "metadata.json", "w") as f:
-            json.dump(self.get_metadata(), fp=f, indent=2)
+        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
         self.game.end(self.cleanup_on_end)
         if self.push_agent:
             for agent in self.agents:
