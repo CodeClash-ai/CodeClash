@@ -13,7 +13,6 @@ from codeclash.games import get_game
 from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.utils.environment import copy_to_container
-from codeclash.utils.log import get_logger
 
 
 class PvpTournament(AbstractTournament):
@@ -29,7 +28,6 @@ class PvpTournament(AbstractTournament):
         self.agents: list[Player] = []
         for agent_conf in self.config["players"]:
             self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
-        self.logger = get_logger(self.game.name)
 
     @property
     def scoreboard(self) -> list[tuple[int, str]]:
