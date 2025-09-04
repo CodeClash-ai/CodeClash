@@ -131,6 +131,8 @@ class SinglePlayerTraining(AbstractTournament):
 
     def end(self):
         """Clean up game resources."""
+        with open(self.local_output_dir / "metadata.json", "w") as f:
+            json.dump(self.get_metadata(), fp=f, indent=2)
         self.game.end(self.cleanup_on_end)
 
     def evaluate(self, n_repetitions: int = 3) -> None:
