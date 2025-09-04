@@ -110,68 +110,7 @@ function initializeKeyboardShortcuts() {
   });
 }
 
-// Code highlighting (basic syntax highlighting)
-function initializeCodeHighlighting() {
-  const codeBlocks = document.querySelectorAll(
-    ".code-block code, .message-text pre",
-  );
-
-  codeBlocks.forEach((block) => {
-    const text = block.textContent;
-
-    // Simple bash highlighting
-    if (text.includes("#!/bin/bash") || text.includes("```bash")) {
-      block.classList.add("language-bash");
-      highlightBash(block);
-    }
-
-    // Simple Python highlighting
-    if (
-      text.includes("def ") ||
-      text.includes("import ") ||
-      text.includes("python")
-    ) {
-      block.classList.add("language-python");
-      highlightPython(block);
-    }
-  });
-}
-
-function highlightBash(block) {
-  let html = block.innerHTML;
-
-  // Commands
-  html = html.replace(
-    /\b(ls|cd|cat|grep|sed|awk|find|mkdir|rm|cp|mv|chmod|echo|export)\b/g,
-    '<span style="color: var(--accent-color); font-weight: 600;">$1</span>',
-  );
-
-  // Flags
-  html = html.replace(
-    /\s(-[a-zA-Z]+)/g,
-    ' <span style="color: var(--warning-color);">$1</span>',
-  );
-
-  block.innerHTML = html;
-}
-
-function highlightPython(block) {
-  let html = block.innerHTML;
-
-  // Keywords
-  html = html.replace(
-    /\b(def|class|import|from|if|else|elif|for|while|try|except|finally|return|yield|with|as|pass|break|continue|lambda|global|nonlocal)\b/g,
-    '<span style="color: var(--accent-color); font-weight: 600;">$1</span>',
-  );
-
-  // Strings
-  html = html.replace(
-    /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g,
-    '<span style="color: var(--success-color);">$1$2$1</span>',
-  );
-
-  block.innerHTML = html;
-}
+// Code highlighting removed to prevent CSS code from appearing in text
 
 // Performance monitoring
 function initializePerformanceMonitoring() {
@@ -263,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeTheme();
   initializeFoldouts();
   initializeKeyboardShortcuts();
-  initializeCodeHighlighting();
   initializePerformanceMonitoring();
 
   console.log("CodeClash Trajectory Viewer initialized");

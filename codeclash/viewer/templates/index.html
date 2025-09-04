@@ -129,18 +129,18 @@
                                                                 {% for part in parts %}
                                                                     {% if loop.index is odd %}
                                                                         <!-- Text part -->
-                                                                        <div class="message-text"><pre>{{ part }}</pre></div>
+                                                                        <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
                                                                     {% else %}
                                                                         <!-- Code part -->
                                                                         <div class="code-block">
-                                                                            <pre><code>{{ part }}</code></pre>
+                                                                            <pre><code>{{ part | unescape_content }}</code></pre>
                                                                         </div>
                                                                     {% endif %}
                                                                 {% endfor %}
                                                             {% else %}
                                                                 <!-- Regular text content -->
                                                                 <div class="message-text">
-                                                                    <pre>{{ message.content }}</pre>
+                                                                    <pre>{{ message.content | unescape_content }}</pre>
                                                                 </div>
                                                             {% endif %}
                                                         </div>
@@ -148,7 +148,7 @@
                                                     <!-- Show preview with expand button -->
                                                     <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                                                             <div class="message-text">
-                                                                <pre>{{ content_lines[:5] | join('\n') }}</pre>
+                                                                <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
                                                             </div>
                                                             <div class="expand-indicator">
                                                                 ▼ {{ content_lines|length - 5 }} more lines
@@ -161,18 +161,18 @@
                                                                 {% for part in parts %}
                                                                     {% if loop.index is odd %}
                                                                         <!-- Text part -->
-                                                                        <div class="message-text"><pre>{{ part }}</pre></div>
+                                                                        <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
                                                                     {% else %}
                                                                         <!-- Code part -->
                                                                         <div class="code-block">
-                                                                            <pre><code>{{ part }}</code></pre>
+                                                                            <pre><code>{{ part | unescape_content }}</code></pre>
                                                                         </div>
                                                                     {% endif %}
                                                                 {% endfor %}
                                                             {% else %}
                                                                 <!-- Regular text content -->
                                                                 <div class="message-text">
-                                                                    <pre>{{ message.content }}</pre>
+                                                                    <pre>{{ message.content | unescape_content }}</pre>
                                                                 </div>
                                                             {% endif %}
                                                             <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
@@ -188,12 +188,12 @@
                                                                 {% set content_lines = content_part.text.split('\n') %}
                                                                 {% if content_lines|length <= 5 %}
                                                                     <div class="message-text">
-                                                                        <pre>{{ content_part.text }}</pre>
+                                                                        <pre>{{ content_part.text | unescape_content }}</pre>
                                                                     </div>
                                                                 {% else %}
                                                                     <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                                                                         <div class="message-text">
-                                                                            <pre>{{ content_lines[:5] | join('\n') }}</pre>
+                                                                            <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
                                                                         </div>
                                                                         <div class="expand-indicator">
                                                                             ▼ {{ content_lines|length - 5 }} more lines
@@ -201,7 +201,7 @@
                                                                     </div>
                                                                     <div class="message-content-expanded" style="display: none;" title="Content expanded - click collapse button below to hide">
                                                                         <div class="message-text">
-                                                                            <pre>{{ content_part.text }}</pre>
+                                                                            <pre>{{ content_part.text | unescape_content }}</pre>
                                                                         </div>
                                                                         <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
                                                                             ▲ Click to collapse
