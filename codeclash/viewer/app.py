@@ -191,8 +191,17 @@ def nl2br(value):
     return escaped.replace("\n", "<br>\n")
 
 
-# Register the custom filter
+def unescape_content(value):
+    """Unescape literal \\n characters to actual newlines for proper display in <pre> tags"""
+    if value is None:
+        return ""
+    # Replace literal \n with actual newlines
+    return value.replace("\\n", "\n")
+
+
+# Register the custom filters
 app.jinja_env.filters["nl2br"] = nl2br
+app.jinja_env.filters["unescape_content"] = unescape_content
 
 
 @app.route("/")

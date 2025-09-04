@@ -28,14 +28,26 @@
                 <h3>Expected Structure:</h3>
                 <pre><code>logs/
 ├── game_session_1/
-│   ├── results.json
-│   ├── main.log
-│   ├── round_1.log
-│   ├── round_2.log
-│   ├── p1_r1.traj.json
-│   ├── p1_r2.traj.json
-│   ├── p2_r1.traj.json
-│   └── p2_r2.traj.json
+│   ├── metadata.json
+│   ├── tournament.log
+│   ├── rounds/
+│   │   ├── 1/
+│   │   │   ├── results.json
+│   │   │   ├── sim_0.log
+│   │   │   ├── sim_1.log
+│   │   │   └── ...
+│   │   └── 2/
+│   │       ├── results.json
+│   │       └── ...
+│   └── players/
+│       ├── p1/
+│       │   ├── p1_r1.traj.json
+│       │   ├── p1_r2.traj.json
+│       │   └── player.log
+│       └── p2/
+│           ├── p2_r1.traj.json
+│           ├── p2_r2.traj.json
+│           └── player.log
 └── game_session_2/
     └── ...</code></pre>
             </div>
