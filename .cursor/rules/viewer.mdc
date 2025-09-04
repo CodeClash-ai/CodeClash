@@ -22,10 +22,11 @@ The input folders are all subfolders of `logs/`
 
 The input folder has the following files
 
-* results.json
-* main.log
-* round_$i.log, where $i is the round.
-* p$i_r$j.traj.log, where $i$ is the player (there's always 1 or 2 players) and $j is the round number
+* metadata.json
+* tournament.log
+* rounds/$i/sim_$j.log, where $i is the round and $j is the simulation number (repetition of game)
+* players/$player_id/$player_id_r$i.traj.json, where $j is the round number
+* players/$player_id/player.log
 * Trajectory files do not exist for the last round
 
 Here's how a `.traj.log` file looks:

@@ -72,36 +72,55 @@ class LogParser:
 
     def parse_game_metadata(self) -> GameMetadata:
         """Parse overall game metadata"""
-        # Look for results.json or metadata.json
-        results_file = self.log_dir / "results.json"
-        if not results_file.exists():
-            # Check for metadata.json as fallback
-            metadata_file = self.log_dir / "metadata.json"
-            if metadata_file.exists():
-                results = json.loads(metadata_file.read_text())
-            else:
-                results = {"status": "No results file found"}
+        # Look for metadata.json
+        metadata_file = self.log_dir / "metadata.json"
+        if metadata_file.exists():
+            results = json.loads(metadata_file.read_text())
         else:
-            results = json.loads(results_file.read_text())
+            results = {"status": "No metadata file found"}
 
-        # Parse main.log if it exists
-        main_log_file = self.log_dir / "game.log"
-        main_log = main_log_file.read_text() if main_log_file.exists() else "No main log found"
+        # Parse tournament.log if it exists
+        main_log_file = self.log_dir / "tournament.log"
+        main_log = main_log_file.read_text() if main_log_file.exists() else "No tournament log found"
 
-        # Parse round logs
+        # Parse round directories and their sim logs
         rounds = []
-        round_files = sorted(self.log_dir.glob("round_*.log"))
-        for round_file in round_files:
-            round_content = round_file.read_text()
-            rounds.append({"filename": round_file.name, "content": round_content})
+        rounds_dir = self.log_dir / "rounds"
+        if rounds_dir.exists():
+            # Get all round directories (sorted numerically)
+            round_dirs = sorted([d for d in rounds_dir.iterdir() if d.is_dir()], key=lambda x: int(x.name))
+
+            for round_dir in round_dirs:
+                round_num = int(round_dir.name)
+
+                # Collect all sim logs for this round
+                sim_logs = []
+                sim_files = sorted(round_dir.glob("sim_*.log"), key=lambda x: int(x.stem.split("_")[1]))
+
+                for sim_file in sim_files:
+                    sim_content = sim_file.read_text()
+                    sim_logs.append({"filename": sim_file.name, "content": sim_content})
+
+                # Check for round results
+                results_file = round_dir / "results.json"
+                round_results = None
+                if results_file.exists():
+                    round_results = json.loads(results_file.read_text())
+
+                rounds.append({"round_num": round_num, "sim_logs": sim_logs, "results": round_results})
 
         return GameMetadata(results=results, main_log=main_log, rounds=rounds)
 
     def parse_trajectory(self, player_id: int, round_num: int) -> TrajectoryInfo | None:
         """Parse a specific trajectory file"""
+        # Look in players/$player_id/ directory
+        player_dir = self.log_dir / "players" / f"p{player_id}"
+        if not player_dir.exists():
+            return None
+
         # Try both .json and .log extensions
         for ext in [".json", ".log"]:
-            traj_file = self.log_dir / f"p{player_id}_r{round_num}.traj{ext}"
+            traj_file = player_dir / f"p{player_id}_r{round_num}.traj{ext}"
             if traj_file.exists():
                 try:
                     data = json.loads(traj_file.read_text())
@@ -127,18 +146,34 @@ class LogParser:
     def get_available_trajectories(self) -> list[tuple]:
         """Get list of available trajectory files as (player_id, round_num) tuples"""
         trajectories = []
-        for traj_file in self.log_dir.glob("p*_r*.traj.*"):
-            # Extract player and round from filename like p1_r2.traj.json
-            parts = traj_file.stem.split(".")  # Remove extension
-            if parts:
-                name_part = parts[0]  # p1_r2
-                try:
-                    player_part, round_part = name_part.split("_")
-                    player_id = int(player_part[1:])  # Remove 'p' prefix
-                    round_num = int(round_part[1:])  # Remove 'r' prefix
-                    trajectories.append((player_id, round_num))
-                except (ValueError, IndexError):
-                    continue
+        players_dir = self.log_dir / "players"
+
+        if not players_dir.exists():
+            return trajectories
+
+        # Iterate through player directories
+        for player_dir in players_dir.iterdir():
+            if not player_dir.is_dir():
+                continue
+
+            try:
+                # Extract player_id from directory name (e.g., "p1" -> 1)
+                player_id = int(player_dir.name[1:])  # Remove 'p' prefix
+            except (ValueError, IndexError):
+                continue
+
+            # Find trajectory files in this player's directory
+            for traj_file in player_dir.glob("p*_r*.traj.*"):
+                # Extract round from filename like p1_r2.traj.json
+                parts = traj_file.stem.split(".")  # Remove extension
+                if parts:
+                    name_part = parts[0]  # p1_r2
+                    try:
+                        _, round_part = name_part.split("_")
+                        round_num = int(round_part[1:])  # Remove 'r' prefix
+                        trajectories.append((player_id, round_num))
+                    except (ValueError, IndexError):
+                        continue
 
         return sorted(trajectories)
 

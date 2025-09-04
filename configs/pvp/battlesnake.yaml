@@ -1,8 +1,8 @@
 tournament:
-  rounds: 25
+  rounds: 2
 game:
   name: BattleSnake
-  sims_per_round: 100
+  sims_per_round: 20
   args:
     width: 11
     height: 11
@@ -19,7 +19,7 @@ players:
     config:
       agent: !include mini/default.yaml
       model:
-        model_name: anthropic/claude-sonnet-4-20250514
+        model_name: openai/gpt-5-mini
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.

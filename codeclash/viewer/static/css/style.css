@@ -225,6 +225,23 @@ details summary {
   margin-left: 1rem;
 }
 
+.sim-foldout {
+  border-left: 2px solid var(--text-muted);
+  margin-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sim-foldout summary {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sim-foldout summary:hover {
+  background-color: var(--bg-tertiary);
+}
+
 /* Round separator */
 .round-separator {
   height: 2px;

@@ -58,13 +58,30 @@
             <h2>🎯 Game Rounds</h2>
 
             {% for round_data in metadata.rounds %}
-                {% set round_num = loop.index %}
+                {% set round_num = round_data.round_num %}
 
-                <!-- Round Log -->
+                <!-- Round Results (if available) -->
+                {% if round_data.results %}
                 <details class="foldout round-foldout">
-                    <summary>🎮 Round {{ round_num }} Log</summary>
+                    <summary>🏆 Round {{ round_num }} Results</summary>
                     <div class="log-content">
-                        <pre><code>{{ round_data.content }}</code></pre>
+                        <pre><code>{{ round_data.results | tojson(indent=2) }}</code></pre>
+                    </div>
+                </details>
+                {% endif %}
+
+                <!-- Round Simulation Logs -->
+                <details class="foldout round-foldout">
+                    <summary>🎮 Round {{ round_num }} Simulation Logs ({{ round_data.sim_logs|length }} sims)</summary>
+                    <div class="log-content">
+                        {% for sim_log in round_data.sim_logs %}
+                        <details class="foldout sim-foldout">
+                            <summary>{{ sim_log.filename }}</summary>
+                            <div class="log-content">
+                                <pre><code>{{ sim_log.content }}</code></pre>
+                            </div>
+                        </details>
+                        {% endfor %}
                     </div>
                 </details>
 
