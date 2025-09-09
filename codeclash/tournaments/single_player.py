@@ -91,7 +91,7 @@ class SinglePlayerTraining(AbstractTournament):
         stats = self.game.run_round([self.agent, self.mirror_agent], round_num)
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append((round_num, stats))
+        self.scoreboard.append(stats)
         self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Write log to file
