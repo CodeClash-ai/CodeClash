@@ -64,20 +64,21 @@ def main(log_dir: Path):
             f" - {profile.player_id} (Game: {profile.game_id}) - ELO: {profile.rating:.1f} (Games: {profile.games_played})"
         )
 
-    # Average ELO per player across all games
-    aggregated_elo = {}
-    game_counts = {}
+    # Weighted average ELO per player across all games
+    weighted_elo = {}
     total_games = {}
     for profile in player_profiles.values():
         pid = profile.player_id
-        aggregated_elo[pid] = aggregated_elo.get(pid, 0) + profile.rating
-        game_counts[pid] = game_counts.get(pid, 0) + 1
+        weighted_elo[pid] = weighted_elo.get(pid, 0) + profile.rating * profile.games_played
         total_games[pid] = total_games.get(pid, 0) + profile.games_played
 
-    print("\nAverage ELO per player (across all games):")
-    for pid in aggregated_elo:
-        avg_elo = aggregated_elo[pid] / game_counts[pid]
-        print(f" - {pid}: Avg ELO {avg_elo:.1f} (Total Games: {total_games[pid]})")
+    print("\nWeighted average ELO per player (across all games):")
+    for pid in weighted_elo:
+        if total_games[pid] > 0:
+            avg_elo = weighted_elo[pid] / total_games[pid]
+        else:
+            avg_elo = 0.0
+        print(f" - {pid}: Weighted Avg ELO {avg_elo:.1f} (Total Games: {total_games[pid]})")
 
 
 if __name__ == "__main__":
