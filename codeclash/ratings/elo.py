@@ -1,0 +1,87 @@
+import argparse
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+K_FACTOR = 32  # ELO constant, changeable
+
+
+@dataclass
+class PlayerEloProfile:
+    player_id: str
+    game_id: str
+    rating: float = 1200.0  # Default starting ELO
+    games_played: int = 0
+
+
+def expected_score(rating_a, rating_b):
+    return 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
+
+
+def main(log_dir: Path):
+    player_profiles = {}
+    for game_log_folder in log_dir.iterdir():
+        if game_log_folder.is_dir():
+            print(f"Processing game log folder: {game_log_folder}")
+
+        game_id = game_log_folder.name.split(".")[1]
+        player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
+        # Initialize profiles
+        for player in player_ids:
+            key = f"{game_id}.{player}"
+            if key not in player_profiles:
+                player_profiles[key] = PlayerEloProfile(player_id=player, game_id=game_id)
+
+        for round_folder in (game_log_folder / "rounds").iterdir():
+            round_results = json.load(open(round_folder / "results.json"))
+            winner = round_results.get("winner")
+            players = round_results.get("players", player_ids)
+            # Only process if there are exactly 2 players
+            if len(players) == 2:
+                p1_key = f"{game_id}.{players[0]}"
+                p2_key = f"{game_id}.{players[1]}"
+                p1 = player_profiles[p1_key]
+                p2 = player_profiles[p2_key]
+                p1.games_played += 1
+                p2.games_played += 1
+                # Determine scores
+                if winner == players[0]:
+                    s1, s2 = 1, 0
+                elif winner == players[1]:
+                    s1, s2 = 0, 1
+                else:
+                    s1, s2 = 0.5, 0.5  # Tie
+                # Calculate expected scores
+                e1 = expected_score(p1.rating, p2.rating)
+                e2 = expected_score(p2.rating, p1.rating)
+                # Update ratings
+                p1.rating += K_FACTOR * (s1 - e1)
+                p2.rating += K_FACTOR * (s2 - e2)
+
+    print("Player ELO profiles:")
+    for profile in player_profiles.values():
+        print(
+            f" - {profile.player_id} (Game: {profile.game_id}) - ELO: {profile.rating:.1f} (Games: {profile.games_played})"
+        )
+
+    # Average ELO per player across all games
+    aggregated_elo = {}
+    game_counts = {}
+    total_games = {}
+    for profile in player_profiles.values():
+        pid = profile.player_id
+        aggregated_elo[pid] = aggregated_elo.get(pid, 0) + profile.rating
+        game_counts[pid] = game_counts.get(pid, 0) + 1
+        total_games[pid] = total_games.get(pid, 0) + profile.games_played
+
+    print("\nAverage ELO per player (across all games):")
+    for pid in aggregated_elo:
+        avg_elo = aggregated_elo[pid] / game_counts[pid]
+        print(f" - {pid}: Avg ELO {avg_elo:.1f} (Total Games: {total_games[pid]})")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("log_dir", type=Path, help="Path to `logs/<user>` folder containing game logs")
+    args = parser.parse_args()
+    main(args.log_dir)
