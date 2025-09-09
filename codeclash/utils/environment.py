@@ -86,13 +86,15 @@ def copy_to_container(
     return result
 
 
-def copy_file_from_container(
+def copy_from_container(
     container: DockerEnvironment,
     src_path: str | Path,
     dest_path: str | Path,
 ):
     """
-    Copy a file from a Docker container to the local filesystem.
+    Copy a file or directory from a Docker container to the local filesystem.
+
+    The copy operation is recursive for directories.
     """
     cmd = [
         "docker",

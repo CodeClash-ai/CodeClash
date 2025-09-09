@@ -11,7 +11,7 @@ from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
-from codeclash.games.game import CodeGame, RoundRecord
+from codeclash.games.game import CodeGame, RoundStats
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
@@ -32,7 +32,7 @@ class SinglePlayerTraining(AbstractTournament):
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
 
     @property
-    def scoreboard(self) -> list[tuple[int, RoundRecord]]:
+    def scoreboard(self) -> list[tuple[int, RoundStats]]:
         return self._metadata.setdefault("scoreboard", [])
 
     @property
@@ -88,20 +88,15 @@ class SinglePlayerTraining(AbstractTournament):
     def run_training_round(self, round_num: int) -> None:
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
-        record = self.game.run_round([self.agent, self.mirror_agent])
+        stats = self.game.run_round([self.agent, self.mirror_agent], round_num)
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append((round_num, record))
-        self.logger.info(f"Round {round_num}:\n{record.stats}")
+        self.scoreboard.append((round_num, stats))
+        self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Write log to file
-        for idx, lo in enumerate(record.data.logs):
-            round_log_path = self.game.log_local / "rounds" / str(round_num) / f"sim_{idx}.log"
-            round_log_path.parent.mkdir(parents=True, exist_ok=True)
-            round_log_path.write_text(lo)
         results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
-        with open(results_file, "w") as f:
-            json.dump(record.stats.model_dump(), fp=f, indent=2)
+        results_file.write_text(json.dumps(stats.model_dump(), indent=2))
 
         # Copy log to main agent environment only
         self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")
@@ -157,9 +152,8 @@ class SinglePlayerTraining(AbstractTournament):
                 p1.reset_and_apply_patch(p1_patch)
                 p2.reset_and_apply_patch(p2_patch)
                 for i_repetition in range(n_repetitions):
-                    record = self.game.run_round([p1, p2])
-                    winner = record.stats.winner
-                    self.logger.info(f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {winner}")
-                    matrix[p1_round][p2_round].append(winner)
+                    stats = self.game.run_round([p1, p2], round_num=int(f"{p1_round}{p2_round}{i_repetition}"))
+                    self.logger.info(f"Round {p1_round} vs {p2_round} repetition {i_repetition} winner: {stats.winner}")
+                    matrix[p1_round][p2_round].append(stats.winner)
         self.logger.info(f"Evaluation matrix: {matrix}")
         self._metadata.setdefault("evaluation", {})["matrix"] = matrix
