@@ -21,6 +21,7 @@ class Player(ABC):
         config: dict,
         environment: DockerEnvironment,
         game_context: GameContext,
+        push: bool = False,
     ) -> None:
         self.config = config
         self.name = config["name"]
@@ -28,6 +29,7 @@ class Player(ABC):
         """Unique ID that doesn't clash even across multiple games. Used for git tags."""
         self.environment = environment
         self.game_context = game_context
+        self.push = push
         self.logger = get_logger(
             self.name,
             log_path=self.game_context.log_local / "players" / self.name / "player.log",
@@ -43,6 +45,17 @@ class Player(ABC):
             "initial_commit_hash": self._get_commit_hash(),
         }
 
+        if self.push:
+            self.logger.info("Will push agent gameplay as branch to remote repository after each round")
+            token = os.getenv("GITHUB_TOKEN")
+            if not token:
+                raise ValueError("GITHUB_TOKEN environment variable is required")
+            for cmd in [
+                "git remote remove origin",
+                f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.game_context.name}.git",
+            ]:
+                assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
+
     # --- Main methods ---
 
     def pre_run_hook(self, *, new_round: int) -> None:
@@ -56,6 +69,13 @@ class Player(ABC):
         self._commit()
         self._metadata["diff"][round] = self._get_round_diff(round)
         self._metadata["incremental_diff"][round] = self._get_round_diff(round, incremental=True)
+        if self.push:
+            for cmd in [
+                f"git push origin {self._branch_name}",
+                "git push origin --tags",
+            ]:
+                assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
+            self.logger.info(f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})")
 
     @abstractmethod
     def run(self) -> None:
@@ -64,21 +84,6 @@ class Player(ABC):
     def get_metadata(self) -> dict:
         """Get metadata for the agent."""
         return self._metadata
-
-    def push(self) -> None:
-        """Push codebase to a branch on the game's remote repository."""
-        token = os.getenv("GITHUB_TOKEN")
-        if not token:
-            raise ValueError("GITHUB_TOKEN environment variable is required")
-
-        for cmd in [
-            "git remote remove origin",
-            f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.game_context.name}.git",
-            f"git push origin {self._branch_name}",
-            "git push origin --tags",
-        ]:
-            assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
-        self.logger.info(f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})")
 
     def reset_and_apply_patch(self, patch: str, *, base_commit: str = "", filter_patch: bool = True) -> None:
         """Clean all uncommitted changes. If base_commit is provided, reset to that commit.

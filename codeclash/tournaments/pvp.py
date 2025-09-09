@@ -19,7 +19,6 @@ class PvpTournament(AbstractTournament):
     def __init__(self, config: dict, *, cleanup: bool = False, push: bool = False):
         super().__init__(config, name="PvpTournament")
         self.cleanup_on_end = cleanup
-        self.push = push
         self.game: CodeGame = get_game(
             self.config,
             tournament_id=self.tournament_id,
@@ -27,7 +26,7 @@ class PvpTournament(AbstractTournament):
         )
         self.agents: list[Player] = []
         for agent_conf in self.config["players"]:
-            self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
+            self.agents.append(self.get_agent(agent_conf, self.config["prompts"], push=push))
 
     @property
     def scoreboard(self) -> list[tuple[int, str]]:
@@ -46,7 +45,7 @@ class PvpTournament(AbstractTournament):
             "agents": [agent.get_metadata() for agent in self.agents],
         }
 
-    def get_agent(self, agent_config: dict, prompts: dict) -> Player:
+    def get_agent(self, agent_config: dict, prompts: dict, push: bool) -> Player:
         """Create an agent with environment and game context."""
         environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
 
@@ -62,7 +61,7 @@ class PvpTournament(AbstractTournament):
             working_dir=str(DIR_WORK),
         )
 
-        return get_agent(agent_config, game_context, environment)
+        return get_agent(agent_config, game_context, environment, push=push)
 
     def run(self) -> None:
         """Main execution function that runs all rounds."""
@@ -121,6 +120,3 @@ class PvpTournament(AbstractTournament):
         """Save output files, clean up game resources and push agents if requested."""
         (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
         self.game.end(self.cleanup_on_end)
-        if self.push:
-            for agent in self.agents:
-                agent.push()

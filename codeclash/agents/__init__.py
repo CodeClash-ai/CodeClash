@@ -6,11 +6,11 @@ from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 
 
-def get_agent(config: dict, game_context: GameContext, environment: DockerEnvironment) -> Player:
+def get_agent(config: dict, game_context: GameContext, environment: DockerEnvironment, push: bool = False) -> Player:
     agents = {
         "dummy": Dummy,
         "mini": MiniSWEAgent,
     }.get(config["agent"])
     if agents is None:
         raise ValueError(f"Unknown agent type: {config['agent']}")
-    return agents(config, environment, game_context)
+    return agents(config, environment, game_context, push=push)
