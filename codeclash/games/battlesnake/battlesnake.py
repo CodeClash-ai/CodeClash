@@ -1,6 +1,5 @@
 import json
 import time
-import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -8,8 +7,8 @@ from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
-from codeclash.games.game import CodeGame, RoundData, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code
+from codeclash.games.game import CodeGame, RoundStats
+from codeclash.utils.environment import assert_zero_exit_code, copy_from_container
 
 
 class BattleSnakeGame(CodeGame):
@@ -39,9 +38,18 @@ class BattleSnakeGame(CodeGame):
 
             time.sleep(0.1)
 
-    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
+    def copy_logs_from_env(self, round_num):
+        super().copy_logs_from_env(round_num)
+        copy_from_container(
+            container=self.environment,
+            src_path=f"{self.environment.config.cwd}/game/logs",
+            dest_path=self.log_local / "rounds" / str(round_num),
+        )
+
+    def get_stats(self, agents: list[Player]) -> RoundStats:
         scores = {}
-        for ro in result_outputs:
+        for idx in range(self.game_config["sims_per_round"]):
+            ro = self.environment.execute(f"cat game/logs/sim_out_{idx}.json")["output"]
             lines = ro.strip().split("\n")
             results = json.loads(lines[-1]) if lines else {}  # Get the last line which contains the game result
             winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
@@ -51,7 +59,7 @@ class BattleSnakeGame(CodeGame):
         winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner
         return RoundStats(winner=winner, scores=scores)
 
-    def execute_round(self, agents: list[Player]) -> RoundData:
+    def execute_round(self, agents: list[Player]):
         self.logger.debug("Starting game servers")
         cmd = []
         ports = []
@@ -68,46 +76,30 @@ class BattleSnakeGame(CodeGame):
         self.logger.debug("All ports are ready")
 
         try:
-            log_outputs, result_outputs = [], []
             cmd = self.run_cmd_round + " " + " ".join(cmd)
             self.logger.info(f"Running game: {cmd}")
+            self.environment.execute("rm -rf logs; mkdir logs", cwd=f"{self.environment.config.cwd}/game")
 
             # Use ThreadPoolExecutor for parallel execution
             with ThreadPoolExecutor(20) as executor:
                 # Submit all simulations to the thread pool
                 futures = [
-                    executor.submit(self._run_single_simulation, cmd) for _ in range(self.game_config["sims_per_round"])
+                    executor.submit(self._run_single_simulation, cmd, idx)
+                    for idx in range(self.game_config["sims_per_round"])
                 ]
 
                 # Collect results as they complete
                 for future in tqdm(as_completed(futures), total=len(futures)):
-                    log_output, result_output = future.result()
-                    log_outputs.append(log_output)
-                    result_outputs.append(result_output)
-
-            return RoundData(logs=log_outputs, results=result_outputs)
+                    future.result()
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")
 
-    def _run_single_simulation(self, cmd: str) -> tuple[str, str]:
+    def _run_single_simulation(self, cmd: str, idx: int) -> tuple[str, str]:
         """Run a single battlesnake simulation and return log and result outputs."""
-        # Create temporary output file for results
-        output_file = f"battlesnake_output_{uuid.uuid4().hex}.json"
-
-        # Run game
-        response = assert_zero_exit_code(
+        assert_zero_exit_code(
             self.environment.execute(
-                cmd + f" -o {output_file}",
+                cmd + f" -o logs/sim_out_{idx}.json",
                 cwd=f"{self.environment.config.cwd}/game",
             )
         )
-
-        # Read the output file for result information
-        result_response = self.environment.execute(f"cat game/{output_file}")
-        result_output = result_response["output"]
-
-        # Clean up the output file
-        self.environment.execute(f"rm -f game/{output_file}")
-
-        return response["output"], result_output

@@ -41,7 +41,7 @@ class PvpTournament(AbstractTournament):
         # will be saved in end()
         return {
             **super().get_metadata(),
-            "scoreboard": self.scoreboard,
+            "scoreboard": [s.model_dump() for s in self.scoreboard],
             "game": self.game.get_metadata(),
             "agents": [agent.get_metadata() for agent in self.agents],
         }
@@ -67,40 +67,37 @@ class PvpTournament(AbstractTournament):
     def run(self) -> None:
         """Main execution function that runs all rounds."""
         try:
+            self.run_competition_phase(0)  # Warm up (doesn't count towards scoreboard)
             for round_num in range(1, self.rounds + 1):
-                self.run_evaluation(round_num)
-                self.run_training_round(round_num)
-            self.run_evaluation(self.rounds + 1)
+                self.run_edit_phase(round_num)
+                self.run_competition_phase(round_num)
         finally:
             self.end()
 
-    def run_evaluation(self, round_num: int) -> None:
+    def run_competition_phase(self, round_num: int) -> None:
         # Run the game round and get results
-        record = self.game.run_round(self.agents)
+        stats = self.game.run_round(self.agents, round_num)
 
         # Handle bookkeeping that was previously in the game
-        self.scoreboard.append(record.stats)
-        self.logger.info(f"Round {round_num}:\n{record.stats}")
+        self.scoreboard.append(stats)
+        self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Create directory for round logs
         (self.game.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
 
         # Write logs to file
-        for idx, lo in enumerate(record.data.logs):
-            round_log_path = self.game.log_local / "rounds" / str(round_num) / f"sim_{idx}.log"
-            round_log_path.write_text(lo)
         results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
-        results_file.write_text(json.dumps(record.stats.model_dump(), indent=2))
+        results_file.write_text(json.dumps(stats.model_dump(), indent=2))
 
-    def run_training_round(self, round_num: int) -> None:
+    def run_edit_phase(self, round_num: int) -> None:
         """Execute a single training round."""
         # Copy log to agent environments
         for agent in self.agents:
-            self.logger.info(f"Copying round {round_num} log(s) to {agent.name}'s container...")
+            self.logger.info(f"Copying round {round_num - 1} log(s) to {agent.name}'s container...")
             copy_to_container(
                 agent.environment,
-                self.game.log_local / "rounds" / str(round_num),
-                f"logs/rounds/{round_num}/",
+                self.game.log_local / "rounds" / str(round_num - 1),
+                f"logs/rounds/{round_num - 1}/",
             )
 
         with ThreadPoolExecutor() as executor:

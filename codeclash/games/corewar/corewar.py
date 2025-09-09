@@ -3,7 +3,8 @@ import shlex
 from pathlib import Path
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundData, RoundStats
+from codeclash.games.game import CodeGame, RoundStats
+from codeclash.utils.environment import copy_from_container
 
 
 class CoreWarGame(CodeGame):
@@ -19,8 +20,16 @@ class CoreWarGame(CodeGame):
             else:
                 self.run_cmd_round += f" -{arg} {val}"
 
-    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
-        result_output = result_outputs[0]  # Get the first (and only) element
+    def copy_logs_from_env(self, round_num: int) -> None:
+        super().copy_logs_from_env(round_num)
+        copy_from_container(
+            container=self.environment,
+            src_path="/testbed/output.log",
+            dest_path=self.log_local / "rounds" / str(round_num) / "output.log",
+        )
+
+    def get_stats(self, agents: list[Player]) -> RoundStats:
+        result_output = self.environment.execute("cat output.log")["output"]
         self.logger.debug(f"Determining winner from result output: {result_output}")
         scores = []
         n = len(agents) * 2
@@ -50,10 +59,9 @@ class CoreWarGame(CodeGame):
             self.logger.debug("No scores found, returning unknown")
             return RoundStats(winner="unknown", scores={agent.name: 0 for agent in agents})
 
-    def execute_round(self, agents: list[Player]) -> RoundData:
+    def execute_round(self, agents: list[Player]):
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)} -r {self.game_config['sims_per_round']}"
+        cmd = f"{self.run_cmd_round} {shlex.join(args)} -r {self.game_config['sims_per_round']} > output.log;"
         self.logger.info(f"Running game: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response
-        return RoundData(logs=[response["output"]], results=[response["output"]])

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundData, RoundStats
+from codeclash.games.game import CodeGame, RoundStats
 
 
 class HuskyBenchGame(CodeGame):
@@ -22,17 +22,12 @@ class HuskyBenchGame(CodeGame):
     def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
         return RoundStats(winner="N/A", scores={})
 
-    def execute_round(self, agents: list[Player]) -> RoundData:
+    def execute_round(self, agents: list[Player]):
         try:
             self.logger.debug("Starting game servers")
-            self.environment.execute(self.run_cmd_round + " > engine/output/std_out.log &")
+            self.environment.execute(self.run_cmd_round + " > output.log &")
             for agent in agents:
                 self.environment.execute("python client/main.py --port 8000 &", cwd=f"/{agent.name}")
-
-            # Save logs to response
-            self.logger.info(self.environment.execute("cat engine/output/std_out.log")["output"])
-
-            return RoundData(logs=[], results=[])
         finally:
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python client/main.py' || true")

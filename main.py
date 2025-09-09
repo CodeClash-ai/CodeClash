@@ -12,8 +12,8 @@ def main(config_path: Path, *, cleanup: bool = False, push: bool = False):
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
-    training = PvpTournament(config, cleanup=cleanup, push=push)
-    training.run()
+    tournament = PvpTournament(config, cleanup=cleanup, push=push)
+    tournament.run()
 
 
 def main_cli(argv: list[str] | None = None):

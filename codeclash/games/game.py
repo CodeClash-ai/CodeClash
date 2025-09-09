@@ -23,16 +23,6 @@ class RoundStats(BaseModel):
         return "\n".join([f"- Winner: {self.winner}", f"- Scores: {self.scores}"])
 
 
-class RoundData(BaseModel):
-    logs: list[str]
-    results: list[str]
-
-
-class RoundRecord(BaseModel):
-    data: RoundData
-    stats: RoundStats
-
-
 class CodeGame(ABC):
     name: str
 
@@ -97,7 +87,7 @@ class CodeGame(ABC):
         result = subprocess.run(
             (
                 "export $(cat .env | xargs);"
-                f"docker build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f docker/{self.name}.Dockerfile ."
+                f"docker build --no-cache --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f docker/{self.name}.Dockerfile ."
             ),
             shell=True,
             capture_output=True,
@@ -168,12 +158,15 @@ class CodeGame(ABC):
             logger=self.logger,
         )
 
+    def copy_logs_from_env(self, round_num: int) -> None:
+        """Copy logs from the game's environment to the local machine."""
+        (self.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
+
     @abstractmethod
-    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
+    def get_stats(self, agents: list[Player]) -> RoundStats:
         """Determine the winner of the game based on the result output.
 
         Args:
-            result_outputs: The specific output(s) containing winning information
             agents: List of agents participating in the round
 
         Returns:
@@ -182,17 +175,14 @@ class CodeGame(ABC):
         pass
 
     @abstractmethod
-    def execute_round(self, agents: list[Player]) -> RoundData:
+    def execute_round(self, agents: list[Player]):
         """Subclasses implement their game-specific logic here.
         This is the low level implementation, you probably want to use run_round instead, which
         includes the pre-round setup, post-round setup, and winner determination.
-
-        Returns:
-            RoundData object
         """
         pass
 
-    def run_round(self, agents: list[Player]) -> RoundRecord:
+    def run_round(self, agents: list[Player], round_num: int) -> RoundStats:
         """
         Run a single round of the game with the given agents.
 
@@ -200,6 +190,7 @@ class CodeGame(ABC):
         handled by the tournament class.
         """
         self._pre_round_setup(agents)
-        data = self.execute_round(agents)
-        stats = self.get_stats(data.results, agents)
-        return RoundRecord(data=data, stats=stats)
+        self.execute_round(agents)
+        stats = self.get_stats(agents)
+        self.copy_logs_from_env(round_num)
+        return stats

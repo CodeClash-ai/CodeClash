@@ -3,8 +3,8 @@ import time
 from pathlib import Path
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundData, RoundStats
-from codeclash.utils.environment import create_file_in_container
+from codeclash.games.game import CodeGame, RoundStats
+from codeclash.utils.environment import assert_zero_exit_code, copy_from_container, create_file_in_container
 
 
 class RoboCodeGame(CodeGame):
@@ -53,9 +53,17 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
-        result_output = result_outputs[0]  # Get the first (and only) element
-        self.logger.debug(f"Determining winner from result output: {result_output}")
+    def copy_logs_from_env(self, round_num: int) -> None:
+        super().copy_logs_from_env(round_num)
+        copy_from_container(
+            container=self.environment,
+            src_path="/testbed/logs",
+            dest_path=self.log_local / "rounds" / str(round_num),
+        )
+
+    def get_stats(self, agents: list[Player]) -> RoundStats:
+        result_output = self.environment.execute("cat logs/results.txt")["output"]
+        print(result_output)
         lines = result_output.strip().split("\n")
 
         scores = {}
@@ -73,7 +81,7 @@ class RoboCodeGame(CodeGame):
 
         return RoundStats(winner=winner, scores=scores, details={"stdout": "\n".join(lines)})
 
-    def execute_round(self, agents: list[Player]) -> RoundData:
+    def execute_round(self, agents: list[Player]):
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
             for cmd in [
@@ -95,17 +103,6 @@ robocode.battle.selectedRobots={selected_robots}
         create_file_in_container(self.environment, content=battle_content, dest_path=f"battles/{battle_file}")
 
         # Run battle with results output to file
-        results_file = f"results_{int(time.time())}.txt"
-        cmd = f"{self.run_cmd_round} -battle {battle_file} -results {results_file}"
+        cmd = f"mkdir -p logs; {self.run_cmd_round} -battle {battle_file} -results logs/results.txt"
         self.logger.info(f"Running game: {cmd}")
-        response = self.environment.execute(cmd)
-        assert response["returncode"] == 0, response
-
-        # Read the results file to get result output
-        cat_response = self.environment.execute(f"cat {results_file}")
-        result_output = cat_response["output"]
-
-        # Clean up the results file
-        self.environment.execute(f"rm -f {results_file}")
-
-        return RoundData(logs=[response["output"]], results=[result_output])
+        assert_zero_exit_code(self.environment.execute(cmd))

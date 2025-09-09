@@ -24,7 +24,7 @@ class Player(ABC):
     ) -> None:
         self.config = config
         self.name = config["name"]
-        self._player_unique_id = uuid.uuid4()
+        self._player_unique_id = str(uuid.uuid4())
         """Unique ID that doesn't clash even across multiple games. Used for git tags."""
         self.environment = environment
         self.game_context = game_context

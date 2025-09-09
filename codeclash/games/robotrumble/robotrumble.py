@@ -4,7 +4,8 @@ from pathlib import Path
 
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
-from codeclash.games.game import CodeGame, RoundData, RoundStats
+from codeclash.games.game import CodeGame, RoundStats
+from codeclash.utils.environment import assert_zero_exit_code, copy_from_container
 
 
 class RobotRumbleGame(CodeGame):
@@ -15,9 +16,18 @@ class RobotRumbleGame(CodeGame):
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def get_stats(self, result_outputs: list[str], agents: list[Player]) -> RoundStats:
+    def copy_logs_from_env(self, round_num: int) -> None:
+        super().copy_logs_from_env(round_num)
+        copy_from_container(
+            container=self.environment,
+            src_path="/testbed/logs",
+            dest_path=self.log_local / "rounds" / str(round_num),
+        )
+
+    def get_stats(self, agents: list[Player]) -> RoundStats:
         winners = []
-        for ro in result_outputs:
+        for idx in range(self.game_config.get("sims_per_round", 100)):
+            ro = self.environment.execute(f"cat logs/sim_{idx}.txt")["output"]
             lines = ro.strip().split("\n")
 
             # Get the last 2 lines which contain the game result (same as original)
@@ -47,14 +57,10 @@ class RobotRumbleGame(CodeGame):
 
         return RoundStats(winner=final_winner, scores=dict(counts))
 
-    def execute_round(self, agents: list[Player]) -> RoundData:
-        outputs = []
+    def execute_round(self, agents: list[Player]):
+        self.environment.execute("rm -rf logs; mkdir -p logs")
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
-        for _ in range(self.game_config.get("sims_per_round", 100)):
-            response = self.environment.execute(cmd)
-            assert response["returncode"] == 0, response
-            outputs.append(response["output"])
-        # For RobotRumble, log_outputs and result_outputs are the same
-        return RoundData(logs=outputs, results=outputs)
+        for idx in range(self.game_config.get("sims_per_round", 100)):
+            assert_zero_exit_code(self.environment.execute(cmd + f" > logs/sim_{idx}.txt"))
