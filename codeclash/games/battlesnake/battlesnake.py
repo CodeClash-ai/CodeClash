@@ -49,7 +49,7 @@ class BattleSnakeGame(CodeGame):
     def get_stats(self, agents: list[Player]) -> RoundStats:
         scores = {}
         for idx in range(self.game_config["sims_per_round"]):
-            ro = self.environment.execute(f"cat game/logs/sim_out_{idx}.json")["output"]
+            ro = self.environment.execute(f"cat game/logs/sim_{idx}.txt")["output"]
             lines = ro.strip().split("\n")
             results = json.loads(lines[-1]) if lines else {}  # Get the last line which contains the game result
             winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
@@ -99,7 +99,7 @@ class BattleSnakeGame(CodeGame):
         """Run a single battlesnake simulation and return log and result outputs."""
         assert_zero_exit_code(
             self.environment.execute(
-                cmd + f" -o logs/sim_out_{idx}.json",
+                cmd + f" -o logs/sim_{idx}.txt",
                 cwd=f"{self.environment.config.cwd}/game",
             )
         )
