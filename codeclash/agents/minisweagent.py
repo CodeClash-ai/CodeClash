@@ -40,8 +40,8 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, environment: DockerEnvironment, game_context: GameContext):
-        super().__init__(config, environment=environment, game_context=game_context)
+    def __init__(self, config: dict, environment: DockerEnvironment, game_context: GameContext, push: bool = False):
+        super().__init__(config, environment=environment, game_context=game_context, push=push)
 
     def run(self):
         # temporary workaround around https://github.com/SWE-agent/mini-swe-agent/issues/477
