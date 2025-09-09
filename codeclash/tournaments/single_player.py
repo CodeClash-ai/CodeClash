@@ -42,7 +42,7 @@ class SinglePlayerTraining(AbstractTournament):
     def get_metadata(self) -> dict:
         return {
             **super().get_metadata(),
-            "scoreboard": self.scoreboard,
+            "scoreboard": [s.model_dump() for s in self.scoreboard],
             "game": self.game.get_metadata(),
             "agents": [self.agent.get_metadata(), self.mirror_agent.get_metadata()],
         }
