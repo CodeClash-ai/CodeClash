@@ -16,10 +16,10 @@ from codeclash.utils.environment import copy_to_container
 
 
 class PvpTournament(AbstractTournament):
-    def __init__(self, config: dict, *, cleanup: bool = False, push_agent: bool = False):
+    def __init__(self, config: dict, *, cleanup: bool = False, push: bool = False):
         super().__init__(config, name="PvpTournament")
         self.cleanup_on_end = cleanup
-        self.push_agent = push_agent
+        self.push = push
         self.game: CodeGame = get_game(
             self.config,
             tournament_id=self.tournament_id,
@@ -124,6 +124,6 @@ class PvpTournament(AbstractTournament):
         """Save output files, clean up game resources and push agents if requested."""
         (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
         self.game.end(self.cleanup_on_end)
-        if self.push_agent:
+        if self.push:
             for agent in self.agents:
                 agent.push()
