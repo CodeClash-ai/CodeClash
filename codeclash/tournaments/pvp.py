@@ -29,10 +29,6 @@ class PvpTournament(AbstractTournament):
             self.agents.append(self.get_agent(agent_conf, self.config["prompts"], push=push))
 
     @property
-    def scoreboard(self) -> list[tuple[int, str]]:
-        return self._metadata.setdefault("scoreboard", [])
-
-    @property
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
 
@@ -40,7 +36,6 @@ class PvpTournament(AbstractTournament):
         # will be saved in end()
         return {
             **super().get_metadata(),
-            "scoreboard": [s.model_dump() for s in self.scoreboard],
             "game": self.game.get_metadata(),
             "agents": [agent.get_metadata() for agent in self.agents],
         }
@@ -66,7 +61,7 @@ class PvpTournament(AbstractTournament):
     def run(self) -> None:
         """Main execution function that runs all rounds."""
         try:
-            self.run_competition_phase(0)  # Warm up (doesn't count towards scoreboard)
+            self.run_competition_phase(0)  # Warm up (doesn't count)
             for round_num in range(1, self.rounds + 1):
                 self.run_edit_phase(round_num)
                 self.run_competition_phase(round_num)
@@ -76,9 +71,6 @@ class PvpTournament(AbstractTournament):
     def run_competition_phase(self, round_num: int) -> None:
         # Run the game round and get results
         stats = self.game.run_round(self.agents, round_num)
-
-        # Handle bookkeeping that was previously in the game
-        self.scoreboard.append(stats)
         self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Create directory for round logs
@@ -86,7 +78,7 @@ class PvpTournament(AbstractTournament):
 
         # Write logs to file
         results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
-        results_file.write_text(json.dumps(stats.model_dump(), indent=2))
+        results_file.write_text(json.dumps(stats.to_dict(), indent=2))
 
     def run_edit_phase(self, round_num: int) -> None:
         """Execute a single training round."""

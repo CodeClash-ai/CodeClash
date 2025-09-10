@@ -1,5 +1,5 @@
 tournament:
-  rounds: 25
+  rounds: 3
 game:
   name: DummyGame
   sims_per_round: 100

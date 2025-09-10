@@ -1,5 +1,5 @@
 tournament:
-  rounds: 25
+  rounds: 3
 game:
   name: BattleCode
   sims_per_round: 1 # NOTE: Setting to > 1 does nothing for BattleCode, since each round is deterministic

@@ -1,8 +1,8 @@
 tournament:
-  rounds: 25
+  rounds: 3
 game:
-  name: CoreWar
-  sims_per_round: 50
+  name: HuskyBench
+  sims_per_round: 30
 players:
 - agent: dummy
   name: p1

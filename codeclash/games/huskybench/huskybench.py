@@ -25,7 +25,21 @@ class HuskyBenchGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+    def execute_round(self, agents: list[Player]):
+        try:
+            cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} &"
+            self.logger.debug(f"Starting game engine with command: {cmd}")
+            self.environment.execute(cmd)
+            for agent in agents:
+                cmd = f"python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} &"
+                self.logger.debug(f"Adding agent with command: {cmd}")
+                self.environment.execute(cmd, cwd=f"/{agent.name}")
+        finally:
+            # Kill all python servers when done
+            self.environment.execute("pkill -f 'python client/main.py' || true")
+            self.environment.execute("pkill -f 'python engine/main.py' || true")
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         map_id_to_agent = {}
         for agent in agents:
             with open(self.log_round(round_num) / f"{agent.name}.log") as f:
@@ -41,19 +55,13 @@ class HuskyBenchGame(CodeGame):
             ]
             map_id_to_score = {k: v for k, v in score_updates[-self.num_players :]}
         self.logger.info("Final Scores: " + str(map_id_to_score))
-        agent_to_score = {map_id_to_agent[agent_id]: score for agent_id, score in map_id_to_score.items()}
-        return RoundStats(winner=max(agent_to_score, key=agent_to_score.get), scores=agent_to_score)
+        scores = {map_id_to_agent[agent_id]: score for agent_id, score in map_id_to_score.items()}
 
-    def execute_round(self, agents: list[Player]):
-        try:
-            cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} &"
-            self.logger.debug(f"Starting game engine with command: {cmd}")
-            self.environment.execute(cmd)
-            for agent in agents:
-                cmd = f"python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} &"
-                self.logger.debug(f"Adding agent with command: {cmd}")
-                self.environment.execute(cmd, cwd=f"/{agent.name}")
-        finally:
-            # Kill all python servers when done
-            self.environment.execute("pkill -f 'python client/main.py' || true")
-            self.environment.execute("pkill -f 'python engine/main.py' || true")
+        stats.winner = max(scores, key=scores.get)
+        stats.scores = scores
+        for player, score in scores.items():
+            stats.player_stats[player].score = score
+
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

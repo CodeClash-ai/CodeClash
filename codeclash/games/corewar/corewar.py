@@ -21,7 +21,18 @@ class CoreWarGame(CodeGame):
             else:
                 self.run_cmd_round += f" -{arg} {val}"
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+    def execute_round(self, agents: list[Player]):
+        args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
+        cmd = (
+            f"{self.run_cmd_round} {shlex.join(args)} "
+            f"-r {self.game_config['sims_per_round']} "
+            f"> {self.log_env / COREWAR_LOG};"
+        )
+        self.logger.info(f"Running game: {cmd}")
+        response = self.environment.execute(cmd)
+        assert response["returncode"] == 0, response
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         with open(self.log_round(round_num) / COREWAR_LOG) as f:
             result_output = f.read()
         self.logger.debug(f"Determining winner from result output: {result_output}")
@@ -44,22 +55,16 @@ class CoreWarGame(CodeGame):
         if scores:
             if len(scores) != len(agents):
                 self.logger.error(f"Have {len(scores)} scores but {len(agents)} agents")
-            return RoundStats(
-                winner=agents[scores.index(max(scores))].name,
-                scores={agent.name: score for agent, score in zip(agents, scores)},
-                details={"stdout": "\n".join(relevant_lines)},
-            )
+            stats.winner = agents[scores.index(max(scores))].name
+            stats.scores = {agent.name: score for agent, score in zip(agents, scores)}
         else:
             self.logger.debug("No scores found, returning unknown")
-            return RoundStats(winner="unknown", scores={agent.name: 0 for agent in agents})
+            stats.winner = "unknown"
+            stats.scores = {agent.name: 0 for agent in agents}
 
-    def execute_round(self, agents: list[Player]):
-        args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
-        cmd = (
-            f"{self.run_cmd_round} {shlex.join(args)} "
-            f"-r {self.game_config['sims_per_round']} "
-            f"> {self.log_env / COREWAR_LOG};"
-        )
-        self.logger.info(f"Running game: {cmd}")
-        response = self.environment.execute(cmd)
-        assert response["returncode"] == 0, response
+        for player, score in stats.scores.items():
+            stats.player_stats[player].score = score
+
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

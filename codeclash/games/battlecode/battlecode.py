@@ -1,8 +1,8 @@
 import random
 import re
 from pathlib import Path
-from typing import Any
 
+from codeclash.agents.player import Player
 from codeclash.constants import DIR_WORK, RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
 
@@ -23,7 +23,19 @@ class BattleCodeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def get_results(self, agents: list[Any], round_num: int) -> RoundStats:
+    def execute_round(self, agents: list[Player]):
+        for agent in agents:
+            src, dest = f"/{agent.name}/src/mysubmission/", str(DIR_WORK / "src" / agent.name)
+            self.environment.execute(f"cp -r {src} {dest}")
+        random.shuffle(agents)  # Start position matters in BattleCode! Shuffle to be fair.
+        args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
+        cmd = f"{self.run_cmd_round} {' '.join(args)}"
+        self.logger.info(f"Running game: {cmd}")
+
+        response = self.environment.execute(cmd + f" > {self.log_env / BC_LOG}")
+        assert response["returncode"] == 0, response
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         winners = []
         with open(self.log_round(round_num) / BC_LOG) as f:
             lines = f.read().strip().split("\n")
@@ -39,19 +51,12 @@ class BattleCodeGame(CodeGame):
             winners.append(winner)
         else:
             winners.append(RESULT_TIE)
-        return RoundStats(
-            winner=max(set(winners), key=winners.count),
-            scores={agent.name: winners.count(agent.name) for agent in agents},
-        )
 
-    def execute_round(self, agents: list[Any]):
-        for agent in agents:
-            src, dest = f"/{agent.name}/src/mysubmission/", str(DIR_WORK / "src" / agent.name)
-            self.environment.execute(f"cp -r {src} {dest}")
-        random.shuffle(agents)  # Start position matters in BattleCode! Shuffle to be fair.
-        args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
-        cmd = f"{self.run_cmd_round} {' '.join(args)}"
-        self.logger.info(f"Running game: {cmd}")
+        stats.winner = max(set(winners), key=winners.count)
+        stats.scores = {agent.name: winners.count(agent.name) for agent in agents}
+        for player, score in stats.scores.items():
+            stats.player_stats[player].score = score
 
-        response = self.environment.execute(cmd + f" > {self.log_env / BC_LOG}")
-        assert response["returncode"] == 0, response
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 from minisweagent.environments.docker import DockerEnvironment
-from pydantic import BaseModel
 
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
@@ -14,13 +13,47 @@ from codeclash.utils.environment import assert_zero_exit_code, copy_between_cont
 from codeclash.utils.log import get_logger
 
 
-class RoundStats(BaseModel):
+class PlayerStats:
+    def __init__(self, name: str):
+        self.name = name
+        self.invalid_reason: str | None = None
+        self.score: float | None = None
+        self.valid_submit = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "invalid_reason": self.invalid_reason,
+            "score": self.score,
+            "valid_submit": self.valid_submit,
+        }
+
+
+class RoundStats:
     winner: str
-    scores: dict[str, float]  # Map of player to game metric (e.g. # of wins, assets accumulated)
-    details: dict[str, Any] | None = None  # Optional, for game-specific info
+    round_num: int
+    scores: dict[str, float]
+    player_stats: dict[str, PlayerStats] | None = None
+
+    def __init__(self, round_num: int, agents: list[Player]):
+        self.winner = None
+        self.round_num = round_num
+        # Map of player to game metric (e.g. # of wins, assets accumulated)
+        self.scores: dict[str, float] = {}
+        self.player_stats: dict[str, PlayerStats] = {agent.name: PlayerStats(name=agent.name) for agent in agents}
 
     def __str__(self) -> str:
         return "\n".join([f"- Winner: {self.winner}", f"- Scores: {self.scores}"])
+
+    def to_dict(self) -> dict[str, Any]:
+        result = {
+            "round_num": self.round_num,
+            "winner": self.winner,
+            "scores": self.scores,
+        }
+        if self.player_stats:
+            result["player_stats"] = {name: stats.to_dict() for name, stats in self.player_stats.items()}
+        return result
 
 
 class CodeGame(ABC):
@@ -177,20 +210,32 @@ class CodeGame(ABC):
         Returns the log output, result output, and winner name. All bookkeeping should be
         handled by the tournament class.
         """
-        self._pre_round_setup(agents)
-        self.execute_round(agents)
-        self.copy_logs_from_env(round_num)
-        return self.get_results(agents, round_num)
+        stats = RoundStats(round_num, agents)
+        validated = []
+        for agent in agents:
+            is_valid, error = self.validate_code(agent)
+            if not is_valid:
+                self.logger.warning(f"Agent {agent.name} failed verification: {error}")
+                stats.player_stats[agent.name].invalid_reason = error
+                continue
+            stats.player_stats[agent.name].valid_submit = True
+            validated.append(agent)
+
+        run_game = len(validated) > 1
+        if run_game:
+            self._pre_round_setup(validated)
+            self.execute_round(validated)
+            self.copy_logs_from_env(round_num)
+            self.get_results(validated, round_num, stats)
+        return stats
 
     @abstractmethod
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         """Determine the winner of the game based on the result output.
+        Modifies the stats object in place.
 
         Args:
             agents: List of agents participating in the round
-
-        Returns:
-            RoundStats object
         """
         pass
 
@@ -199,5 +244,18 @@ class CodeGame(ABC):
         """Subclasses implement their game-specific logic here.
         This is the low level implementation, you probably want to use run_round instead, which
         includes the pre-round setup, post-round setup, and winner determination.
+        """
+        pass
+
+    @abstractmethod
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        """Verify that the given agent can be run by the game.
+
+        Args:
+            agent: The agent to verify
+
+        Returns:
+            Boolean indicating whether the agent passed verification
+            Optional string indicating reason for failure
         """
         pass
