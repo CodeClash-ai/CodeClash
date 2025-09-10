@@ -1,8 +1,8 @@
 tournament:
-  rounds: 3
+  rounds: 25
 game:
   name: HuskyBench
-  sims_per_round: 1
+  sims_per_round: 30
 players:
 - agent: dummy
   name: p1

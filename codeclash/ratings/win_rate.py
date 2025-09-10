@@ -3,6 +3,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from tqdm import tqdm
+
 from codeclash.constants import DIR_LOGS, FILE_RESULTS, RESULT_TIE
 
 
@@ -27,10 +29,10 @@ def main(log_dir: Path):
     # - metadata.json
     player_profiles = {}
     for user_folder in log_dir.iterdir():
-        for game_log_folder in user_folder.iterdir():
-            if game_log_folder.is_dir():
-                print(f"Processing game log folder: {game_log_folder}")
-
+        print(f"Processing games under user `{user_folder.name}`")
+        for game_log_folder in tqdm(list(user_folder.iterdir())):
+            if not game_log_folder.is_dir():
+                continue
             game_id = game_log_folder.name.split(".")[1]
             player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
             num_rounds = len(list((game_log_folder / "rounds").iterdir()))
@@ -44,6 +46,9 @@ def main(log_dir: Path):
                     )
 
             for round_folder in (game_log_folder / "rounds").iterdir():
+                if round_folder.name == "0":
+                    # Skip initial round
+                    continue
                 if not (round_folder / FILE_RESULTS).exists():
                     continue
                 round_results = json.load(open(round_folder / FILE_RESULTS))
