@@ -10,7 +10,13 @@ DUMMY_LOG = "result.log"
 class DummyGame(CodeGame):
     name: str = "DummyGame"
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+    def execute_round(self, agents: list[Player]) -> None:
+        args = [f"/{agent.name}/main.py" for agent in agents]
+        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / DUMMY_LOG};"
+        self.logger.info(f"Running game: {cmd}")
+        assert_zero_exit_code(self.environment.execute(cmd))
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         with open(self.log_round(round_num) / DUMMY_LOG) as f:
             round_log = f.read()
         lines = round_log.split("FINAL_RESULTS")[-1].splitlines()
@@ -23,14 +29,11 @@ class DummyGame(CodeGame):
                 rounds_won = int(match.group(2))
                 scores[agents[int(bot_id) - 1].name] = rounds_won
 
-        return RoundStats(
-            winner=max(scores, key=scores.get) if scores else "unknown",
-            scores=scores,
-            details={"dummy": True},
-        )
+        stats.winner = max(scores, key=scores.get) if scores else "unknown"
+        stats.scores = scores
+        for player, score in scores.items():
+            stats.player_stats[player].score = score
 
-    def execute_round(self, agents: list[Player]) -> None:
-        args = [f"/{agent.name}/main.py" for agent in agents]
-        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / DUMMY_LOG};"
-        self.logger.info(f"Running game: {cmd}")
-        assert_zero_exit_code(self.environment.execute(cmd))
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

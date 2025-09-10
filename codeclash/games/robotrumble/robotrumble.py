@@ -16,7 +16,14 @@ class RobotRumbleGame(CodeGame):
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+    def execute_round(self, agents: list[Player]):
+        args = [f"/{agent.name}/robot.py" for agent in agents]
+        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
+        self.logger.info(f"Running game: {cmd}")
+        for idx in range(self.game_config.get("sims_per_round", 100)):
+            assert_zero_exit_code(self.environment.execute(cmd + f" > {self.log_env / f'sim_{idx}.txt'}"))
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         winners = []
         for idx in range(self.game_config.get("sims_per_round", 100)):
             with open(self.log_round(round_num) / f"sim_{idx}.txt") as f:
@@ -47,11 +54,13 @@ class RobotRumbleGame(CodeGame):
         # If multiple winners have the same count, return RESULT_TIE
         final_winner = RESULT_TIE if len(top_winners) > 1 else top_winners[0]
 
-        return RoundStats(winner=final_winner, scores=dict(counts))
+        # Update stats
+        stats.winner = final_winner
+        stats.scores = dict(counts)
+        for player, score in counts.items():
+            if player != RESULT_TIE:
+                stats.player_stats[player].score = score
 
-    def execute_round(self, agents: list[Player]):
-        args = [f"/{agent.name}/robot.py" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
-        self.logger.info(f"Running game: {cmd}")
-        for idx in range(self.game_config.get("sims_per_round", 100)):
-            assert_zero_exit_code(self.environment.execute(cmd + f" > {self.log_env / f'sim_{idx}.txt'}"))
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

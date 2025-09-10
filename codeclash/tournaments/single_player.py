@@ -11,7 +11,7 @@ from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK, FILE_RESULTS
 from codeclash.games import get_game
-from codeclash.games.game import CodeGame, RoundStats
+from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.environment import copy_to_container
@@ -32,17 +32,12 @@ class SinglePlayerTraining(AbstractTournament):
         self.mirror_agent: Player = self.get_agent(mirror_agent_config, round=0)
 
     @property
-    def scoreboard(self) -> list[tuple[int, RoundStats]]:
-        return self._metadata.setdefault("scoreboard", [])
-
-    @property
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
 
     def get_metadata(self) -> dict:
         return {
             **super().get_metadata(),
-            "scoreboard": [s.model_dump() for s in self.scoreboard],
             "game": self.game.get_metadata(),
             "agents": [self.agent.get_metadata(), self.mirror_agent.get_metadata()],
         }
@@ -89,14 +84,11 @@ class SinglePlayerTraining(AbstractTournament):
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
         stats = self.game.run_round([self.agent, self.mirror_agent], round_num)
-
-        # Handle bookkeeping that was previously in the game
-        self.scoreboard.append(stats)
         self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Write log to file
         results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
-        results_file.write_text(json.dumps(stats.model_dump(), indent=2))
+        results_file.write_text(json.dumps(stats.to_dict(), indent=2))
 
         # Copy log to main agent environment only
         self.logger.info(f"Copying round {round_num} log(s) to {self.agent.name}'s container...")

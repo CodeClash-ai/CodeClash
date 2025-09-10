@@ -55,27 +55,6 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
-        with open(self.log_round(round_num) / RC_LOG) as f:
-            result_output = f.read()
-        print(result_output)
-        lines = result_output.strip().split("\n")
-
-        scores = {}
-        for line in lines:
-            line = line.strip()
-            if not re.match(r"^\d", line):
-                continue
-            match = re.search(r"(\d+)\S+\:\s(\S+)\s+(\d+)", line)
-            if match:
-                player = match.group(2).rsplit(".", 1)[0]
-                score = int(match.group(3))
-                scores[player] = score
-                if int(match.group(1)) == 1:
-                    winner = player
-
-        return RoundStats(winner=winner, scores=scores, details={"stdout": "\n".join(lines)})
-
     def execute_round(self, agents: list[Player]):
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
@@ -101,3 +80,31 @@ robocode.battle.selectedRobots={selected_robots}
         cmd = f"{self.run_cmd_round} -battle {battle_file} -results {self.log_env / RC_LOG}"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))
+
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
+        with open(self.log_round(round_num) / RC_LOG) as f:
+            result_output = f.read()
+        print(result_output)
+        lines = result_output.strip().split("\n")
+
+        scores = {}
+        for line in lines:
+            line = line.strip()
+            if not re.match(r"^\d", line):
+                continue
+            match = re.search(r"(\d+)\S+\:\s(\S+)\s+(\d+)", line)
+            if match:
+                player = match.group(2).rsplit(".", 1)[0]
+                score = int(match.group(3))
+                scores[player] = score
+                if int(match.group(1)) == 1:
+                    winner = player
+
+        stats.winner = winner
+        stats.scores = scores
+        for player, score in scores.items():
+            stats.player_stats[player].score = score
+
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None

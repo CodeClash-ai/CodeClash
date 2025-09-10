@@ -38,18 +38,14 @@ class BattleSnakeGame(CodeGame):
 
             time.sleep(0.1)
 
-    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
-        scores = {}
-        for idx in range(self.game_config["sims_per_round"]):
-            with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
-                lines = f.read().strip().split("\n")
-                results = json.loads(lines[-1])  # Get the last line which contains the game result
-                winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
-                scores[winner] = scores.get(winner, 0) + 1
-
-        winner = max(scores, key=scores.get)
-        winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner
-        return RoundStats(winner=winner, scores=scores)
+    def _run_single_simulation(self, cmd: str, idx: int) -> tuple[str, str]:
+        """Run a single battlesnake simulation and return log and result outputs."""
+        assert_zero_exit_code(
+            self.environment.execute(
+                cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
+                cwd=f"{self.environment.config.cwd}/game",
+            )
+        )
 
     def execute_round(self, agents: list[Player]):
         self.logger.debug("Starting game servers")
@@ -86,11 +82,23 @@ class BattleSnakeGame(CodeGame):
             # Kill all python servers when done
             self.environment.execute("pkill -f 'python main.py' || true")
 
-    def _run_single_simulation(self, cmd: str, idx: int) -> tuple[str, str]:
-        """Run a single battlesnake simulation and return log and result outputs."""
-        assert_zero_exit_code(
-            self.environment.execute(
-                cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
-                cwd=f"{self.environment.config.cwd}/game",
-            )
-        )
+    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
+        scores = {}
+        for idx in range(self.game_config["sims_per_round"]):
+            with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
+                lines = f.read().strip().split("\n")
+                results = json.loads(lines[-1])  # Get the last line which contains the game result
+                winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
+                scores[winner] = scores.get(winner, 0) + 1
+
+        winner = max(scores, key=scores.get)
+        winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner
+        stats.winner = winner
+        stats.scores = scores
+        for player, score in scores.items():
+            if player != RESULT_TIE:
+                stats.player_stats[player].score = score
+
+    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # TODO: implement more checks
+        return True, None
