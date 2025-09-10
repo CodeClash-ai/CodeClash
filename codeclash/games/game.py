@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
-from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers
+from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers, copy_from_container
 from codeclash.utils.log import get_logger
 
 
@@ -102,6 +102,11 @@ class CodeGame(ABC):
     def copy_logs_from_env(self, round_num: int) -> None:
         """Copy logs from the game's environment to the local machine."""
         (self.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
+        copy_from_container(
+            container=self.environment,
+            src_path=str(self.log_env) + "/.",
+            dest_path=self.log_round(round_num),
+        )
 
     def end(self, cleanup: bool = False):
         if cleanup:
@@ -175,10 +180,10 @@ class CodeGame(ABC):
         self._pre_round_setup(agents)
         self.execute_round(agents)
         self.copy_logs_from_env(round_num)
-        return self.get_stats(agents, round_num)
+        return self.get_results(agents, round_num)
 
     @abstractmethod
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
         """Determine the winner of the game based on the result output.
 
         Args:

@@ -2,22 +2,16 @@ import re
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code, copy_from_container
+from codeclash.utils.environment import assert_zero_exit_code
+
+DUMMY_LOG = "result.log"
 
 
 class DummyGame(CodeGame):
     name: str = "DummyGame"
 
-    def copy_logs_from_env(self, round_num):
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path="/testbed/result.log",
-            dest_path=self.log_round(round_num) / "result.log",
-        )
-
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
-        with open(self.log_round(round_num) / "result.log") as f:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+        with open(self.log_round(round_num) / DUMMY_LOG) as f:
             round_log = f.read()
         lines = round_log.split("FINAL_RESULTS")[-1].splitlines()
 
@@ -37,6 +31,6 @@ class DummyGame(CodeGame):
 
     def execute_round(self, agents: list[Player]) -> None:
         args = [f"/{agent.name}/main.py" for agent in agents]
-        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > result.log;"
+        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / DUMMY_LOG};"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))

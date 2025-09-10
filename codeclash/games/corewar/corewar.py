@@ -4,7 +4,6 @@ from pathlib import Path
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import copy_from_container
 
 COREWAR_LOG = "sim.log"
 
@@ -22,15 +21,7 @@ class CoreWarGame(CodeGame):
             else:
                 self.run_cmd_round += f" -{arg} {val}"
 
-    def copy_logs_from_env(self, round_num: int) -> None:
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path=f"/testbed/{COREWAR_LOG}",
-            dest_path=self.log_round(round_num) / COREWAR_LOG,
-        )
-
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
         with open(self.log_round(round_num) / COREWAR_LOG) as f:
             result_output = f.read()
         self.logger.debug(f"Determining winner from result output: {result_output}")
@@ -64,7 +55,11 @@ class CoreWarGame(CodeGame):
 
     def execute_round(self, agents: list[Player]):
         args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)} -r {self.game_config['sims_per_round']} > {COREWAR_LOG};"
+        cmd = (
+            f"{self.run_cmd_round} {shlex.join(args)} "
+            f"-r {self.game_config['sims_per_round']} "
+            f"> {self.log_env / COREWAR_LOG};"
+        )
         self.logger.info(f"Running game: {cmd}")
         response = self.environment.execute(cmd)
         assert response["returncode"] == 0, response

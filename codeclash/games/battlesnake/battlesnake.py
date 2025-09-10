@@ -8,7 +8,7 @@ from tqdm.auto import tqdm
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code, copy_from_container
+from codeclash.utils.environment import assert_zero_exit_code
 
 
 class BattleSnakeGame(CodeGame):
@@ -38,18 +38,10 @@ class BattleSnakeGame(CodeGame):
 
             time.sleep(0.1)
 
-    def copy_logs_from_env(self, round_num):
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path=f"{self.environment.config.cwd}/game/logs",
-            dest_path=self.log_round(round_num),
-        )
-
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
         scores = {}
         for idx in range(self.game_config["sims_per_round"]):
-            with open(self.log_round(round_num) / f"logs/sim_{idx}.jsonl") as f:
+            with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
                 lines = f.read().strip().split("\n")
                 results = json.loads(lines[-1])  # Get the last line which contains the game result
                 winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
@@ -78,7 +70,6 @@ class BattleSnakeGame(CodeGame):
         try:
             cmd = self.run_cmd_round + " " + " ".join(cmd)
             self.logger.info(f"Running game: {cmd}")
-            self.environment.execute("rm -rf logs; mkdir logs", cwd=f"{self.environment.config.cwd}/game")
 
             # Use ThreadPoolExecutor for parallel execution
             with ThreadPoolExecutor(20) as executor:
@@ -99,7 +90,7 @@ class BattleSnakeGame(CodeGame):
         """Run a single battlesnake simulation and return log and result outputs."""
         assert_zero_exit_code(
             self.environment.execute(
-                cmd + f" -o logs/sim_{idx}.jsonl",
+                cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
                 cwd=f"{self.environment.config.cwd}/game",
             )
         )

@@ -4,7 +4,9 @@ from pathlib import Path
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code, copy_from_container, create_file_in_container
+from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
+
+RC_LOG = "scoreboard.txt"
 
 
 class RoboCodeGame(CodeGame):
@@ -53,16 +55,8 @@ class RoboCodeGame(CodeGame):
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
-    def copy_logs_from_env(self, round_num: int) -> None:
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path="/testbed/logs",
-            dest_path=self.log_round(round_num),
-        )
-
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
-        with open(self.log_round(round_num) / "logs/results.txt") as f:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
+        with open(self.log_round(round_num) / RC_LOG) as f:
             result_output = f.read()
         print(result_output)
         lines = result_output.strip().split("\n")
@@ -104,6 +98,6 @@ robocode.battle.selectedRobots={selected_robots}
         create_file_in_container(self.environment, content=battle_content, dest_path=f"battles/{battle_file}")
 
         # Run battle with results output to file
-        cmd = f"mkdir -p logs; {self.run_cmd_round} -battle {battle_file} -results logs/results.txt"
+        cmd = f"{self.run_cmd_round} -battle {battle_file} -results {self.log_env / RC_LOG}"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))

@@ -5,7 +5,7 @@ from pathlib import Path
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code, copy_from_container
+from codeclash.utils.environment import assert_zero_exit_code
 
 
 class RobotRumbleGame(CodeGame):
@@ -16,18 +16,10 @@ class RobotRumbleGame(CodeGame):
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def copy_logs_from_env(self, round_num: int) -> None:
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path="/testbed/logs",
-            dest_path=self.log_round(round_num),
-        )
-
-    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Player], round_num: int) -> RoundStats:
         winners = []
         for idx in range(self.game_config.get("sims_per_round", 100)):
-            with open(self.log_round(round_num) / f"logs/sim_{idx}.txt") as f:
+            with open(self.log_round(round_num) / f"sim_{idx}.txt") as f:
                 lines = f.read().strip().split("\n")
 
             # Get the last 2 lines which contain the game result (same as original)
@@ -58,9 +50,8 @@ class RobotRumbleGame(CodeGame):
         return RoundStats(winner=final_winner, scores=dict(counts))
 
     def execute_round(self, agents: list[Player]):
-        self.environment.execute("rm -rf logs; mkdir -p logs")
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
         for idx in range(self.game_config.get("sims_per_round", 100)):
-            assert_zero_exit_code(self.environment.execute(cmd + f" > logs/sim_{idx}.txt"))
+            assert_zero_exit_code(self.environment.execute(cmd + f" > {self.log_env / f'sim_{idx}.txt'}"))

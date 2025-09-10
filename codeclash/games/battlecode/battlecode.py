@@ -5,9 +5,8 @@ from typing import Any
 
 from codeclash.constants import DIR_WORK, RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import copy_from_container
 
-BATTLECODE_LOG = "sim.log"
+BC_LOG = "sim.log"
 
 
 class BattleCodeGame(CodeGame):
@@ -24,17 +23,9 @@ class BattleCodeGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def copy_logs_from_env(self, round_num):
-        super().copy_logs_from_env(round_num)
-        copy_from_container(
-            container=self.environment,
-            src_path="/testbed/sim.log",
-            dest_path=self.log_round(round_num) / f"sim_{round_num}.log",
-        )
-
-    def get_stats(self, agents: list[Any], round_num: int) -> RoundStats:
+    def get_results(self, agents: list[Any], round_num: int) -> RoundStats:
         winners = []
-        with open(self.log_round(round_num) / f"sim_{round_num}.log") as f:
+        with open(self.log_round(round_num) / BC_LOG) as f:
             lines = f.read().strip().split("\n")
         # Get the third-to-last line which contains the winner info
         winner_line = lines[-3] if len(lines) >= 3 else ""
@@ -62,5 +53,5 @@ class BattleCodeGame(CodeGame):
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
-        response = self.environment.execute(cmd + f" > {BATTLECODE_LOG}")
+        response = self.environment.execute(cmd + f" > {self.log_env / BC_LOG}")
         assert response["returncode"] == 0, response
