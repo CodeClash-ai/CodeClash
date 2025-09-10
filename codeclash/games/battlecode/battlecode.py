@@ -29,7 +29,7 @@ class BattleCodeGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path="/testbed/sim.log",
-            dest_path=self.log_local / "rounds" / f"sim_{round_num}.log",
+            dest_path=self.log_local / "rounds" / str(round_num) / f"sim_{round_num}.log",
         )
 
     def get_stats(self, agents: list[Any]) -> RoundStats:
