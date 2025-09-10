@@ -43,17 +43,17 @@ class BattleSnakeGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path=f"{self.environment.config.cwd}/game/logs",
-            dest_path=self.log_local / "rounds" / str(round_num),
+            dest_path=self.log_round(round_num),
         )
 
-    def get_stats(self, agents: list[Player]) -> RoundStats:
+    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
         scores = {}
         for idx in range(self.game_config["sims_per_round"]):
-            ro = self.environment.execute(f"cat game/logs/sim_{idx}.jsonl")["output"]
-            lines = ro.strip().split("\n")
-            results = json.loads(lines[-1]) if lines else {}  # Get the last line which contains the game result
-            winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
-            scores[winner] = scores.get(winner, 0) + 1
+            with open(self.log_round(round_num) / f"logs/sim_{idx}.jsonl") as f:
+                lines = f.read().strip().split("\n")
+                results = json.loads(lines[-1])  # Get the last line which contains the game result
+                winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
+                scores[winner] = scores.get(winner, 0) + 1
 
         winner = max(scores, key=scores.get)
         winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner

@@ -58,11 +58,12 @@ class RoboCodeGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path="/testbed/logs",
-            dest_path=self.log_local / "rounds" / str(round_num),
+            dest_path=self.log_round(round_num),
         )
 
-    def get_stats(self, agents: list[Player]) -> RoundStats:
-        result_output = self.environment.execute("cat logs/results.txt")["output"]
+    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+        with open(self.log_round(round_num) / "logs/results.txt") as f:
+            result_output = f.read()
         print(result_output)
         lines = result_output.strip().split("\n")
 

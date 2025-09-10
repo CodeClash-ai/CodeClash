@@ -29,13 +29,13 @@ class BattleCodeGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path="/testbed/sim.log",
-            dest_path=self.log_local / "rounds" / str(round_num) / f"sim_{round_num}.log",
+            dest_path=self.log_round(round_num) / f"sim_{round_num}.log",
         )
 
-    def get_stats(self, agents: list[Any]) -> RoundStats:
+    def get_stats(self, agents: list[Any], round_num: int) -> RoundStats:
         winners = []
-        ro = self.environment.execute(f"cat {BATTLECODE_LOG}")["output"]
-        lines = ro.strip().split("\n")
+        with open(self.log_round(round_num) / f"sim_{round_num}.log") as f:
+            lines = f.read().strip().split("\n")
         # Get the third-to-last line which contains the winner info
         winner_line = lines[-3] if len(lines) >= 3 else ""
         self.logger.debug(f"Winner line: {winner_line}")

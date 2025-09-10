@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS, RESULT_TIE
+from codeclash.constants import DIR_LOGS, FILE_RESULTS, RESULT_TIE
 
 
 @dataclass
@@ -44,7 +44,9 @@ def main(log_dir: Path):
                     )
 
             for round_folder in (game_log_folder / "rounds").iterdir():
-                round_results = json.load(open(round_folder / "results.json"))
+                if not (round_folder / FILE_RESULTS).exists():
+                    continue
+                round_results = json.load(open(round_folder / FILE_RESULTS))
                 winner = round_results.get("winner")
                 if winner != RESULT_TIE:
                     player_profiles[f"{game_id}.{winner}"].wins += 1

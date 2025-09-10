@@ -13,12 +13,13 @@ class DummyGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path="/testbed/result.log",
-            dest_path=self.log_local / "rounds" / str(round_num) / "result.log",
+            dest_path=self.log_round(round_num) / "result.log",
         )
 
-    def get_stats(self, agents: list[Player]) -> RoundStats:
-        result_output = self.environment.execute("cat result.log")["output"]
-        lines = result_output.split("FINAL_RESULTS")[-1].splitlines()
+    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
+        with open(self.log_round(round_num) / "result.log") as f:
+            round_log = f.read()
+        lines = round_log.split("FINAL_RESULTS")[-1].splitlines()
 
         scores = {}
         for line in lines:

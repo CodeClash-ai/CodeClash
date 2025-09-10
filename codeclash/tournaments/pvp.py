@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from codeclash.agents import get_agent
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK
+from codeclash.constants import DIR_WORK, FILE_RESULTS
 from codeclash.games import get_game
 from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
@@ -85,7 +85,7 @@ class PvpTournament(AbstractTournament):
         (self.game.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
 
         # Write logs to file
-        results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
+        results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
         results_file.write_text(json.dumps(stats.model_dump(), indent=2))
 
     def run_edit_phase(self, round_num: int) -> None:

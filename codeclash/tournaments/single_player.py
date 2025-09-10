@@ -9,7 +9,7 @@ from codeclash.agents import get_agent
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_WORK
+from codeclash.constants import DIR_WORK, FILE_RESULTS
 from codeclash.games import get_game
 from codeclash.games.game import CodeGame, RoundStats
 from codeclash.tournaments.tournament import AbstractTournament
@@ -95,7 +95,7 @@ class SinglePlayerTraining(AbstractTournament):
         self.logger.info(f"Round {round_num}:\n{stats}")
 
         # Write log to file
-        results_file = self.game.log_local / "rounds" / str(round_num) / "results.json"
+        results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
         results_file.write_text(json.dumps(stats.model_dump(), indent=2))
 
         # Copy log to main agent environment only

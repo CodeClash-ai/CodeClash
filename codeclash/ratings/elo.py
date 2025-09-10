@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS
+from codeclash.constants import DIR_LOGS, FILE_RESULTS
 
 K_FACTOR = 32  # ELO constant, changeable
 
@@ -42,7 +42,9 @@ def main(log_dir: Path):
                     player_profiles[key] = PlayerEloProfile(player_id=player, game_id=game_id)
 
             for round_folder in (game_log_folder / "rounds").iterdir():
-                round_results = json.load(open(round_folder / "results.json"))
+                if not (round_folder / FILE_RESULTS).exists():
+                    continue
+                round_results = json.load(open(round_folder / FILE_RESULTS))
                 winner = round_results.get("winner")
                 players = round_results.get("players", player_ids)
                 # Only process if there are exactly 2 players

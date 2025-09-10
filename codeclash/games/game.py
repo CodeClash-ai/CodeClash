@@ -99,11 +99,9 @@ class CodeGame(ABC):
             self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
             raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
-    def get_metadata(self) -> dict:
-        """This is what we write to metadata.json.
-        You can subclass extend this to add more details for specific games.
-        """
-        return self._metadata
+    def copy_logs_from_env(self, round_num: int) -> None:
+        """Copy logs from the game's environment to the local machine."""
+        (self.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
 
     def end(self, cleanup: bool = False):
         if cleanup:
@@ -111,6 +109,9 @@ class CodeGame(ABC):
                 if artifact.exists():
                     subprocess.run(f"rm -rf {artifact}", shell=True)
             self.logger.info(f"🧼 Cleaned up {self.name} game")
+
+    def log_round(self, round_num: int) -> Path:
+        return self.log_local / "rounds" / str(round_num)
 
     def get_environment(self, branch_name: str | None = None) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
@@ -142,6 +143,12 @@ class CodeGame(ABC):
             assert_zero_exit_code(environment.execute(cmd), logger=self.logger)
         return environment
 
+    def get_metadata(self) -> dict:
+        """This is what we write to metadata.json.
+        You can subclass extend this to add more details for specific games.
+        """
+        return self._metadata
+
     def _pre_round_setup(self, agents: list[Player]):
         """Copy agent codebases into game's container"""
         for agent in agents:
@@ -158,12 +165,20 @@ class CodeGame(ABC):
             logger=self.logger,
         )
 
-    def copy_logs_from_env(self, round_num: int) -> None:
-        """Copy logs from the game's environment to the local machine."""
-        (self.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
+    def run_round(self, agents: list[Player], round_num: int) -> RoundStats:
+        """
+        Run a single round of the game with the given agents.
+
+        Returns the log output, result output, and winner name. All bookkeeping should be
+        handled by the tournament class.
+        """
+        self._pre_round_setup(agents)
+        self.execute_round(agents)
+        self.copy_logs_from_env(round_num)
+        return self.get_stats(agents, round_num)
 
     @abstractmethod
-    def get_stats(self, agents: list[Player]) -> RoundStats:
+    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
         """Determine the winner of the game based on the result output.
 
         Args:
@@ -181,16 +196,3 @@ class CodeGame(ABC):
         includes the pre-round setup, post-round setup, and winner determination.
         """
         pass
-
-    def run_round(self, agents: list[Player], round_num: int) -> RoundStats:
-        """
-        Run a single round of the game with the given agents.
-
-        Returns the log output, result output, and winner name. All bookkeeping should be
-        handled by the tournament class.
-        """
-        self._pre_round_setup(agents)
-        self.execute_round(agents)
-        stats = self.get_stats(agents)
-        self.copy_logs_from_env(round_num)
-        return stats

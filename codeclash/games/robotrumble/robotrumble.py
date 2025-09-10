@@ -21,14 +21,14 @@ class RobotRumbleGame(CodeGame):
         copy_from_container(
             container=self.environment,
             src_path="/testbed/logs",
-            dest_path=self.log_local / "rounds" / str(round_num),
+            dest_path=self.log_round(round_num),
         )
 
-    def get_stats(self, agents: list[Player]) -> RoundStats:
+    def get_stats(self, agents: list[Player], round_num: int) -> RoundStats:
         winners = []
         for idx in range(self.game_config.get("sims_per_round", 100)):
-            ro = self.environment.execute(f"cat logs/sim_{idx}.txt")["output"]
-            lines = ro.strip().split("\n")
+            with open(self.log_round(round_num) / f"logs/sim_{idx}.txt") as f:
+                lines = f.read().strip().split("\n")
 
             # Get the last 2 lines which contain the game result (same as original)
             relevant_lines = lines[-2:] if len(lines) >= 2 else lines
