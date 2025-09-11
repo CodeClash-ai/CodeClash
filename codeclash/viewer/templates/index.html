@@ -37,17 +37,48 @@
     </header>
 
     <main class="main-content">
+        <!-- Current Folder Path -->
+        <section class="folder-path-section">
+            <div class="folder-path-container">
+                <h3>📁 Current Folder:</h3>
+                <div class="path-display">
+                    <code class="folder-path">{{ selected_folder_path }}</code>
+                    <button class="copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
+                        📋 Copy path
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- Overall Results Section -->
         <section class="results-section">
             <h2>📊 Game Results</h2>
 
-            <div class="metadata-display">
-                <div id="metadata-jsoneditor" class="json-viewer"></div>
-            </div>
+            <!-- Metadata Foldout -->
+            <details class="foldout">
+                <summary>
+                    📋 Metadata
+                    {% if metadata.metadata_file_path %}
+                    <button class="copy-path-btn-small" data-path="{{ metadata.metadata_file_path }}" title="Copy metadata file path">
+                        📋 Copy path
+                    </button>
+                    {% endif %}
+                </summary>
+                <div class="metadata-display">
+                    <div id="metadata-jsoneditor" class="json-viewer"></div>
+                </div>
+            </details>
 
             <!-- Main Log Foldout -->
             <details class="foldout">
-                <summary>📝 Tournament Log</summary>
+                <summary>
+                    📝 Tournament Log
+                    {% if metadata.main_log_path %}
+                    <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
+                        📋 Copy path
+                    </button>
+                    {% endif %}
+                </summary>
                 <div class="log-content">
                     <pre><code>{{ metadata.main_log }}</code></pre>
                 </div>
@@ -77,7 +108,12 @@
                     <div class="log-content">
                         {% for sim_log in round_data.sim_logs %}
                         <details class="foldout sim-foldout">
-                            <summary>{{ sim_log.filename }}</summary>
+                            <summary>
+                                {{ sim_log.filename }}
+                                <button class="copy-path-btn-small" data-path="{{ sim_log.full_path }}" title="Copy file path">
+                                    📋 Copy path
+                                </button>
+                            </summary>
                             <div class="log-content">
                                 <pre><code>{{ sim_log.content }}</code></pre>
                             </div>
@@ -92,7 +128,9 @@
 
                         <!-- Trajectory Container with Overview and Messages -->
                         <div class="trajectory-header">
-                            <h3>🤖 Player {{ trajectory.player_id }} Round {{ round_num }}</h3>
+                            <h3>
+                                🤖 Player {{ trajectory.player_id }} Round {{ round_num }}
+                            </h3>
                             <div class="trajectory-stats">
                                 <div class="stat-item">
                                     <span class="stat-label">API Calls:</span>
@@ -112,7 +150,14 @@
 
                             <!-- Messages Foldout inside the same container -->
                             <details class="trajectory-messages-foldout">
-                                <summary>💬 Messages ({{ trajectory.messages|length }} total)</summary>
+                                <summary>
+                                    💬 Trajectory ({{ trajectory.messages|length }} total)
+                                    {% if trajectory.trajectory_file_path %}
+                                    <button class="copy-path-btn-small" data-path="{{ trajectory.trajectory_file_path }}" title="Copy trajectory file path">
+                                        📋 Copy path
+                                    </button>
+                                    {% endif %}
+                                </summary>
                                 <div class="trajectory-content">
                                     <div class="messages-container">
                                         {% for message in trajectory.messages %}
@@ -318,8 +363,100 @@
     <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
+        // Copy to clipboard function
+        function copyToClipboard(text, button) {
+            function showSuccessMessage() {
+                if (button) {
+                    const originalText = button.textContent;
+                    const originalColor = button.style.color;
+                    button.textContent = '✓ Copied';
+                    button.style.color = 'green';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.color = originalColor;
+                    }, 1500);
+                }
+            }
+
+            // Check if modern clipboard API is available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showSuccessMessage();
+                    console.log('Copied to clipboard:', text);
+                }).catch(function(err) {
+                    console.error('Failed to copy text with clipboard API: ', err);
+                    // Fall back to legacy method
+                    fallbackCopy();
+                });
+            } else {
+                // Use fallback method directly
+                fallbackCopy();
+            }
+
+            function fallbackCopy() {
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    textArea.style.top = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+
+                    if (successful) {
+                        showSuccessMessage();
+                        console.log('Copied to clipboard (fallback):', text);
+                    } else {
+                        console.error('Failed to copy text with fallback method');
+                        if (button) {
+                            button.textContent = '✗ Failed';
+                            button.style.color = 'red';
+                            setTimeout(() => {
+                                button.textContent = button.getAttribute('title') || 'Copy';
+                                button.style.color = '';
+                            }, 1500);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                    if (button) {
+                        button.textContent = '✗ Failed';
+                        button.style.color = 'red';
+                        setTimeout(() => {
+                            button.textContent = button.getAttribute('title') || 'Copy';
+                            button.style.color = '';
+                        }, 1500);
+                    }
+                }
+            }
+        }
+
+        // Setup copy button event listeners
+        function setupCopyButtons() {
+            // Add event listeners to all copy path buttons
+            document.querySelectorAll('.copy-path-btn, .copy-path-btn-small').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const path = this.getAttribute('data-path');
+                    if (path) {
+                        copyToClipboard(path, this);
+                    } else {
+                        console.error('No path found on button:', this);
+                    }
+                });
+            });
+        }
+
         // Initialize JSON editors when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup copy buttons
+            setupCopyButtons();
             // Initialize metadata JSON editor
             const metadataEditor = new JSONEditor(document.getElementById('metadata-jsoneditor'), {
                 mode: 'view',

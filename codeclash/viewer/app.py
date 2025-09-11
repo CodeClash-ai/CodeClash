@@ -47,6 +47,8 @@ class GameMetadata:
 
     results: dict[str, Any]
     main_log: str
+    main_log_path: str
+    metadata_file_path: str
     rounds: list[dict[str, Any]]
 
 
@@ -65,6 +67,7 @@ class TrajectoryInfo:
     diff: str | None = None
     incremental_diff: str | None = None
     modified_files: dict[str, str] | None = None
+    trajectory_file_path: str | None = None
 
 
 class LogParser:
@@ -80,8 +83,10 @@ class LogParser:
         metadata_file = self.log_dir / "metadata.json"
         if metadata_file.exists():
             results = json.loads(metadata_file.read_text())
+            metadata_file_path = str(metadata_file)
         else:
             results = {"status": "No metadata file found"}
+            metadata_file_path = ""
 
         # Store player metadata for later use
         self._player_metadata = {}
@@ -93,6 +98,7 @@ class LogParser:
         # Parse tournament.log if it exists
         main_log_file = self.log_dir / "tournament.log"
         main_log = main_log_file.read_text() if main_log_file.exists() else "No tournament log found"
+        main_log_path = str(main_log_file) if main_log_file.exists() else ""
 
         # Parse round directories and their sim logs
         rounds = []
@@ -110,7 +116,7 @@ class LogParser:
 
                 for sim_file in sim_files:
                     sim_content = sim_file.read_text()
-                    sim_logs.append({"filename": sim_file.name, "content": sim_content})
+                    sim_logs.append({"filename": sim_file.name, "content": sim_content, "full_path": str(sim_file)})
 
                 # Check for round results
                 results_file = round_dir / "results.json"
@@ -120,7 +126,13 @@ class LogParser:
 
                 rounds.append({"round_num": round_num, "sim_logs": sim_logs, "results": round_results})
 
-        return GameMetadata(results=results, main_log=main_log, rounds=rounds)
+        return GameMetadata(
+            results=results,
+            main_log=main_log,
+            main_log_path=main_log_path,
+            metadata_file_path=metadata_file_path,
+            rounds=rounds,
+        )
 
     def parse_trajectory(self, player_id: int, round_num: int) -> TrajectoryInfo | None:
         """Parse a specific trajectory file"""
@@ -163,6 +175,7 @@ class LogParser:
                         diff=diff,
                         incremental_diff=incremental_diff,
                         modified_files=modified_files,
+                        trajectory_file_path=str(traj_file),
                     )
                 except (json.JSONDecodeError, KeyError) as e:
                     print(f"Error parsing {traj_file}: {e}")
@@ -271,11 +284,15 @@ def index():
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
 
+    # Get the full path of the selected folder
+    selected_folder_path = str(logs_dir / selected_folder) if selected_folder else ""
+
     return render_template(
         "index.html",
         log_folders=log_folders,
         log_folders_info=log_folders_info,
         selected_folder=selected_folder,
+        selected_folder_path=selected_folder_path,
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
     )
