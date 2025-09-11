@@ -1,10 +1,12 @@
+import re
+
 from codeclash.utils.log import get_logger
 
 
-def filter_git_diff(text: str) -> str:
+def filter_git_diff(diff: str) -> str:
     """Return a git diff with any file sections mentioning binary content removed."""
     logger = get_logger(__name__)
-    lines = text.splitlines(keepends=True)
+    lines = diff.splitlines(keepends=True)
     out: list[str] = []
     block: list[str] = []
     in_block = False
@@ -56,3 +58,49 @@ def filter_git_diff(text: str) -> str:
             out.extend(block)
 
     return "".join(out)
+
+
+def extract_modified_code_file_paths_from_diff(diff: str) -> list[str]:
+    """Extract modified file paths from a git diff.
+
+    Args:
+        diff: Git diff text
+
+    Returns:
+        List of file paths that were modified
+    """
+    include_extensions = [
+        ".py",
+        ".js",
+        ".ts",
+        ".java",
+        ".cpp",
+        ".c",
+        ".h",
+        ".hpp",
+        ".php",
+        ".rb",
+        ".go",
+        ".rs",
+        ".kt",
+        ".swift",
+        ".md",
+        ".txt",
+        ".sh",
+    ]
+
+    file_paths = []
+    lines = diff.splitlines()
+
+    for line in lines:
+        if line.startswith("diff --git "):
+            # Format: "diff --git a/path/to/file b/path/to/file"
+            match = re.match(r"diff --git a/(.+) b/(.+)", line)
+            if match:
+                file_path = match.group(2)  # Use the "b/" path (after changes)
+
+                # Check if file has an included extension
+                if any(file_path.endswith(ext) for ext in include_extensions):
+                    file_paths.append(file_path)
+
+    return file_paths
