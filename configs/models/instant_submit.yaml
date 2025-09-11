@@ -1,4 +1,4 @@
 model_name: instant_submit
 model_class: minisweagent.models.test_models.DeterministicModel
 outputs:
-  - "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT"
+  - "```bash\necho COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\n```"
