@@ -3,6 +3,7 @@ from pathlib import Path
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
+from codeclash.utils.environment import create_file_in_container
 
 HB_LOG_ENGINE = "engine.log"
 HB_REGEX_SCORE = re.compile(r"Player\s(\d+)\sdelta\supdated\:[\d\s\-\+\=]+,\smoney\:\s\d+\s\-\>\s(\d+)")
@@ -26,18 +27,22 @@ class HuskyBenchGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
 
     def execute_round(self, agents: list[Player]):
-        try:
-            cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} &"
-            self.logger.debug(f"Starting game engine with command: {cmd}")
-            self.environment.execute(cmd)
-            for agent in agents:
-                cmd = f"python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} &"
-                self.logger.debug(f"Adding agent with command: {cmd}")
-                self.environment.execute(cmd, cwd=f"/{agent.name}")
-        finally:
-            # Kill all python servers when done
-            self.environment.execute("pkill -f 'python client/main.py' || true")
-            self.environment.execute("pkill -f 'python engine/main.py' || true")
+        cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} 2>&1 &"
+        self.logger.debug(f"Starting game engine with command: {cmd}")
+        script = [cmd, "sleep 0.5"]
+        for agent in agents:
+            cmd = f"cd /{agent.name} && python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} 2>&1 &"
+            self.logger.info(f"Adding player {agent.name} with command: {cmd}")
+            script.append(cmd)
+        script.append("wait")
+        create_file_in_container(
+            container=self.environment, content="\n".join(script), dest_path="/testbed/run_game.sh"
+        )
+
+        current = self.environment.config.timeout
+        self.environment.config.timeout = 60
+        self.environment.execute("chmod +x run_game.sh; ./run_game.sh")
+        self.environment.config.timeout = current
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         map_id_to_agent = {}
