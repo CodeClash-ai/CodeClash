@@ -28,11 +28,12 @@
 
         {% if game_folders %}
         <div class="games-table">
-            <div class="table-header">
-                <div>📁 Game Session</div>
-                <div>🎯 Rounds</div>
-                <div>Action</div>
-            </div>
+        <div class="table-header">
+            <div>📁 Game Session</div>
+            <div>🎯 Rounds</div>
+            <div>🤖 Models</div>
+            <div>Action</div>
+        </div>
             {% for game in game_folders %}
             {% set depth = game.name.count('/') %}
             {% set folder_name = game.name.split('/')[-1] %}
@@ -66,6 +67,16 @@
                         {% endif %}
                     {% else %}
                         <span class="rounds-unknown">-</span>
+                    {% endif %}
+                </div>
+
+                <div class="models-cell">
+                    {% if game.is_game and game.models %}
+                        {% for model in game.models %}
+                        <span class="model-tag">{{ model }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="models-unknown">-</span>
                     {% endif %}
                 </div>
 

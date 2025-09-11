@@ -1,7 +1,7 @@
 /* Game Picker Styles */
 
 .picker-container {
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -56,7 +56,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 100px 180px 140px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -64,7 +64,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 100px 180px 140px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -145,7 +145,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 80px;
+  width: 100px;
 }
 
 .rounds-count {
@@ -165,8 +165,38 @@
   font-style: italic;
 }
 
+.models-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  width: 180px;
+  flex-wrap: wrap;
+  padding: 0.25rem;
+}
+
+.model-tag {
+  background-color: var(--success-color);
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.models-unknown {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
 .action-cell {
-  min-width: 120px;
+  width: 140px;
   display: flex;
   justify-content: center;
   gap: 0.5rem;
@@ -236,16 +266,27 @@
 
   .table-header,
   .game-row {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 80px 120px;
     gap: 0.5rem;
   }
 
   .rounds-cell {
-    min-width: 60px;
+    width: 80px;
+  }
+
+  .models-cell {
+    width: 120px;
+    justify-content: flex-start;
   }
 
   .action-cell {
     display: none; /* Hide action buttons on mobile, click row instead */
+  }
+
+  .model-tag {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.25rem;
+    max-width: 80px;
   }
 
   .game-name {

@@ -41,6 +41,38 @@ def get_round_count_from_metadata(log_dir: Path) -> int | None:
         return None
 
 
+def get_models_from_metadata(log_dir: Path) -> list[str]:
+    """Extract model names from metadata.json if it exists"""
+    metadata_file = log_dir / "metadata.json"
+    if not metadata_file.exists():
+        return []
+
+    try:
+        metadata = json.loads(metadata_file.read_text())
+        models = []
+        players_config = metadata.get("config", {}).get("players", [])
+
+        # Handle both list and dict formats
+        if isinstance(players_config, list):
+            # If players is a list, iterate through each player
+            for player_config in players_config:
+                if isinstance(player_config, dict):
+                    model_name = player_config.get("config", {}).get("model", {}).get("model_name")
+                    if model_name and model_name not in models:
+                        models.append(model_name)
+        elif isinstance(players_config, dict):
+            # If players is a dict, iterate through player keys (p1, p2, etc.)
+            for _player_key, player_config in players_config.items():
+                if isinstance(player_config, dict):
+                    model_name = player_config.get("config", {}).get("model", {}).get("model_name")
+                    if model_name and model_name not in models:
+                        models.append(model_name)
+
+        return models
+    except (json.JSONDecodeError, KeyError, AttributeError):
+        return []
+
+
 def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
     """Recursively find all folders and mark which ones contain metadata.json"""
     all_folders = []
@@ -60,12 +92,14 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                     # Check if this directory is a game folder
                     if is_game_folder(item):
                         round_count = get_round_count_from_metadata(item)
+                        models = get_models_from_metadata(item)
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
                                 "name": current_relative,
                                 "full_path": str(item),
                                 "round_count": round_count,
+                                "models": models,
                                 "is_game": True,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -78,6 +112,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "name": current_relative,
                                 "full_path": str(item),
                                 "round_count": None,
+                                "models": [],
                                 "is_game": False,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
