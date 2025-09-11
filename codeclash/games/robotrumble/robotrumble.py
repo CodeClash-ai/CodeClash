@@ -62,5 +62,15 @@ class RobotRumbleGame(CodeGame):
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        if "robot.py" not in agent.environment.execute("ls")["output"]:
+            return False, "robot.py not found in the root directory"
+        if "def robot(state, unit):" not in agent.environment.execute("cat robot.py")["output"]:
+            return (
+                False,
+                "robot.py does not contain the required robot function. It should be defined as 'def robot(state, unit): ...'",
+            )
+        test_run_cmd = f"{self.run_cmd_round} robot.py robot.py -t 1"
+        test_run = agent.environment.execute(test_run_cmd)["output"]
+        if "Some errors occurred:" in test_run:
+            return False, f"Running robot.py (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
         return True, None

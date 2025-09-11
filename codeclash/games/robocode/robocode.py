@@ -7,6 +7,7 @@ from codeclash.games.game import CodeGame, RoundStats
 from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
 
 RC_LOG = "scoreboard.txt"
+RC_FILE = Path("MyTank.java")
 
 
 class RoboCodeGame(CodeGame):
@@ -67,7 +68,7 @@ class RoboCodeGame(CodeGame):
                 self.environment.execute(cmd)
 
         # Create .battle file
-        selected_robots = ",".join([f"{agent.name}.MyTank*" for agent in agents])
+        selected_robots = ",".join([f"{agent.name}.{RC_FILE.stem}*" for agent in agents])
         # Use timestamp for unique battle file name since rounds are managed by tournament
         battle_file = f"{self.game_id}-battle{int(time.time())}.battle"
         battle_content = f"""#Battle Properties
@@ -106,5 +107,18 @@ robocode.battle.selectedRobots={selected_robots}
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        if "robots" not in agent.environment.execute("ls")["output"]:
+            return False, "`robots/` directory not found in submission root"
+        if "custom" not in agent.environment.execute("ls robots")["output"]:
+            return False, "`robots/custom/` directory not found"
+        if str(RC_FILE) not in agent.environment.execute("ls robots/custom")["output"]:
+            return False, (
+                f"`{RC_FILE}` not found in `robots/custom/`. "
+                f"You can include additional files, but the primary tank logic must be in `robots/custom/{RC_FILE}`"
+            )
+        response = agent.environment.execute('javac -cp "libs/robocode.jar" robots/custom/*.java')
+        if response["returncode"] != 0:
+            return False, f"Compilation error:\n{response['output']}"
+        if f"{RC_FILE.stem}.class" not in agent.environment.execute("ls robots/custom")["output"]:
+            return False, f"`{RC_FILE.stem}.class` not found after compilation"
         return True, None

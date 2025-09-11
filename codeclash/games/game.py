@@ -30,11 +30,6 @@ class PlayerStats:
 
 
 class RoundStats:
-    winner: str
-    round_num: int
-    scores: dict[str, float]
-    player_stats: dict[str, PlayerStats] | None = None
-
     def __init__(self, round_num: int, agents: list[Player]):
         self.winner = None
         self.round_num = round_num
@@ -215,9 +210,10 @@ class CodeGame(ABC):
         for agent in agents:
             is_valid, error = self.validate_code(agent)
             if not is_valid:
-                self.logger.warning(f"Agent {agent.name} failed verification: {error}")
+                self.logger.warning(f"Agent {agent.name} failed submission validation: {error}")
                 stats.player_stats[agent.name].invalid_reason = error
                 continue
+            self.logger.info(f"Agent {agent.name} passed submission validation")
             stats.player_stats[agent.name].valid_submit = True
             validated.append(agent)
 

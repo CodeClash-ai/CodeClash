@@ -7,6 +7,8 @@ from codeclash.constants import DIR_WORK, RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
 
 BC_LOG = "sim.log"
+BC_FOLDER = "mysubmission"
+BC_TIE = "Reason: The winning team won arbitrarily (coin flip)."
 
 
 class BattleCodeGame(CodeGame):
@@ -25,7 +27,7 @@ class BattleCodeGame(CodeGame):
 
     def execute_round(self, agents: list[Player]):
         for agent in agents:
-            src, dest = f"/{agent.name}/src/mysubmission/", str(DIR_WORK / "src" / agent.name)
+            src, dest = f"/{agent.name}/src/{BC_FOLDER}/", str(DIR_WORK / "src" / agent.name)
             self.environment.execute(f"cp -r {src} {dest}")
         random.shuffle(agents)  # Start position matters in BattleCode! Shuffle to be fair.
         args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
@@ -36,27 +38,34 @@ class BattleCodeGame(CodeGame):
         assert response["returncode"] == 0, response
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
-        winners = []
         with open(self.log_round(round_num) / BC_LOG) as f:
             lines = f.read().strip().split("\n")
         # Get the third-to-last line which contains the winner info
-        winner_line = lines[-3] if len(lines) >= 3 else ""
+        assert len(lines) >= 3, "Log file does not contain enough lines to determine winner"
+        winner_line = lines[-3]
+        reason_line = lines[-2]
         self.logger.debug(f"Winner line: {winner_line}")
+        self.logger.debug(f"Reason line: {reason_line}")
         match = re.search(r"\s\((.*)\)\swins\s\(", winner_line)
-        if match:
+        if match and reason_line != BC_TIE:
             winner_key = match.group(1)
             self.logger.debug(f"Winner key from match: {winner_key}")
             # Map A/B to actual agent names (much closer to original code)
             winner = {"A": agents[0].name, "B": agents[1].name}.get(winner_key, RESULT_TIE)
-            winners.append(winner)
         else:
-            winners.append(RESULT_TIE)
+            winner = RESULT_TIE
 
-        stats.winner = max(set(winners), key=winners.count)
-        stats.scores = {agent.name: winners.count(agent.name) for agent in agents}
+        stats.winner = winner
+        stats.scores = {agent.name: (1 if agent.name == winner else 0) for agent in agents}
         for player, score in stats.scores.items():
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        if BC_FOLDER not in agent.environment.execute("ls src")["output"]:
+            return False, f"`{BC_FOLDER}` directory not found in `src/`"
+        if "bot.py" not in agent.environment.execute(f"ls src/{BC_FOLDER}")["output"]:
+            return False, "`bot.py` not found in `src/mysubmission/`"
+        bot_content = agent.environment.execute(f"cat src/{BC_FOLDER}/bot.py")["output"].splitlines()
+        if "def turn():" not in bot_content:
+            return False, "`turn()` function not found in `bot.py`"
         return True, None

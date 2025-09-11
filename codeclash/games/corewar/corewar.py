@@ -6,6 +6,7 @@ from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
 
 COREWAR_LOG = "sim.log"
+COREWAR_FILE = "warrior.red"
 
 
 class CoreWarGame(CodeGame):
@@ -22,7 +23,7 @@ class CoreWarGame(CodeGame):
                 self.run_cmd_round += f" -{arg} {val}"
 
     def execute_round(self, agents: list[Player]):
-        args = [f"/{agent.name}/warriors/warrior.red" for agent in agents]
+        args = [f"/{agent.name}/warriors/{COREWAR_FILE}" for agent in agents]
         cmd = (
             f"{self.run_cmd_round} {shlex.join(args)} "
             f"-r {self.game_config['sims_per_round']} "
@@ -66,5 +67,6 @@ class CoreWarGame(CodeGame):
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        if COREWAR_FILE not in agent.environment.execute("ls warriors")["output"]:
+            return False, f"`{COREWAR_FILE}` not found in `warriors/`"
         return True, None
