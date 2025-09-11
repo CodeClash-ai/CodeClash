@@ -13,17 +13,14 @@
             <h1>🎮 CodeClash Trajectory Viewer</h1>
 
             <div class="controls">
-                <!-- Folder Selection -->
+                <!-- Game Selection Buttons -->
                 <div class="control-group">
-                    <label for="folder-select">Game Session:</label>
-                    <select id="folder-select" onchange="changeFolder()">
-                        {% for folder_info in log_folders_info %}
-                        <option value="{{ folder_info.name }}"
-                                {% if folder_info.name == selected_folder %}selected{% endif %}>
-                            {{ folder_info.name }}{% if folder_info.is_failed %} ⚠️{% endif %}{% if folder_info.round_count %} ({{ folder_info.round_count }} rounds){% endif %}
-                        </option>
-                        {% endfor %}
-                    </select>
+                    <button id="pick-game-btn" onmousedown="handlePickerClick(event)" class="pick-game-button" title="Pick Game (Press p) - Middle-click or Ctrl+click for new tab">
+                        🎮 Pick Game <kbd>p</kbd>
+                    </button>
+                    <button id="pick-game-new-tab-btn" onclick="openGamePickerInNewTab()" class="pick-game-new-tab-button" title="Pick Game in New Tab (Press P)">
+                        ↗
+                    </button>
                 </div>
 
                 <!-- Dark Mode Toggle -->
