@@ -62,6 +62,9 @@ class TrajectoryInfo:
     submission: str | None
     memory: str | None
     messages: list[dict[str, Any]]
+    diff: str | None = None
+    incremental_diff: str | None = None
+    modified_files: dict[str, str] | None = None
 
 
 class LogParser:
@@ -69,6 +72,7 @@ class LogParser:
 
     def __init__(self, log_dir: Path):
         self.log_dir = Path(log_dir)
+        self._player_metadata = {}
 
     def parse_game_metadata(self) -> GameMetadata:
         """Parse overall game metadata"""
@@ -78,6 +82,13 @@ class LogParser:
             results = json.loads(metadata_file.read_text())
         else:
             results = {"status": "No metadata file found"}
+
+        # Store player metadata for later use
+        self._player_metadata = {}
+        if "agents" in results:
+            for agent in results["agents"]:
+                player_name = agent.get("name", "")
+                self._player_metadata[player_name] = agent
 
         # Parse tournament.log if it exists
         main_log_file = self.log_dir / "tournament.log"
@@ -128,6 +139,18 @@ class LogParser:
                     info = data.get("info", {})
                     model_stats = info.get("model_stats", {})
 
+                    # Get diff data from player metadata if available
+                    player_name = f"p{player_id}"
+                    diff = None
+                    incremental_diff = None
+                    modified_files = None
+
+                    if player_name in self._player_metadata:
+                        player_meta = self._player_metadata[player_name]
+                        diff = player_meta.get("diff", {}).get(str(round_num), "")
+                        incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
+                        modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
+
                     return TrajectoryInfo(
                         player_id=player_id,
                         round_num=round_num,
@@ -137,6 +160,9 @@ class LogParser:
                         submission=info.get("submission"),
                         memory=info.get("memory"),
                         messages=data.get("messages", []),
+                        diff=diff,
+                        incremental_diff=incremental_diff,
+                        modified_files=modified_files,
                     )
                 except (json.JSONDecodeError, KeyError) as e:
                     print(f"Error parsing {traj_file}: {e}")
