@@ -236,7 +236,52 @@
                                     </div>
                                 </div>
                             </details>
+
+                            <!-- Diff Foldout inside the same container -->
+                            {% if trajectory.diff and trajectory.diff.strip() %}
+                            <details class="trajectory-messages-foldout">
+                                <summary>📝 Diff (Full)</summary>
+                                <div class="trajectory-content">
+                                    <div class="log-content">
+                                        <pre><code>{{ trajectory.diff }}</code></pre>
+                                    </div>
+                                </div>
+                            </details>
+                            {% endif %}
+
+                            <!-- Incremental Diff Foldout inside the same container -->
+                            {% if trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
+                            <details class="trajectory-messages-foldout">
+                                <summary>🔄 Incremental Diff</summary>
+                                <div class="trajectory-content">
+                                    <div class="log-content">
+                                        <pre><code>{{ trajectory.incremental_diff }}</code></pre>
+                                    </div>
+                                </div>
+                            </details>
+                            {% endif %}
+
+                            <!-- Modified Files Foldout inside the same container -->
+                            {% if trajectory.modified_files and trajectory.modified_files %}
+                            <details class="trajectory-messages-foldout">
+                                <summary>📁 Changed Files ({{ trajectory.modified_files|length }} files)</summary>
+                                <div class="trajectory-content">
+                                    <div class="log-content">
+                                        {% for file_path, file_content in trajectory.modified_files.items() %}
+                                        <details class="foldout">
+                                            <summary>{{ file_path }}</summary>
+                                            <div class="log-content">
+                                                <pre><code>{{ file_content }}</code></pre>
+                                            </div>
+                                        </details>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </details>
+                            {% endif %}
+
                         </div>
+
 
                         <!-- Submission -->
                         {% if trajectory.submission %}
