@@ -8,7 +8,7 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.utils import GameContext
 from codeclash.constants import GH_ORG
-from codeclash.tournaments.utils.git_utils import filter_git_diff
+from codeclash.tournaments.utils.git_utils import extract_modified_code_file_paths_from_diff, filter_git_diff
 from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
 from codeclash.utils.log import get_logger
 
@@ -40,6 +40,7 @@ class Player(ABC):
             "player_unique_id": self._player_unique_id,
             "diff": {0: ""},  # mapping round -> diff
             "incremental_diff": {0: ""},  # mapping round -> diff
+            "modified_files": {0: {}},  # mapping round -> {file_path: file_content}
             "created_timestamp": int(time.time()),
             "config": self.config,
             "initial_commit_hash": self._get_commit_hash(),
@@ -67,8 +68,11 @@ class Player(ABC):
     def post_run_hook(self, *, round: int) -> None:
         """Should be called after we called the run method."""
         self._commit()
-        self._metadata["diff"][round] = self._get_round_diff(round)
+        raw_diff = self._get_round_diff(round)
+        filtered_diff = filter_git_diff(raw_diff)
+        self._metadata["diff"][round] = raw_diff
         self._metadata["incremental_diff"][round] = self._get_round_diff(round, incremental=True)
+        self._metadata["modified_files"][round] = self._extract_modified_files_from_diff(filtered_diff)
         if self.push:
             for cmd in [
                 f"git push origin {self._branch_name}",
@@ -150,6 +154,23 @@ class Player(ABC):
             assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
         self._tag_round(r)
         self.logger.info(f"Committed changes for {self.name} for round {r}")
+
+    def _extract_modified_files_from_diff(self, diff: str) -> dict[str, str]:
+        """Extract modified file paths from a git diff and get their full content.
+        Returns a dict mapping file path to full file content.
+        Only includes common code file extensions.
+        """
+        file_paths = extract_modified_code_file_paths_from_diff(diff)
+
+        file_contents = {}
+        for file_path in file_paths:
+            out = assert_zero_exit_code(
+                self.environment.execute(f"cat '{file_path}'"),
+                logger=self.logger,
+            )
+            file_contents[file_path] = out["output"]
+
+        return file_contents
 
     def _get_round_diff(self, round: int, *, incremental: bool = False) -> str:
         """Get the diff between the round and initial version (round 0).
