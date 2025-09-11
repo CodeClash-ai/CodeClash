@@ -30,16 +30,24 @@ function toggleTheme() {
   setTheme(newTheme);
 }
 
-// Folder selection
-function changeFolder() {
-  const select = document.getElementById("folder-select");
-  const selectedFolder = select.value;
+// Game picker
+function openGamePicker() {
+  window.location.href = "/picker";
+}
 
-  if (selectedFolder) {
-    // Reload page with new folder parameter
-    const url = new URL(window.location);
-    url.searchParams.set("folder", selectedFolder);
-    window.location.href = url.toString();
+function openGamePickerInNewTab() {
+  window.open("/picker", "_blank");
+}
+
+function handlePickerClick(event) {
+  // Handle different types of clicks for picker button
+  if (event.button === 1 || event.ctrlKey || event.metaKey) {
+    // Middle click, Ctrl+click, or Cmd+click - open in new tab
+    event.preventDefault();
+    openGamePickerInNewTab();
+  } else if (event.button === 0) {
+    // Left click - open in same tab
+    openGamePicker();
   }
 }
 
@@ -76,6 +84,25 @@ function initializeFoldouts() {
 // Keyboard shortcuts
 function initializeKeyboardShortcuts() {
   document.addEventListener("keydown", function (e) {
+    // p: Open game picker in same tab, P: Open game picker in new tab
+    if (e.key === "p") {
+      // Don't trigger if user is typing in an input field
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        return;
+      }
+      e.preventDefault();
+      openGamePicker();
+    }
+
+    if (e.key === "P") {
+      // Don't trigger if user is typing in an input field
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        return;
+      }
+      e.preventDefault();
+      openGamePickerInNewTab();
+    }
+
     // Ctrl/Cmd + D: Toggle dark mode
     if ((e.ctrlKey || e.metaKey) && e.key === "d") {
       e.preventDefault();
@@ -206,8 +233,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("CodeClash Trajectory Viewer initialized");
   console.log("Keyboard shortcuts:");
+  console.log("  p: Open game picker (same tab)");
+  console.log("  P: Open game picker (new tab)");
   console.log("  Ctrl/Cmd + D: Toggle dark mode");
   console.log("  Ctrl/Cmd + E: Expand all sections");
   console.log("  Ctrl/Cmd + Shift + E: Collapse all sections");
   console.log("  Escape: Close all sections");
+  console.log("Mouse shortcuts:");
+  console.log("  Middle-click or Ctrl+click: Open in new tab");
 });

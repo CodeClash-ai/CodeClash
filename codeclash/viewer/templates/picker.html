@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick Game - CodeClash Trajectory Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/picker.css') }}">
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle-container">
+        <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <div class="picker-container">
+        <div class="picker-header">
+            <h1>🎮 Pick a Game</h1>
+            <p>Select a game session to view its trajectory</p>
+        </div>
+
+        <div class="base-dir-info">
+            <h3>📁 Base Directory:</h3>
+            <div class="base-dir-path">{{ base_dir }}</div>
+        </div>
+
+        {% if game_folders %}
+        <div class="games-table">
+            <div class="table-header">
+                <div>📁 Game Session</div>
+                <div>🎯 Rounds</div>
+                <div>Action</div>
+            </div>
+            {% for game in game_folders %}
+            {% set depth = game.name.count('/') %}
+            {% set folder_name = game.name.split('/')[-1] %}
+            <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
+                 data-path="{{ game.name }}"
+                 data-parent="{{ game.parent or '' }}"
+                 {% if game.is_game %}onmousedown="handleGameClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
+                <div class="game-name-cell">
+                    <span class="folder-indent">
+                        {% for i in range(depth) %}
+                        <span class="folder-icon">&nbsp;&nbsp;</span>
+                        {% endfor %}
+                        {% if depth > 0 %}
+                        <span class="folder-icon">└─</span>
+                        {% endif %}
+                    </span>
+                    {% if game.is_game %}
+                    <span class="folder-icon">🎮</span>
+                    {% else %}
+                    <span class="folder-icon collapse-icon">📁</span>
+                    {% endif %}
+                    <span class="game-name">{{ folder_name }}</span>
+                </div>
+
+                <div class="rounds-cell">
+                    {% if game.is_game %}
+                        {% if game.round_count %}
+                        <span class="rounds-count">{{ game.round_count }}</span>
+                        {% else %}
+                        <span class="rounds-unknown">?</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="rounds-unknown">-</span>
+                    {% endif %}
+                </div>
+
+                <div class="action-cell">
+                    {% if game.is_game %}
+                    <button class="open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
+                        Open
+                    </button>
+                    <button class="open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
+                        ↗
+                    </button>
+                    {% else %}
+                    <span class="folder-indicator">Folder</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-games-message">
+            <h3>No Game Sessions Found</h3>
+            <p>No folders containing <code>metadata.json</code> were found in the base directory.</p>
+            <p>Make sure you have run some games and they have generated log files.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/picker.js') }}"></script>
+</body>
+</html>

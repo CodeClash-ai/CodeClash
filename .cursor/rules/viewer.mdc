@@ -14,7 +14,8 @@ two AI agent in a round-based game against each other.
 * JS should be kept to a minimum
 * Your input is a game folder (described below)
 * Use clean modern CSS, but don't go too crazy, simplicity is key
-* This is a single page application
+* CSS and JS should be in separate static files, not inline in templates
+* The application consists of two main pages: the viewer and the game picker
 
 ## Input folder
 
@@ -78,12 +79,71 @@ Here's how a `.traj.log` file looks:
 }
 ```
 
-## Page design
+## Application Structure
+
+The application has two main pages:
+
+1. **Game Picker** (`/picker`): A hierarchical tree view of all available game sessions
+2. **Trajectory Viewer** (`/`): The main viewer for a selected game session
+
+### Navigation
+
+* The viewer has a "Pick Game" button that navigates to the picker
+* The picker shows all game sessions in a tree structure with "Open" and "Open in new tab" buttons
+* Navigation between pages happens in the same tab by default
+
+### Keyboard Shortcuts
+
+* `p` (lowercase): Open game picker in same tab (from viewer)
+* `P` (uppercase): Open game picker in new tab (from viewer)
+* `Ctrl/Cmd + D`: Toggle dark/light mode
+* `Ctrl/Cmd + E`: Expand all sections
+* `Ctrl/Cmd + Shift + E`: Collapse all sections
+* `Escape`: Close all open sections
+
+### Mouse Navigation
+
+* **Left-click**: Default action (navigate in same tab)
+* **Middle-click**: Open in new tab (works on all buttons and game rows)
+* **Ctrl+click or Cmd+click**: Open in new tab (alternative to middle-click)
+
+## Game Picker Design (`/picker`)
+
+### Features
+
+* **Hierarchical Tree Structure**: Shows all folders recursively with proper indentation
+* **Game Detection**: Any folder containing `metadata.json` is considered a game folder
+* **Folder Collapse/Expand**: Click intermediate folders to minimize/expand their contents
+  - Collapsed folders show 📂 icon and blue accent border
+  - Expanded folders show 📁 icon
+  - Children of collapsed folders are hidden
+* **Visual Distinction**:
+  - Game folders: 🎮 icon, clickable, blue accent color
+  - Intermediate folders: 📁/📂 icon, clickable to collapse, muted appearance
+* **Tree Indentation**: Uses spaces and tree characters (└─) to show folder hierarchy
+* **Round Count Display**: Shows number of rounds for each game session
+* **Multiple Navigation Options**:
+  - Click game row: Navigate to viewer (middle-click for new tab)
+  - "Open" button: Navigate to viewer (supports middle-click)
+  - "↗" button: Always open viewer in new tab
+
+### Layout
+
+* Clean table structure with three columns: Game Session, Rounds, Action
+* Responsive design that adapts to mobile screens
+* Hover effects and visual feedback
+* Base directory path display at the top
+
+## Trajectory Viewer Design (`/`)
 
 ### Header
 
-* Here's some control elements to choose the input folder or visualization settings
-* There's a dark/light mode switch
+* **"Pick Game" button**: Navigate to picker (supports middle-click for new tab)
+  - Shows `p` keyboard shortcut indicator
+  - Tooltip explains middle-click functionality
+* **"↗" button**: Always open picker in new tab
+* **Dark/light mode toggle button**
+* **Current folder path display** with copy functionality
 
 ### Main body
 

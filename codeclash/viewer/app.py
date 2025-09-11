@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 # Global variable to store the directory to search for logs
 LOG_BASE_DIR = Path.cwd() / "logs"
@@ -22,10 +22,10 @@ def set_log_base_directory(directory: str | Path):
     LOG_BASE_DIR = Path(directory).resolve()
 
 
-def is_probably_failed_run(log_dir: Path) -> bool:
-    """Check if a run probably failed by checking if metadata.json is missing"""
+def is_game_folder(log_dir: Path) -> bool:
+    """Check if a directory contains metadata.json and is therefore a game folder"""
     metadata_file = log_dir / "metadata.json"
-    return not metadata_file.exists()
+    return metadata_file.exists()
 
 
 def get_round_count_from_metadata(log_dir: Path) -> int | None:
@@ -39,6 +39,73 @@ def get_round_count_from_metadata(log_dir: Path) -> int | None:
         return metadata.get("config", {}).get("game", {}).get("rounds")
     except (json.JSONDecodeError, KeyError):
         return None
+
+
+def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
+    """Recursively find all folders and mark which ones contain metadata.json"""
+    all_folders = []
+    game_folders = set()  # Track which folders are actual game folders
+
+    def scan_directory(directory: Path, relative_path: str = ""):
+        if not directory.exists() or not directory.is_dir():
+            return
+
+        try:
+            for item in directory.iterdir():
+                if item.is_dir():
+                    current_relative = relative_path + "/" + item.name if relative_path else item.name
+
+                    depth = current_relative.count("/")
+
+                    # Check if this directory is a game folder
+                    if is_game_folder(item):
+                        round_count = get_round_count_from_metadata(item)
+                        game_folders.add(current_relative)
+                        all_folders.append(
+                            {
+                                "name": current_relative,
+                                "full_path": str(item),
+                                "round_count": round_count,
+                                "is_game": True,
+                                "depth": depth,
+                                "parent": relative_path if relative_path else None,
+                            }
+                        )
+                    else:
+                        # Add as intermediate folder if it has game folders in subdirectories
+                        all_folders.append(
+                            {
+                                "name": current_relative,
+                                "full_path": str(item),
+                                "round_count": None,
+                                "is_game": False,
+                                "depth": depth,
+                                "parent": relative_path if relative_path else None,
+                            }
+                        )
+
+                    # Recursively scan subdirectories
+                    scan_directory(item, current_relative)
+        except (PermissionError, OSError):
+            # Skip directories we can't access
+            pass
+
+    scan_directory(base_dir)
+
+    # Filter out intermediate folders that don't lead to any game folders
+    filtered_folders = []
+    for folder in sorted(all_folders, key=lambda x: x["name"]):
+        if folder["is_game"]:
+            # Always include game folders
+            filtered_folders.append(folder)
+        else:
+            # Include intermediate folders only if they have game folders as descendants
+            folder_path = folder["name"]
+            has_game_descendants = any(game_path.startswith(folder_path + "/") for game_path in game_folders)
+            if has_game_descendants:
+                filtered_folders.append(folder)
+
+    return filtered_folders
 
 
 @dataclass
@@ -245,33 +312,21 @@ app.jinja_env.filters["unescape_content"] = unescape_content
 
 @app.route("/")
 def index():
-    """Main viewer page"""
-    # Get available log directories
+    """Main viewer page - now redirects to picker if no folder is selected"""
+    selected_folder = request.args.get("folder")
+
+    if not selected_folder:
+        return redirect(url_for("game_picker"))
+
+    # Validate the selected folder exists and is a game folder
     logs_dir = LOG_BASE_DIR
-    log_folders_info = []
-    if logs_dir.exists():
-        for d in logs_dir.iterdir():
-            if d.is_dir():
-                folder_info = {
-                    "name": d.name,
-                    "is_failed": is_probably_failed_run(d),
-                    "round_count": get_round_count_from_metadata(d),
-                }
-                log_folders_info.append(folder_info)
+    folder_path = logs_dir / selected_folder
 
-        # Sort folders alphabetically by name
-        log_folders_info.sort(key=lambda x: x["name"])
-
-    # Extract just the names for backwards compatibility
-    log_folders = [folder["name"] for folder in log_folders_info]
-
-    selected_folder = request.args.get("folder", log_folders[0] if log_folders else None)
-
-    if not selected_folder or not (logs_dir / selected_folder).exists():
-        return render_template("no_logs.html", log_folders=log_folders)
+    if not folder_path.exists() or not is_game_folder(folder_path):
+        return redirect(url_for("game_picker"))
 
     # Parse the selected game
-    parser = LogParser(logs_dir / selected_folder)
+    parser = LogParser(folder_path)
     metadata = parser.parse_game_metadata()
     available_trajectories = parser.get_available_trajectories()
 
@@ -285,17 +340,24 @@ def index():
             trajectories_by_round[round_num].append(trajectory)
 
     # Get the full path of the selected folder
-    selected_folder_path = str(logs_dir / selected_folder) if selected_folder else ""
+    selected_folder_path = str(folder_path)
 
     return render_template(
         "index.html",
-        log_folders=log_folders,
-        log_folders_info=log_folders_info,
         selected_folder=selected_folder,
         selected_folder_path=selected_folder_path,
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
     )
+
+
+@app.route("/picker")
+def game_picker():
+    """Game picker page with recursive folder support"""
+    logs_dir = LOG_BASE_DIR
+    game_folders = find_all_game_folders(logs_dir)
+
+    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir))
 
 
 @app.route("/trajectory/<int:player_id>/<int:round_num>")
