@@ -29,20 +29,21 @@ class HuskyBenchGame(CodeGame):
     def execute_round(self, agents: list[Player]):
         cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} 2>&1 &"
         self.logger.debug(f"Starting game engine with command: {cmd}")
-        script = [cmd, "sleep 0.5"]
+        # Remove previous outputs, kill previous game if any, start engine, start server
+        script = ["rm -rf /app/output/*", "kill -9 $(lsof -ti :8000)", cmd, "sleep 0.5"]
         for agent in agents:
+            # Start each agent in background, redirecting output to log file
             cmd = f"cd /{agent.name} && python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} 2>&1 &"
             self.logger.info(f"Adding player {agent.name} with command: {cmd}")
             script.append(cmd)
         script.append("wait")
+        script.append(f"mv /app/output/* {self.log_env}")  # Move logs to log directory
         create_file_in_container(
             container=self.environment, content="\n".join(script), dest_path="/testbed/run_game.sh"
         )
 
-        current = self.environment.config.timeout
-        self.environment.config.timeout = 60
+        # Run game
         self.environment.execute("chmod +x run_game.sh; ./run_game.sh")
-        self.environment.config.timeout = current
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         map_id_to_agent = {}

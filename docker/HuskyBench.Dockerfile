@@ -8,6 +8,7 @@ wget \
 git \
 build-essential \
 unzip \
+lsof \
 && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
