@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeClash Trajectory Viewer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.css" rel="stylesheet">
 </head>
 <body>
     <header class="header">
@@ -41,7 +42,7 @@
             <h2>📊 Game Results</h2>
 
             <div class="metadata-display">
-                <pre><code>{{ metadata.results | tojson(indent=2) }}</code></pre>
+                <div id="metadata-jsoneditor" class="json-viewer"></div>
             </div>
 
             <!-- Main Log Foldout -->
@@ -65,7 +66,7 @@
                 <details class="foldout round-foldout">
                     <summary>🏆 Round {{ round_num }} Results</summary>
                     <div class="log-content">
-                        <pre><code>{{ round_data.results | tojson(indent=2) }}</code></pre>
+                        <div id="round-{{ round_num }}-results-jsoneditor" class="json-viewer"></div>
                     </div>
                 </details>
                 {% endif %}
@@ -269,6 +270,31 @@
         </section>
     </main>
 
+    <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Initialize JSON editors when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize metadata JSON editor
+            const metadataEditor = new JSONEditor(document.getElementById('metadata-jsoneditor'), {
+                mode: 'view',
+                modes: ['view', 'tree'],
+                name: 'metadata'
+            });
+            metadataEditor.set({{ metadata.results | tojson }});
+
+            // Initialize round results JSON editors
+            {% for round_data in metadata.rounds %}
+                {% if round_data.results %}
+                const round{{ round_data.round_num }}Editor = new JSONEditor(document.getElementById('round-{{ round_data.round_num }}-results-jsoneditor'), {
+                    mode: 'view',
+                    modes: ['view', 'tree'],
+                    name: 'round_{{ round_data.round_num }}_results'
+                });
+                round{{ round_data.round_num }}Editor.set({{ round_data.results | tojson }});
+                {% endif %}
+            {% endfor %}
+        });
+    </script>
 </body>
 </html>

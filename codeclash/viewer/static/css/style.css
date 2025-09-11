@@ -583,3 +583,85 @@ summary:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-color);
 }
+
+/* JSON Viewer Integration */
+.json-viewer {
+  min-height: 200px;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+/* Override JSONEditor default styles to match our theme */
+.jsoneditor {
+  border: none !important;
+  border-radius: 0.375rem !important;
+}
+
+.jsoneditor-outer {
+  background-color: var(--bg-primary) !important;
+  border: none !important;
+}
+
+.jsoneditor-menu {
+  background-color: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.jsoneditor-menu > button {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.25rem !important;
+  margin: 0.25rem !important;
+}
+
+.jsoneditor-menu > button:hover {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+  border-color: var(--accent-color) !important;
+}
+
+.jsoneditor-tree {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* JSON content styling */
+.jsoneditor-tree .jsoneditor-field,
+.jsoneditor-tree .jsoneditor-value {
+  color: var(--text-primary) !important;
+}
+
+.jsoneditor-tree .jsoneditor-string {
+  color: var(--success-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-number {
+  color: var(--accent-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-boolean {
+  color: var(--warning-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-null {
+  color: var(--text-muted) !important;
+}
+
+.jsoneditor-tree .jsoneditor-key {
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* Dark mode adjustments for JSON viewer */
+[data-theme="dark"] .jsoneditor-tree {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .jsoneditor-outer {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .jsoneditor-menu {
+  background-color: var(--bg-tertiary) !important;
+}
