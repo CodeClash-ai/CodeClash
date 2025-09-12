@@ -1,4 +1,3 @@
-import random
 import re
 from pathlib import Path
 
@@ -29,7 +28,6 @@ class BattleCodeGame(CodeGame):
         for agent in agents:
             src, dest = f"/{agent.name}/src/{BC_FOLDER}/", str(DIR_WORK / "src" / agent.name)
             self.environment.execute(f"cp -r {src} {dest}")
-        random.shuffle(agents)  # Start position matters in BattleCode! Shuffle to be fair.
         args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
