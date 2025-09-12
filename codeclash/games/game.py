@@ -39,7 +39,13 @@ class RoundStats:
         self.player_stats: dict[str, PlayerStats] = {agent.name: PlayerStats(name=agent.name) for agent in agents}
 
     def __str__(self) -> str:
-        return "\n".join([f"- Winner: {self.winner}", f"- Scores: {self.scores}"])
+        rv = [f"In round {self.round_num}, the winner is {self.winner}.", "\nSummary of player performance:"]
+        for player, stats in self.player_stats.items():
+            if stats.valid_submit:
+                rv.append(f"- {player}: submission compiled successfully, score={stats.score}")
+            else:
+                rv.append(f"- {player}: submission failed with error: {stats.invalid_reason}")
+        return "\n".join(rv)
 
     def to_dict(self) -> dict[str, Any]:
         result = {

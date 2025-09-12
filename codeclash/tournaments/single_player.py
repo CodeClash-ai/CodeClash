@@ -84,7 +84,7 @@ class SinglePlayerTraining(AbstractTournament):
         """Execute a single training round, i.e., run the game, then run the agent."""
         # Run the game round and get results
         stats = self.game.run_round([self.agent, self.mirror_agent], round_num)
-        self.logger.info(f"Round {round_num}:\n{stats}")
+        self.logger.info(stats)
 
         # Write log to file
         results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS

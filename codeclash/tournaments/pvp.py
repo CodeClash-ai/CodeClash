@@ -71,7 +71,7 @@ class PvpTournament(AbstractTournament):
     def run_competition_phase(self, round_num: int) -> None:
         # Run the game round and get results
         stats = self.game.run_round(self.agents, round_num)
-        self.logger.info(f"Round {round_num}:\n{stats}")
+        self.logger.info(stats)
 
         # Create directory for round logs
         (self.game.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
