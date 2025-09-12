@@ -9,7 +9,7 @@ from typing import Any
 from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.player import Player
-from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG
+from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG, RESULT_TIE
 from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers, copy_from_container
 from codeclash.utils.log import get_logger
 
@@ -208,7 +208,7 @@ class CodeGame(ABC):
         """
         random.shuffle(agents)  # Shuffle to ensure fairness in case of positional advantages
         stats = RoundStats(round_num, agents)
-        validated = []
+        validated: list[Player] = []
         for agent in agents:
             is_valid, error = self.validate_code(agent)
             if not is_valid:
@@ -219,12 +219,17 @@ class CodeGame(ABC):
             stats.player_stats[agent.name].valid_submit = True
             validated.append(agent)
 
-        run_game = len(validated) > 1
-        if run_game:
+        if len(validated) > 1:
             self._pre_round_setup(validated)
             self.execute_round(validated)
             self.copy_logs_from_env(round_num)
             self.get_results(validated, round_num, stats)
+        elif len(validated) == 1:
+            self.logger.info(f"Only one valid agent ({validated[0].name}), automatic win")
+            stats.winner = validated[0].name
+        else:
+            self.logger.info("No valid agents, no winner this round (Default tie)")
+            stats.winner = RESULT_TIE
         return stats
 
     @abstractmethod
