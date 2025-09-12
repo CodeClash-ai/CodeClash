@@ -63,7 +63,7 @@ class RobotRumbleGame(CodeGame):
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if "robot.py" not in agent.environment.execute("ls")["output"]:
-            return False, "robot.py not found in the root directory"
+            return False, "There should be a `robot.py` file"
         if "def robot(state, unit):" not in agent.environment.execute("cat robot.py")["output"]:
             return (
                 False,

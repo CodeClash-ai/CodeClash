@@ -62,10 +62,10 @@ class BattleCodeGame(CodeGame):
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if BC_FOLDER not in agent.environment.execute("ls src")["output"]:
-            return False, f"`{BC_FOLDER}` directory not found in `src/`"
+            return False, f"There should be a `src/{BC_FOLDER}/` directory"
         if "bot.py" not in agent.environment.execute(f"ls src/{BC_FOLDER}")["output"]:
-            return False, "`bot.py` not found in `src/mysubmission/`"
+            return False, f"There should be a `src/{BC_FOLDER}/bot.py` file"
         bot_content = agent.environment.execute(f"cat src/{BC_FOLDER}/bot.py")["output"].splitlines()
         if "def turn():" not in bot_content:
-            return False, "`turn()` function not found in `bot.py`"
+            return False, f"There should be a `turn()` function implemented in `src/{BC_FOLDER}/bot.py`"
         return True, None

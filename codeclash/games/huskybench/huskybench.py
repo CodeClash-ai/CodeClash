@@ -6,7 +6,9 @@ from codeclash.games.game import CodeGame, RoundStats
 from codeclash.utils.environment import create_file_in_container
 
 HB_LOG_ENGINE = "engine.log"
+HB_PORT = 8000
 HB_REGEX_SCORE = re.compile(r"Player\s(\d+)\sdelta\supdated\:[\d\s\-\+\=]+,\smoney\:\s\d+\s\-\>\s(\d+)")
+HB_SCRIPT = "run_game.sh"
 
 
 class HuskyBenchGame(CodeGame):
@@ -16,7 +18,7 @@ class HuskyBenchGame(CodeGame):
         super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
         self.num_players: int = len(config["players"])
         self.run_cmd_round: str = (
-            f"python engine/main.py --port 8000 --players {self.num_players} "
+            f"python engine/main.py --port {HB_PORT} --players {self.num_players} "
             f"--sim --sim-rounds {self.game_config['sims_per_round']}"
         )
         for arg, val in self.game_config.get("args", {}).items():
@@ -26,24 +28,34 @@ class HuskyBenchGame(CodeGame):
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def execute_round(self, agents: list[Player]):
-        cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} 2>&1 &"
-        self.logger.debug(f"Starting game engine with command: {cmd}")
-        # Remove previous outputs, kill previous game if any, start engine, start server
-        script = ["rm -rf /app/output/*", "kill -9 $(lsof -ti :8000)", cmd, "sleep 0.5"]
+    def _construct_game_script(self, agents: list[Player], run_cmd_round: str, verbose: bool = False) -> None:
+        if verbose:
+            self.logger.debug(f"Starting game engine with command: {run_cmd_round}")
+        script = [
+            "!/bin/bash",
+            "rm -rf /app/output/*",  # Remove previous outputs
+            f"kill -9 $(lsof -ti :{HB_PORT})",  # Kill previous game if any
+            run_cmd_round,  # Start engine
+            "sleep 0.5",  # Give engine a moment to start
+        ]
         for agent in agents:
             # Start each agent in background, redirecting output to log file
-            cmd = f"cd /{agent.name} && python client/main.py --port 8000 > {self.log_env / f'{agent.name}.log'} 2>&1 &"
-            self.logger.info(f"Adding player {agent.name} with command: {cmd}")
+            cmd = (
+                f"cd /{agent.name} && python client/main.py --port {HB_PORT} "
+                f"> {self.log_env / f'{agent.name}.log'} 2>&1 &"
+            )
+            if verbose:
+                self.logger.debug(f"Starting agent {agent.name} with command: {cmd}")
             script.append(cmd)
         script.append("wait")
         script.append(f"mv /app/output/* {self.log_env}")  # Move logs to log directory
-        create_file_in_container(
-            container=self.environment, content="\n".join(script), dest_path="/testbed/run_game.sh"
-        )
+        return "\n".join(script)
 
-        # Run game
-        self.environment.execute("chmod +x run_game.sh; ./run_game.sh")
+    def execute_round(self, agents: list[Player]):
+        cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} 2>&1 &"
+        script = self._construct_game_script(agents, cmd, verbose=True)
+        create_file_in_container(container=self.environment, content=script, dest_path=f"/testbed/{HB_SCRIPT}")
+        self.environment.execute(f"chmod +x {HB_SCRIPT}; ./{HB_SCRIPT}")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         map_id_to_agent = {}
@@ -69,5 +81,9 @@ class HuskyBenchGame(CodeGame):
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        assets = agent.environment.execute("ls client")["output"]
+        if "main.py" not in assets:
+            return False, "There should be a `client/main.py` file"
+        if "player.py" not in assets:
+            return False, "There should be a `client/player.py` file"
         return True, None

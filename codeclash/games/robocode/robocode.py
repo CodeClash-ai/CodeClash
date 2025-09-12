@@ -108,12 +108,12 @@ robocode.battle.selectedRobots={selected_robots}
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if "robots" not in agent.environment.execute("ls")["output"]:
-            return False, "`robots/` directory not found in submission root"
+            return False, "There should be a `robots/` directory"
         if "custom" not in agent.environment.execute("ls robots")["output"]:
-            return False, "`robots/custom/` directory not found"
+            return False, "There should be a `robots/custom/` directory"
         if str(RC_FILE) not in agent.environment.execute("ls robots/custom")["output"]:
             return False, (
-                f"`{RC_FILE}` not found in `robots/custom/`. "
+                f"There should be a `robots/custom/{RC_FILE}` file. "
                 f"You can include additional files, but the primary tank logic must be in `robots/custom/{RC_FILE}`"
             )
         response = agent.environment.execute('javac -cp "libs/robocode.jar" robots/custom/*.java')

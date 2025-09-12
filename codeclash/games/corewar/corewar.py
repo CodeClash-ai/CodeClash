@@ -68,5 +68,5 @@ class CoreWarGame(CodeGame):
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if COREWAR_FILE not in agent.environment.execute("ls warriors")["output"]:
-            return False, f"`{COREWAR_FILE}` not found in `warriors/`"
+            return False, f"There should be a `warriors/{COREWAR_FILE}` file"
         return True, None
