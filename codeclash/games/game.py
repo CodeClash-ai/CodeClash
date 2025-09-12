@@ -1,4 +1,5 @@
 import os
+import random
 import subprocess
 import time
 from abc import ABC, abstractmethod
@@ -205,6 +206,7 @@ class CodeGame(ABC):
         Returns the log output, result output, and winner name. All bookkeeping should be
         handled by the tournament class.
         """
+        random.shuffle(agents)  # Shuffle to ensure fairness in case of positional advantages
         stats = RoundStats(round_num, agents)
         validated = []
         for agent in agents:
