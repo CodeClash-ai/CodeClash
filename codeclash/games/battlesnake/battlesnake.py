@@ -23,20 +23,29 @@ class BattleSnakeGame(CodeGame):
                     self.run_cmd_round += f" --{arg}"
             else:
                 self.run_cmd_round += f" --{arg} {val}"
+        self._failed_to_start_player = []
 
-    def _wait_for_ports(self, ports: list[int], timeout: float = 3.0) -> None:
-        """Wait for all ports to be available, up to timeout seconds."""
+    def _wait_for_ports(self, requested_ports: list[int], timeout: float = 3.0) -> list[int]:
+        """Wait for ports to be served, up to timeout seconds.
+
+        Returns:
+            List of ports that are actually served after timeout.
+        """
         start_time = time.time()
+        available_ports = set()
+
         while time.time() - start_time < timeout:
-            for port in ports:
-                result = self.environment.execute(f"nc -z 0.0.0.0 {port}")
-                if result["returncode"] != 0:
-                    break
-            else:
-                # All ports are ready (loop completed without break)
-                return
+            for port in set(requested_ports) - available_ports:
+                result = self.environment.execute(f"wget -S --spider --timeout=1 http://localhost:{port}/ 2>&1")
+                if result["returncode"] == 0 or "200 OK" in result["output"] or "HTTP/" in result["output"]:
+                    available_ports.add(port)
+
+            if len(available_ports) == len(requested_ports):
+                return list(available_ports)
 
             time.sleep(0.1)
+
+        return list(available_ports)
 
     def _run_single_simulation(self, cmd: str, idx: int) -> tuple[str, str]:
         """Run a single battlesnake simulation and return log and result outputs."""
@@ -50,17 +59,28 @@ class BattleSnakeGame(CodeGame):
     def execute_round(self, agents: list[Player]):
         self.logger.debug("Starting game servers")
         cmd = []
-        ports = []
+        player2port = {}
         for idx, agent in enumerate(agents):
             port = 8001 + idx
-            ports.append(port)
+            player2port[agent.name] = port
             # Surprisingly slow despite using &
             # Start server in background - just add & to run in background!
             self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
             cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
 
-        self.logger.debug(f"Waiting for ports: {ports}")
-        self._wait_for_ports(ports)
+        self.logger.debug(f"Waiting for ports: {player2port}")
+        available_ports = self._wait_for_ports(list(player2port.values()))
+
+        if not available_ports:
+            raise RuntimeError("All games failed to start")
+
+        if len(available_ports) == 1:
+            missing_ports = set(player2port.values()) - set(available_ports)
+            player = next(player for player, port in player2port.items() if port in missing_ports)
+            self.logger.warning(f"Player {player} failed to start")
+            self._failed_to_start_player.append(player)
+            return
+
         self.logger.debug("All ports are ready")
 
         try:
@@ -84,12 +104,20 @@ class BattleSnakeGame(CodeGame):
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         scores = {}
-        for idx in range(self.game_config["sims_per_round"]):
-            with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
-                lines = f.read().strip().split("\n")
-                results = json.loads(lines[-1])  # Get the last line which contains the game result
-                winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
-                scores[winner] = scores.get(winner, 0) + 1
+        available_players = [player.name for player in agents if player.name not in self._failed_to_start_player]
+        if len(available_players) > 1:
+            # We ran the game
+            for idx in range(self.game_config["sims_per_round"]):
+                with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
+                    lines = f.read().strip().split("\n")
+                    results = json.loads(lines[-1])  # Get the last line which contains the game result
+                    winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
+                    scores[winner] = scores.get(winner, 0) + 1
+        else:
+            self.logger.warning(f"Only one player ({available_players[0]}) started, giving them the win")
+            # We didn't run a game, so we just give the one player the win
+            available_player = available_players[0]
+            scores = {available_player: self.game_config["sims_per_round"]}
 
         winner = max(scores, key=scores.get)
         winner = RESULT_TIE if list(scores.values()).count(scores[winner]) > 1 else winner
