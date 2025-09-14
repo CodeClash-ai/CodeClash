@@ -62,12 +62,12 @@ class SinglePlayerTraining(AbstractTournament):
         game_context = self.get_game_context(agent_config, round=round)
         return get_agent(agent_config, game_context, environment)
 
-    def get_dummy_agent(self) -> Player:
+    def get_dummy_agent(self, player_config: dict) -> Player:
         """Create a dummy agent that does nothing."""
         return Dummy(
-            self.config["player"],
+            player_config,
             environment=self.game.get_environment(f"{self.game.game_id}.dummy"),
-            game_context=self.get_game_context(self.config["player"], round=0),
+            game_context=self.get_game_context(player_config, round=0),
         )
 
     def run(self):
@@ -128,11 +128,11 @@ class SinglePlayerTraining(AbstractTournament):
         """
         p1_config = self.config["player"].copy()
         p1_config["name"] = "p1"
-        p1 = self.get_dummy_agent()
+        p1 = self.get_dummy_agent(p1_config)
 
         p2_config = self.config["player"].copy()
         p2_config["name"] = "p2"
-        p2 = self.get_dummy_agent()
+        p2 = self.get_dummy_agent(p2_config)
         matrix = {
             p1_round: {p2_round: [] for p2_round in range(0, self.rounds + 1)} for p1_round in range(0, self.rounds + 1)
         }

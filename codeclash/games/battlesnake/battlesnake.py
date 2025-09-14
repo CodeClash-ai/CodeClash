@@ -70,6 +70,7 @@ class BattleSnakeGame(CodeGame):
         return output["output"]
 
     def execute_round(self, agents: list[Player]):
+        assert len(agents) > 1, "Battlesnake requires at least two players"
         self.logger.debug("Starting game servers")
         player2port = {}
         for idx, agent in enumerate(agents):
@@ -87,9 +88,9 @@ class BattleSnakeGame(CodeGame):
 
         if len(available_ports) == 1:
             missing_ports = set(player2port.values()) - set(available_ports)
-            player = next(player for player, port in player2port.items() if port in missing_ports)
-            self.logger.warning(f"Player {player} failed to start")
-            self._failed_to_start_player.append(player)
+            missing_player = next(player for player, port in player2port.items() if port in missing_ports)
+            self.logger.warning(f"Player {missing_player} failed to start")
+            self._failed_to_start_player.append(missing_player)
             return
 
         if len(available_ports) < len(agents):

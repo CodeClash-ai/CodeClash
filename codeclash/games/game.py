@@ -212,6 +212,9 @@ class CodeGame(ABC):
         Returns the log output, result output, and winner name. All bookkeeping should be
         handled by the tournament class.
         """
+        all_names = {agent.name for agent in agents}
+        assert len(all_names) == len(agents), "All agents must have unique names"
+
         random.shuffle(agents)  # Shuffle to ensure fairness in case of positional advantages
         stats = RoundStats(round_num, agents)
         validated: list[Player] = []
