@@ -1,4 +1,5 @@
 import json
+import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -46,10 +47,20 @@ class BattleSnakeGame(CodeGame):
 
         return list(available_ports)
 
-    def _run_single_simulation(self, cmd: str, idx: int) -> str:
+    def _run_single_simulation(self, player2port: dict[str, int], idx: int) -> str:
         """Run a single battlesnake simulation and return log and result outputs."""
+        # Build command with player URLs in randomized order
+        players = list(player2port.items())
+        random.shuffle(players)
+
+        cmd_args = []
+        for player_name, port in players:
+            cmd_args.append(f"--url http://0.0.0.0:{port} -n {player_name}")
+
+        cmd = self.run_cmd_round + " " + " ".join(cmd_args) + f" -o {self.log_env / f'sim_{idx}.jsonl'}"
+
         output = self.environment.execute(
-            cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
+            cmd,
             cwd=f"{self.environment.config.cwd}/game",
         )
         if output["returncode"] != 0:
@@ -60,7 +71,6 @@ class BattleSnakeGame(CodeGame):
 
     def execute_round(self, agents: list[Player]):
         self.logger.debug("Starting game servers")
-        cmd = []
         player2port = {}
         for idx, agent in enumerate(agents):
             port = 8001 + idx
@@ -68,7 +78,6 @@ class BattleSnakeGame(CodeGame):
             # Surprisingly slow despite using &
             # Start server in background - just add & to run in background!
             self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
-            cmd.append(f"--url http://0.0.0.0:{port} -n {agent.name}")
 
         self.logger.debug(f"Waiting for ports: {player2port}")
         available_ports = self._wait_for_ports(list(player2port.values()))
@@ -83,17 +92,19 @@ class BattleSnakeGame(CodeGame):
             self._failed_to_start_player.append(player)
             return
 
+        if len(available_ports) < len(agents):
+            raise RuntimeError(f"Only {len(available_ports)} players started: {available_ports}")
+
         self.logger.debug("All ports are ready")
 
         try:
-            cmd = self.run_cmd_round + " " + " ".join(cmd)
-            self.logger.info(f"Running game: {cmd}")
+            self.logger.info(f"Running game with players: {list(player2port.keys())}")
 
             # Use ThreadPoolExecutor for parallel execution
             with ThreadPoolExecutor(20) as executor:
                 # Submit all simulations to the thread pool
                 futures = [
-                    executor.submit(self._run_single_simulation, cmd, idx)
+                    executor.submit(self._run_single_simulation, player2port, idx)
                     for idx in range(self.game_config["sims_per_round"])
                 ]
 
