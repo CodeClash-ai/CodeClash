@@ -117,6 +117,7 @@
                             {% for trajectory in trajectories_by_round.get(1, []) %}
                                 <th>Player {{ trajectory.player_id }} Steps</th>
                             {% endfor %}
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,6 +159,11 @@
                                         <td><span class="no-result">-</span></td>
                                     {% endfor %}
                                 {% endif %}
+                                <td>
+                                    <button class="nav-to-round-btn" onclick="scrollToRound({{ round_data.round_num }})" title="Jump to Round {{ round_data.round_num }} details">
+                                        <span class="nav-arrow">↓</span>
+                                    </button>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -171,6 +177,9 @@
 
             {% for round_data in metadata.rounds %}
                 {% set round_num = round_data.round_num %}
+
+                <!-- Round Anchor for Navigation -->
+                <div id="round-{{ round_num }}" class="round-anchor"></div>
 
                 <!-- Player Trajectories for this round -->
                 {% if round_num in trajectories_by_round %}
@@ -599,7 +608,7 @@
                 modes: ['view', 'tree'],
                 name: 'metadata'
             });
-            metadataEditor.set({{ metadata.results | tojson }});
+            metadataEditor.set({{ metadata.results | tojson | safe }});
 
             // Initialize round results JSON editors
             {% for round_data in metadata.rounds %}
@@ -609,7 +618,7 @@
                     modes: ['view', 'tree'],
                     name: 'round_{{ round_data.round_num }}_results'
                 });
-                round{{ round_data.round_num }}Editor.set({{ round_data.results | tojson }});
+                round{{ round_data.round_num }}Editor.set({{ round_data.results | tojson | safe }});
                 {% endif %}
             {% endfor %}
         });
