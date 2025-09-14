@@ -12,6 +12,7 @@ from typing import Any
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 
+from codeclash.ratings.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
 
 # Global variable to store the directory to search for logs
@@ -206,7 +207,7 @@ def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any
     processed["scores"] = scores
     processed["sorted_scores"] = list(scores.items())
 
-    # Calculate winner percentage
+    # Calculate winner percentage and p-value
     winner = round_results.get("winner")
     if winner and scores:
         total_games = sum(scores.values())
@@ -218,10 +219,16 @@ def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any
                 processed["winner_percentage"] = win_percentage
             else:
                 processed["winner_percentage"] = None  # No percentage for ties
+
+            # Calculate p-value for statistical significance
+            p_value = calculate_p_value(scores)
+            processed["p_value"] = round(p_value, 2)
         else:
             processed["winner_percentage"] = None
+            processed["p_value"] = None
     else:
         processed["winner_percentage"] = None
+        processed["p_value"] = None
 
     return processed
 

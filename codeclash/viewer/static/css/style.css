@@ -299,6 +299,14 @@ body {
   font-weight: 500;
 }
 
+.p-value {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .score-breakdown {
   display: flex;
   flex-wrap: wrap;

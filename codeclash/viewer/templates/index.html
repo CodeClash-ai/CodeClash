@@ -129,6 +129,9 @@
                                         {% if round_data.results.winner_percentage %}
                                             <span class="winner-percentage">({{ round_data.results.winner_percentage }}%)</span>
                                         {% endif %}
+                                        {% if round_data.results.p_value is not none %}
+                                            <span class="p-value">(p={{ "%.2f"|format(round_data.results.p_value) }})</span>
+                                        {% endif %}
                                     {% else %}
                                         <span class="no-result">-</span>
                                     {% endif %}
@@ -462,13 +465,15 @@
                                 {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
                                 {%- set ties = round_data.results.scores.get('Tie', 0) -%}
                                 {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
-                                - Winner: {{ winner }} with {{ win_percentage }}% (
+                                - Winner: {{ winner }} with {{ win_percentage }}%
+                                {%- if round_data.results.p_value is not none %} (p={{ "%.2f"|format(round_data.results.p_value) }}){% endif %} (
                                 {%- for player, score in round_data.results.scores.items() -%}
                                     {{- score -}}
                                     {%- if not loop.last -%}-{%- endif -%}
                                 {%- endfor -%})
                             {%- else -%}
-                                - Winner: Tie (
+                                - Winner: Tie
+                                {%- if round_data.results.p_value is not none %} (p={{ "%.2f"|format(round_data.results.p_value) }}){% endif %} (
                                 {%- for player, score in round_data.results.scores.items() -%}
                                     {{- score -}}
                                     {%- if not loop.last -%}-{%- endif -%}
