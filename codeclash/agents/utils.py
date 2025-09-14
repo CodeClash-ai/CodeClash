@@ -28,11 +28,11 @@ class GameContext(BaseModel):
     working_dir: str
 
     def _render_prompt_templates(self) -> dict:
-        context = self.dict()
+        context = self.model_dump()
         return {key: Template(template_str).render(**context) for key, template_str in self.prompts.items()}
 
     def to_template_vars(self) -> dict[str, str]:
         """Convert the GameContext to a dictionary for rendering prompts in the agent"""
-        out = self.dict() | self._render_prompt_templates()
+        out = self.model_dump() | self._render_prompt_templates()
         out.pop("prompts")
         return out
