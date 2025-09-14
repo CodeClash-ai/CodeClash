@@ -129,6 +129,8 @@ class BattleSnakeGame(CodeGame):
                         scores[winner] = scores.get(winner, 0) + 1
                 except FileNotFoundError:
                     self.logger.warning(f"Simulation {idx} not found, skipping")
+                except json.JSONDecodeError:
+                    self.logger.warning(f"Simulation {idx} is not a valid JSON, skipping")
         else:
             self.logger.warning(f"Only one player ({available_players[0]}) started, giving them the win")
             # We didn't run a game, so we just give the one player the win
