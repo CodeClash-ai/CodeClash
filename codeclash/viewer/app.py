@@ -36,7 +36,7 @@ def get_round_count_from_metadata(log_dir: Path) -> int | None:
 
     try:
         metadata = json.loads(metadata_file.read_text())
-        return metadata.get("config", {}).get("game", {}).get("rounds")
+        return metadata.get("config", {}).get("tournament", {}).get("rounds")
     except (json.JSONDecodeError, KeyError):
         return None
 
