@@ -47,9 +47,30 @@
             </div>
         </section>
 
-        <!-- Overall Results Section -->
-        <section class="results-section">
-            <h2>📊 Game Results</h2>
+        <!-- Setup Section -->
+        <section class="setup-section">
+            <h2>⚙️ Setup</h2>
+
+            <!-- Agent Information -->
+            <div class="agent-info">
+                {% if metadata.agent_info %}
+                    <div class="agents-grid">
+                        {% for agent in metadata.agent_info %}
+                            <div class="agent-card">
+                                <div class="agent-name">{{ agent.name }}</div>
+                                {% if agent.model_name %}
+                                    <div class="agent-model">Model: {{ agent.model_name }}</div>
+                                {% endif %}
+                                {% if agent.agent_class %}
+                                    <div class="agent-class">Class: {{ agent.agent_class }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No agent information available</p>
+                {% endif %}
+            </div>
 
             <!-- Metadata Foldout -->
             <details class="foldout">
@@ -82,9 +103,68 @@
             </details>
         </section>
 
+        <!-- Overview Section -->
+        <section class="overview-section">
+            <h2>📊 Overview</h2>
+
+            <div class="overview-summary">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Round</th>
+                            <th>Winner</th>
+                            <th>Results</th>
+                            {% for trajectory in trajectories_by_round.get(1, []) %}
+                                <th>Player {{ trajectory.player_id }} Steps</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for round_data in metadata.rounds %}
+                            <tr>
+                                <td>{{ round_data.round_num }}</td>
+                                <td>
+                                    {% if round_data.results and round_data.results.winner %}
+                                        <span class="winner-badge">{{ round_data.results.winner }}</span>
+                                        {% if round_data.results.winner_percentage %}
+                                            <span class="winner-percentage">({{ round_data.results.winner_percentage }}%)</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="no-result">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if round_data.results and round_data.results.sorted_scores %}
+                                        <div class="score-breakdown">
+                                            {% for player, score in round_data.results.sorted_scores %}
+                                                <span class="score-item">{{ player }}: {{ score }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="no-result">-</span>
+                                    {% endif %}
+                                </td>
+                                {% if trajectories_by_round.get(round_data.round_num) %}
+                                    {% for trajectory in trajectories_by_round[round_data.round_num] %}
+                                        <td>
+                                            <span class="steps-count">{{ trajectory.api_calls }}</span>
+                                        </td>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for trajectory in trajectories_by_round.get(1, []) %}
+                                        <td><span class="no-result">-</span></td>
+                                    {% endfor %}
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- Rounds Section -->
         <section class="rounds-section">
-            <h2>🎯 Game Rounds</h2>
+            <h2>🎯 Detailed Rounds</h2>
 
             {% for round_data in metadata.rounds %}
                 {% set round_num = round_data.round_num %}
@@ -343,27 +423,18 @@
                 <details class="foldout round-foldout">
                     <summary>
                         🏆 Round {{ round_num }} Results
-                        {% if round_data.results.winner and round_data.results.scores %}
-                            {%- set total_games = round_data.results.scores.values() | sum -%}
-                            {%- set winner = round_data.results.winner -%}
-                            {%- if winner != 'Tie' -%}
-                                {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
-                                {%- set ties = round_data.results.scores.get('Tie', 0) -%}
-                                {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
-                                - Winner: {{ winner }} with {{ win_percentage }}% (
-                                {%- for player, score in round_data.results.scores.items() -%}
-                                    {{- score -}}
-                                    {%- if not loop.last -%}-{%- endif -%}
-                                {%- endfor -%})
-                            {%- else -%}
-                                - Winner: Tie (
-                                {%- for player, score in round_data.results.scores.items() -%}
-                                    {{- score -}}
-                                    {%- if not loop.last -%}-{%- endif -%}
-                                {%- endfor -%})
-                            {%- endif -%}
-                        {% elif round_data.results.winner %}
+                        {% if round_data.results.winner %}
                             - Winner: {{ round_data.results.winner }}
+                            {% if round_data.results.winner_percentage %}
+                                with {{ round_data.results.winner_percentage }}%
+                            {% endif %}
+                            {% if round_data.results.sorted_scores %}
+                                (
+                                {%- for player, score in round_data.results.sorted_scores -%}
+                                    {{- score -}}
+                                    {%- if not loop.last -%}-{%- endif -%}
+                                {%- endfor -%})
+                            {% endif %}
                         {% endif %}
                     </summary>
                     <div class="log-content">

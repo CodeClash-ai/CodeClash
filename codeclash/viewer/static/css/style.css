@@ -176,17 +176,152 @@ body {
 }
 
 /* Sections */
-.results-section,
+.setup-section,
+.overview-section,
 .rounds-section {
   margin-bottom: 3rem;
 }
 
-.results-section h2,
+.setup-section h2,
+.overview-section h2,
 .rounds-section h2 {
   color: var(--accent-color);
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
+}
+
+/* Agent Information */
+.agent-info {
+  margin-bottom: 2rem;
+}
+
+.agent-info h3 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.agent-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.agent-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.agent-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.agent-model,
+.agent-class {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.agent-model {
+  font-weight: 500;
+}
+
+/* Overview Table */
+.overview-summary {
+  margin-bottom: 2rem;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-secondary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+.results-table th,
+.results-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.results-table th {
+  background-color: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+.results-table tr:hover {
+  background-color: var(--bg-primary);
+}
+
+.winner-badge {
+  display: inline-block;
+  background-color: var(--success-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.winner-percentage {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.score-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.score-item {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.steps-count {
+  font-weight: 500;
+  color: var(--accent-color);
+}
+
+.no-result {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Metadata display */
@@ -584,6 +719,24 @@ details summary {
 
   .main-content {
     padding: 1rem 0.5rem;
+  }
+
+  .agents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-table {
+    font-size: 0.8rem;
+  }
+
+  .results-table th,
+  .results-table td {
+    padding: 0.5rem;
+  }
+
+  .score-breakdown {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 

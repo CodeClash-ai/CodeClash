@@ -16,6 +16,15 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 LOG_BASE_DIR = Path.cwd() / "logs"
 
 
+@dataclass
+class AgentInfo:
+    """Information about a single agent"""
+
+    name: str
+    model_name: str | None = None
+    agent_class: str | None = None
+
+
 def set_log_base_directory(directory: str | Path):
     """Set the logs directory directly"""
     global LOG_BASE_DIR
@@ -71,6 +80,33 @@ def get_models_from_metadata(log_dir: Path) -> list[str]:
         return models
     except (json.JSONDecodeError, KeyError, AttributeError):
         return []
+
+
+def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
+    """Extract detailed agent information from metadata"""
+    agents = []
+    players_config = metadata.get("config", {}).get("players", {})
+
+    # Handle both list and dict formats
+    if isinstance(players_config, list):
+        # If players is a list, iterate through each player
+        for i, player_config in enumerate(players_config):
+            if isinstance(player_config, dict):
+                name = f"p{i + 1}"  # Default naming p1, p2, etc.
+                config = player_config.get("config", {})
+                model_name = config.get("model", {}).get("model_name")
+                agent_class = config.get("agent_class")
+                agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
+    elif isinstance(players_config, dict):
+        # If players is a dict, iterate through player keys (p1, p2, etc.)
+        for player_key, player_config in sorted(players_config.items()):
+            if isinstance(player_config, dict):
+                config = player_config.get("config", {})
+                model_name = config.get("model", {}).get("model_name")
+                agent_class = config.get("agent_class")
+                agents.append(AgentInfo(name=player_key, model_name=model_name, agent_class=agent_class))
+
+    return agents
 
 
 def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
@@ -152,6 +188,40 @@ class GameMetadata:
     main_log_path: str
     metadata_file_path: str
     rounds: list[dict[str, Any]]
+    agent_info: list[AgentInfo] | None = None
+
+
+def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Process round results to add computed fields and sort scores"""
+    if not round_results or not round_results.get("scores"):
+        return round_results
+
+    # Create a copy to avoid modifying original data
+    processed = round_results.copy()
+
+    # Sort scores alphabetically by key
+    scores = dict(sorted(round_results["scores"].items()))
+    processed["scores"] = scores
+    processed["sorted_scores"] = list(scores.items())
+
+    # Calculate winner percentage
+    winner = round_results.get("winner")
+    if winner and scores:
+        total_games = sum(scores.values())
+        if total_games > 0:
+            if winner != "Tie":
+                winner_wins = scores.get(winner, 0)
+                ties = scores.get("Tie", 0)
+                win_percentage = round(((winner_wins + 0.5 * ties) / total_games) * 100, 1)
+                processed["winner_percentage"] = win_percentage
+            else:
+                processed["winner_percentage"] = None  # No percentage for ties
+        else:
+            processed["winner_percentage"] = None
+    else:
+        processed["winner_percentage"] = None
+
+    return processed
 
 
 @dataclass
@@ -225,8 +295,12 @@ class LogParser:
                 round_results = None
                 if results_file.exists():
                     round_results = json.loads(results_file.read_text())
+                    round_results = process_round_results(round_results)
 
                 rounds.append({"round_num": round_num, "sim_logs": sim_logs, "results": round_results})
+
+        # Extract agent information
+        agent_info = get_agent_info_from_metadata(results) if results else []
 
         return GameMetadata(
             results=results,
@@ -234,6 +308,7 @@ class LogParser:
             main_log_path=main_log_path,
             metadata_file_path=metadata_file_path,
             rounds=rounds,
+            agent_info=agent_info,
         )
 
     def parse_trajectory(self, player_id: int, round_num: int) -> TrajectoryInfo | None:
