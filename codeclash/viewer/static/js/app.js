@@ -224,6 +224,29 @@ function collapseTrajectoryMessages(clickedElement) {
   }
 }
 
+// Round navigation functionality
+function scrollToRound(roundNum) {
+  const roundAnchor = document.getElementById(`round-${roundNum}`);
+  if (roundAnchor) {
+    // Smooth scroll to the round section
+    roundAnchor.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    // Add a brief highlight effect
+    const roundSection = roundAnchor.nextElementSibling;
+    if (roundSection) {
+      roundSection.classList.add("highlight-round");
+      setTimeout(() => {
+        roundSection.classList.remove("highlight-round");
+      }, 2000);
+    }
+  } else {
+    console.warn(`Round ${roundNum} anchor not found`);
+  }
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeTheme();

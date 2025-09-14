@@ -948,3 +948,71 @@ summary:focus {
     align-self: flex-start;
   }
 }
+
+/* Navigation button styles */
+.nav-to-round-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.nav-to-round-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(1px);
+}
+
+.nav-to-round-btn:active {
+  transform: translateY(2px);
+}
+
+.nav-arrow {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Round anchor positioning */
+.round-anchor {
+  position: relative;
+  top: -80px; /* Offset for fixed header */
+  visibility: hidden;
+}
+
+/* Highlight effect for jumped-to rounds */
+.highlight-round {
+  animation: roundHighlight 2s ease-in-out;
+}
+
+@keyframes roundHighlight {
+  0% {
+    background-color: var(--accent-color);
+    opacity: 0.1;
+  }
+  50% {
+    background-color: var(--accent-color);
+    opacity: 0.2;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
+/* Make table rows clickable-looking on hover */
+.results-table tbody tr:hover {
+  background-color: var(--bg-secondary);
+  cursor: default;
+}
+
+.results-table tbody tr:hover .nav-to-round-btn {
+  transform: scale(1.1);
+}
