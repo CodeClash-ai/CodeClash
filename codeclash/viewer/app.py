@@ -237,7 +237,7 @@ def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any
 class TrajectoryInfo:
     """Information about a single trajectory"""
 
-    player_id: int
+    player_id: str  # Changed from int to str to support player names
     round_num: int
     api_calls: int
     cost: float
@@ -322,16 +322,16 @@ class LogParser:
             agent_info=agent_info,
         )
 
-    def parse_trajectory(self, player_id: int, round_num: int) -> TrajectoryInfo | None:
+    def parse_trajectory(self, player_name: str, round_num: int) -> TrajectoryInfo | None:
         """Parse a specific trajectory file"""
-        # Look in players/$player_id/ directory
-        player_dir = self.log_dir / "players" / f"p{player_id}"
+        # Look in players/$player_name/ directory
+        player_dir = self.log_dir / "players" / player_name
         if not player_dir.exists():
             return None
 
         # Try both .json and .log extensions
         for ext in [".json", ".log"]:
-            traj_file = player_dir / f"p{player_id}_r{round_num}.traj{ext}"
+            traj_file = player_dir / f"{player_name}_r{round_num}.traj{ext}"
             if traj_file.exists():
                 try:
                     data = json.loads(traj_file.read_text())
@@ -340,7 +340,6 @@ class LogParser:
                     model_stats = info.get("model_stats", {})
 
                     # Get diff data from player metadata if available
-                    player_name = f"p{player_id}"
                     diff = None
                     incremental_diff = None
                     modified_files = None
@@ -362,7 +361,7 @@ class LogParser:
                         )
 
                     return TrajectoryInfo(
-                        player_id=player_id,
+                        player_id=player_name,  # Now stores player name instead of numeric ID
                         round_num=round_num,
                         api_calls=model_stats.get("api_calls", 0),
                         cost=model_stats.get("instance_cost", 0.0),
@@ -383,7 +382,7 @@ class LogParser:
         return None
 
     def get_available_trajectories(self) -> list[tuple]:
-        """Get list of available trajectory files as (player_id, round_num) tuples"""
+        """Get list of available trajectory files as (player_name, round_num) tuples"""
         trajectories = []
         players_dir = self.log_dir / "players"
 
@@ -395,22 +394,18 @@ class LogParser:
             if not player_dir.is_dir():
                 continue
 
-            try:
-                # Extract player_id from directory name (e.g., "p1" -> 1)
-                player_id = int(player_dir.name[1:])  # Remove 'p' prefix
-            except (ValueError, IndexError):
-                continue
+            player_name = player_dir.name
 
             # Find trajectory files in this player's directory
-            for traj_file in player_dir.glob("p*_r*.traj.*"):
-                # Extract round from filename like p1_r2.traj.json
+            for traj_file in player_dir.glob("*_r*.traj.*"):
+                # Extract round from filename like gpt5_r2.traj.json
                 parts = traj_file.stem.split(".")  # Remove extension
                 if parts:
-                    name_part = parts[0]  # p1_r2
+                    name_part = parts[0]  # gpt5_r2
                     try:
                         _, round_part = name_part.split("_")
                         round_num = int(round_part[1:])  # Remove 'r' prefix
-                        trajectories.append((player_id, round_num))
+                        trajectories.append((player_name, round_num))
                     except (ValueError, IndexError):
                         continue
 
@@ -465,10 +460,10 @@ def index():
 
     # Group trajectories by round
     trajectories_by_round = {}
-    for player_id, round_num in available_trajectories:
+    for player_name, round_num in available_trajectories:
         if round_num not in trajectories_by_round:
             trajectories_by_round[round_num] = []
-        trajectory = parser.parse_trajectory(player_id, round_num)
+        trajectory = parser.parse_trajectory(player_name, round_num)
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
 
@@ -493,8 +488,8 @@ def game_picker():
     return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir))
 
 
-@app.route("/trajectory/<int:player_id>/<int:round_num>")
-def trajectory_detail(player_id: int, round_num: int):
+@app.route("/trajectory/<player_name>/<int:round_num>")
+def trajectory_detail(player_name: str, round_num: int):
     """Get detailed trajectory data"""
     selected_folder = request.args.get("folder")
     if not selected_folder:
@@ -502,7 +497,7 @@ def trajectory_detail(player_id: int, round_num: int):
 
     logs_dir = LOG_BASE_DIR
     parser = LogParser(logs_dir / selected_folder)
-    trajectory = parser.parse_trajectory(player_id, round_num)
+    trajectory = parser.parse_trajectory(player_name, round_num)
 
     if not trajectory:
         return jsonify({"error": "Trajectory not found"})
