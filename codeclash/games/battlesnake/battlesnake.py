@@ -8,7 +8,6 @@ from tqdm.auto import tqdm
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code
 
 
 class BattleSnakeGame(CodeGame):
@@ -47,14 +46,17 @@ class BattleSnakeGame(CodeGame):
 
         return list(available_ports)
 
-    def _run_single_simulation(self, cmd: str, idx: int) -> tuple[str, str]:
+    def _run_single_simulation(self, cmd: str, idx: int) -> str:
         """Run a single battlesnake simulation and return log and result outputs."""
-        assert_zero_exit_code(
-            self.environment.execute(
-                cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
-                cwd=f"{self.environment.config.cwd}/game",
-            )
+        output = self.environment.execute(
+            cmd + f" -o {self.log_env / f'sim_{idx}.jsonl'}",
+            cwd=f"{self.environment.config.cwd}/game",
         )
+        if output["returncode"] != 0:
+            self.logger.warning(
+                f"Battlesnake simulation failed with exit code {output['returncode']}:\n{output['output']}"
+            )
+        return output["output"]
 
     def execute_round(self, agents: list[Player]):
         self.logger.debug("Starting game servers")
@@ -108,11 +110,14 @@ class BattleSnakeGame(CodeGame):
         if len(available_players) > 1:
             # We ran the game
             for idx in range(self.game_config["sims_per_round"]):
-                with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
-                    lines = f.read().strip().split("\n")
-                    results = json.loads(lines[-1])  # Get the last line which contains the game result
-                    winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
-                    scores[winner] = scores.get(winner, 0) + 1
+                try:
+                    with open(self.log_round(round_num) / f"sim_{idx}.jsonl") as f:
+                        lines = f.read().strip().split("\n")
+                        results = json.loads(lines[-1])  # Get the last line which contains the game result
+                        winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
+                        scores[winner] = scores.get(winner, 0) + 1
+                except FileNotFoundError:
+                    self.logger.warning(f"Simulation {idx} not found, skipping")
         else:
             self.logger.warning(f"Only one player ({available_players[0]}) started, giving them the win")
             # We didn't run a game, so we just give the one player the win
