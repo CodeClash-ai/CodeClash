@@ -341,7 +341,31 @@
                 <!-- Round Results (if available) -->
                 {% if round_data.results %}
                 <details class="foldout round-foldout">
-                    <summary>🏆 Round {{ round_num }} Results</summary>
+                    <summary>
+                        🏆 Round {{ round_num }} Results
+                        {% if round_data.results.winner and round_data.results.scores %}
+                            {%- set total_games = round_data.results.scores.values() | sum -%}
+                            {%- set winner = round_data.results.winner -%}
+                            {%- if winner != 'Tie' -%}
+                                {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
+                                {%- set ties = round_data.results.scores.get('Tie', 0) -%}
+                                {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
+                                - Winner: {{ winner }} with {{ win_percentage }}% (
+                                {%- for player, score in round_data.results.scores.items() -%}
+                                    {{- score -}}
+                                    {%- if not loop.last -%}-{%- endif -%}
+                                {%- endfor -%})
+                            {%- else -%}
+                                - Winner: Tie (
+                                {%- for player, score in round_data.results.scores.items() -%}
+                                    {{- score -}}
+                                    {%- if not loop.last -%}-{%- endif -%}
+                                {%- endfor -%})
+                            {%- endif -%}
+                        {% elif round_data.results.winner %}
+                            - Winner: {{ round_data.results.winner }}
+                        {% endif %}
+                    </summary>
                     <div class="log-content">
                         <div id="round-{{ round_num }}-results-jsoneditor" class="json-viewer"></div>
                     </div>
