@@ -330,7 +330,23 @@
                             </details>
 
                             <!-- Diff Foldout inside the same container -->
-                            {% if trajectory.diff and trajectory.diff.strip() %}
+                            {% if trajectory.diff_by_files and trajectory.diff_by_files %}
+                            <details class="trajectory-messages-foldout">
+                                <summary>📝 Diff (Full) ({{ trajectory.diff_by_files|length }} files)</summary>
+                                <div class="trajectory-content">
+                                    <div class="log-content">
+                                        {% for file_path, file_diff in trajectory.diff_by_files.items() %}
+                                        <details class="foldout">
+                                            <summary>{{ file_path }}</summary>
+                                            <div class="log-content">
+                                                <pre><code>{{ file_diff }}</code></pre>
+                                            </div>
+                                        </details>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </details>
+                            {% elif trajectory.diff and trajectory.diff.strip() %}
                             <details class="trajectory-messages-foldout">
                                 <summary>📝 Diff (Full)</summary>
                                 <div class="trajectory-content">
@@ -342,7 +358,23 @@
                             {% endif %}
 
                             <!-- Incremental Diff Foldout inside the same container -->
-                            {% if trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
+                            {% if trajectory.incremental_diff_by_files and trajectory.incremental_diff_by_files %}
+                            <details class="trajectory-messages-foldout">
+                                <summary>🔄 Incremental Diff ({{ trajectory.incremental_diff_by_files|length }} files)</summary>
+                                <div class="trajectory-content">
+                                    <div class="log-content">
+                                        {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
+                                        <details class="foldout">
+                                            <summary>{{ file_path }}</summary>
+                                            <div class="log-content">
+                                                <pre><code>{{ file_diff }}</code></pre>
+                                            </div>
+                                        </details>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </details>
+                            {% elif trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
                             <details class="trajectory-messages-foldout">
                                 <summary>🔄 Incremental Diff</summary>
                                 <div class="trajectory-content">
@@ -423,14 +455,21 @@
                 <details class="foldout round-foldout">
                     <summary>
                         🏆 Round {{ round_num }} Results
-                        {% if round_data.results.winner %}
-                            - Winner: {{ round_data.results.winner }}
-                            {% if round_data.results.winner_percentage %}
-                                with {{ round_data.results.winner_percentage }}%
-                            {% endif %}
-                            {% if round_data.results.sorted_scores %}
-                                (
-                                {%- for player, score in round_data.results.sorted_scores -%}
+                        {% if round_data.results.winner and round_data.results.scores %}
+                            {%- set total_games = round_data.results.scores.values() | sum -%}
+                            {%- set winner = round_data.results.winner -%}
+                            {%- if winner != 'Tie' -%}
+                                {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
+                                {%- set ties = round_data.results.scores.get('Tie', 0) -%}
+                                {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
+                                - Winner: {{ winner }} with {{ win_percentage }}% (
+                                {%- for player, score in round_data.results.scores.items() -%}
+                                    {{- score -}}
+                                    {%- if not loop.last -%}-{%- endif -%}
+                                {%- endfor -%})
+                            {%- else -%}
+                                - Winner: Tie (
+                                {%- for player, score in round_data.results.scores.items() -%}
                                     {{- score -}}
                                     {%- if not loop.last -%}-{%- endif -%}
                                 {%- endfor -%})

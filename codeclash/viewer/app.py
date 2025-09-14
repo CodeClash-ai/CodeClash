@@ -12,6 +12,8 @@ from typing import Any
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 
+from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
+
 # Global variable to store the directory to search for logs
 LOG_BASE_DIR = Path.cwd() / "logs"
 
@@ -240,6 +242,8 @@ class TrajectoryInfo:
     incremental_diff: str | None = None
     modified_files: dict[str, str] | None = None
     trajectory_file_path: str | None = None
+    diff_by_files: dict[str, str] | None = None
+    incremental_diff_by_files: dict[str, str] | None = None
 
 
 class LogParser:
@@ -333,12 +337,22 @@ class LogParser:
                     diff = None
                     incremental_diff = None
                     modified_files = None
+                    diff_by_files = {}
+                    incremental_diff_by_files = {}
 
                     if player_name in self._player_metadata:
                         player_meta = self._player_metadata[player_name]
                         diff = player_meta.get("diff", {}).get(str(round_num), "")
                         incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
                         modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
+
+                        # Filter and split diffs by files
+                        filtered_diff = filter_git_diff(diff) if diff else ""
+                        filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+                        diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+                        incremental_diff_by_files = (
+                            split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+                        )
 
                     return TrajectoryInfo(
                         player_id=player_id,
@@ -353,6 +367,8 @@ class LogParser:
                         incremental_diff=incremental_diff,
                         modified_files=modified_files,
                         trajectory_file_path=str(traj_file),
+                        diff_by_files=diff_by_files,
+                        incremental_diff_by_files=incremental_diff_by_files,
                     )
                 except (json.JSONDecodeError, KeyError) as e:
                     print(f"Error parsing {traj_file}: {e}")
