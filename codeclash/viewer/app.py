@@ -357,28 +357,26 @@ class LogParser:
                     info = data.get("info", {})
                     model_stats = info.get("model_stats", {})
 
-                    # Get diff data from player metadata and changes file
+                    # Get diff data from changes file (preferred) or fall back to metadata
                     diff = None
                     incremental_diff = None
                     modified_files = None
                     diff_by_files = {}
                     incremental_diff_by_files = {}
 
-                    if player_name in self._player_metadata:
-                        player_meta = self._player_metadata[player_name]
-                        diff = player_meta.get("diff", {}).get(str(round_num), "")
-
-                    # Try to read incremental changes from separate JSON file
+                    # Try to read all changes from separate JSON file first
                     changes_file = player_dir / f"changes_r{round_num}.json"
                     if changes_file.exists():
                         try:
                             changes_data = json.loads(changes_file.read_text())
+                            diff = changes_data.get("full_diff", "")
                             incremental_diff = changes_data.get("incremental_diff", "")
                             modified_files = changes_data.get("modified_files", {})
                         except (json.JSONDecodeError, KeyError):
                             # Fall back to metadata if changes file is corrupted
                             if player_name in self._player_metadata:
                                 player_meta = self._player_metadata[player_name]
+                                diff = player_meta.get("diff", {}).get(str(round_num), "")
                                 incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
                                 modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
                     else:
@@ -386,6 +384,7 @@ class LogParser:
                         # Fall back to metadata if changes file doesn't exist
                         if player_name in self._player_metadata:
                             player_meta = self._player_metadata[player_name]
+                            diff = player_meta.get("diff", {}).get(str(round_num), "")
                             incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
                             modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
 
