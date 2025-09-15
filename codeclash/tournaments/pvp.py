@@ -80,6 +80,8 @@ class PvpTournament(AbstractTournament):
         results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
         results_file.write_text(json.dumps(stats.to_dict(), indent=2))
 
+        self._save()
+
     def run_edit_phase(self, round_num: int) -> None:
         """Execute a single training round."""
         # Copy log to agent environments
@@ -100,6 +102,7 @@ class PvpTournament(AbstractTournament):
                     self.logger.critical(f"Agent execution failed: {e}", exc_info=True)
                     raise
 
+        self._save()
         self.logger.info("Round completed.")
 
     def run_agent(self, agent: Player, round_num: int) -> None:
@@ -108,7 +111,10 @@ class PvpTournament(AbstractTournament):
         agent.run()
         agent.post_run_hook(round=round_num)
 
+    def _save(self) -> None:
+        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
+
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
-        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
+        self._save()
         self.game.end(self.cleanup_on_end)

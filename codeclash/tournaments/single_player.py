@@ -102,6 +102,8 @@ class SinglePlayerTraining(AbstractTournament):
         mirror_agent_state = round_num - 1 if round_num > 1 else 0
         self.set_mirror_state_to_round(mirror_agent_state)
 
+        self._save()
+
         self.logger.info("Round completed.")
 
     def run_main_agent(self, round_num: int):
@@ -116,10 +118,12 @@ class SinglePlayerTraining(AbstractTournament):
         full_diff = filter_git_diff(full_diff)
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
+    def _save(self) -> None:
+        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
+
     def end(self):
         """Clean up game resources."""
-        with open(self.local_output_dir / "metadata.json", "w") as f:
-            json.dump(self.get_metadata(), fp=f, indent=2)
+        self._save()
         self.game.end(self.cleanup_on_end)
 
     def evaluate(self, n_repetitions: int = 3) -> None:
