@@ -39,10 +39,11 @@ class Player(ABC):
         self._metadata = {
             "name": self.name,
             "player_unique_id": self._player_unique_id,
-            "diff": {0: ""},  # mapping round -> diff
             "created_timestamp": int(time.time()),
             "config": self.config,
             "initial_commit_hash": self._get_commit_hash(),
+            "branch_name": self._branch_name,
+            "round_tags": {},  # mapping round -> tag
         }
 
         if self.push:
@@ -64,10 +65,16 @@ class Player(ABC):
             self._tag_round(0)
         self.game_context.round = new_round
 
-    def _write_changes_to_file(self, *, round: int, incremental_diff: str, modified_files: dict[str, str]) -> None:
-        """Write incremental changes to a JSON file in players/{name}/changes_r{round}.json"""
+    def _write_changes_to_file(self, *, round: int) -> None:
+        """Write all changes to a JSON file in players/{name}/changes_r{round}.json"""
         if round == 0:
             return  # No changes for round 0
+
+        # Generate all diffs and extract modified files
+        raw_diff = self._get_round_diff(round)
+        filtered_diff = filter_git_diff(raw_diff)
+        incremental_diff = self._get_round_diff(round, incremental=True)
+        modified_files = self._extract_modified_files_from_diff(filtered_diff)
 
         player_dir = self.game_context.log_local / "players" / self.name
         player_dir.mkdir(parents=True, exist_ok=True)
@@ -75,6 +82,7 @@ class Player(ABC):
         changes_file = player_dir / f"changes_r{round}.json"
         changes_data = {
             "round": round,
+            "full_diff": raw_diff,
             "incremental_diff": incremental_diff,
             "modified_files": modified_files,
             "timestamp": int(time.time()),
@@ -86,14 +94,9 @@ class Player(ABC):
     def post_run_hook(self, *, round: int) -> None:
         """Should be called after we called the run method."""
         self._commit()
-        raw_diff = self._get_round_diff(round)
-        filtered_diff = filter_git_diff(raw_diff)
-        self._metadata["diff"][round] = raw_diff
 
-        # Write incremental changes to separate JSON file
-        incremental_diff = self._get_round_diff(round, incremental=True)
-        modified_files = self._extract_modified_files_from_diff(filtered_diff)
-        self._write_changes_to_file(round=round, incremental_diff=incremental_diff, modified_files=modified_files)
+        # Write all changes to separate JSON file
+        self._write_changes_to_file(round=round)
 
         if self.push:
             for cmd in [
@@ -144,10 +147,12 @@ class Player(ABC):
 
     def _tag_round(self, round: int) -> None:
         """Git tag the codebase at the given round."""
+        tag = self._get_round_tag_name(round)
         assert_zero_exit_code(
-            self.environment.execute(f"git tag -a {self._get_round_tag_name(round)} -m 'Round {round} Update'"),
+            self.environment.execute(f"git tag -a {tag} -m 'Round {round} Update'"),
             logger=self.logger,
         )
+        self._metadata["round_tags"][round] = tag
 
     @property
     def _branch_name(self) -> str:
