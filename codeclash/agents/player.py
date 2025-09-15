@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import uuid
@@ -39,8 +40,6 @@ class Player(ABC):
             "name": self.name,
             "player_unique_id": self._player_unique_id,
             "diff": {0: ""},  # mapping round -> diff
-            "incremental_diff": {0: ""},  # mapping round -> diff
-            "modified_files": {0: {}},  # mapping round -> {file_path: file_content}
             "created_timestamp": int(time.time()),
             "config": self.config,
             "initial_commit_hash": self._get_commit_hash(),
@@ -65,14 +64,37 @@ class Player(ABC):
             self._tag_round(0)
         self.game_context.round = new_round
 
+    def _write_changes_to_file(self, *, round: int, incremental_diff: str, modified_files: dict[str, str]) -> None:
+        """Write incremental changes to a JSON file in players/{name}/changes_r{round}.json"""
+        if round == 0:
+            return  # No changes for round 0
+
+        player_dir = self.game_context.log_local / "players" / self.name
+        player_dir.mkdir(parents=True, exist_ok=True)
+
+        changes_file = player_dir / f"changes_r{round}.json"
+        changes_data = {
+            "round": round,
+            "incremental_diff": incremental_diff,
+            "modified_files": modified_files,
+            "timestamp": int(time.time()),
+        }
+
+        changes_file.write_text(json.dumps(changes_data, indent=2))
+        self.logger.debug(f"Wrote changes for round {round} to {changes_file}")
+
     def post_run_hook(self, *, round: int) -> None:
         """Should be called after we called the run method."""
         self._commit()
         raw_diff = self._get_round_diff(round)
         filtered_diff = filter_git_diff(raw_diff)
         self._metadata["diff"][round] = raw_diff
-        self._metadata["incremental_diff"][round] = self._get_round_diff(round, incremental=True)
-        self._metadata["modified_files"][round] = self._extract_modified_files_from_diff(filtered_diff)
+
+        # Write incremental changes to separate JSON file
+        incremental_diff = self._get_round_diff(round, incremental=True)
+        modified_files = self._extract_modified_files_from_diff(filtered_diff)
+        self._write_changes_to_file(round=round, incremental_diff=incremental_diff, modified_files=modified_files)
+
         if self.push:
             for cmd in [
                 f"git push origin {self._branch_name}",

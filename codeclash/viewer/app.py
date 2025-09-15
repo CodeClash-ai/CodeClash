@@ -194,16 +194,30 @@ class GameMetadata:
     agent_info: list[AgentInfo] | None = None
 
 
-def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any] | None:
+def process_round_results(
+    round_results: dict[str, Any] | None, agent_info: list[AgentInfo] | None = None
+) -> dict[str, Any] | None:
     """Process round results to add computed fields and sort scores"""
-    if not round_results or not round_results.get("scores"):
+    if not round_results:
         return round_results
 
     # Create a copy to avoid modifying original data
     processed = round_results.copy()
 
+    # Get scores, initialize empty dict if missing
+    scores = round_results.get("scores", {}).copy()
+
+    # Ensure all expected players are in scores, even with 0 wins
+    if agent_info:
+        expected_players = {agent.name for agent in agent_info}
+        missing_players = expected_players - set(scores.keys())
+        if missing_players:
+            print(f"WARNING: Players {sorted(missing_players)} not found in round results, adding with 0 wins")
+            for player in missing_players:
+                scores[player] = 0
+
     # Sort scores alphabetically by key
-    scores = dict(sorted(round_results["scores"].items()))
+    scores = dict(sorted(scores.items()))
     processed["scores"] = scores
     processed["sorted_scores"] = list(scores.items())
 
@@ -221,7 +235,9 @@ def process_round_results(round_results: dict[str, Any] | None) -> dict[str, Any
                 processed["winner_percentage"] = None  # No percentage for ties
 
             # Calculate p-value for statistical significance
+            print(f"Calculating p-value for scores: {dict(sorted(scores.items()))}")
             p_value = calculate_p_value(scores)
+            print(f"P-value result: {p_value} (rounded: {round(p_value, 2)})")
             processed["p_value"] = round(p_value, 2)
         else:
             processed["winner_percentage"] = None
@@ -306,7 +322,9 @@ class LogParser:
                 round_results = None
                 if results_file.exists():
                     round_results = json.loads(results_file.read_text())
-                    round_results = process_round_results(round_results)
+                    # Get agent info for this round (we'll need to get it from metadata)
+                    agent_info = get_agent_info_from_metadata(results) if results else []
+                    round_results = process_round_results(round_results, agent_info)
 
                 rounds.append({"round_num": round_num, "sim_logs": sim_logs, "results": round_results})
 
@@ -339,7 +357,7 @@ class LogParser:
                     info = data.get("info", {})
                     model_stats = info.get("model_stats", {})
 
-                    # Get diff data from player metadata if available
+                    # Get diff data from player metadata and changes file
                     diff = None
                     incremental_diff = None
                     modified_files = None
@@ -349,16 +367,35 @@ class LogParser:
                     if player_name in self._player_metadata:
                         player_meta = self._player_metadata[player_name]
                         diff = player_meta.get("diff", {}).get(str(round_num), "")
-                        incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
-                        modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
 
-                        # Filter and split diffs by files
-                        filtered_diff = filter_git_diff(diff) if diff else ""
-                        filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
-                        diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
-                        incremental_diff_by_files = (
-                            split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
-                        )
+                    # Try to read incremental changes from separate JSON file
+                    changes_file = player_dir / f"changes_r{round_num}.json"
+                    if changes_file.exists():
+                        try:
+                            changes_data = json.loads(changes_file.read_text())
+                            incremental_diff = changes_data.get("incremental_diff", "")
+                            modified_files = changes_data.get("modified_files", {})
+                        except (json.JSONDecodeError, KeyError):
+                            # Fall back to metadata if changes file is corrupted
+                            if player_name in self._player_metadata:
+                                player_meta = self._player_metadata[player_name]
+                                incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
+                                modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
+                    else:
+                        # todo: Legacy: Remove this at some point after we have migrated
+                        # Fall back to metadata if changes file doesn't exist
+                        if player_name in self._player_metadata:
+                            player_meta = self._player_metadata[player_name]
+                            incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
+                            modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
+
+                    # Filter and split diffs by files
+                    filtered_diff = filter_git_diff(diff) if diff else ""
+                    filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+                    diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+                    incremental_diff_by_files = (
+                        split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+                    )
 
                     return TrajectoryInfo(
                         player_id=player_name,  # Now stores player name instead of numeric ID
