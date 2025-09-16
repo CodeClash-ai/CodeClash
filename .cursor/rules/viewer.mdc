@@ -79,6 +79,116 @@ Here's how a `.traj.log` file looks:
 }
 ```
 
+Here's how the metadata.json file looks like:
+
+```
+{
+  "name": "PvpTournament",
+  "tournament_id": "PvpTournament.BattleSnake.250915203207",
+  "config": {
+    "tournament": {
+      "rounds": 10
+    },
+    "game": {
+      "name": "BattleSnake",
+      "sims_per_round": 1000,
+      "args": {
+        "width": 11,
+        "height": 11,
+        "browser": false
+      }
+    },
+    "players": [
+      {
+        "agent": "mini",
+        "name": "gpt-5-mini-more-prescriptive",
+        "config": {
+          "agent": {
+            "system_template": "",
+            "instance_template": "",
+            "step_limit": 30,
+            "cost_limit": 1.0
+          },
+          "model": {
+            "model_name": "openai/gpt-5-mini"
+          }
+        }
+      },
+      {
+        "agent": "mini",
+        "name": "gpt-5-mini-default",
+        "config": {
+          "agent": {...},
+          "model": {
+            "model_name": "openai/gpt-5-mini"
+          }
+        }
+      }
+    ],
+    "prompts": {
+      "game_description": "..."}
+  },
+  "created_timestamp": 1757982727,
+  "game": {
+    "name": "BattleSnake",
+    "config": {
+      "name": "BattleSnake",
+      "sims_per_round": 1000,
+      "args": {
+        "width": 11,
+        "height": 11,
+        "browser": false
+      }
+    },
+    "game_id": "PvpTournament.BattleSnake.250915203207",
+    "created_timestamp": 1757982727
+  },
+  "agents": [
+    {
+      "name": "gpt-5-mini-more-prescriptive",
+      "player_unique_id": "38f5a945-2a14-4cfb-9a41-e3ccceb7d3e2",
+      "created_timestamp": 1757982729,
+      "config": {
+        "agent": "mini",
+        "name": "gpt-5-mini-more-prescriptive",
+        "config": {
+          "agent": {
+            "system_template": "...,
+            "instance_template": "...",
+            "step_limit": 30,
+            "cost_limit": 1.0
+          },
+          "model": {
+            "model_name": "openai/gpt-5-mini"
+          }
+        }
+      },
+      "initial_commit_hash": "dc7bdb934a2f1bba88d19136ff5caa6ff789dda7",
+      "branch_name": "PvpTournament.BattleSnake.250915203207.gpt-5-mini-more-prescriptive",
+      "round_tags": {}
+    },
+    {
+      "name": "gpt-5-mini-default",
+      "player_unique_id": "646cdd66-7cd5-4318-988f-3858ef3bd860",
+      "created_timestamp": 1757982730,
+      "config": {
+        "agent": "mini",
+        "name": "gpt-5-mini-default",
+        "config": {
+          "agent": {...},
+          "model": {
+            "model_name": "openai/gpt-5-mini"
+          }
+        }
+      },
+      "initial_commit_hash": "dc7bdb934a2f1bba88d19136ff5caa6ff789dda7",
+      "branch_name": "PvpTournament.BattleSnake.250915203207.gpt-5-mini-default",
+      "round_tags": {}
+    }
+  ]
+}
+```
+
 ## Application Structure
 
 The application has two main pages:
@@ -187,3 +297,7 @@ Then, show all the messages. Each message should be its own block together with 
 Because the content can be long, make sure to have a foldout for the content.
 
 **Message Role Badges**: Each message displays a small role badge (e.g., "User #1", "Assistant #2") in the top-right corner. These badges automatically hide on hover over the message block to improve readability and allow users to see text that might be obscured by the badge.
+
+### Important
+
+* Always use the player name from the metadata.json file, do not assume players are called p1, p2, etc.

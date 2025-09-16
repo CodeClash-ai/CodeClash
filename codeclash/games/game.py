@@ -168,6 +168,7 @@ class CodeGame(ABC):
                 "TQDM_DISABLE": "1",
             },
             container_timeout="3h",
+            logger=self.logger,
         )
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")
