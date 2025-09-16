@@ -62,6 +62,14 @@ class SinglePlayerTraining(AbstractTournament):
         game_context = self.get_game_context(agent_config, round=round)
         return get_agent(agent_config, game_context, environment)
 
+    def _get_round_diff(self, player_name: str, round_num: int) -> str:
+        """Read diff data from changes_r{round}.json file, fallback to metadata."""
+        if round_num == 0:
+            return ""
+        changes_file = self.game.log_local / "players" / player_name / f"changes_r{round_num}.json"
+        changes_data = json.loads(changes_file.read_text())
+        return changes_data.get("full_diff", "")
+
     def get_dummy_agent(self, player_config: dict) -> Player:
         """Create a dummy agent that does nothing."""
         return Dummy(
@@ -114,7 +122,7 @@ class SinglePlayerTraining(AbstractTournament):
 
     def set_mirror_state_to_round(self, round_num: int):
         """Update mirror agent's codebase with the main agent's changes."""
-        full_diff = self.agent.get_metadata()["diff"][round_num]
+        full_diff = self._get_round_diff(self.agent.name, round_num)
         full_diff = filter_git_diff(full_diff)
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
@@ -143,8 +151,8 @@ class SinglePlayerTraining(AbstractTournament):
         for p1_round in range(0, self.rounds + 1):
             for p2_round in range(0, self.rounds + 1):
                 self.logger.info(f"Evaluating agent at round {p1_round} against agent at round {p2_round}")
-                p1_patch = self.agent.get_metadata()["diff"][p1_round] if p1_round > 0 else ""
-                p2_patch = self.agent.get_metadata()["diff"][p2_round] if p2_round > 0 else ""
+                p1_patch = self._get_round_diff(self.agent.name, p1_round)
+                p2_patch = self._get_round_diff(self.agent.name, p2_round)
                 p1.reset_and_apply_patch(p1_patch)
                 p2.reset_and_apply_patch(p2_patch)
                 for i_repetition in range(n_repetitions):
