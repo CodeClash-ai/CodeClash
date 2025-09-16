@@ -253,9 +253,18 @@ The application has two main pages:
   - Tooltip explains middle-click functionality
 * **"↗" button**: Always open picker in new tab
 * **Dark/light mode toggle button**
-* **Current folder path display** with copy functionality
+* **Current folder path display** with copy functionality and delete button
+  - **Delete button**: 🗑️ icon with simple confirmation prompt to delete the entire experiment folder (rm -r)
 
 ### Main body
+
+#### Readme Section
+
+* **First section** after the header: A "Readme" section with editable text area
+* Automatically loads content from `readme.txt` in the experiment folder (if it exists)
+* **Autosave functionality**: Saves changes to `readme.txt` after 1 second of inactivity
+* Shows status indicator: "Loading...", "Typing...", "Saving...", "Saved", "Error"
+* Simple, unstyled text area for adding experiment notes and observations
 
 #### Overall results
 
