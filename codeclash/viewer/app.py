@@ -110,31 +110,13 @@ def get_readme_first_line(log_dir: Path) -> str:
 def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
     """Extract detailed agent information from metadata"""
     agents = []
-
-    # First, try to get agent info from the agents field (runtime metadata)
-    if "agents" in metadata:
-        for agent_data in metadata["agents"]:
-            name = agent_data.get("name", "unknown")
-            # Try to get model info from the agent's config
-            config = agent_data.get("config", {})
-            model_name = (
-                config.get("model", {}).get("model_name")
-                if isinstance(config.get("model"), dict)
-                else config.get("model")
-            )
-            agent_class = config.get("agent_class")
-            agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
-        return agents
-
-    # Fallback to config-based extraction if no agents field
-    players_config = metadata.get("config", {}).get("players", {})
+    players_config = metadata.get("config", {}).get("players", [])
 
     # Handle both list and dict formats
     if isinstance(players_config, list):
-        # If players is a list, use the actual name from each player config
         for player_config in players_config:
             if isinstance(player_config, dict):
-                name = player_config.get("name", "unknown")  # Use actual agent name
+                name = player_config.get("name", "unknown")
                 config = player_config.get("config", {})
                 model_name = (
                     config.get("model", {}).get("model_name")
@@ -144,10 +126,8 @@ def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
                 agent_class = config.get("agent_class")
                 agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
     elif isinstance(players_config, dict):
-        # If players is a dict, iterate through player keys
         for player_key, player_config in sorted(players_config.items()):
             if isinstance(player_config, dict):
-                # Use the actual name from config if available, otherwise use the key
                 name = player_config.get("name", player_key)
                 config = player_config.get("config", {})
                 model_name = (

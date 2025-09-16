@@ -172,6 +172,19 @@
                                     {% endfor %}
                                 {% endif %}
                                 <td>
+                                    {% if metadata.agent_info %}
+                                        <div class="models-cell">
+                                            {% for agent in metadata.agent_info %}
+                                                {% if agent.model_name %}
+                                                    <span class="model-tag">{{ agent.model_name }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="no-result">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <button class="nav-to-round-btn" onclick="scrollToRound({{ round_data.round_num }})" title="Jump to Round {{ round_data.round_num }} details">
                                         <span class="nav-arrow">↓</span>
                                     </button>
