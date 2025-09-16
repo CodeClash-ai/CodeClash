@@ -19,6 +19,24 @@ two AI agent in a round-based game against each other.
 * Organize JavaScript into logical modules: clipboard.js, experiment.js, readme.js, json-editors.js, etc.
 * The application consists of two main pages: the viewer and the game picker
 
+### Template Organization
+
+* **Main templates**: `index.html`, `picker.html`, `no_logs.html` are in the templates root
+* **Sub-templates**: All partial/include templates are organized in `templates/includes/` directory
+* **Template structure**: Use Jinja includes to break down complex templates into manageable sub-templates
+* **Include naming**: Sub-templates should be named descriptively (e.g., `header.html`, `folder_path.html`, `trajectory.html`)
+* **Template hierarchy**: Main templates include sub-templates using `{% include 'includes/template_name.html' %}`
+
+#### Current Include Templates
+
+* `includes/header.html` - Navigation controls and theme toggle
+* `includes/folder_path.html` - Current folder display with actions
+* `includes/readme.html` - Editable readme section
+* `includes/setup.html` - Agent info, metadata, and tournament log foldouts
+* `includes/overview.html` - Results summary table with round navigation
+* `includes/trajectory.html` - Player trajectory display with messages, diffs, and files
+* `includes/rounds.html` - Main rounds section that includes trajectories and simulation logs
+
 ## Input folder
 
 The input folders are all subfolders of `logs/`
@@ -314,17 +332,20 @@ Note that he last round only has the `round_n.log`, but there's no more trajecto
 
 #### Trajectory view
 
-This should be its own jinja template.
+This is implemented as its own jinja template (`includes/trajectory.html`) that is included by the rounds template.
 
-First show the following properties from the `info` section
+The trajectory template displays:
 
-* Number of LM calls (api calls)
-* Cost (instance cost)
-
-Then, show all the messages. Each message should be its own block together with the role.
-Because the content can be long, make sure to have a foldout for the content.
+* **Trajectory Stats**: API calls, cost, and exit status from the `info` section
+* **Messages Foldout**: All trajectory messages with role badges and content preview/expand functionality
+* **Diff Foldouts**: Full diff and incremental diff sections (if available)
+* **Modified Files**: Changed files during the trajectory (if available)
+* **Submission**: Final submission content (if available)
+* **Memory**: Memory state content (if available)
 
 **Message Role Badges**: Each message displays a small role badge (e.g., "User #1", "Assistant #2") in the top-right corner. These badges automatically hide on hover over the message block to improve readability and allow users to see text that might be obscured by the badge.
+
+**Content Preview**: Long message content (>5 lines) shows a preview with expand/collapse functionality to keep the interface manageable.
 
 ### Important
 

@@ -1,0 +1,78 @@
+<!-- Rounds Section -->
+<section class="rounds-section">
+    <h2>🎯 Detailed Rounds</h2>
+
+    {% for round_data in metadata.rounds %}
+        {% set round_num = round_data.round_num %}
+
+        <!-- Round Anchor for Navigation -->
+        <div id="round-{{ round_num }}" class="round-anchor"></div>
+
+        <!-- Player Trajectories for this round -->
+        {% if round_num in trajectories_by_round %}
+            {% for trajectory in trajectories_by_round[round_num] %}
+                {% include 'includes/trajectory.html' %}
+            {% endfor %}
+        {% endif %}
+
+        <!-- Round Simulation Logs -->
+        <details class="foldout round-foldout">
+            <summary>🎮 Round {{ round_num }} Simulation Logs ({{ round_data.sim_logs|length }} sims)</summary>
+            <div class="log-content">
+                {% for sim_log in round_data.sim_logs %}
+                <details class="foldout sim-foldout">
+                    <summary>
+                        {{ sim_log.filename }}
+                        <button class="copy-path-btn-small" data-path="{{ sim_log.full_path }}" title="Copy file path">
+                            📋 Copy path
+                        </button>
+                    </summary>
+                    <div class="log-content">
+                        <pre><code>{{ sim_log.content }}</code></pre>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        </details>
+
+        <!-- Round Results (if available) -->
+        {% if round_data.results %}
+        <details class="foldout round-foldout">
+            <summary>
+                🏆 Round {{ round_num }} Results
+                {% if round_data.results.winner and round_data.results.scores %}
+                    {%- set total_games = round_data.results.scores.values() | sum -%}
+                    {%- set winner = round_data.results.winner -%}
+                    {%- if winner != 'Tie' -%}
+                        {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
+                        {%- set ties = round_data.results.scores.get('Tie', 0) -%}
+                        {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
+                        - Winner: {{ winner }} with {{ win_percentage }}%
+                        {%- if round_data.results.p_value is not none %} (p={{ "%.2f"|format(round_data.results.p_value) }}){% endif %} (
+                        {%- for player, score in round_data.results.scores.items() -%}
+                            {{- score -}}
+                            {%- if not loop.last -%}-{%- endif -%}
+                        {%- endfor -%})
+                    {%- else -%}
+                        - Winner: Tie
+                        {%- if round_data.results.p_value is not none %} (p={{ "%.2f"|format(round_data.results.p_value) }}){% endif %} (
+                        {%- for player, score in round_data.results.scores.items() -%}
+                            {{- score -}}
+                            {%- if not loop.last -%}-{%- endif -%}
+                        {%- endfor -%})
+                    {% endif %}
+                {% endif %}
+            </summary>
+            <div class="log-content">
+                <div id="round-{{ round_num }}-results-jsoneditor" class="json-viewer"></div>
+            </div>
+        </details>
+        {% endif %}
+
+        <!-- Round separator (except after the last round) -->
+        {% if not loop.last %}
+        <div class="round-separator"></div>
+        {% endif %}
+
+    {% endfor %}
+</section>

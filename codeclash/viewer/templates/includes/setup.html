@@ -1,0 +1,55 @@
+<!-- Setup Section -->
+<section class="setup-section">
+    <h2>⚙️ Setup</h2>
+
+    <!-- Agent Information -->
+    <div class="agent-info">
+        {% if metadata.agent_info %}
+            <div class="agents-grid">
+                {% for agent in metadata.agent_info %}
+                    <div class="agent-card">
+                        <div class="agent-name">{{ agent.name }}</div>
+                        {% if agent.model_name %}
+                            <div class="agent-model">Model: {{ agent.model_name }}</div>
+                        {% endif %}
+                        {% if agent.agent_class %}
+                            <div class="agent-class">Class: {{ agent.agent_class }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No agent information available</p>
+        {% endif %}
+    </div>
+
+    <!-- Metadata Foldout -->
+    <details class="foldout">
+        <summary>
+            📋 Metadata
+            {% if metadata.metadata_file_path %}
+            <button class="copy-path-btn-small" data-path="{{ metadata.metadata_file_path }}" title="Copy metadata file path">
+                📋 Copy path
+            </button>
+            {% endif %}
+        </summary>
+        <div class="metadata-display">
+            <div id="metadata-jsoneditor" class="json-viewer"></div>
+        </div>
+    </details>
+
+    <!-- Main Log Foldout -->
+    <details class="foldout">
+        <summary>
+            📝 Tournament Log
+            {% if metadata.main_log_path %}
+            <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
+                📋 Copy path
+            </button>
+            {% endif %}
+        </summary>
+        <div class="log-content">
+            <pre><code>{{ metadata.main_log }}</code></pre>
+        </div>
+    </details>
+</section>

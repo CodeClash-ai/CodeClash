@@ -1,0 +1,253 @@
+<!-- Trajectory Container with Overview and Messages -->
+<div class="trajectory-header">
+    <h3>
+        🤖 Player {{ trajectory.player_id }} Round {{ round_num }}
+    </h3>
+    <div class="trajectory-stats">
+        <div class="stat-item">
+            <span class="stat-label">API Calls:</span>
+            <span class="stat-value">{{ trajectory.api_calls }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Cost:</span>
+            <span class="stat-value">${{ "%.2f"|format(trajectory.cost) }}</span>
+        </div>
+        {% if trajectory.exit_status %}
+        <div class="stat-item">
+            <span class="stat-label">Exit Status:</span>
+            <span class="stat-value status-{{ trajectory.exit_status.lower() }}">{{ trajectory.exit_status }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Messages Foldout inside the same container -->
+    <details class="trajectory-messages-foldout">
+        <summary>
+            💬 Trajectory ({{ trajectory.messages|length }} total)
+            {% if trajectory.trajectory_file_path %}
+            <button class="copy-path-btn-small" data-path="{{ trajectory.trajectory_file_path }}" title="Copy trajectory file path">
+                📋 Copy path
+            </button>
+            {% endif %}
+        </summary>
+        <div class="trajectory-content">
+            <div class="messages-container">
+                {% for message in trajectory.messages %}
+            <div class="message-block {{ message.role }}">
+                <span class="message-role-badge">{{ message.role.title() }} #{{ loop.index }}</span>
+                <div class="message-content">
+                    {% if message.content is string %}
+                        {% set content_lines = message.content.split('\n') %}
+                        {% if content_lines|length <= 5 %}
+                            <!-- Show full content if 5 lines or less -->
+                            <div class="message-content-full">
+                                    {% if message.role == 'assistant' and '```' in message.content %}
+                                        <!-- Special handling for assistant messages with code blocks -->
+                                        {% set parts = message.content.split('```') %}
+                                        {% for part in parts %}
+                                            {% if loop.index is odd %}
+                                                <!-- Text part -->
+                                                <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
+                                            {% else %}
+                                                <!-- Code part -->
+                                                <div class="code-block">
+                                                    <pre><code>{{ part | unescape_content }}</code></pre>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Regular text content -->
+                                        <div class="message-text">
+                                            <pre>{{ message.content | unescape_content }}</pre>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                            <!-- Show preview with expand button -->
+                            <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                    <div class="message-text">
+                                        <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
+                                    </div>
+                                    <div class="expand-indicator">
+                                        ▼ {{ content_lines|length - 5 }} more lines
+                                    </div>
+                            </div>
+                            <div class="message-content-full" style="display: none;" title="Content expanded - click collapse button below to hide">
+                                    {% if message.role == 'assistant' and '```' in message.content %}
+                                        <!-- Special handling for assistant messages with code blocks -->
+                                        {% set parts = message.content.split('```') %}
+                                        {% for part in parts %}
+                                            {% if loop.index is odd %}
+                                                <!-- Text part -->
+                                                <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
+                                            {% else %}
+                                                <!-- Code part -->
+                                                <div class="code-block">
+                                                    <pre><code>{{ part | unescape_content }}</code></pre>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Regular text content -->
+                                        <div class="message-text">
+                                            <pre>{{ message.content | unescape_content }}</pre>
+                                        </div>
+                                    {% endif %}
+                                    <div class="collapse-indicator clickable-message"  title="Click to collapse">
+                                        ▲ Click to collapse
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% elif message.content is iterable %}
+                            <!-- Handle complex content (e.g., user messages with multiple parts) -->
+                            <div class="message-content-full">
+                                {% for content_part in message.content %}
+                                    {% if content_part.type == 'text' %}
+                                        {% set content_lines = content_part.text.split('\n') %}
+                                        {% if content_lines|length <= 5 %}
+                                            <div class="message-text">
+                                                <pre>{{ content_part.text | unescape_content }}</pre>
+                                            </div>
+                                        {% else %}
+                                            <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                                <div class="message-text">
+                                                    <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
+                                                </div>
+                                                <div class="expand-indicator">
+                                                    ▼ {{ content_lines|length - 5 }} more lines
+                                                </div>
+                                            </div>
+                                            <div class="message-content-expanded" style="display: none;" title="Content expanded - click collapse button below to hide">
+                                                <div class="message-text">
+                                                    <pre>{{ content_part.text | unescape_content }}</pre>
+                                                </div>
+                                                <div class="collapse-indicator clickable-message"  title="Click to collapse">
+                                                    ▲ Click to collapse
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="message-part">
+                                            <strong>{{ content_part.type.title() }}:</strong>
+                                            <pre>{{ content_part | tojson(indent=2) }}</pre>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <!-- Fallback for other content types -->
+                            <div class="message-content-full">
+                                <div class="message-text">
+                                    <pre>{{ message.content | tojson(indent=2) }}</pre>
+                                </div>
+                            </div>
+                    {% endif %}
+                </div>
+            </div>
+                {% endfor %}
+            </div>
+            <div class="collapse-messages-button">
+                <button class="btn-collapse-messages">
+                    ▲ Collapse Messages
+                </button>
+            </div>
+        </div>
+    </details>
+
+    <!-- Diff Foldout inside the same container -->
+    {% if trajectory.diff_by_files and trajectory.diff_by_files %}
+    <details class="trajectory-messages-foldout">
+        <summary>📝 Diff (Full) ({{ trajectory.diff_by_files|length }} files)</summary>
+        <div class="trajectory-content">
+            <div class="log-content">
+                {% for file_path, file_diff in trajectory.diff_by_files.items() %}
+                <details class="foldout">
+                    <summary>{{ file_path }}</summary>
+                    <div class="log-content">
+                        <pre><code>{{ file_diff }}</code></pre>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+    </details>
+    {% elif trajectory.diff and trajectory.diff.strip() %}
+    <details class="trajectory-messages-foldout">
+        <summary>📝 Diff (Full)</summary>
+        <div class="trajectory-content">
+            <div class="log-content">
+                <pre><code>{{ trajectory.diff }}</code></pre>
+            </div>
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- Incremental Diff Foldout inside the same container -->
+    {% if trajectory.incremental_diff_by_files and trajectory.incremental_diff_by_files %}
+    <details class="trajectory-messages-foldout">
+        <summary>🔄 Incremental Diff ({{ trajectory.incremental_diff_by_files|length }} files)</summary>
+        <div class="trajectory-content">
+            <div class="log-content">
+                {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
+                <details class="foldout">
+                    <summary>{{ file_path }}</summary>
+                    <div class="log-content">
+                        <pre><code>{{ file_diff }}</code></pre>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+    </details>
+    {% elif trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
+    <details class="trajectory-messages-foldout">
+        <summary>🔄 Incremental Diff</summary>
+        <div class="trajectory-content">
+            <div class="log-content">
+                <pre><code>{{ trajectory.incremental_diff }}</code></pre>
+            </div>
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- Modified Files Foldout inside the same container -->
+    {% if trajectory.modified_files and trajectory.modified_files %}
+    <details class="trajectory-messages-foldout">
+        <summary>📁 Changed Files ({{ trajectory.modified_files|length }} files)</summary>
+        <div class="trajectory-content">
+            <div class="log-content">
+                {% for file_path, file_content in trajectory.modified_files.items() %}
+                <details class="foldout">
+                    <summary>{{ file_path }}</summary>
+                    <div class="log-content">
+                        <pre><code>{{ file_content }}</code></pre>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+    </details>
+    {% endif %}
+
+</div>
+
+
+<!-- Submission -->
+{% if trajectory.submission %}
+<details class="foldout">
+    <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
+    <div class="log-content">
+        <pre><code>{{ trajectory.submission }}</code></pre>
+    </div>
+</details>
+{% endif %}
+
+<!-- Memory -->
+{% if trajectory.memory %}
+<details class="foldout">
+    <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
+    <div class="log-content">
+        <pre><code>{{ trajectory.memory }}</code></pre>
+    </div>
+</details>
+{% endif %}
