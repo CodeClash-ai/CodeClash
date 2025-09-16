@@ -6,6 +6,7 @@ A Flask-based web application to visualize AI agent game trajectories
 """
 
 import json
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -566,6 +567,97 @@ def trajectory_detail(player_name: str, round_num: int):
         return jsonify({"error": "Trajectory not found"})
 
     return render_template("trajectory.html", trajectory=trajectory)
+
+
+@app.route("/delete-experiment", methods=["POST"])
+def delete_experiment():
+    """Delete an experiment folder"""
+    try:
+        data = request.get_json()
+        folder_path = data.get("folder_path")
+
+        if not folder_path:
+            return jsonify({"success": False, "error": "No folder path provided"})
+
+        # Convert to Path object and validate it's within our logs directory
+        folder_path_obj = Path(folder_path)
+
+        # Ensure the path exists and is a directory
+        if not folder_path_obj.exists():
+            return jsonify({"success": False, "error": "Folder does not exist"})
+
+        if not folder_path_obj.is_dir():
+            return jsonify({"success": False, "error": "Path is not a directory"})
+
+        # Security check: ensure the path is within our expected logs directory
+        try:
+            # Check if it's a subdirectory of LOG_BASE_DIR
+            folder_path_obj.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid folder path"})
+
+        # Delete the folder
+        shutil.rmtree(folder_path_obj)
+
+        return jsonify({"success": True, "message": "Experiment deleted successfully"})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/save-readme", methods=["POST"])
+def save_readme():
+    """Save readme content to readme.txt in the experiment folder"""
+    try:
+        data = request.get_json()
+        selected_folder = data.get("selected_folder")
+        content = data.get("content", "")
+
+        if not selected_folder:
+            return jsonify({"success": False, "error": "No folder specified"})
+
+        # Get the folder path
+        folder_path = LOG_BASE_DIR / selected_folder
+
+        if not folder_path.exists() or not folder_path.is_dir():
+            return jsonify({"success": False, "error": "Invalid folder"})
+
+        # Save to readme.txt
+        readme_file = folder_path / "readme.txt"
+        readme_file.write_text(content)
+
+        return jsonify({"success": True, "message": "Readme saved successfully"})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/load-readme")
+def load_readme():
+    """Load readme content from readme.txt in the experiment folder"""
+    try:
+        selected_folder = request.args.get("folder")
+
+        if not selected_folder:
+            return jsonify({"success": False, "error": "No folder specified"})
+
+        # Get the folder path
+        folder_path = LOG_BASE_DIR / selected_folder
+
+        if not folder_path.exists() or not folder_path.is_dir():
+            return jsonify({"success": False, "error": "Invalid folder"})
+
+        # Load from readme.txt
+        readme_file = folder_path / "readme.txt"
+        content = ""
+
+        if readme_file.exists():
+            content = readme_file.read_text()
+
+        return jsonify({"success": True, "content": content})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 
 # Use run_viewer.py to launch the application

@@ -43,7 +43,19 @@
                     <button class="copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
                         📋 Copy path
                     </button>
+                    <button class="delete-experiment-btn" onclick="deleteExperiment('{{ selected_folder_path }}')" title="Delete this experiment">
+                        🗑️ Delete
+                    </button>
                 </div>
+            </div>
+        </section>
+
+        <!-- Readme Section -->
+        <section class="readme-section">
+            <h2>📝 Readme</h2>
+            <div class="readme-container">
+                <textarea id="readme-textarea" class="readme-textarea" placeholder="Add notes about this experiment..."></textarea>
+                <div class="readme-status" id="readme-status">Loading...</div>
             </div>
         </section>
 
@@ -598,10 +610,133 @@
             });
         }
 
+        // Delete experiment function
+        function deleteExperiment(folderPath) {
+            const confirmed = confirm('Are you sure you want to delete this experiment? This action cannot be undone.\n\nFolder: ' + folderPath);
+            if (confirmed) {
+                fetch('/delete-experiment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        folder_path: folderPath
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Experiment deleted successfully.');
+                        // Redirect to picker
+                        window.location.href = '/picker';
+                    } else {
+                        alert('Error deleting experiment: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting experiment: ' + error.message);
+                });
+            }
+        }
+
+        // Readme functionality
+        let readmeTimeout = null;
+        let readmeTextarea = null;
+        let readmeStatus = null;
+
+        function loadReadme() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const folder = urlParams.get('folder');
+
+            if (!folder) return;
+
+            fetch('/load-readme?folder=' + encodeURIComponent(folder))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        readmeTextarea.value = data.content;
+                        readmeStatus.textContent = 'Loaded';
+                        readmeStatus.className = 'readme-status';
+                    } else {
+                        readmeStatus.textContent = 'Error loading: ' + data.error;
+                        readmeStatus.className = 'readme-status error';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading readme:', error);
+                    readmeStatus.textContent = 'Error loading readme';
+                    readmeStatus.className = 'readme-status error';
+                });
+        }
+
+        function saveReadme() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const folder = urlParams.get('folder');
+
+            if (!folder) return;
+
+            readmeStatus.textContent = 'Saving...';
+            readmeStatus.className = 'readme-status saving';
+
+            fetch('/save-readme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    selected_folder: folder,
+                    content: readmeTextarea.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    readmeStatus.textContent = 'Saved';
+                    readmeStatus.className = 'readme-status saved';
+                } else {
+                    readmeStatus.textContent = 'Error: ' + data.error;
+                    readmeStatus.className = 'readme-status error';
+                }
+            })
+            .catch(error => {
+                console.error('Error saving readme:', error);
+                readmeStatus.textContent = 'Error saving';
+                readmeStatus.className = 'readme-status error';
+            });
+        }
+
+        function setupReadmeAutosave() {
+            readmeTextarea = document.getElementById('readme-textarea');
+            readmeStatus = document.getElementById('readme-status');
+
+            if (!readmeTextarea || !readmeStatus) return;
+
+            // Load existing content
+            loadReadme();
+
+            // Setup autosave on input
+            readmeTextarea.addEventListener('input', function() {
+                // Clear existing timeout
+                if (readmeTimeout) {
+                    clearTimeout(readmeTimeout);
+                }
+
+                // Set new timeout for autosave (1 second delay)
+                readmeTimeout = setTimeout(saveReadme, 1000);
+
+                // Show typing indicator
+                readmeStatus.textContent = 'Typing...';
+                readmeStatus.className = 'readme-status';
+            });
+        }
+
         // Initialize JSON editors when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Setup copy buttons
             setupCopyButtons();
+            // Setup readme autosave
+            setupReadmeAutosave();
             // Initialize metadata JSON editor
             const metadataEditor = new JSONEditor(document.getElementById('metadata-jsoneditor'), {
                 mode: 'view',
