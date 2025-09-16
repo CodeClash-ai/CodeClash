@@ -28,6 +28,7 @@ dependencies = [
     "flask",
     "jinja2",
     "markupsafe",
+    "scipy",
 ]
 
 [project.optional-dependencies]
