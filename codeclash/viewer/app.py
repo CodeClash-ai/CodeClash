@@ -556,23 +556,6 @@ def game_picker():
     return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir))
 
 
-@app.route("/trajectory/<player_name>/<int:round_num>")
-def trajectory_detail(player_name: str, round_num: int):
-    """Get detailed trajectory data"""
-    selected_folder = request.args.get("folder")
-    if not selected_folder:
-        return jsonify({"error": "No folder specified"})
-
-    logs_dir = LOG_BASE_DIR
-    parser = LogParser(logs_dir / selected_folder)
-    trajectory = parser.parse_trajectory(player_name, round_num)
-
-    if not trajectory:
-        return jsonify({"error": "Trajectory not found"})
-
-    return render_template("trajectory.html", trajectory=trajectory)
-
-
 @app.route("/delete-experiment", methods=["POST"])
 def delete_experiment():
     """Delete an experiment folder"""
