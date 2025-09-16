@@ -15,17 +15,17 @@
             <div class="controls">
                 <!-- Game Selection Buttons -->
                 <div class="control-group">
-                    <button id="pick-game-btn" onmousedown="handlePickerClick(event)" class="pick-game-button" title="Pick Game (Press p) - Middle-click or Ctrl+click for new tab">
+                    <button id="pick-game-btn" class="pick-game-button" title="Pick Game (Press p) - Middle-click or Ctrl+click for new tab">
                         🎮 Pick Game <kbd>p</kbd>
                     </button>
-                    <button id="pick-game-new-tab-btn" onclick="openGamePickerInNewTab()" class="pick-game-new-tab-button" title="Pick Game in New Tab (Press P)">
+                    <button id="pick-game-new-tab-btn" class="pick-game-new-tab-button" title="Pick Game in New Tab (Press P)">
                         ↗
                     </button>
                 </div>
 
                 <!-- Dark Mode Toggle -->
                 <div class="control-group">
-                    <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+                    <button id="theme-toggle" aria-label="Toggle dark mode">
                         <span class="theme-icon">🌙</span>
                     </button>
                 </div>
@@ -43,7 +43,7 @@
                     <button class="copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
                         📋 Copy path
                     </button>
-                    <button class="delete-experiment-btn" onclick="deleteExperiment('{{ selected_folder_path }}')" title="Delete this experiment">
+                    <button class="delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
                         🗑️ Delete
                     </button>
                 </div>
@@ -185,7 +185,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <button class="nav-to-round-btn" onclick="scrollToRound({{ round_data.round_num }})" title="Jump to Round {{ round_data.round_num }} details">
+                                    <button class="nav-to-round-btn" data-round="{{ round_data.round_num }}" title="Jump to Round {{ round_data.round_num }} details">
                                         <span class="nav-arrow">↓</span>
                                     </button>
                                 </td>
@@ -276,7 +276,7 @@
                                                         </div>
                                                     {% else %}
                                                     <!-- Show preview with expand button -->
-                                                    <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                                    <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                                                             <div class="message-text">
                                                                 <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
                                                             </div>
@@ -305,7 +305,7 @@
                                                                     <pre>{{ message.content | unescape_content }}</pre>
                                                                 </div>
                                                             {% endif %}
-                                                            <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
+                                                            <div class="collapse-indicator clickable-message"  title="Click to collapse">
                                                                 ▲ Click to collapse
                                                             </div>
                                                         </div>
@@ -321,7 +321,7 @@
                                                                         <pre>{{ content_part.text | unescape_content }}</pre>
                                                                     </div>
                                                                 {% else %}
-                                                                    <div class="message-preview-short clickable-message" onclick="expandMessage(this)" title="Click to expand ({{ content_lines|length - 5 }} more lines)">
+                                                                    <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
                                                                         <div class="message-text">
                                                                             <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
                                                                         </div>
@@ -333,7 +333,7 @@
                                                                         <div class="message-text">
                                                                             <pre>{{ content_part.text | unescape_content }}</pre>
                                                                         </div>
-                                                                        <div class="collapse-indicator clickable-message" onclick="collapseMessage(this)" title="Click to collapse">
+                                                                        <div class="collapse-indicator clickable-message"  title="Click to collapse">
                                                                             ▲ Click to collapse
                                                                         </div>
                                                                     </div>
@@ -359,7 +359,7 @@
                                         {% endfor %}
                                     </div>
                                     <div class="collapse-messages-button">
-                                        <button onclick="collapseTrajectoryMessages(this)" class="btn-collapse-messages">
+                                        <button class="btn-collapse-messages">
                                             ▲ Collapse Messages
                                         </button>
                                     </div>
@@ -532,243 +532,19 @@
 
     <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/clipboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/experiment.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/readme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/json-editors.js') }}"></script>
     <script>
-        // Copy to clipboard function
-        function copyToClipboard(text, button) {
-            function showSuccessMessage() {
-                if (button) {
-                    const originalText = button.textContent;
-                    const originalColor = button.style.color;
-                    button.textContent = '✓ Copied';
-                    button.style.color = 'green';
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.style.color = originalColor;
-                    }, 1500);
-                }
-            }
-
-            // Check if modern clipboard API is available
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function() {
-                    showSuccessMessage();
-                    console.log('Copied to clipboard:', text);
-                }).catch(function(err) {
-                    console.error('Failed to copy text with clipboard API: ', err);
-                    // Fall back to legacy method
-                    fallbackCopy();
-                });
-            } else {
-                // Use fallback method directly
-                fallbackCopy();
-            }
-
-            function fallbackCopy() {
-                try {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-9999px';
-                    textArea.style.top = '-9999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-
-                    const successful = document.execCommand('copy');
-                    document.body.removeChild(textArea);
-
-                    if (successful) {
-                        showSuccessMessage();
-                        console.log('Copied to clipboard (fallback):', text);
-                    } else {
-                        console.error('Failed to copy text with fallback method');
-                        if (button) {
-                            button.textContent = '✗ Failed';
-                            button.style.color = 'red';
-                            setTimeout(() => {
-                                button.textContent = button.getAttribute('title') || 'Copy';
-                                button.style.color = '';
-                            }, 1500);
-                        }
-                    }
-                } catch (err) {
-                    console.error('Fallback copy failed:', err);
-                    if (button) {
-                        button.textContent = '✗ Failed';
-                        button.style.color = 'red';
-                        setTimeout(() => {
-                            button.textContent = button.getAttribute('title') || 'Copy';
-                            button.style.color = '';
-                        }, 1500);
-                    }
-                }
-            }
-        }
-
-        // Setup copy button event listeners
-        function setupCopyButtons() {
-            // Add event listeners to all copy path buttons
-            document.querySelectorAll('.copy-path-btn, .copy-path-btn-small').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const path = this.getAttribute('data-path');
-                    if (path) {
-                        copyToClipboard(path, this);
-                    } else {
-                        console.error('No path found on button:', this);
-                    }
-                });
-            });
-        }
-
-        // Delete experiment function
-        function deleteExperiment(folderPath) {
-            const confirmed = confirm('Are you sure you want to delete this experiment? This action cannot be undone.\n\nFolder: ' + folderPath);
-            if (confirmed) {
-                fetch('/delete-experiment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        folder_path: folderPath
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Experiment deleted successfully.');
-                        // Redirect to picker
-                        window.location.href = '/picker';
-                    } else {
-                        alert('Error deleting experiment: ' + (data.error || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting experiment: ' + error.message);
-                });
-            }
-        }
-
-        // Readme functionality
-        let readmeTimeout = null;
-        let readmeTextarea = null;
-        let readmeStatus = null;
-
-        function loadReadme() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const folder = urlParams.get('folder');
-
-            if (!folder) return;
-
-            fetch('/load-readme?folder=' + encodeURIComponent(folder))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        readmeTextarea.value = data.content;
-                        readmeStatus.textContent = 'Loaded';
-                        readmeStatus.className = 'readme-status';
-                    } else {
-                        readmeStatus.textContent = 'Error loading: ' + data.error;
-                        readmeStatus.className = 'readme-status error';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading readme:', error);
-                    readmeStatus.textContent = 'Error loading readme';
-                    readmeStatus.className = 'readme-status error';
-                });
-        }
-
-        function saveReadme() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const folder = urlParams.get('folder');
-
-            if (!folder) return;
-
-            readmeStatus.textContent = 'Saving...';
-            readmeStatus.className = 'readme-status saving';
-
-            fetch('/save-readme', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    selected_folder: folder,
-                    content: readmeTextarea.value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    readmeStatus.textContent = 'Saved';
-                    readmeStatus.className = 'readme-status saved';
-                } else {
-                    readmeStatus.textContent = 'Error: ' + data.error;
-                    readmeStatus.className = 'readme-status error';
-                }
-            })
-            .catch(error => {
-                console.error('Error saving readme:', error);
-                readmeStatus.textContent = 'Error saving';
-                readmeStatus.className = 'readme-status error';
-            });
-        }
-
-        function setupReadmeAutosave() {
-            readmeTextarea = document.getElementById('readme-textarea');
-            readmeStatus = document.getElementById('readme-status');
-
-            if (!readmeTextarea || !readmeStatus) return;
-
-            // Load existing content
-            loadReadme();
-
-            // Setup autosave on input
-            readmeTextarea.addEventListener('input', function() {
-                // Clear existing timeout
-                if (readmeTimeout) {
-                    clearTimeout(readmeTimeout);
-                }
-
-                // Set new timeout for autosave (1 second delay)
-                readmeTimeout = setTimeout(saveReadme, 1000);
-
-                // Show typing indicator
-                readmeStatus.textContent = 'Typing...';
-                readmeStatus.className = 'readme-status';
-            });
-        }
-
-        // Initialize JSON editors when page loads
+        // Initialize all components when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Setup copy buttons
             setupCopyButtons();
             // Setup readme autosave
             setupReadmeAutosave();
-            // Initialize metadata JSON editor
-            const metadataEditor = new JSONEditor(document.getElementById('metadata-jsoneditor'), {
-                mode: 'view',
-                modes: ['view', 'tree'],
-                name: 'metadata'
-            });
-            metadataEditor.set({{ metadata.results | tojson | safe }});
-
-            // Initialize round results JSON editors
-            {% for round_data in metadata.rounds %}
-                {% if round_data.results %}
-                const round{{ round_data.round_num }}Editor = new JSONEditor(document.getElementById('round-{{ round_data.round_num }}-results-jsoneditor'), {
-                    mode: 'view',
-                    modes: ['view', 'tree'],
-                    name: 'round_{{ round_data.round_num }}_results'
-                });
-                round{{ round_data.round_num }}Editor.set({{ round_data.results | tojson | safe }});
-                {% endif %}
-            {% endfor %}
+            // Initialize JSON editors with metadata
+            initializeJSONEditors({{ metadata | tojson | safe }});
         });
     </script>
 </body>

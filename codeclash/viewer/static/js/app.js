@@ -247,12 +247,73 @@ function scrollToRound(roundNum) {
   }
 }
 
+// Setup button event listeners
+function setupButtonEventListeners() {
+  // Pick game button
+  const pickGameBtn = document.getElementById("pick-game-btn");
+  if (pickGameBtn) {
+    pickGameBtn.addEventListener("mousedown", handlePickerClick);
+  }
+
+  // Pick game new tab button
+  const pickGameNewTabBtn = document.getElementById("pick-game-new-tab-btn");
+  if (pickGameNewTabBtn) {
+    pickGameNewTabBtn.addEventListener("click", openGamePickerInNewTab);
+  }
+
+  // Theme toggle button
+  const themeToggle = document.getElementById("theme-toggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", toggleTheme);
+  }
+
+  // Delete experiment button
+  const deleteBtn = document.querySelector(".delete-experiment-btn");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", function () {
+      const folderPath = this.getAttribute("data-folder-path");
+      if (folderPath) {
+        deleteExperiment(folderPath);
+      }
+    });
+  }
+
+  // Round navigation buttons
+  document.querySelectorAll(".nav-to-round-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      const roundNum = this.getAttribute("data-round");
+      if (roundNum) {
+        scrollToRound(parseInt(roundNum));
+      }
+    });
+  });
+
+  // Message expand/collapse buttons
+  document.querySelectorAll(".clickable-message").forEach((element) => {
+    element.addEventListener("click", function () {
+      if (this.classList.contains("message-preview-short")) {
+        expandMessage(this);
+      } else if (this.classList.contains("collapse-indicator")) {
+        collapseMessage(this);
+      }
+    });
+  });
+
+  // Collapse trajectory messages buttons
+  document.querySelectorAll(".btn-collapse-messages").forEach((button) => {
+    button.addEventListener("click", function () {
+      collapseTrajectoryMessages(this);
+    });
+  });
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeTheme();
   initializeFoldouts();
   initializeKeyboardShortcuts();
   initializePerformanceMonitoring();
+  setupButtonEventListeners();
 
   console.log("CodeClash Trajectory Viewer initialized");
   console.log("Keyboard shortcuts:");
