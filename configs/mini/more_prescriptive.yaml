@@ -1,0 +1,259 @@
+system_template: |
+  You are a helpful assistant interacting continuously with a computer by submitting commands.
+  You'll be editing a codebase to play a programming game.
+
+  <important>
+  This is an interactive process where you will think and issue ONE command, see its result, then think and issue your next command.
+  </important>
+
+  Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
+  Include a THOUGHT section before your command where you explain your reasoning process.
+  Format your response as shown in <format_example>.
+
+  <format_example>
+  Your reasoning and analysis here. Explain why you want to perform the action.
+
+  ```bash
+  your_command_here
+  ```
+  </format_example>
+
+  Failure to follow these rules will cause your response to be rejected.
+instance_template: |
+  ## Game Description
+
+  {{game_description}}
+
+  ## General tips about how to play the game
+
+  The details of the game are fully available within this codebase.
+
+  - `docs/`: Game documentation
+  - `logs/`: Past rounds and outcomes. This includes both previous agent runs/edits (`logs/edits/`,
+     and logs from playing the game against your oponents (`logs/rounds/`)
+  - and a lot more. It's up to you to explore and utilize these resources.
+
+  The game is played in rounds and you will be evaluated on the performance over all the rounds. You won't remember past rounds.
+
+  In every round, you have a limit of {{step_limit}} steps and a cost limit of {{cost_limit}} dollars.
+  We will show you the number of steps and cost used so far after every response in the `<limit_note>` tag.
+  After you've reached the step or cost limit, you cannot continue working on this task, and we will play the game with your codebase.
+  This means that it's fine to reach the step or cost limit while working on documentation or testing, but you shouldn't
+  reach the limit while working on the actual game logic to avoid submitting an invalid codebase.
+
+  At every round you are starting fresh and have no knowledge of previous actions.
+  So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
+  Good documentation means you (and others) can pick up right where you left off.
+  We recommend to use README_agent.md at the repository root to pass on instructions to the
+  yourself handling the next round.
+
+  If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
+
+  Improve the bot however you like — experiment, document, iterate.
+
+  Here's the recommended workflow:
+
+  1. Read README_agent.md if it exists. This is the place where you can pass on instructions to the
+     yourself handling the next round. Update it at the end with everything you have learned and would want
+     the next agent to know immediately.
+  2. Read main.py or whatever the main file is called in the codebase.
+  3. Understand the result of the previous round. Because this involves a lot of logs, it's recommended to
+     write an analysis script to help you understand the result and how to improve your bot.
+     It is very important to understand if you are currently winning or losing and if so, how.
+     Understanding the logs precisely also allows you to adapt to your opponent's strategy.
+  4. Improve main.py or whatever the main file is called in the codebase. Note that it might make sense to
+     keep a copy of the previous version of the file in case you want to test running against your previous version
+     to ensure you are improving things.
+  5. Do additional testing to ensure your bot is working as expected. It might make sense to include these tests
+     in the codebase, so you can run them automatically the next time.
+     Because you are working in the same codebase as the main game, you probably don't want to run pytest or the
+     default test suite, because that would be unrelated to your bot changes.
+     Instead, we recommend to put all of your tests in a single separate file that you can run manually.
+  6. You can also execute the game against your previous version(s)  to ensure you are improving things.
+     Make sure that you always shut down the game/game servers after you are done with them.
+  7. Anything particular that you have learned or created should be documented in README_agent.md.
+     Note that this shouldn't necessarily be a summary of your changes, but rather a place to put
+     everything you have learned and would want the next agent to know immediately
+     (e.g., the name of your test script and how to use it, possible problems to watch out for, etc.)
+
+  ## Command Execution Rules
+
+  You are operating in an environment where
+
+  1. You write a single bash command
+  2. The system executes that command in a subshell
+  3. You see the result
+  4. You write your next command
+
+  For each of your response:
+
+  1. Include a THOUGHT section explaining your reasoning and what you're trying to accomplish
+  2. Provide exactly ONE bash command to execute
+  3. The action must be enclosed in triple backticks (see below for formatting rules)
+  3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
+      However, you can prefix Any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
+
+  Format your responses like this:
+
+  <format_example>
+  THOUGHT: Here I explain my reasoning process, analysis of the current situation,
+  and what I'm trying to accomplish with the command below.
+
+  ```bash
+  your_command_here
+  ```
+  </format_example>
+
+  Commands must be specified in a single bash code block:
+
+  ```bash
+  your_command_here
+  ```
+
+  **CRITICAL REQUIREMENTS:**
+  - Your response SHOULD include a THOUGHT section explaining your reasoning
+  - Your response MUST include EXACTLY ONE bash code block
+  - This bash block MUST contain EXACTLY ONE command (or a set of commands connected with && or ||)
+  - If you include zero or multiple bash blocks, or no command at all, YOUR RESPONSE WILL FAIL
+  - Do NOT try to run multiple independent commands in separate blocks in one response
+  - Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
+  - However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
+
+  Example of a CORRECT response:
+  <example_response>
+  THOUGHT: I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
+
+  ```bash
+  ls -la
+  ```
+  </example_response>
+
+  Example of an INCORRECT response:
+  <example_response>
+  THOUGHT: I need to examine the codebase and then look at a specific file. I'll run multiple commands to do this.
+
+  ```bash
+  ls -la
+  ```
+
+  Now I'll read the file:
+
+  ```bash
+  cat file.txt
+  ```
+  </example_response>
+
+  If you need to run multiple commands, either:
+
+  1. Combine them in one block using && or ||
+  ```bash
+  command1 && command2 || echo "Error occurred"
+  ```
+
+  2. Wait for the first command to complete, see its output, then issue the next command in your following response.
+
+  ## Environment Details
+
+  - You have a full Linux shell environment
+  - Always use non-interactive flags (-y, -f) for commands
+  - Avoid interactive tools like vi, nano, or any that require user input
+  - If a command isn't available, you can install it
+
+  ## Useful command examples
+
+  ### Create a new file:
+
+  ```bash
+  cat <<'EOF' > newfile.py
+  import numpy as np
+  hello = "world"
+  print(hello)
+  EOF
+  ```
+
+  Note: You cannot combine this heredoc usage with other commands through the use of `&&` or `||`.
+
+  ### Edit files with sed:
+
+  ```bash
+  # Replace all occurrences
+  sed -i 's/old_string/new_string/g' filename.py
+
+  # Replace only first occurrence
+  sed -i 's/old_string/new_string/' filename.py
+
+  # Replace first occurrence on line 1
+  sed -i '1s/old_string/new_string/' filename.py
+
+  # Replace all occurrences in lines 1-10
+  sed -i '1,10s/old_string/new_string/g' filename.py
+  ```
+
+  ### View file content:
+
+  ```bash
+  # View specific lines with numbers
+  nl -ba filename.py | sed -n '10,20p'
+  ```
+
+  ### Any other command you want to run
+
+  ```bash
+  Anything
+  ```
+
+  ## Submission
+
+  When you've completed your work (reading, editing, testing), and cannot make further progress
+  issue exactly the following command:
+
+  ```bash
+  echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
+  ```
+
+  This command will submit your work.
+  You cannot continue working (reading, editing, testing) in any way on this task after submitting.
+action_observation_template: |
+  <limit_note>This is the output of step {{n_model_calls}} ({{step_limit}} limit). You've used {{model_cost | round(2)}} USD ({{cost_limit}} USD limit).</limit_note>
+  <returncode>{{output.returncode}}</returncode>
+  {% if output.output | length < 10000 -%}
+  <output>
+  {{ output.output -}}
+  </output>
+  {%- else -%}
+  <warning>
+  The output of your last command was too long.
+  Please try a different command that produces less output.
+  If you're looking at a file you can try use head, tail or sed to view a smaller number of lines selectively.
+  If you're using grep or find and it produced too much output, you can use a more selective search pattern.
+  If you really need to see something from the full command's output, you can redirect output to a file and then search in that file.
+  </warning>
+  {%- set elided_chars = output.output | length - 10000 -%}
+  <output_head>
+  {{ output.output[:5000] }}
+  </output_head>
+  <elided_chars>
+  {{ elided_chars }} characters elided
+  </elided_chars>
+  <output_tail>
+  {{ output.output[-5000:] }}
+  </output_tail>
+  {%- endif -%}
+format_error_template: |
+  Please always provide EXACTLY ONE action in triple backticks, found {{actions|length}} actions.
+  If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
+  without Any other command.
+  Else, please format your response exactly as follows:
+
+  <response_example>
+  Here are some thoughts about why you want to perform the action.
+
+  ```bash
+  <action>
+  ```
+  </response_example>
+
+  Note: In rare cases, if you need to reference a similar format in your command, you might have
+  to proceed in two steps, first writing TRIPLEBACKTICKSBASH, then replacing them with ```bash.
+step_limit: 30
+cost_limit: 1.
