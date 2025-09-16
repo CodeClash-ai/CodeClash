@@ -86,6 +86,27 @@ def get_models_from_metadata(log_dir: Path) -> list[str]:
         return []
 
 
+def get_readme_first_line(log_dir: Path) -> str:
+    """Extract the first line from readme.txt if it exists"""
+    readme_file = log_dir / "readme.txt"
+    if not readme_file.exists():
+        return ""
+
+    try:
+        content = readme_file.read_text().strip()
+        if not content:
+            return ""
+        # Get the first non-empty line
+        lines = content.split("\n")
+        for line in lines:
+            line = line.strip()
+            if line:
+                return line
+        return ""
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
 def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
     """Extract detailed agent information from metadata"""
     agents = []
@@ -160,6 +181,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                     if is_game_folder(item):
                         round_count = get_round_count_from_metadata(item)
                         models = get_models_from_metadata(item)
+                        readme_first_line = get_readme_first_line(item)
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
@@ -167,6 +189,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_count": round_count,
                                 "models": models,
+                                "readme_first_line": readme_first_line,
                                 "is_game": True,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -180,6 +203,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_count": None,
                                 "models": [],
+                                "readme_first_line": "",
                                 "is_game": False,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,

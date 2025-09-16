@@ -101,7 +101,7 @@ Here's how the metadata.json file looks like:
     "players": [
       {
         "agent": "mini",
-        "name": "gpt-5-mini-more-prescriptive",
+        "name": "sonnet-4-more-prescriptive",
         "config": {
           "agent": {
             "system_template": "",
@@ -145,12 +145,12 @@ Here's how the metadata.json file looks like:
   },
   "agents": [
     {
-      "name": "gpt-5-mini-more-prescriptive",
+      "name": "sonnet-4-more-prescriptive",
       "player_unique_id": "38f5a945-2a14-4cfb-9a41-e3ccceb7d3e2",
       "created_timestamp": 1757982729,
       "config": {
         "agent": "mini",
-        "name": "gpt-5-mini-more-prescriptive",
+        "name": "sonnet-4-more-prescriptive",
         "config": {
           "agent": {
             "system_template": "...,
@@ -164,7 +164,7 @@ Here's how the metadata.json file looks like:
         }
       },
       "initial_commit_hash": "dc7bdb934a2f1bba88d19136ff5caa6ff789dda7",
-      "branch_name": "PvpTournament.BattleSnake.250915203207.gpt-5-mini-more-prescriptive",
+      "branch_name": "PvpTournament.BattleSnake.250915203207.sonnet-4-more-prescriptive",
       "round_tags": {}
     },
     {
@@ -213,9 +213,15 @@ The application has two main pages:
 
 ### Mouse Navigation
 
-* **Left-click**: Default action (navigate in same tab)
-* **Middle-click**: Open in new tab (works on all buttons and game rows)
-* **Ctrl+click or Cmd+click**: Open in new tab (alternative to middle-click)
+* **Left-click in checkbox column**: Toggle checkbox selection
+* **Left-click elsewhere on game row**: Navigate to viewer in same tab
+* **Middle-click on game row**: Open in new tab
+* **Ctrl+click or Cmd+click on game row**: Open in new tab (alternative to middle-click)
+* **Drag over checkbox column**: Multi-select games by dragging over checkboxes
+* **Left-click on Open button**: Navigate to viewer in same tab
+* **Middle-click on Open button**: Open in new tab
+* **Ctrl+click or Cmd+click on Open button**: Open in new tab (alternative to middle-click)
+* **Left-click on ↗ button**: Always open in new tab
 
 ## Game Picker Design (`/picker`)
 
@@ -223,26 +229,37 @@ The application has two main pages:
 
 * **Hierarchical Tree Structure**: Shows all folders recursively with proper indentation
 * **Game Detection**: Any folder containing `metadata.json` is considered a game folder
+* **Multi-Selection Support**: Checkboxes allow selecting multiple games for batch operations
+* **Batch Actions**: Action dropdown with options like "Copy pathnames" for selected games
+* **Readme Display**: Shows the first line of each game's `readme.txt` file in the table
 * **Folder Collapse/Expand**: Click intermediate folders to minimize/expand their contents
   - Collapsed folders show 📂 icon and blue accent border
   - Expanded folders show 📁 icon
   - Children of collapsed folders are hidden
 * **Visual Distinction**:
-  - Game folders: 🎮 icon, clickable, blue accent color
+  - Game folders: 🎮 icon, clickable for selection, blue accent color
   - Intermediate folders: 📁/📂 icon, clickable to collapse, muted appearance
 * **Tree Indentation**: Uses spaces and tree characters (└─) to show folder hierarchy
 * **Round Count Display**: Shows number of rounds for each game session
-* **Multiple Navigation Options**:
-  - Click game row: Navigate to viewer (middle-click for new tab)
+* **Model Display**: Shows full model names without truncation
+* **Selection Behavior**:
+  - Click in checkbox column: Toggle checkbox selection
+  - Drag over checkbox column: Multi-select games by dragging
+  - Click elsewhere on game row: Navigate to viewer (supports middle-click)
   - "Open" button: Navigate to viewer (supports middle-click)
   - "↗" button: Always open viewer in new tab
+* **Batch Operations**:
+  - "Select All" checkbox to toggle all games
+  - Styled action dropdown with custom arrow and hover effects for batch operations on selected games
+  - Copy pathnames copies selected game paths as space-separated string to clipboard
 
 ### Layout
 
-* Clean table structure with three columns: Game Session, Rounds, Action
-* Responsive design that adapts to mobile screens
+* Full-width table structure with six columns: Select, Game Session, Note, Rounds, Models, Action
+* Responsive design that adapts to mobile screens (hides some columns on mobile)
 * Hover effects and visual feedback
 * Base directory path display at the top
+* Control bar with selection controls and action dropdown
 
 ## Trajectory Viewer Design (`/`)
 

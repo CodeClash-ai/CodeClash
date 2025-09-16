@@ -28,8 +28,22 @@
 
         {% if game_folders %}
         <div class="games-table">
+        <div class="table-controls">
+            <div class="selection-controls">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
+                <label for="select-all">Select All</label>
+            </div>
+            <div class="action-controls">
+                <select id="action-dropdown" onchange="handleAction(this.value)">
+                    <option value="">Choose action...</option>
+                    <option value="copy-paths">Copy pathnames</option>
+                </select>
+            </div>
+        </div>
         <div class="table-header">
+            <div>☑️ Select</div>
             <div>📁 Game Session</div>
+            <div>📝 Note</div>
             <div>🎯 Rounds</div>
             <div>🤖 Models</div>
             <div>Action</div>
@@ -40,7 +54,17 @@
             <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
                  data-path="{{ game.name }}"
                  data-parent="{{ game.parent or '' }}"
-                 {% if game.is_game %}onmousedown="handleGameClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
+                 {% if game.is_game %}onclick="handleRowClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
+
+                <div class="checkbox-cell">
+                    {% if game.is_game %}
+                    <input type="checkbox" class="game-checkbox" data-path="{{ game.name }}"
+                           onclick="handleCheckboxClick(event, '{{ game.name }}')">
+                    {% else %}
+                    <span class="checkbox-placeholder"></span>
+                    {% endif %}
+                </div>
+
                 <div class="game-name-cell">
                     <span class="folder-indent">
                         {% for i in range(depth) %}
@@ -56,6 +80,14 @@
                     <span class="folder-icon collapse-icon">📁</span>
                     {% endif %}
                     <span class="game-name">{{ folder_name }}</span>
+                </div>
+
+                <div class="readme-cell">
+                    {% if game.is_game and game.readme_first_line %}
+                    <span class="readme-text" title="{{ game.readme_first_line }}">{{ game.readme_first_line }}</span>
+                    {% else %}
+                    <span class="readme-empty">-</span>
+                    {% endif %}
                 </div>
 
                 <div class="rounds-cell">

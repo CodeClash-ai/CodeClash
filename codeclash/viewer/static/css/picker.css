@@ -1,8 +1,9 @@
 /* Game Picker Styles */
 
 .picker-container {
-  max-width: 1400px;
-  margin: 2rem auto;
+  max-width: none;
+  width: 100%;
+  margin: 2rem 0;
   padding: 0 1rem;
 }
 
@@ -51,12 +52,66 @@
   overflow: hidden;
 }
 
+.table-controls {
+  background-color: var(--bg-tertiary);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selection-controls input[type="checkbox"] {
+  margin: 0;
+}
+
+.selection-controls label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.action-controls select {
+  padding: 0.5rem 1rem 0.5rem 0.8rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--bg-secondary);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  appearance: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.action-controls select:hover {
+  border-color: var(--accent-color);
+  background-color: var(--bg-primary);
+}
+
+.action-controls select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .table-header {
   background-color: var(--bg-tertiary);
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 1fr 100px 180px 140px;
+  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 140px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -64,7 +119,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 1fr 100px 180px 140px;
+  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 140px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -105,6 +160,65 @@
 }
 
 .folder-indicator {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.checkbox-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  user-select: none;
+  padding: 8px;
+}
+
+.checkbox-cell:hover {
+  background-color: var(--bg-primary);
+  border-radius: 0.25rem;
+}
+
+.checkbox-placeholder {
+  width: 16px;
+  height: 16px;
+}
+
+.game-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--accent-color);
+  transform: scale(1.5);
+  transition: all 0.2s ease;
+}
+
+.game-checkbox:hover {
+  transform: scale(1.6);
+}
+
+.game-checkbox:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.readme-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0.25rem;
+}
+
+.readme-text {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+}
+
+.readme-empty {
   color: var(--text-muted);
   font-size: 0.8rem;
   font-style: italic;
@@ -170,9 +284,9 @@
   align-items: center;
   justify-content: flex-start;
   gap: 0.25rem;
-  width: 180px;
   flex-wrap: wrap;
   padding: 0.25rem;
+  min-width: 0;
 }
 
 .model-tag {
@@ -183,9 +297,6 @@
   font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   flex-shrink: 0;
 }
 
@@ -196,10 +307,10 @@
 }
 
 .action-cell {
-  width: 140px;
   display: flex;
   justify-content: center;
   gap: 0.5rem;
+  min-width: 140px;
 }
 
 .open-button {
@@ -264,29 +375,38 @@
     padding: 0 0.5rem;
   }
 
+  .table-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
   .table-header,
   .game-row {
-    grid-template-columns: 1fr 80px 120px;
+    grid-template-columns: 40px 1fr 80px;
     gap: 0.5rem;
+  }
+
+  .checkbox-cell {
+    width: 40px;
+  }
+
+  .game-checkbox {
+    transform: scale(1.3);
+  }
+
+  .game-checkbox:hover {
+    transform: scale(1.4);
+  }
+
+  .readme-cell,
+  .models-cell,
+  .action-cell {
+    display: none; /* Hide on mobile to save space */
   }
 
   .rounds-cell {
     width: 80px;
-  }
-
-  .models-cell {
-    width: 120px;
-    justify-content: flex-start;
-  }
-
-  .action-cell {
-    display: none; /* Hide action buttons on mobile, click row instead */
-  }
-
-  .model-tag {
-    font-size: 0.6rem;
-    padding: 0.1rem 0.25rem;
-    max-width: 80px;
   }
 
   .game-name {
