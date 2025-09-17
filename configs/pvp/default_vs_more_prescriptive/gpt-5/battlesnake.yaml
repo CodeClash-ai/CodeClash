@@ -1,5 +1,5 @@
 tournament:
-  rounds: 3
+  rounds: 5
 game:
   name: BattleSnake
   sims_per_round: 1000
