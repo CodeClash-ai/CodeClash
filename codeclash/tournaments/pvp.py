@@ -17,7 +17,7 @@ from codeclash.utils.environment import copy_to_container
 
 
 class PvpTournament(AbstractTournament):
-    def __init__(self, config: dict, *, cleanup: bool = False, push: bool = False, output_dir: Path | None = None):
+    def __init__(self, config: dict, *, output_dir: Path, cleanup: bool = False, push: bool = False):
         super().__init__(config, name="PvpTournament", output_dir=output_dir)
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(

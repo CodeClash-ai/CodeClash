@@ -1,20 +1,18 @@
-import getpass
 import os
 import time
 import traceback
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS
 from codeclash.utils.environment import create_file_in_container
 from codeclash.utils.log import get_logger
 
 
 class AbstractTournament:
-    def __init__(self, config: dict, *, name: str, output_dir: Path | None = None, **kwargs):
+    def __init__(self, config: dict, *, name: str, output_dir: Path, **kwargs):
         self.config: dict = config
         self.name: str = name
         self.tournament_id: str = f"{self.name}.{config['game']['name']}.{time.strftime('%y%m%d%H%M%S')}"
-        self._custom_output_dir: Path | None = output_dir
+        self._output_dir: Path = output_dir
         self._metadata: dict = {
             "name": self.name,
             "tournament_id": self.tournament_id,
@@ -25,15 +23,9 @@ class AbstractTournament:
 
     @property
     def local_output_dir(self) -> Path:
-        if self._custom_output_dir is not None:
-            # Custom output directory provided, add timestamp to make it unique
-            return (self._custom_output_dir / time.strftime("%y%m%d%H%M%S")).resolve()
-
-        # Default behavior
-        base_dir = DIR_LOGS
         if "PYTEST_CURRENT_TEST" in os.environ:
-            base_dir = Path("/tmp/codeclash")
-        return (base_dir / getpass.getuser() / self.tournament_id).resolve()
+            return Path("/tmp/codeclash") / self._output_dir.name
+        return self._output_dir.resolve()
 
     def get_metadata(self) -> dict:
         return self._metadata

@@ -1,5 +1,6 @@
 import argparse
 import getpass
+import time
 from pathlib import Path
 
 import yaml
@@ -22,13 +23,15 @@ def main(
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
 
-    folder_name = f"PvpTournament.{config['game']['name']}{suffix}"
+    timestamp = time.strftime("%y%m%d%H%M%S")
+    suffix_part = f".{suffix}" if suffix else ""
+    folder_name = f"PvpTournament.{config['game']['name']}.{timestamp}{suffix_part}"
     if output_dir is None:
         full_output_dir = DIR_LOGS / getpass.getuser() / folder_name
     else:
         full_output_dir = output_dir / folder_name
 
-    tournament = PvpTournament(config, cleanup=cleanup, push=push, output_dir=full_output_dir)
+    tournament = PvpTournament(config, output_dir=full_output_dir, cleanup=cleanup, push=push)
     tournament.run()
 
 
