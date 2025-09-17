@@ -145,6 +145,12 @@ class CodeGame(ABC):
             dest_path=self.log_round(round_num),
         )
 
+        # Remove logs from container to save space
+        assert_zero_exit_code(
+            self.environment.execute(f"rm -rf {self.log_env}"),
+            logger=self.logger,
+        )
+
     def end(self, cleanup: bool = False):
         if cleanup:
             for artifact in self.artifacts:

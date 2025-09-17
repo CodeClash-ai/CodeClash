@@ -2,7 +2,7 @@ tournament:
   rounds: 3
 game:
   name: RoboCode
-  sims_per_round: 30
+  sims_per_round: 1000
   battle:
     battle:
       gunCoolingRate: 0.1

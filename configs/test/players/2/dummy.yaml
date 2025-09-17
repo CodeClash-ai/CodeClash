@@ -2,7 +2,7 @@ tournament:
   rounds: 3
 game:
   name: DummyGame
-  sims_per_round: 100
+  sims_per_round: 1000
 players:
 - agent: dummy
   name: p1

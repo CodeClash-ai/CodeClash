@@ -146,5 +146,18 @@ class BattleSnakeGame(CodeGame):
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        # TODO: implement more checks
+        if "main.py" not in agent.environment.execute("ls")["output"]:
+            return False, "No main.py file found in the root directory"
+        bot_content = agent.environment.execute("cat main.py")["output"].splitlines()
+        error_msg = []
+        for func in [
+            "def info() -> typing.Dict:",
+            "def start(game_state: typing.Dict):",
+            "def end(game_state: typing.Dict):",
+            "def move(game_state: typing.Dict) -> typing.Dict:",
+        ]:
+            if func not in bot_content:
+                error_msg.append(f"There should be a `{func}` function implemented in `main.py`")
+        if len(error_msg) > 0:
+            return False, "\n".join(error_msg + ["Don't change the function signatures!"])
         return True, None
