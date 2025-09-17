@@ -1,11 +1,13 @@
 import shlex
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code
 
 
 class RobotRumbleGame(CodeGame):
@@ -16,17 +18,40 @@ class RobotRumbleGame(CodeGame):
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 
-    def execute_round(self, agents: list[Player]):
+    def _run_single_simulation(self, agents: list[Player], idx: int) -> str:
+        """Run a single robotrumble simulation and return the output."""
         args = [f"/{agent.name}/robot.py" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
-        self.logger.info(f"Running game: {cmd}")
-        for idx in range(self.game_config.get("sims_per_round", 100)):
-            assert_zero_exit_code(self.environment.execute(cmd + f" > {self.log_env / f'sim_{idx}.txt'}"))
+        cmd = f"{self.run_cmd_round} {shlex.join(args)} > {self.log_env / f'sim_{idx}.txt'}"
+
+        output = self.environment.execute(cmd)
+        if output["returncode"] != 0:
+            self.logger.warning(
+                f"RobotRumble simulation {idx} failed with exit code {output['returncode']}:\n{output['output']}"
+            )
+        return output["output"]
+
+    def execute_round(self, agents: list[Player]):
+        self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")
+
+        with ThreadPoolExecutor(20) as executor:
+            # Submit all simulations to the thread pool
+            futures = [
+                executor.submit(self._run_single_simulation, agents, idx)
+                for idx in range(self.game_config.get("sims_per_round", 100))
+            ]
+
+            # Collect results as they complete
+            for future in tqdm(as_completed(futures), total=len(futures)):
+                future.result()
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         winners = []
         for idx in range(self.game_config.get("sims_per_round", 100)):
-            with open(self.log_round(round_num) / f"sim_{idx}.txt") as f:
+            output_file = self.log_round(round_num) / f"sim_{idx}.txt"
+            if not output_file.exists():
+                self.logger.warning(f"Simulation {idx} not found, skipping")
+                continue
+            with open(output_file) as f:
                 lines = f.read().strip().split("\n")
 
             # Get the last 2 lines which contain the game result (same as original)
