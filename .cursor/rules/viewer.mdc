@@ -271,7 +271,10 @@ The application has two main pages:
 * **Batch Operations**:
   - "Select All" checkbox to toggle all games
   - Styled action dropdown with custom arrow and hover effects for batch operations on selected games
-  - Copy pathnames copies selected game paths as space-separated string to clipboard
+  - **Copy paths**: Copies selected game paths as space-separated string to clipboard
+  - **Add suffix**: Prompts user for suffix text and adds it to folder names with dot separator (e.g., `experiment1` → `experiment1.backup`)
+  - **Copy foldernames**: Copies only folder names (not full paths) as space-separated string to clipboard
+  - **Move to subfolder**: Prompts user for subfolder name and moves all selected folders into it (creates subfolder if needed)
 
 ### Layout
 
@@ -346,6 +349,36 @@ The trajectory template displays:
 **Message Role Badges**: Each message displays a small role badge (e.g., "User #1", "Assistant #2") in the top-right corner. These badges automatically hide on hover over the message block to improve readability and allow users to see text that might be obscured by the badge.
 
 **Content Preview**: Long message content (>5 lines) shows a preview with expand/collapse functionality to keep the interface manageable.
+
+## Multi-Select Actions Specification
+
+The game picker includes four batch operations for selected game folders, accessible via the action dropdown:
+
+### 1. Copy Paths (`copy-paths`)
+- Copies full relative paths of selected games as space-separated string
+- Example: `fuchur/experiment1 fuchur/experiment2`
+- Uses modern clipboard API with execCommand fallback for non-HTTPS environments
+
+### 2. Add Suffix (`add-suffix`)
+- Prompts user for suffix text using browser's native `prompt()`
+- Adds suffix with dot separator: `experiment1` → `experiment1.backup`
+- Server endpoint: `POST /rename-folders` with `action: "add-suffix"`
+- Validates folder existence and prevents name conflicts
+- Shows success message and refreshes page after operation
+
+### 3. Copy Foldernames (`copy-foldernames`)
+- Copies only folder names (not full paths) as space-separated string
+- Example: From `fuchur/experiment1` copies just `experiment1`
+- Uses modern clipboard API with execCommand fallback for non-HTTPS environments
+
+### 4. Move to Subfolder (`move-to-subfolder`)
+- Prompts user for subfolder name using browser's native `prompt()`
+- Moves selected folders to new/existing subfolder in their parent directory
+- Server endpoint: `POST /move-to-subfolder`
+- Creates subfolder if it doesn't exist
+- Validates subfolder name (no path separators)
+- Shows success message and refreshes page after operation
+
 
 ### Important
 
