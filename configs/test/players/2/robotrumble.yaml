@@ -2,7 +2,7 @@ tournament:
   rounds: 2
 game:
   name: RobotRumble
-  sims_per_round: 30
+  sims_per_round: 1000
 players:
 - agent: dummy
   name: p1

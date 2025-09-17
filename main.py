@@ -71,6 +71,7 @@ def main_cli(argv: list[str] | None = None):
         default="",
     )
     parser.add_argument(
+        "-k",
         "--keep-containers",
         action="store_true",
         help="Do not remove containers after games/agent finish",
