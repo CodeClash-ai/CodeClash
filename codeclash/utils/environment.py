@@ -24,6 +24,9 @@ def copy_between_containers(
     """
     Copy files from one Docker container to another via a temporary local directory.
     """
+    if Path(src_path).is_dir():
+        src_path = f"{src_path}/"
+        dest_path = f"{dest_path}/"
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir) / Path(src_path).name
 
@@ -32,9 +35,10 @@ def copy_between_containers(
             "docker",
             "cp",
             f"{src_container.container_id}:{src_path}",
-            str(temp_path),
+            f"{temp_path}",
         ]
         result_src = subprocess.run(cmd_src, check=False, capture_output=True, text=True)
+        print(result_src)
         if result_src.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from {src_container.container_id} to local temp: {result_src.stdout}{result_src.stderr}"
@@ -47,10 +51,11 @@ def copy_between_containers(
         cmd_dest = [
             "docker",
             "cp",
-            str(temp_path),
+            f"{temp_path}",
             f"{dest_container.container_id}:{dest_path}",
         ]
         result_dest = subprocess.run(cmd_dest, check=False, capture_output=True, text=True)
+        print(result_dest)
         if result_dest.returncode != 0:
             raise RuntimeError(
                 f"Failed to copy from local temp to {dest_container.container_id}: {result_dest.stdout}{result_dest.stderr}"
@@ -67,13 +72,17 @@ def copy_to_container(
 
     The copy operation is recursive for directories.
     """
+    # ALWAYS ADD TRAILING SLASHES EVERYWHERE
+    if Path(src_path).is_dir():
+        src_path = f"{src_path}/"
+        dest_path = f"{dest_path}/"
     if not str(dest_path).startswith("/"):
         # If not an absolute path, assume relative to container's cwd
-        dest_path = f"{container.config.cwd}/{dest_path}"
+        dest_path = f"{container.config.cwd}/{dest_path}/"
     cmd = [
         "docker",
         "cp",
-        str(src_path),
+        f"{src_path}",
         f"{container.container_id}:{dest_path}",
     ]
     # Ensure destination folder exists
@@ -96,11 +105,12 @@ def copy_from_container(
 
     The copy operation is recursive for directories.
     """
+    # ALWAYS ADD TRAILING SLASHES EVERYWHERE
     cmd = [
         "docker",
         "cp",
         f"{container.container_id}:{src_path}",
-        str(dest_path),
+        f"{dest_path}/",
     ]
     Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)
