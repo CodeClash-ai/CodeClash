@@ -4,6 +4,7 @@ In single player mode, the agent runs always against its previous version.
 
 import copy
 import json
+from pathlib import Path
 
 from codeclash.agents import get_agent
 from codeclash.agents.dummy_agent import Dummy
@@ -18,8 +19,8 @@ from codeclash.utils.environment import copy_to_container
 
 
 class SinglePlayerTraining(AbstractTournament):
-    def __init__(self, config: dict, *, cleanup: bool = False):
-        super().__init__(config, name="SinglePlayerTraining")
+    def __init__(self, config: dict, *, cleanup: bool = False, output_dir: Path | None = None):
+        super().__init__(config, name="SinglePlayerTraining", output_dir=output_dir)
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(
             self.config,
