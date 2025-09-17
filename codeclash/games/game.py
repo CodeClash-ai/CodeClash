@@ -200,7 +200,14 @@ class CodeGame(ABC):
     def _pre_round_setup(self, agents: list[Player]):
         """Copy agent codebases into game's container"""
         for agent in agents:
+            # First make sure that the folder in the game container is removed
+            # This is important for 2 reasons:
+            # 1. Subtle differences in docker cp behavior regarding to trailing slashes
+            #    depending on whether the destination exists
+            # 2. If files are removed from the agent container, they should also be removed
+            #    from the game container
             self.logger.debug(f"Copying {agent.name}'s codebase")
+            assert_zero_exit_code(self.environment.execute(f"rm -rf /{agent.name}"), logger=self.logger)
             copy_between_containers(
                 src_container=agent.environment,
                 dest_container=self.environment,

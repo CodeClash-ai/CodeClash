@@ -23,7 +23,11 @@ def copy_between_containers(
 ):
     """
     Copy files from one Docker container to another via a temporary local directory.
+
+    Be extremely careful with trailing slashes in src_path and dest_path, the behavior
+    of docker cp is also different depending on whether the destination exists.
     """
+    print(f"Copy between containers: {src_path} -> {dest_path}")
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir) / Path(src_path).name
 
@@ -66,6 +70,9 @@ def copy_to_container(
     Copy a file or directory from the local filesystem to a Docker container.
 
     The copy operation is recursive for directories.
+
+    Be extremely careful with trailing slashes in src_path and dest_path, the behavior
+    of docker cp is also different depending on whether the destination exists.
     """
     if not str(dest_path).startswith("/"):
         # If not an absolute path, assume relative to container's cwd
@@ -76,6 +83,7 @@ def copy_to_container(
         str(src_path),
         f"{container.container_id}:{dest_path}",
     ]
+    print(f"Copy to container: cmd={cmd}")
     # Ensure destination folder exists
     assert_zero_exit_code(container.execute(f"mkdir -p {Path(dest_path).parent}"))
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)
@@ -95,6 +103,9 @@ def copy_from_container(
     Copy a file or directory from a Docker container to the local filesystem.
 
     The copy operation is recursive for directories.
+
+    Be extremely careful with trailing slashes in src_path and dest_path, the behavior
+    of docker cp is also different depending on whether the destination exists.
     """
     cmd = [
         "docker",
@@ -102,6 +113,7 @@ def copy_from_container(
         f"{container.container_id}:{src_path}",
         str(dest_path),
     ]
+    print(f"Copy from container: cmd={cmd}")
     Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)
     if result.returncode != 0:
