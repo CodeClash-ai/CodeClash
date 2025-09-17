@@ -17,6 +17,7 @@ def main(
     cleanup: bool = False,
     output_dir: Path | None = None,
     suffix: str = "",
+    keep_containers: bool = False,
 ):
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
@@ -30,7 +31,9 @@ def main(
     else:
         full_output_dir = output_dir / folder_name
 
-    training = SinglePlayerTraining(config, output_dir=full_output_dir, cleanup=cleanup)
+    training = SinglePlayerTraining(
+        config, output_dir=full_output_dir, cleanup=cleanup, keep_containers=keep_containers
+    )
     training.run()
 
 
@@ -59,6 +62,11 @@ def main_cli(argv: list[str] | None = None):
         type=str,
         help="Suffix to attach to the folder name. Does not include leading dot or underscore.",
         default="",
+    )
+    parser.add_argument(
+        "--keep-containers",
+        action="store_true",
+        help="Do not remove containers after games/agent finish",
     )
     args = parser.parse_args(argv)
     main(**vars(args))

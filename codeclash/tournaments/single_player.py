@@ -19,13 +19,14 @@ from codeclash.utils.environment import copy_to_container
 
 
 class SinglePlayerTraining(AbstractTournament):
-    def __init__(self, config: dict, *, output_dir: Path, cleanup: bool = False):
+    def __init__(self, config: dict, *, output_dir: Path, cleanup: bool = False, keep_containers: bool = False):
         super().__init__(config, name="SinglePlayerTraining", output_dir=output_dir)
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(
             self.config,
             tournament_id=self.tournament_id,
             local_output_dir=self.local_output_dir,
+            keep_containers=keep_containers,
         )
         self.agent: Player = self.get_agent(self.config["player"], round=1)
         mirror_agent_config = copy.deepcopy(self.config["player"])

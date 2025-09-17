@@ -1,5 +1,4 @@
 import re
-from pathlib import Path
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
@@ -14,8 +13,8 @@ HB_SCRIPT = "run_game.sh"
 class HuskyBenchGame(CodeGame):
     name: str = "HuskyBench"
 
-    def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
         self.num_players: int = len(config["players"])
         self.run_cmd_round: str = (
             f"python engine/main.py --port {HB_PORT} --players {self.num_players} "

@@ -1,7 +1,6 @@
 import shlex
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 
 from tqdm.auto import tqdm
 
@@ -13,8 +12,8 @@ from codeclash.games.game import CodeGame, RoundStats
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
 
-    def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
 

@@ -61,7 +61,7 @@ class RoundStats:
 class CodeGame(ABC):
     name: str
 
-    def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path):
+    def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path, keep_containers: bool = False):
         """The CodeGame class is responsible for running games, i.e., taking a list of code
         from different agents/players and running them against each other.
         It also provides the environments for the game and agents to run in.
@@ -74,11 +74,13 @@ class CodeGame(ABC):
             config: The overall config for the tournament.
             tournament_id: The id of the tournament.
             local_output_dir: The host/local directory to write logs to.
+            keep_containers: Do not remove containers after games/agent finish.
         """
         self.url_gh: str = f"git@github.com:{GH_ORG}/{self.name}.git"
         self.artifacts: list[Path] = []
         """Artifact objects that we might want to clean up after the game."""
         self.config: dict = config
+        self._keep_containers: bool = keep_containers
         self._metadata: dict = {
             "name": self.name,
             "config": self.config["game"],
@@ -156,6 +158,10 @@ class CodeGame(ABC):
     def get_environment(self, branch_name: str | None = None) -> DockerEnvironment:
         """Get docker container ID with the game code installed."""
         self.build_image()
+        if not self._keep_containers:
+            run_args = ["--rm"]
+        else:
+            run_args = []
         environment = DockerEnvironment(
             image=self.image_name,
             cwd=str(DIR_WORK),
@@ -169,6 +175,7 @@ class CodeGame(ABC):
             },
             container_timeout="3h",
             logger=self.logger,
+            run_args=run_args,
         )
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")

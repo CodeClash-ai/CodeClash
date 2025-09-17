@@ -2,7 +2,6 @@ import json
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 
 from tqdm.auto import tqdm
 
@@ -14,8 +13,8 @@ from codeclash.games.game import CodeGame, RoundStats
 class BattleSnakeGame(CodeGame):
     name: str = "BattleSnake"
 
-    def __init__(self, config, *, tournament_id: str, local_output_dir: Path):
-        super().__init__(config, tournament_id=tournament_id, local_output_dir=local_output_dir)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
         self.run_cmd_round: str = "./battlesnake play"
         for arg, val in self.game_config.get("args", {}).items():
             if isinstance(val, bool):
