@@ -113,6 +113,7 @@ class PvpTournament(AbstractTournament):
         agent.post_run_hook(round=round_num)
 
     def _save(self) -> None:
+        self.local_output_dir.mkdir(parents=True, exist_ok=True)
         (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
 
     def end(self) -> None:

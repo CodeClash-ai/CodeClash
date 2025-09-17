@@ -128,6 +128,7 @@ class SinglePlayerTraining(AbstractTournament):
         self.mirror_agent.reset_and_apply_patch(full_diff)
 
     def _save(self) -> None:
+        self.local_output_dir.mkdir(parents=True, exist_ok=True)
         (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
 
     def end(self):
