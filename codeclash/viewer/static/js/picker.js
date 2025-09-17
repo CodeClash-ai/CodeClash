@@ -171,6 +171,12 @@ function handleAction(action) {
 
   if (action === "copy-paths") {
     copySelectedPaths();
+  } else if (action === "add-suffix") {
+    addSuffixToSelected();
+  } else if (action === "copy-foldernames") {
+    copySelectedFoldernames();
+  } else if (action === "move-to-subfolder") {
+    moveToSubfolder();
   }
 
   // Reset dropdown
@@ -193,9 +199,8 @@ function copySelectedPaths() {
 
   const pathsString = paths.join(" ");
 
-  // Copy to clipboard
-  navigator.clipboard
-    .writeText(pathsString)
+  // Copy to clipboard with fallback
+  copyToClipboard(pathsString)
     .then(() => {
       // Show temporary success message
       showCopyMessage(
@@ -207,6 +212,40 @@ function copySelectedPaths() {
       // Fallback: show paths in alert
       alert("Failed to copy to clipboard. Paths:\n" + pathsString);
     });
+}
+
+function copyToClipboard(text) {
+  // Modern clipboard API (requires HTTPS or localhost)
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  } else {
+    // Fallback for non-HTTPS environments
+    return new Promise((resolve, reject) => {
+      // Create a temporary textarea element
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        // Use the older execCommand API
+        const successful = document.execCommand("copy");
+        if (successful) {
+          resolve();
+        } else {
+          reject(new Error("execCommand copy failed"));
+        }
+      } catch (err) {
+        reject(err);
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    });
+  }
 }
 
 function showCopyMessage(message) {
@@ -233,6 +272,144 @@ function showCopyMessage(message) {
   setTimeout(() => {
     document.body.removeChild(messageDiv);
   }, 2000);
+}
+
+function addSuffixToSelected() {
+  const selectedCheckboxes = document.querySelectorAll(
+    "input[data-path]:checked",
+  );
+
+  if (selectedCheckboxes.length === 0) {
+    alert("Please select at least one game to add suffix.");
+    return;
+  }
+
+  // Create a minimally styled input prompt
+  const suffix = prompt("Enter suffix to add to selected folders:");
+
+  if (suffix === null || suffix.trim() === "") {
+    return; // User cancelled or entered empty string
+  }
+
+  const trimmedSuffix = suffix.trim();
+  const paths = Array.from(selectedCheckboxes).map((checkbox) =>
+    checkbox.getAttribute("data-path"),
+  );
+
+  // Send rename request to server
+  fetch("/rename-folders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      action: "add-suffix",
+      paths: paths,
+      suffix: trimmedSuffix,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showCopyMessage(
+          `Added suffix "${trimmedSuffix}" to ${paths.length} folder${paths.length > 1 ? "s" : ""}`,
+        );
+        // Refresh the page to show updated folder names
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        alert("Failed to add suffix: " + data.error);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to add suffix: ", err);
+      alert("Failed to add suffix. Please try again.");
+    });
+}
+
+function copySelectedFoldernames() {
+  const selectedCheckboxes = document.querySelectorAll(
+    "input[data-path]:checked",
+  );
+
+  if (selectedCheckboxes.length === 0) {
+    alert("Please select at least one game to copy folder names.");
+    return;
+  }
+
+  const folderNames = Array.from(selectedCheckboxes).map((checkbox) => {
+    const fullPath = checkbox.getAttribute("data-path");
+    // Extract just the folder name (last part of the path)
+    return fullPath.split("/").pop();
+  });
+
+  const folderNamesString = folderNames.join(" ");
+
+  // Copy to clipboard with fallback
+  copyToClipboard(folderNamesString)
+    .then(() => {
+      // Show temporary success message
+      showCopyMessage(
+        `Copied ${folderNames.length} folder name${folderNames.length > 1 ? "s" : ""} to clipboard`,
+      );
+    })
+    .catch((err) => {
+      console.error("Failed to copy folder names: ", err);
+      // Fallback: show folder names in alert
+      alert("Failed to copy to clipboard. Folder names:\n" + folderNamesString);
+    });
+}
+
+function moveToSubfolder() {
+  const selectedCheckboxes = document.querySelectorAll(
+    "input[data-path]:checked",
+  );
+
+  if (selectedCheckboxes.length === 0) {
+    alert("Please select at least one game to move to subfolder.");
+    return;
+  }
+
+  // Create a minimally styled input prompt
+  const subfolderName = prompt(
+    "Enter subfolder name to move selected folders to:",
+  );
+
+  if (subfolderName === null || subfolderName.trim() === "") {
+    return; // User cancelled or entered empty string
+  }
+
+  const trimmedSubfolderName = subfolderName.trim();
+  const paths = Array.from(selectedCheckboxes).map((checkbox) =>
+    checkbox.getAttribute("data-path"),
+  );
+
+  // Send move request to server
+  fetch("/move-to-subfolder", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      paths: paths,
+      subfolder: trimmedSubfolderName,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showCopyMessage(
+          `Moved ${paths.length} folder${paths.length > 1 ? "s" : ""} to subfolder "${trimmedSubfolderName}"`,
+        );
+        // Refresh the page to show updated folder structure
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        alert("Failed to move folders: " + data.error);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to move folders: ", err);
+      alert("Failed to move folders. Please try again.");
+    });
 }
 
 // Initialize theme and other functionality on page load

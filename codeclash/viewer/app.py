@@ -647,4 +647,144 @@ def load_readme():
         return jsonify({"success": False, "error": str(e)})
 
 
+@app.route("/rename-folders", methods=["POST"])
+def rename_folders():
+    """Add suffix to selected folders"""
+    try:
+        data = request.get_json()
+        action = data.get("action")
+        paths = data.get("paths", [])
+        suffix = data.get("suffix", "")
+
+        if not paths:
+            return jsonify({"success": False, "error": "No paths provided"})
+
+        if action != "add-suffix":
+            return jsonify({"success": False, "error": "Invalid action"})
+
+        if not suffix:
+            return jsonify({"success": False, "error": "No suffix provided"})
+
+        successful_renames = []
+        failed_renames = []
+
+        for relative_path in paths:
+            try:
+                # Get the full path
+                old_path = LOG_BASE_DIR / relative_path
+
+                if not old_path.exists():
+                    failed_renames.append(f"{relative_path}: does not exist")
+                    continue
+
+                # Create new path with suffix
+                parent_dir = old_path.parent
+                old_name = old_path.name
+                new_name = f"{old_name}.{suffix}"
+                new_path = parent_dir / new_name
+
+                # Check if target already exists
+                if new_path.exists():
+                    failed_renames.append(f"{relative_path}: target already exists")
+                    continue
+
+                # Perform the rename
+                old_path.rename(new_path)
+                successful_renames.append(f"{relative_path} → {old_name}.{suffix}")
+
+            except Exception as e:
+                failed_renames.append(f"{relative_path}: {str(e)}")
+
+        if failed_renames:
+            error_msg = "Some renames failed:\n" + "\n".join(failed_renames)
+            if successful_renames:
+                error_msg += "\n\nSuccessful renames:\n" + "\n".join(successful_renames)
+            return jsonify({"success": False, "error": error_msg})
+
+        return jsonify(
+            {
+                "success": True,
+                "message": f"Successfully renamed {len(successful_renames)} folder(s)",
+                "renamed": successful_renames,
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/move-to-subfolder", methods=["POST"])
+def move_to_subfolder():
+    """Move selected folders to a new subfolder"""
+    try:
+        data = request.get_json()
+        paths = data.get("paths", [])
+        subfolder_name = data.get("subfolder", "")
+
+        if not paths:
+            return jsonify({"success": False, "error": "No paths provided"})
+
+        if not subfolder_name:
+            return jsonify({"success": False, "error": "No subfolder name provided"})
+
+        # Validate subfolder name (no path separators, etc.)
+        if "/" in subfolder_name or "\\" in subfolder_name or ".." in subfolder_name:
+            return jsonify({"success": False, "error": "Invalid subfolder name"})
+
+        successful_moves = []
+        failed_moves = []
+
+        for relative_path in paths:
+            try:
+                # Get the full path
+                old_path = LOG_BASE_DIR / relative_path
+
+                if not old_path.exists():
+                    failed_moves.append(f"{relative_path}: does not exist")
+                    continue
+
+                # Determine where to create the subfolder
+                parent_dir = old_path.parent
+                subfolder_path = parent_dir / subfolder_name
+
+                # Create subfolder if it doesn't exist
+                subfolder_path.mkdir(exist_ok=True)
+
+                # Create new path inside subfolder
+                folder_name = old_path.name
+                new_path = subfolder_path / folder_name
+
+                # Check if target already exists
+                if new_path.exists():
+                    failed_moves.append(f"{relative_path}: target already exists in subfolder")
+                    continue
+
+                # Perform the move
+                old_path.rename(new_path)
+
+                # Calculate the new relative path for display
+                new_relative_path = str(new_path.relative_to(LOG_BASE_DIR))
+                successful_moves.append(f"{relative_path} → {new_relative_path}")
+
+            except Exception as e:
+                failed_moves.append(f"{relative_path}: {str(e)}")
+
+        if failed_moves:
+            error_msg = "Some moves failed:\n" + "\n".join(failed_moves)
+            if successful_moves:
+                error_msg += "\n\nSuccessful moves:\n" + "\n".join(successful_moves)
+            return jsonify({"success": False, "error": error_msg})
+
+        return jsonify(
+            {
+                "success": True,
+                "message": f"Successfully moved {len(successful_moves)} folder(s) to subfolder '{subfolder_name}'",
+                "moved": successful_moves,
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
 # Use run_viewer.py to launch the application
