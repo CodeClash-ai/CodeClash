@@ -1,0 +1,34 @@
+<!-- Analysis Section -->
+<section class="analysis-section">
+    <h2>📊 Analysis</h2>
+
+    <!-- Line Counting Analysis -->
+    <details class="foldout">
+        <summary>📈 Line Counting Analysis</summary>
+        <div class="log-content">
+            {% if analysis_data and analysis_data.all_files %}
+                <div class="line-analysis-container">
+                    <!-- File Dropdown -->
+                    <div class="file-selector">
+                        <label for="file-dropdown">Select File:</label>
+                        <select id="file-dropdown" class="file-dropdown">
+                            {% for file_path in analysis_data.all_files %}
+                                <option value="{{ file_path }}">{{ file_path }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Chart Container -->
+                    <div class="chart-container">
+                        <canvas id="line-count-chart" width="800" height="400"></canvas>
+                    </div>
+
+                    <!-- Data for JavaScript -->
+                    <script type="application/json" id="analysis-data">{{ analysis_data | tojson }}</script>
+                </div>
+            {% else %}
+                <p>No line count data available. This analysis requires games with changed files data.</p>
+            {% endif %}
+        </div>
+    </details>
+</section>
