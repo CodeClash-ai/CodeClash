@@ -156,7 +156,8 @@ class BattleSnakeGame(CodeGame):
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if "main.py" not in agent.environment.execute("ls")["output"]:
             return False, "No main.py file found in the root directory"
-        bot_content = agent.environment.execute("cat main.py")["output"].splitlines()
+        # note: no longer calling splitlines
+        bot_content = agent.environment.execute("cat main.py")["output"]
         error_msg = []
         for func in [
             "def info(",
