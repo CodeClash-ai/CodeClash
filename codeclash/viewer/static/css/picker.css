@@ -111,7 +111,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 140px;
+  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 180px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -119,7 +119,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 140px;
+  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 180px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -310,7 +310,7 @@
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  min-width: 140px;
+  min-width: 180px;
 }
 
 .open-button {
@@ -347,6 +347,22 @@
   background-color: var(--accent-hover);
 }
 
+.move-button {
+  background-color: var(--warning-color);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-button:hover {
+  filter: brightness(1.1);
+}
+
 .no-games-message {
   text-align: center;
   padding: 3rem;
@@ -366,6 +382,91 @@
   top: 1rem;
   right: 1rem;
   z-index: 100;
+}
+
+/* Move Dialog Styles */
+.move-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.move-dialog-content {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.move-dialog-content h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+}
+
+.move-dialog-content p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+.move-path-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.move-path-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.move-dialog-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.move-dialog-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-dialog-buttons button:first-child {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.move-dialog-buttons button:first-child:hover {
+  filter: brightness(1.1);
+}
+
+.move-dialog-buttons button:last-child {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.move-dialog-buttons button:last-child:hover {
+  background-color: var(--bg-tertiary);
 }
 
 /* Mobile responsiveness */

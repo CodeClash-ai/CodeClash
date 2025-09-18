@@ -268,6 +268,7 @@ The application has two main pages:
   - Click elsewhere on game row: Navigate to viewer (supports middle-click)
   - "Open" button: Navigate to viewer (supports middle-click)
   - "↗" button: Always open viewer in new tab
+  - "📁" button: Open move/rename dialog for individual folders
 * **Batch Operations**:
   - "Select All" checkbox to toggle all games
   - Styled action dropdown with custom arrow and hover effects for batch operations on selected games
@@ -279,6 +280,7 @@ The application has two main pages:
 ### Layout
 
 * Full-width table structure with six columns: Select, Game Session, Note, Rounds, Models, Action
+* **Action column includes**: Open, Open in new tab (↗), and Move/rename (📁) buttons for each game folder
 * Responsive design that adapts to mobile screens (hides some columns on mobile)
 * Hover effects and visual feedback
 * Base directory path display at the top
@@ -379,6 +381,33 @@ The game picker includes four batch operations for selected game folders, access
 - Validates subfolder name (no path separators)
 - Shows success message and refreshes page after operation
 
+## Individual Move/Rename Functionality
+
+Each game row in the picker includes a move/rename button (📁) that provides individual folder operations:
+
+### Move/Rename Dialog
+- **Trigger**: Click the 📁 button next to any game folder
+- **Interface**: Minimal unstyled dialog with text input field
+- **Behavior**:
+  - Pre-fills input with current full path
+  - User can edit path to rename or move folder
+  - Supports moving to new directory structures
+- **Keyboard shortcuts**:
+  - `Escape`: Close dialog
+  - `Enter`: Confirm move operation
+
+### Move/Rename Operations
+- **Server endpoint**: `POST /move-folder`
+- **Path validation**: Ensures both source and target are within logs directory
+- **Intermediate folders**: Creates intermediate directories if necessary
+- **Conflict handling**: Prevents overwriting existing folders
+- **Error handling**: Provides clear error messages for invalid operations
+- **Success feedback**: Shows confirmation message and refreshes page
+
+### Use Cases
+- **Simple rename**: Change folder name (e.g., `experiment1` → `experiment1_final`)
+- **Move to subdirectory**: Move folder to organized structure (e.g., `experiment1` → `completed/experiment1`)
+- **Reorganize structure**: Move folders between different directory hierarchies
 
 ### Important
 

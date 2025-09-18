@@ -787,4 +787,56 @@ def move_to_subfolder():
         return jsonify({"success": False, "error": str(e)})
 
 
+@app.route("/move-folder", methods=["POST"])
+def move_folder():
+    """Move/rename a single folder to a new path"""
+    try:
+        data = request.get_json()
+        old_path = data.get("old_path", "")
+        new_path = data.get("new_path", "")
+
+        if not old_path:
+            return jsonify({"success": False, "error": "No old path provided"})
+
+        if not new_path:
+            return jsonify({"success": False, "error": "No new path provided"})
+
+        # Convert to Path objects relative to LOG_BASE_DIR
+        old_full_path = LOG_BASE_DIR / old_path
+        new_full_path = LOG_BASE_DIR / new_path
+
+        # Validate old path exists
+        if not old_full_path.exists():
+            return jsonify({"success": False, "error": "Source folder does not exist"})
+
+        # Validate new path doesn't already exist
+        if new_full_path.exists():
+            return jsonify({"success": False, "error": "Target path already exists"})
+
+        # Security check: ensure both paths are within our expected logs directory
+        try:
+            old_full_path.relative_to(LOG_BASE_DIR)
+            new_full_path.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid path - must be within logs directory"})
+
+        # Create intermediate directories if necessary
+        new_full_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Perform the move
+        old_full_path.rename(new_full_path)
+
+        return jsonify(
+            {
+                "success": True,
+                "message": f"Successfully moved folder from '{old_path}' to '{new_path}'",
+                "old_path": old_path,
+                "new_path": new_path,
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
 # Use run_viewer.py to launch the application

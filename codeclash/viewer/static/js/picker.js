@@ -412,6 +412,92 @@ function moveToSubfolder() {
     });
 }
 
+// Move/Rename Dialog Variables
+let currentMovePath = "";
+
+function showMoveDialog(gamePath) {
+  currentMovePath = gamePath;
+  const dialog = document.getElementById("move-dialog");
+  const input = document.getElementById("move-path-input");
+
+  input.value = gamePath;
+  dialog.style.display = "flex";
+
+  // Focus and select the input text
+  setTimeout(() => {
+    input.focus();
+    input.select();
+  }, 100);
+}
+
+function cancelMove() {
+  const dialog = document.getElementById("move-dialog");
+  dialog.style.display = "none";
+  currentMovePath = "";
+}
+
+function confirmMove() {
+  const input = document.getElementById("move-path-input");
+  const newPath = input.value.trim();
+
+  if (!newPath) {
+    alert("Please enter a valid path");
+    return;
+  }
+
+  if (newPath === currentMovePath) {
+    cancelMove();
+    return;
+  }
+
+  // Send move request to server
+  fetch("/move-folder", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      old_path: currentMovePath,
+      new_path: newPath,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showCopyMessage(`Moved folder to: ${newPath}`);
+        // Refresh the page to show updated folder structure
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        alert("Failed to move folder: " + data.error);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to move folder: ", err);
+      alert("Failed to move folder. Please try again.");
+    });
+
+  cancelMove();
+}
+
+// Close dialog on Escape key
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") {
+    const dialog = document.getElementById("move-dialog");
+    if (dialog.style.display === "flex") {
+      cancelMove();
+    }
+  }
+});
+
+// Close dialog when clicking outside the dialog content
+document
+  .getElementById("move-dialog")
+  .addEventListener("click", function (event) {
+    if (event.target === this) {
+      cancelMove();
+    }
+  });
+
 // Initialize theme and other functionality on page load
 document.addEventListener("DOMContentLoaded", function () {
   initializeTheme();
@@ -420,4 +506,5 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Available keyboard shortcuts:");
   console.log("  Ctrl/Cmd + D: Toggle dark mode");
   console.log("  Shift + Click: Range select checkboxes");
+  console.log("  Escape: Close move dialog");
 });

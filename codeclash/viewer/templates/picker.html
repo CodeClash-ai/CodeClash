@@ -123,6 +123,9 @@
                     <button class="open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
                         ↗
                     </button>
+                    <button class="move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
+                        📁
+                    </button>
                     {% else %}
                     <span class="folder-indicator">Folder</span>
                     {% endif %}
@@ -137,6 +140,19 @@
             <p>Make sure you have run some games and they have generated log files.</p>
         </div>
         {% endif %}
+    </div>
+
+    <!-- Move/Rename Dialog -->
+    <div id="move-dialog" class="move-dialog" style="display: none;">
+        <div class="move-dialog-content">
+            <h3>Move/Rename Folder</h3>
+            <p>Edit the path to move or rename the folder:</p>
+            <input type="text" id="move-path-input" class="move-path-input" />
+            <div class="move-dialog-buttons">
+                <button onclick="confirmMove()">Move</button>
+                <button onclick="cancelMove()">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
