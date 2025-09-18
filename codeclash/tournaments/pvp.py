@@ -83,6 +83,8 @@ class PvpTournament(AbstractTournament):
         stats = self.game.run_round(self.agents, round_num)
         self.logger.info(stats)
 
+        self._metadata.setdefault("round_stats", {})[round_num] = stats.to_dict()
+
         # Create directory for round logs
         (self.game.log_local / "rounds" / str(round_num)).mkdir(parents=True, exist_ok=True)
 

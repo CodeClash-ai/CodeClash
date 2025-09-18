@@ -95,6 +95,7 @@ class SinglePlayerTraining(AbstractTournament):
         # Run the game round and get results
         stats = self.game.run_round([self.agent, self.mirror_agent], round_num)
         self.logger.info(stats)
+        self._metadata.setdefault("round_stats", {})[round_num] = stats.to_dict()
 
         # Write log to file
         results_file = self.game.log_local / "rounds" / str(round_num) / FILE_RESULTS
