@@ -24,7 +24,7 @@
                 {% if round_data.results.winner and round_data.results.scores %}
                     {%- set total_games = round_data.results.scores.values() | sum -%}
                     {%- set winner = round_data.results.winner -%}
-                    {%- if winner != 'Tie' -%}
+                    {%- if winner != 'Tie' and total_games > 0 -%}
                         {%- set winner_wins = round_data.results.scores.get(winner, 0) -%}
                         {%- set ties = round_data.results.scores.get('Tie', 0) -%}
                         {%- set win_percentage = ((winner_wins + 0.5 * ties) / total_games * 100) | round(1) -%}
@@ -34,9 +34,15 @@
                             {{- score -}}
                             {%- if not loop.last -%}-{%- endif -%}
                         {%- endfor -%})
-                    {%- else -%}
+                    {%- elif winner == 'Tie' and total_games > 0 -%}
                         - Winner: Tie
                         {%- if round_data.results.p_value is not none %} (p={{ "%.2f"|format(round_data.results.p_value) }}){% endif %} (
+                        {%- for player, score in round_data.results.scores.items() -%}
+                            {{- score -}}
+                            {%- if not loop.last -%}-{%- endif -%}
+                        {%- endfor -%})
+                    {%- else -%}
+                        - No games played yet (
                         {%- for player, score in round_data.results.scores.items() -%}
                             {{- score -}}
                             {%- if not loop.last -%}-{%- endif -%}
