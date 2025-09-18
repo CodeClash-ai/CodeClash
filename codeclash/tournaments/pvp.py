@@ -3,6 +3,8 @@ PvP training mode where multiple agents compete against each other.
 """
 
 import json
+import shutil
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -127,7 +129,29 @@ class PvpTournament(AbstractTournament):
         self.local_output_dir.mkdir(parents=True, exist_ok=True)
         (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
 
+    def _compress_round_logs(self) -> None:
+        self.logger.info("Compressing round logs, this might take a while...")
+        rounds_dir = self.game.log_local / "rounds"
+        if not rounds_dir.exists():
+            return
+
+        cmd = [
+            "tar",
+            "-zcf",
+            str(self.game.log_local / "rounds.tar.gz"),
+            "-C",
+            str(self.game.log_local),
+            "rounds",
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Command failed with exit code {result.returncode}:\n{result.stderr}")
+        # Remove the original round logs
+        shutil.rmtree(self.game.log_local / "rounds")
+        self.logger.info("Round logs compressed successfully")
+
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
         self._save()
         self.game.end(self.cleanup_on_end)
+        self._compress_round_logs()
