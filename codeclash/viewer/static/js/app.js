@@ -242,8 +242,79 @@ function scrollToRound(roundNum) {
         roundSection.classList.remove("highlight-round");
       }, 2000);
     }
+
+    // Close TOC menu after navigation (optional - user can keep it open)
+    // closeTocMenu();
   } else {
     console.warn(`Round ${roundNum} anchor not found`);
+  }
+}
+
+// Scroll to top functionality
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+  // closeTocMenu(); // Keep TOC open after scrolling to top
+}
+
+// Scroll to element functionality
+function scrollToElement(selector) {
+  const element = document.querySelector(selector);
+  if (element) {
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    // closeTocMenu(); // Keep TOC open after navigation
+  }
+}
+
+// Floating Table of Contents functionality
+function initializeFloatingToc() {
+  const tocMenu = document.getElementById("toc-menu");
+  const tocClose = document.getElementById("toc-close");
+
+  if (!tocMenu || !tocClose) {
+    return;
+  }
+
+  // Close TOC menu
+  tocClose.addEventListener("click", function (e) {
+    e.stopPropagation();
+    closeTocMenu();
+  });
+
+  // Prevent menu from closing when clicking inside
+  tocMenu.addEventListener("click", function (e) {
+    e.stopPropagation();
+  });
+
+  // Keyboard shortcuts for TOC
+  document.addEventListener("keydown", function (e) {
+    // T: Toggle TOC menu visibility
+    if (e.key === "t" || e.key === "T") {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        return;
+      }
+      e.preventDefault();
+      toggleTocMenu();
+    }
+  });
+}
+
+function toggleTocMenu() {
+  const tocMenu = document.getElementById("toc-menu");
+  if (tocMenu) {
+    tocMenu.classList.toggle("hidden");
+  }
+}
+
+function closeTocMenu() {
+  const tocMenu = document.getElementById("toc-menu");
+  if (tocMenu) {
+    tocMenu.classList.add("hidden");
   }
 }
 
@@ -313,16 +384,109 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeFoldouts();
   initializeKeyboardShortcuts();
   initializePerformanceMonitoring();
+  initializeFloatingToc();
   setupButtonEventListeners();
 
   console.log("CodeClash Trajectory Viewer initialized");
   console.log("Keyboard shortcuts:");
   console.log("  p: Open game picker (same tab)");
   console.log("  P: Open game picker (new tab)");
+  console.log("  t: Toggle floating table of contents");
   console.log("  Ctrl/Cmd + D: Toggle dark mode");
   console.log("  Ctrl/Cmd + E: Expand all sections");
   console.log("  Ctrl/Cmd + Shift + E: Collapse all sections");
   console.log("  Escape: Close all sections");
   console.log("Mouse shortcuts:");
   console.log("  Middle-click or Ctrl+click: Open in new tab");
+});
+
+// Move/Rename Dialog Variables (for main viewer page)
+window.currentMovePath = "";
+
+window.showMoveDialog = function (folderPath) {
+  window.currentMovePath = folderPath;
+  const dialog = document.getElementById("move-dialog");
+  const input = document.getElementById("move-path-input");
+
+  if (dialog && input) {
+    input.value = folderPath;
+    dialog.style.display = "flex";
+
+    // Focus and select the input text
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 100);
+  }
+};
+
+window.cancelMove = function () {
+  const dialog = document.getElementById("move-dialog");
+  if (dialog) {
+    dialog.style.display = "none";
+  }
+  window.currentMovePath = "";
+};
+
+window.confirmMove = function () {
+  const input = document.getElementById("move-path-input");
+  if (!input) return;
+
+  const newPath = input.value.trim();
+
+  if (!newPath) {
+    alert("Please enter a valid path");
+    return;
+  }
+
+  if (newPath === window.currentMovePath) {
+    window.cancelMove();
+    return;
+  }
+
+  // Send move request to server
+  fetch("/move-folder", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      old_path: window.currentMovePath,
+      new_path: newPath,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert(`Moved folder to: ${newPath}`);
+        // Redirect to the new path
+        window.location.href = `/?folder=${encodeURIComponent(newPath)}`;
+      } else {
+        alert("Failed to move folder: " + data.error);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to move folder: ", err);
+      alert("Failed to move folder. Please try again.");
+    });
+
+  window.cancelMove();
+};
+
+// Enhanced keyboard shortcuts for move dialog
+document.addEventListener("keydown", function (e) {
+  const dialog = document.getElementById("move-dialog");
+
+  if (e.key === "Escape") {
+    if (dialog && dialog.style.display === "flex") {
+      window.cancelMove();
+    }
+  }
+
+  // Enter key to confirm move
+  if (e.key === "Enter") {
+    if (dialog && dialog.style.display === "flex") {
+      window.confirmMove();
+    }
+  }
 });

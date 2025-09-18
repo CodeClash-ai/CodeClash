@@ -412,71 +412,80 @@ function moveToSubfolder() {
     });
 }
 
-// Move/Rename Dialog Variables
-let currentMovePath = "";
-
-function showMoveDialog(gamePath) {
-  currentMovePath = gamePath;
-  const dialog = document.getElementById("move-dialog");
-  const input = document.getElementById("move-path-input");
-
-  input.value = gamePath;
-  dialog.style.display = "flex";
-
-  // Focus and select the input text
-  setTimeout(() => {
-    input.focus();
-    input.select();
-  }, 100);
+// Move/Rename Dialog Variables (for picker page)
+// Only define these if they don't already exist (app.js might have defined them)
+if (typeof window.currentMovePath === "undefined") {
+  window.currentMovePath = "";
 }
 
-function cancelMove() {
-  const dialog = document.getElementById("move-dialog");
-  dialog.style.display = "none";
-  currentMovePath = "";
+if (typeof window.showMoveDialog === "undefined") {
+  window.showMoveDialog = function (gamePath) {
+    window.currentMovePath = gamePath;
+    const dialog = document.getElementById("move-dialog");
+    const input = document.getElementById("move-path-input");
+
+    input.value = gamePath;
+    dialog.style.display = "flex";
+
+    // Focus and select the input text
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 100);
+  };
 }
 
-function confirmMove() {
-  const input = document.getElementById("move-path-input");
-  const newPath = input.value.trim();
+if (typeof window.cancelMove === "undefined") {
+  window.cancelMove = function () {
+    const dialog = document.getElementById("move-dialog");
+    dialog.style.display = "none";
+    window.currentMovePath = "";
+  };
+}
 
-  if (!newPath) {
-    alert("Please enter a valid path");
-    return;
-  }
+if (typeof window.confirmMove === "undefined") {
+  window.confirmMove = function () {
+    const input = document.getElementById("move-path-input");
+    const newPath = input.value.trim();
 
-  if (newPath === currentMovePath) {
-    cancelMove();
-    return;
-  }
+    if (!newPath) {
+      alert("Please enter a valid path");
+      return;
+    }
 
-  // Send move request to server
-  fetch("/move-folder", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      old_path: currentMovePath,
-      new_path: newPath,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showCopyMessage(`Moved folder to: ${newPath}`);
-        // Refresh the page to show updated folder structure
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alert("Failed to move folder: " + data.error);
-      }
+    if (newPath === window.currentMovePath) {
+      window.cancelMove();
+      return;
+    }
+
+    // Send move request to server
+    fetch("/move-folder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        old_path: window.currentMovePath,
+        new_path: newPath,
+      }),
     })
-    .catch((err) => {
-      console.error("Failed to move folder: ", err);
-      alert("Failed to move folder. Please try again.");
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showCopyMessage(`Moved folder to: ${newPath}`);
+          // Refresh the page to show updated folder structure
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          alert("Failed to move folder: " + data.error);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to move folder: ", err);
+        alert("Failed to move folder. Please try again.");
+      });
 
-  cancelMove();
+    window.cancelMove();
+  };
 }
 
 // Close dialog on Escape key
@@ -500,7 +509,10 @@ document
 
 // Initialize theme and other functionality on page load
 document.addEventListener("DOMContentLoaded", function () {
-  initializeTheme();
+  // initializeTheme is defined in app.js, which is loaded before this script
+  if (typeof initializeTheme === "function") {
+    initializeTheme();
+  }
 
   console.log("Game Picker initialized");
   console.log("Available keyboard shortcuts:");

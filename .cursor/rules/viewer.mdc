@@ -226,10 +226,23 @@ The application has two main pages:
 
 * `p` (lowercase): Open game picker in same tab (from viewer)
 * `P` (uppercase): Open game picker in new tab (from viewer)
+* `t` (lowercase): Toggle floating table of contents
 * `Ctrl/Cmd + D`: Toggle dark/light mode
 * `Ctrl/Cmd + E`: Expand all sections
 * `Ctrl/Cmd + Shift + E`: Collapse all sections
 * `Escape`: Close all open sections
+
+### Floating Navigation
+
+* **Floating Table of Contents**: A floating navigation panel that provides quick navigation (always visible by default)
+  - **Go to Top button**: Smooth scroll to the top of the page
+  - **Round Navigation**: Quick links to jump to specific round sections
+  - **Section Navigation**: Quick links to Overview and Rounds sections
+  - **Close Button**: × button in the header to hide the navigation panel
+  - **Keyboard Toggle**: `t` key to show/hide the navigation panel
+  - **Positioning**: Fixed position in bottom-right corner
+  - **Responsive Design**: Adapts to mobile screens appropriately
+  - **Always Visible**: Panel is expanded by default (no toggle button required)
 
 ### Mouse Navigation
 
@@ -295,7 +308,8 @@ The application has two main pages:
   - Tooltip explains middle-click functionality
 * **"↗" button**: Always open picker in new tab
 * **Dark/light mode toggle button**
-* **Current folder path display** with copy functionality and delete button
+* **Current folder path display** with copy functionality, move/rename button, and delete button
+  - **Move/Rename button**: 📁 icon that opens a dialog for moving or renaming the experiment folder (exact same functionality as in the game picker)
   - **Delete button**: 🗑️ icon with simple confirmation prompt to delete the entire experiment folder (rm -r)
 
 ### Main body
@@ -312,6 +326,9 @@ The application has two main pages:
 
 * At the top, we show the content of `metadata.json`
 * There's a foldout that displays main.log (hidden by default)
+* **Overview table**: Shows results summary with round navigation
+  - **Header formatting**: Column headers should show player names directly followed by "Steps" (e.g., "sonnet-4-more-prescriptive Steps"), not "Player sonnet-4-more-prescriptive Steps"
+  - **Navigation buttons**: Each row includes a button to jump to the specific round details
 
 #### Rounds
 
@@ -383,10 +400,10 @@ The game picker includes four batch operations for selected game folders, access
 
 ## Individual Move/Rename Functionality
 
-Each game row in the picker includes a move/rename button (📁) that provides individual folder operations:
+Both the game picker and trajectory viewer include move/rename functionality for individual folders:
 
 ### Move/Rename Dialog
-- **Trigger**: Click the 📁 button next to any game folder
+- **Trigger**: Click the 📁 button next to any game folder (picker) or in the folder path section (viewer)
 - **Interface**: Minimal unstyled dialog with text input field
 - **Behavior**:
   - Pre-fills input with current full path
@@ -402,12 +419,16 @@ Each game row in the picker includes a move/rename button (📁) that provides i
 - **Intermediate folders**: Creates intermediate directories if necessary
 - **Conflict handling**: Prevents overwriting existing folders
 - **Error handling**: Provides clear error messages for invalid operations
-- **Success feedback**: Shows confirmation message and refreshes page
+- **Success feedback**: Shows confirmation message and redirects to new path (in viewer) or refreshes page (in picker)
 
 ### Use Cases
 - **Simple rename**: Change folder name (e.g., `experiment1` → `experiment1_final`)
 - **Move to subdirectory**: Move folder to organized structure (e.g., `experiment1` → `completed/experiment1`)
 - **Reorganize structure**: Move folders between different directory hierarchies
+
+### Viewer-Specific Behavior
+- After successful move/rename in the trajectory viewer, the user is automatically redirected to the new folder path
+- The move/rename button appears in the folder path section alongside copy and delete buttons
 
 ### Important
 

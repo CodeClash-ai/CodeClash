@@ -10,7 +10,7 @@
                     <th>Winner</th>
                     <th>Results</th>
                     {% for trajectory in trajectories_by_round.get(1, []) %}
-                        <th>Player {{ trajectory.player_id }} Steps</th>
+                        <th>{{ trajectory.player_id }} Steps</th>
                     {% endfor %}
                     <th>Actions</th>
                 </tr>

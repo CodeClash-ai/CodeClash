@@ -7,6 +7,9 @@
             <button class="copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
                 📋 Copy path
             </button>
+            <button class="move-rename-btn" onclick="showMoveDialog('{{ selected_folder_path }}')" title="Move/rename this experiment">
+                📁 Move/Rename
+            </button>
             <button class="delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
                 🗑️ Delete
             </button>

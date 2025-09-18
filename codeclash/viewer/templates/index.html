@@ -18,6 +18,53 @@
         {% include 'includes/rounds.html' %}
     </main>
 
+    <!-- Floating Table of Contents -->
+    <div id="floating-toc" class="floating-toc">
+        <div id="toc-menu" class="toc-menu">
+            <div class="toc-header">
+                <span>Navigation</span>
+                <button id="toc-close" class="toc-close" title="Close">×</button>
+            </div>
+            <div class="toc-content">
+                <button class="toc-item toc-top" onclick="scrollToTop()">
+                    ⬆️ Go to Top
+                </button>
+                <div class="toc-section">
+                    <div class="toc-section-title">Sections</div>
+                    <button class="toc-item" onclick="scrollToElement('.overview-section')">
+                        📊 Overview
+                    </button>
+                    <button class="toc-item" onclick="scrollToElement('.rounds-section')">
+                        🎯 Rounds
+                    </button>
+                </div>
+                {% if metadata.rounds %}
+                <div class="toc-section">
+                    <div class="toc-section-title">Rounds</div>
+                    {% for round_data in metadata.rounds %}
+                    <button class="toc-item" onclick="scrollToRound({{ round_data.round_num }})">
+                        Round {{ round_data.round_num }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Move/Rename Dialog -->
+    <div id="move-dialog" class="move-dialog" style="display: none;">
+        <div class="move-dialog-content">
+            <h3>Move/Rename Folder</h3>
+            <p>Edit the path to move or rename the folder:</p>
+            <input type="text" id="move-path-input" class="move-path-input" />
+            <div class="move-dialog-buttons">
+                <button onclick="confirmMove()">Move</button>
+                <button onclick="cancelMove()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/clipboard.js') }}"></script>

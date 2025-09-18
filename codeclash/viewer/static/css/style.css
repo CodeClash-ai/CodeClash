@@ -936,6 +936,22 @@ summary:focus {
   background: #c82333;
 }
 
+.move-rename-btn {
+  background: var(--warning-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.move-rename-btn:hover {
+  background: #e8590c;
+}
+
 /* Readme Section */
 .readme-container {
   background-color: var(--bg-secondary);
@@ -1088,4 +1104,230 @@ summary:focus {
 
 .results-table tbody tr:hover .nav-to-round-btn {
   transform: scale(1.1);
+}
+
+/* Floating Table of Contents */
+.floating-toc {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+}
+
+.toc-menu {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16rem;
+  max-height: 24rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.toc-menu.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(1rem);
+}
+
+.toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toc-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.toc-close:hover {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.toc-content {
+  max-height: 20rem;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.toc-section {
+  margin-bottom: 1rem;
+}
+
+.toc-section:last-child {
+  margin-bottom: 0;
+}
+
+.toc-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.75rem 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  margin-bottom: 0.125rem;
+}
+
+.toc-item:hover {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.toc-item.toc-top {
+  background-color: var(--success-color);
+  color: white;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.toc-item.toc-top:hover {
+  background-color: #157347;
+}
+
+/* Responsive design for floating TOC */
+@media (max-width: 768px) {
+  .floating-toc {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .toc-menu {
+    width: 14rem;
+    max-height: 20rem;
+  }
+}
+
+/* Hide floating TOC on very small screens */
+@media (max-width: 480px) {
+  .toc-menu {
+    width: calc(100vw - 2rem);
+    right: -8rem;
+  }
+}
+
+/* Move/Rename Dialog */
+.move-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.move-dialog-content {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.move-dialog-content h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+}
+
+.move-dialog-content p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+.move-path-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.move-path-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.move-dialog-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.move-dialog-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-dialog-buttons button:first-child {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.move-dialog-buttons button:first-child:hover {
+  filter: brightness(1.1);
+}
+
+.move-dialog-buttons button:last-child {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.move-dialog-buttons button:last-child:hover {
+  background-color: var(--bg-tertiary);
 }
