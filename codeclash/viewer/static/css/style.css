@@ -253,9 +253,7 @@ body {
   border-bottom: none;
 }
 
-.results-table tr:hover {
-  background-color: var(--bg-primary);
-}
+/* Removed conflicting hover rule - Bootstrap handles table hover states */
 
 .winner-badge {
   display: inline-block;
@@ -438,9 +436,6 @@ details summary {
 }
 
 /* Special foldout types */
-.round-foldout {
-  /* Removed distracting blue border */
-}
 
 .trajectory-foldout {
   /* Removed distracting green border */
@@ -825,7 +820,9 @@ details summary {
   --bs-table-bg: var(--bg-primary);
   --bs-table-border-color: var(--border-color);
   --bs-table-striped-bg: var(--bg-secondary);
+  --bs-table-striped-color: var(--text-primary);
   --bs-table-hover-bg: var(--bg-tertiary);
+  --bs-table-hover-color: var(--text-primary);
 }
 
 .form-control {
@@ -1309,10 +1306,12 @@ summary:focus {
   }
 }
 
-/* Make table rows clickable-looking on hover */
-.results-table tbody tr:hover {
-  background-color: var(--bg-secondary);
-  cursor: default;
+/* Bootstrap table hover styles are used instead of custom ones */
+
+/* Ensure text visibility in all table states */
+.results-table td,
+.results-table th {
+  color: var(--text-primary) !important;
 }
 
 .results-table tbody tr:hover .nav-to-round-btn {
