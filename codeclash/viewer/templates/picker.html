@@ -95,8 +95,8 @@
 
                 <div class="rounds-cell">
                     {% if game.is_game %}
-                        {% if game.round_count %}
-                        <span class="rounds-count">{{ game.round_count }}</span>
+                        {% if game.round_info %}
+                        <span class="rounds-count">{{ game.round_info[0] }}/{{ game.round_info[1] }}</span>
                         {% else %}
                         <span class="rounds-unknown">?</span>
                         {% endif %}

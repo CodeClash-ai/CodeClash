@@ -41,17 +41,53 @@ def is_game_folder(log_dir: Path) -> bool:
     return metadata_file.exists()
 
 
-def get_round_count_from_metadata(log_dir: Path) -> int | None:
-    """Extract round count from metadata.json if it exists"""
-    metadata_file = log_dir / "metadata.json"
-    if not metadata_file.exists():
-        return None
+def get_round_count_from_metadata(log_dir: Path) -> tuple[int, int] | None:
+    """Extract round count from metadata.json and rounds folder if they exist
 
-    try:
-        metadata = json.loads(metadata_file.read_text())
-        return metadata.get("config", {}).get("tournament", {}).get("rounds")
-    except (json.JSONDecodeError, KeyError):
-        return None
+    Returns:
+        tuple[int, int] | None: (completed_rounds, total_rounds) or None if not available
+    """
+    metadata_file = log_dir / "metadata.json"
+    rounds_dir = log_dir / "rounds"
+
+    total_rounds = None
+    completed_rounds = 0
+
+    # First, try to get total rounds from metadata
+    if metadata_file.exists():
+        try:
+            metadata = json.loads(metadata_file.read_text())
+            total_rounds = metadata.get("config", {}).get("tournament", {}).get("rounds")
+
+            # Count completed rounds from round_stats (excluding round 0 which is warmup)
+            round_stats = metadata.get("round_stats", {})
+            if round_stats:
+                # Count rounds > 0 (exclude warmup round 0)
+                for round_key in round_stats.keys():
+                    if int(round_key) > 0:
+                        completed_rounds += 1
+        except (json.JSONDecodeError, KeyError, ValueError):
+            pass
+
+    # If we don't have round_stats or metadata, count from rounds folder
+    if completed_rounds == 0 and rounds_dir.exists():
+        try:
+            # Count subdirectories in rounds folder (excluding round 0 if it exists)
+            round_dirs = [d for d in rounds_dir.iterdir() if d.is_dir()]
+            for round_dir in round_dirs:
+                try:
+                    round_num = int(round_dir.name)
+                    if round_num > 0:  # Exclude warmup round 0
+                        completed_rounds += 1
+                except ValueError:
+                    continue
+        except (OSError, PermissionError):
+            pass
+
+    if total_rounds is not None:
+        return (completed_rounds, total_rounds)
+
+    return None
 
 
 def get_models_from_metadata(log_dir: Path) -> list[str]:
@@ -159,7 +195,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
 
                     # Check if this directory is a game folder
                     if is_game_folder(item):
-                        round_count = get_round_count_from_metadata(item)
+                        round_info = get_round_count_from_metadata(item)
                         models = get_models_from_metadata(item)
                         readme_first_line = get_readme_first_line(item)
                         game_folders.add(current_relative)
@@ -167,7 +203,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                             {
                                 "name": current_relative,
                                 "full_path": str(item),
-                                "round_count": round_count,
+                                "round_info": round_info,  # Now stores (completed, total) tuple or None
                                 "models": models,
                                 "readme_first_line": readme_first_line,
                                 "is_game": True,
@@ -181,7 +217,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                             {
                                 "name": current_relative,
                                 "full_path": str(item),
-                                "round_count": None,
+                                "round_info": None,
                                 "models": [],
                                 "readme_first_line": "",
                                 "is_game": False,
