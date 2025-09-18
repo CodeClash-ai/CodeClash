@@ -1,6 +1,6 @@
 <!-- Rounds Section -->
 <section class="rounds-section">
-    <h2>🎯 Detailed Rounds</h2>
+    <h2><i class="bi bi-target"></i> Detailed Rounds</h2>
 
     {% for round_data in metadata.rounds %}
         {% set round_num = round_data.round_num %}
@@ -20,7 +20,7 @@
         {% if round_data.results %}
         <details class="foldout round-foldout">
             <summary>
-                🏆 Round {{ round_num }} Results
+                <i class="bi bi-trophy"></i> Round {{ round_num }} Results
                 {% if round_data.results.winner and round_data.results.scores %}
                     {%- set total_games = round_data.results.scores.values() | sum -%}
                     {%- set winner = round_data.results.winner -%}

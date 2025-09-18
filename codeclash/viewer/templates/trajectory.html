@@ -1,7 +1,7 @@
 <!-- Trajectory Container with Overview and Messages -->
 <div class="trajectory-header">
     <h3>
-        🤖 Player {{ trajectory.player_id }} Round {{ round_num }}
+        <i class="bi bi-robot"></i> Player {{ trajectory.player_id }} Round {{ round_num }}
     </h3>
     <div class="trajectory-stats">
         <div class="stat-item">
@@ -23,10 +23,10 @@
     <!-- Messages Foldout inside the same container -->
     <details class="trajectory-messages-foldout">
         <summary>
-            💬 Trajectory ({{ trajectory.messages|length }} total)
+            <i class="bi bi-chat"></i> Trajectory ({{ trajectory.messages|length }} total)
             {% if trajectory.trajectory_file_path %}
             <button class="copy-path-btn-small" data-path="{{ trajectory.trajectory_file_path }}" title="Copy trajectory file path">
-                📋 Copy path
+                <i class="bi bi-clipboard"></i> Copy path
             </button>
             {% endif %}
         </summary>
@@ -157,7 +157,7 @@
     <!-- Diff Foldout inside the same container -->
     {% if trajectory.diff_by_files and trajectory.diff_by_files %}
     <details class="trajectory-messages-foldout">
-        <summary>📝 Diff (Full) ({{ trajectory.diff_by_files|length }} files)</summary>
+        <summary><i class="bi bi-file-diff"></i> Diff (Full) ({{ trajectory.diff_by_files|length }} files)</summary>
         <div class="trajectory-content">
             <div class="log-content">
                 {% for file_path, file_diff in trajectory.diff_by_files.items() %}
@@ -173,7 +173,7 @@
     </details>
     {% elif trajectory.diff and trajectory.diff.strip() %}
     <details class="trajectory-messages-foldout">
-        <summary>📝 Diff (Full)</summary>
+        <summary><i class="bi bi-file-diff"></i> Diff (Full)</summary>
         <div class="trajectory-content">
             <div class="log-content">
                 <pre><code>{{ trajectory.diff }}</code></pre>
@@ -185,7 +185,7 @@
     <!-- Incremental Diff Foldout inside the same container -->
     {% if trajectory.incremental_diff_by_files and trajectory.incremental_diff_by_files %}
     <details class="trajectory-messages-foldout">
-        <summary>🔄 Incremental Diff ({{ trajectory.incremental_diff_by_files|length }} files)</summary>
+        <summary><i class="bi bi-arrow-repeat"></i> Incremental Diff ({{ trajectory.incremental_diff_by_files|length }} files)</summary>
         <div class="trajectory-content">
             <div class="log-content">
                 {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
@@ -201,7 +201,7 @@
     </details>
     {% elif trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
     <details class="trajectory-messages-foldout">
-        <summary>🔄 Incremental Diff</summary>
+        <summary><i class="bi bi-arrow-repeat"></i> Incremental Diff</summary>
         <div class="trajectory-content">
             <div class="log-content">
                 <pre><code>{{ trajectory.incremental_diff }}</code></pre>
@@ -213,7 +213,7 @@
     <!-- Modified Files Foldout inside the same container -->
     {% if trajectory.modified_files and trajectory.modified_files %}
     <details class="trajectory-messages-foldout">
-        <summary>📁 Changed Files ({{ trajectory.modified_files|length }} files)</summary>
+        <summary><i class="bi bi-folder-fill"></i> Changed Files ({{ trajectory.modified_files|length }} files)</summary>
         <div class="trajectory-content">
             <div class="log-content">
                 {% for file_path, file_content in trajectory.modified_files.items() %}

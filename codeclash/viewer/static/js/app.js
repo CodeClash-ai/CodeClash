@@ -16,10 +16,10 @@ function setTheme(theme) {
   const themeIcon = themeToggle.querySelector(".theme-icon");
 
   if (theme === "dark") {
-    themeIcon.textContent = "☀️";
+    themeIcon.innerHTML = '<i class="bi bi-sun"></i>';
     themeToggle.setAttribute("aria-label", "Switch to light mode");
   } else {
-    themeIcon.textContent = "🌙";
+    themeIcon.innerHTML = '<i class="bi bi-moon"></i>';
     themeToggle.setAttribute("aria-label", "Switch to dark mode");
   }
 }

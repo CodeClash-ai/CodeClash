@@ -1,17 +1,17 @@
 <!-- Current Folder Path -->
 <section class="folder-path-section">
     <div class="folder-path-container">
-        <h3>📁 Current Folder:</h3>
+        <h3><i class="bi bi-folder"></i> Current Folder:</h3>
         <div class="path-display">
             <code class="folder-path">{{ selected_folder_path }}</code>
-            <button class="copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
-                📋 Copy path
+            <button class="btn btn-outline-primary btn-sm copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
+                <i class="bi bi-clipboard"></i> Copy path
             </button>
-            <button class="move-rename-btn" onclick="showMoveDialog('{{ selected_folder_path }}')" title="Move/rename this experiment">
-                📁 Move/Rename
+            <button class="btn btn-outline-warning btn-sm move-rename-btn" onclick="showMoveDialog('{{ selected_folder_path }}')" title="Move/rename this experiment">
+                <i class="bi bi-folder-symlink"></i> Move/Rename
             </button>
-            <button class="delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
-                🗑️ Delete
+            <button class="btn btn-outline-danger btn-sm delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
+                <i class="bi bi-trash"></i> Delete
             </button>
         </div>
     </div>

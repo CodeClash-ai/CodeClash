@@ -119,7 +119,7 @@ function toggleFolder(folderPath) {
   if (isCollapsed) {
     // Expand folder - show all children
     folderRow.classList.remove("collapsed");
-    if (collapseIcon) collapseIcon.textContent = "📁";
+    if (collapseIcon) collapseIcon.innerHTML = '<i class="bi bi-folder"></i>';
 
     // Show all descendant rows
     const allRows = document.querySelectorAll(".game-row");
@@ -141,7 +141,8 @@ function toggleFolder(folderPath) {
   } else {
     // Collapse folder - hide all children
     folderRow.classList.add("collapsed");
-    if (collapseIcon) collapseIcon.textContent = "📂";
+    if (collapseIcon)
+      collapseIcon.innerHTML = '<i class="bi bi-folder-open"></i>';
 
     hideChildrenOfFolder(folderPath);
   }

@@ -4,25 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pick Game - CodeClash Trajectory Viewer</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/picker.css') }}">
 </head>
 <body>
     <!-- Theme Toggle -->
     <div class="theme-toggle-container">
-        <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-            <span class="theme-icon">🌙</span>
+        <button id="theme-toggle" class="btn btn-outline-secondary" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <span class="theme-icon"><i class="bi bi-moon"></i></span>
         </button>
     </div>
 
     <div class="picker-container">
         <div class="picker-header">
-            <h1>🎮 Pick a Game</h1>
+            <h1><i class="bi bi-controller"></i> Pick a Game</h1>
             <p>Select a game session to view its trajectory</p>
         </div>
 
         <div class="base-dir-info">
-            <h3>📁 Base Directory:</h3>
+            <h3><i class="bi bi-folder"></i> Base Directory:</h3>
             <div class="base-dir-path">{{ base_dir }}</div>
         </div>
 
@@ -44,11 +49,11 @@
             </div>
         </div>
         <div class="table-header">
-            <div>☑️ Select</div>
-            <div>📁 Game Session</div>
-            <div>📝 Note</div>
-            <div>🎯 Rounds</div>
-            <div>🤖 Models</div>
+            <div><i class="bi bi-check-square"></i> Select</div>
+            <div><i class="bi bi-folder"></i> Game Session</div>
+            <div><i class="bi bi-journal-text"></i> Note</div>
+            <div><i class="bi bi-target"></i> Rounds</div>
+            <div><i class="bi bi-robot"></i> Models</div>
             <div>Action</div>
         </div>
             {% for game in game_folders %}
@@ -78,9 +83,9 @@
                         {% endif %}
                     </span>
                     {% if game.is_game %}
-                    <span class="folder-icon">🎮</span>
+                    <span class="folder-icon"><i class="bi bi-controller"></i></span>
                     {% else %}
-                    <span class="folder-icon collapse-icon">📁</span>
+                    <span class="folder-icon collapse-icon"><i class="bi bi-folder"></i></span>
                     {% endif %}
                     <span class="game-name">{{ folder_name }}</span>
                 </div>
@@ -117,14 +122,14 @@
 
                 <div class="action-cell">
                     {% if game.is_game %}
-                    <button class="open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
+                    <button class="btn btn-primary btn-sm open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
                         Open
                     </button>
-                    <button class="open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
-                        ↗
+                    <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
+                        <i class="bi bi-box-arrow-up-right"></i>
                     </button>
-                    <button class="move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
-                        📁
+                    <button class="btn btn-outline-warning btn-sm move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
+                        <i class="bi bi-folder-symlink"></i>
                     </button>
                     {% else %}
                     <span class="folder-indicator">Folder</span>
@@ -155,6 +160,9 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/picker.js') }}"></script>
 </body>

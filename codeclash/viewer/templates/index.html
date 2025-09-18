@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeClash Trajectory Viewer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <!-- JSONEditor CSS -->
     <link href="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     {% include 'includes/header.html' %}
 
-    <main class="main-content">
+    <main class="container-fluid main-content">
         {% include 'includes/folder_path.html' %}
         {% include 'includes/readme.html' %}
         {% include 'includes/setup.html' %}
@@ -28,18 +34,18 @@
             </div>
             <div class="toc-content">
                 <button class="toc-item toc-top" onclick="scrollToTop()">
-                    ⬆️ Go to Top
+                    <i class="bi bi-arrow-up"></i> Go to Top
                 </button>
                 <div class="toc-section">
                     <div class="toc-section-title">Sections</div>
                     <button class="toc-item" onclick="scrollToElement('.overview-section')">
-                        📊 Overview
+                        <i class="bi bi-bar-chart"></i> Overview
                     </button>
                     <button class="toc-item" onclick="scrollToElement('.analysis-section')">
-                        📈 Analysis
+                        <i class="bi bi-graph-up"></i> Analysis
                     </button>
                     <button class="toc-item" onclick="scrollToElement('.rounds-section')">
-                        🎯 Rounds
+                        <i class="bi bi-target"></i> Rounds
                     </button>
                 </div>
                 {% if metadata.rounds %}
@@ -69,8 +75,12 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- External libraries -->
     <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/clipboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/experiment.js') }}"></script>
