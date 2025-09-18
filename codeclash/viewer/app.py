@@ -260,6 +260,7 @@ class GameMetadata:
     metadata_file_path: str
     rounds: list[dict[str, Any]]
     agent_info: list[AgentInfo] | None = None
+    all_logs: dict[str, dict[str, str]] | None = None  # {log_type: {"content": content, "path": path}}
 
 
 def process_round_results(
@@ -367,6 +368,9 @@ class LogParser:
         main_log = main_log_file.read_text() if main_log_file.exists() else "No tournament log found"
         main_log_path = str(main_log_file) if main_log_file.exists() else ""
 
+        # Parse all available logs
+        all_logs = self._parse_all_logs()
+
         # Parse round data - prioritize round_stats from metadata.json
         rounds = []
 
@@ -418,6 +422,7 @@ class LogParser:
             metadata_file_path=metadata_file_path,
             rounds=rounds,
             agent_info=agent_info,
+            all_logs=all_logs,
         )
 
     def parse_trajectory(self, player_name: str, round_num: int) -> TrajectoryInfo | None:
@@ -592,6 +597,44 @@ class LogParser:
                 line_counts_by_round[player_name] = player_line_counts
 
         return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
+
+    def _parse_all_logs(self) -> dict[str, dict[str, str]]:
+        """Parse all available log files in the tournament directory"""
+        all_logs = {}
+
+        # Define log files to look for
+        log_files = {"tournament.log": "Tournament Log", "game.log": "Game Log", "everything.log": "Everything Log"}
+
+        # Check for main log files
+        for log_file, display_name in log_files.items():
+            log_path = self.log_dir / log_file
+            if log_path.exists():
+                try:
+                    content = log_path.read_text()
+                    all_logs[display_name] = {"content": content, "path": str(log_path)}
+                except (OSError, UnicodeDecodeError) as e:
+                    all_logs[display_name] = {"content": f"Error reading log file: {e}", "path": str(log_path)}
+
+        # Check for player logs
+        players_dir = self.log_dir / "players"
+        if players_dir.exists():
+            for player_dir in players_dir.iterdir():
+                if not player_dir.is_dir():
+                    continue
+
+                player_name = player_dir.name
+                player_log = player_dir / "player.log"
+
+                if player_log.exists():
+                    try:
+                        content = player_log.read_text()
+                        display_name = f"Player {player_name} Log"
+                        all_logs[display_name] = {"content": content, "path": str(player_log)}
+                    except (OSError, UnicodeDecodeError) as e:
+                        display_name = f"Player {player_name} Log"
+                        all_logs[display_name] = {"content": f"Error reading log file: {e}", "path": str(player_log)}
+
+        return all_logs
 
 
 app = Flask(__name__)

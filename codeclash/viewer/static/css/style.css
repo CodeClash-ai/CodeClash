@@ -401,6 +401,59 @@ details summary {
   padding: 1rem;
 }
 
+/* Scrollable log containers */
+.log-content-container {
+  max-height: 500px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--code-bg);
+}
+
+.log-content-scrollable {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 1rem;
+  margin: 0;
+  background-color: var(--code-bg);
+  border: none;
+  border-radius: 0;
+}
+
+.log-content-scrollable::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.log-content-scrollable::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.log-content-scrollable::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+.log-content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Logs section styling */
+.logs-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.logs-section h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
 /* Special foldout types */
 .round-foldout {
   /* Removed distracting blue border */

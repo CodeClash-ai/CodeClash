@@ -64,4 +64,40 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Tournament Log -->
+    <details class="foldout">
+        <summary>
+            📝 Tournament Log
+            {% if metadata.main_log_path %}
+            <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
+                📋 Copy path
+            </button>
+            {% endif %}
+        </summary>
+        <div class="log-content-container">
+            <pre class="log-content-scrollable"><code>{{ metadata.main_log }}</code></pre>
+        </div>
+    </details>
+
+    <!-- All Other Logs -->
+    {% if metadata.all_logs %}
+        {% for log_name, log_data in metadata.all_logs.items() %}
+            {% if log_name != "Tournament Log" %}
+            <details class="foldout">
+                <summary>
+                    📝 {{ log_name }}
+                    {% if log_data.path %}
+                    <button class="copy-path-btn-small" data-path="{{ log_data.path }}" title="Copy file path">
+                        📋 Copy path
+                    </button>
+                    {% endif %}
+                </summary>
+                <div class="log-content-container">
+                    <pre class="log-content-scrollable"><code>{{ log_data.content }}</code></pre>
+                </div>
+            </details>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 </section>
