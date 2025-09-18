@@ -13,13 +13,17 @@ players:
     config:
       agent: !include mini/default.yaml
       model:
-        model_name: anthropic/claude-sonnet-4-20250514
+        model_name: "anthropic/claude-sonnet-4-20250514"
+        model_kwargs:
+          temperature: 0.0
   - agent: mini
     name: semi-sonnet-4
     config:
       agent: !include mini/semi_prescriptive.yaml
       model:
-        model_name: anthropic/claude-sonnet-4-20250514
+        model_name: "anthropic/claude-sonnet-4-20250514"
+        model_kwargs:
+          temperature: 0.0
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called BattleSnake.

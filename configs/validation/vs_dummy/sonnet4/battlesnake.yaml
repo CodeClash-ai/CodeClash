@@ -13,7 +13,9 @@ players:
     config:
       agent: !include mini/default.yaml
       model:
-        model_name: anthropic/claude-sonnet-4-20250514
+        model_name: "anthropic/claude-sonnet-4-20250514"
+        model_kwargs:
+          temperature: 0.0
   - agent: dummy
     name: dummy
 prompts:
