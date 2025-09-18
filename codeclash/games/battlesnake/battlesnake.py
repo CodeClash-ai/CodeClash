@@ -159,10 +159,10 @@ class BattleSnakeGame(CodeGame):
         bot_content = agent.environment.execute("cat main.py")["output"].splitlines()
         error_msg = []
         for func in [
-            "def info() -> typing.Dict:",
-            "def start(game_state: typing.Dict):",
-            "def end(game_state: typing.Dict):",
-            "def move(game_state: typing.Dict) -> typing.Dict:",
+            "def info(",
+            "def start(",
+            "def end(",
+            "def move(",
         ]:
             if func not in bot_content:
                 error_msg.append(f"There should be a `{func}` function implemented in `main.py`")
