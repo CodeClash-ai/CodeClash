@@ -1,4 +1,5 @@
 import shlex
+import subprocess
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -22,7 +23,12 @@ class RobotRumbleGame(CodeGame):
         args = [f"/{agent.name}/robot.py" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)} > {self.log_env / f'sim_{idx}.txt'}"
 
-        output = self.environment.execute(cmd)
+        # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
+        try:
+            output = self.environment.execute(cmd, timeout=120)
+        except subprocess.TimeoutError:
+            self.logger.warning(f"RobotRumble simulation {idx} timed out: {cmd}")
+            return ""
         if output["returncode"] != 0:
             self.logger.warning(
                 f"RobotRumble simulation {idx} failed with exit code {output['returncode']}:\n{output['output']}"

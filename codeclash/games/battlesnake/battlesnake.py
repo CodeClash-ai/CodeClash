@@ -1,5 +1,6 @@
 import json
 import random
+import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -58,10 +59,16 @@ class BattleSnakeGame(CodeGame):
 
         cmd = self.run_cmd_round + " " + " ".join(cmd_args) + f" -o {self.log_env / f'sim_{idx}.jsonl'}"
 
-        output = self.environment.execute(
-            cmd,
-            cwd=f"{self.environment.config.cwd}/game",
-        )
+        # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
+        try:
+            output = self.environment.execute(
+                cmd,
+                cwd=f"{self.environment.config.cwd}/game",
+                timeout=120,  # this should rarely ever reach this timeout
+            )
+        except subprocess.TimeoutError:
+            self.logger.warning(f"Battlesnake simulation timed out: {cmd}")
+            return ""
         if output["returncode"] != 0:
             self.logger.warning(
                 f"Battlesnake simulation failed with exit code {output['returncode']}:\n{output['output']}"
