@@ -24,7 +24,7 @@ class BattleSnakeGame(CodeGame):
                 self.run_cmd_round += f" --{arg} {val}"
         self._failed_to_start_player = []
 
-    def _wait_for_ports(self, requested_ports: list[int], timeout: float = 3.0) -> list[int]:
+    def _wait_for_ports(self, requested_ports: list[int], timeout: float = 60.0) -> list[int]:
         """Wait for ports to be served, up to timeout seconds.
 
         Returns:
