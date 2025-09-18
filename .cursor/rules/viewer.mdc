@@ -353,6 +353,13 @@ The application has two main pages:
 * **Overview table**: Shows results summary with round navigation
   - **Header formatting**: Column headers should show player names directly followed by "Steps" (e.g., "sonnet-4-more-prescriptive Steps"), not "Player sonnet-4-more-prescriptive Steps"
   - **Navigation buttons**: Each row includes a button to jump to the specific round details
+* **All Logs section**: Shows all available log files with individual foldouts and scroll containers
+  - **tournament.log**: Tournament-level logging
+  - **game.log**: Game-specific logging
+  - **everything.log**: Combined comprehensive logging
+  - **players/p1/player.log, players/p2/player.log**: Individual player logs for each player
+  - Each log foldout includes a "Copy path" button and has its own scroll container with max-height of 500px for large logs
+  - Logs are displayed in a dedicated section with proper styling and scrollbars
 
 #### Rounds
 

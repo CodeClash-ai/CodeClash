@@ -38,18 +38,4 @@
         </div>
     </details>
 
-    <!-- Main Log Foldout -->
-    <details class="foldout">
-        <summary>
-            📝 Tournament Log
-            {% if metadata.main_log_path %}
-            <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
-                📋 Copy path
-            </button>
-            {% endif %}
-        </summary>
-        <div class="log-content">
-            <pre><code>{{ metadata.main_log }}</code></pre>
-        </div>
-    </details>
 </section>
