@@ -4,7 +4,7 @@ import traceback
 from pathlib import Path
 
 from codeclash.utils.environment import create_file_in_container
-from codeclash.utils.log import get_logger
+from codeclash.utils.log import add_file_handler, get_logger
 
 
 class AbstractTournament:
@@ -20,6 +20,7 @@ class AbstractTournament:
             "created_timestamp": int(time.time()),
         }
         self.logger = get_logger(self.name, log_path=self.local_output_dir / "tournament.log", emoji="🏆")
+        add_file_handler(get_logger("."), self.local_output_dir / "everything.log")
 
     @property
     def local_output_dir(self) -> Path:

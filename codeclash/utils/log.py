@@ -64,6 +64,22 @@ class RichFormatter(logging.Formatter):
         return capture.get().rstrip()
 
 
+def add_file_handler(logger: logging.Logger, log_path: Path) -> None:
+    """Add a file handler to the logger with standard formatting."""
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(_FILE_LEVEL)
+
+    # Use a standard formatter for file logs with time, name, and level
+    file_formatter = logging.Formatter(
+        fmt="%(asctime)s [%(name)s] %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    file_handler.setFormatter(file_formatter)
+
+    logger.addHandler(file_handler)
+
+
 def get_logger(name: str, *, emoji: str = "", log_path: Path | None = None) -> logging.Logger:
     """Get logger. Use this instead of `logging.getLogger` to ensure
     that the logger is set up with the correct handlers.
@@ -86,17 +102,6 @@ def get_logger(name: str, *, emoji: str = "", log_path: Path | None = None) -> l
     logger.propagate = True
 
     if log_path is not None:
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_path)
-        file_handler.setLevel(_FILE_LEVEL)
-
-        # Use a standard formatter for file logs with time, name, and level
-        file_formatter = logging.Formatter(
-            fmt="%(asctime)s [%(name)s] %(levelname)s %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        file_handler.setFormatter(file_formatter)
-
-        logger.addHandler(file_handler)
+        add_file_handler(logger, log_path)
 
     return logger
