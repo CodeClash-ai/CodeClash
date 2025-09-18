@@ -15,25 +15,6 @@
             {% endfor %}
         {% endif %}
 
-        <!-- Round Simulation Logs -->
-        <details class="foldout round-foldout">
-            <summary>🎮 Round {{ round_num }} Simulation Logs ({{ round_data.sim_logs|length }} sims)</summary>
-            <div class="log-content">
-                {% for sim_log in round_data.sim_logs %}
-                <details class="foldout sim-foldout">
-                    <summary>
-                        {{ sim_log.filename }}
-                        <button class="copy-path-btn-small" data-path="{{ sim_log.full_path }}" title="Copy file path">
-                            📋 Copy path
-                        </button>
-                    </summary>
-                    <div class="log-content">
-                        <pre><code>{{ sim_log.content }}</code></pre>
-                    </div>
-                </details>
-                {% endfor %}
-            </div>
-        </details>
 
         <!-- Round Results (if available) -->
         {% if round_data.results %}

@@ -331,34 +331,46 @@ class LogParser:
         main_log = main_log_file.read_text() if main_log_file.exists() else "No tournament log found"
         main_log_path = str(main_log_file) if main_log_file.exists() else ""
 
-        # Parse round directories and their sim logs
+        # Parse round data - prioritize round_stats from metadata.json
         rounds = []
-        rounds_dir = self.log_dir / "rounds"
-        if rounds_dir.exists():
-            # Get all round directories (sorted numerically)
-            round_dirs = sorted([d for d in rounds_dir.iterdir() if d.is_dir()], key=lambda x: int(x.name))
 
-            for round_dir in round_dirs:
-                round_num = int(round_dir.name)
+        # First, try to get round data from metadata.json round_stats
+        if "round_stats" in results:
+            # Get agent info for processing round results
+            agent_info = get_agent_info_from_metadata(results) if results else []
 
-                # Collect all sim logs for this round
-                sim_logs = []
-                sim_files = sorted(round_dir.glob("sim_*.log"), key=lambda x: int(x.stem.split("_")[1]))
+            # Process each round from round_stats
+            for round_key, round_data in results["round_stats"].items():
+                round_num = int(round_key)
 
-                for sim_file in sim_files:
-                    sim_content = sim_file.read_text()
-                    sim_logs.append({"filename": sim_file.name, "content": sim_content, "full_path": str(sim_file)})
+                # Process the round results from metadata
+                round_results = process_round_results(round_data, agent_info)
 
-                # Check for round results
-                results_file = round_dir / "results.json"
-                round_results = None
-                if results_file.exists():
-                    round_results = json.loads(results_file.read_text())
-                    # Get agent info for this round (we'll need to get it from metadata)
-                    agent_info = get_agent_info_from_metadata(results) if results else []
-                    round_results = process_round_results(round_results, agent_info)
+                rounds.append({"round_num": round_num, "sim_logs": [], "results": round_results})
 
-                rounds.append({"round_num": round_num, "sim_logs": sim_logs, "results": round_results})
+        else:
+            # Fallback: Parse round directories and their sim logs (for older games)
+            rounds_dir = self.log_dir / "rounds"
+            if rounds_dir.exists():
+                # Get all round directories (sorted numerically)
+                round_dirs = sorted([d for d in rounds_dir.iterdir() if d.is_dir()], key=lambda x: int(x.name))
+
+                for round_dir in round_dirs:
+                    round_num = int(round_dir.name)
+
+                    # Check for round results
+                    results_file = round_dir / "results.json"
+                    round_results = None
+                    if results_file.exists():
+                        round_results = json.loads(results_file.read_text())
+                        # Get agent info for this round (we'll need to get it from metadata)
+                        agent_info = get_agent_info_from_metadata(results) if results else []
+                        round_results = process_round_results(round_results, agent_info)
+
+                    rounds.append({"round_num": round_num, "sim_logs": [], "results": round_results})
+
+        # Sort rounds by round number to ensure consistent ordering
+        rounds.sort(key=lambda x: x["round_num"])
 
         # Extract agent information
         agent_info = get_agent_info_from_metadata(results) if results else []

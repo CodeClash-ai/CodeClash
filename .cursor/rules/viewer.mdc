@@ -105,6 +105,30 @@ Here's how the metadata.json file looks like:
 {
   "name": "PvpTournament",
   "tournament_id": "PvpTournament.BattleSnake.250915203207",
+  "round_stats": {
+    "0": {
+      "round_num": 0,
+      "winner": "p2",
+      "scores": {
+        "p2": 10,
+        "p1": 9,
+        "Tie": 1
+      },
+      "player_stats": {
+        "p2": {
+          "name": "p2",
+          "invalid_reason": null,
+          "score": 10,
+          "valid_submit": true
+        },
+        "p1": {
+          "name": "p1",
+          "invalid_reason": null,
+          "score": 9,
+          "valid_submit": true
+        }
+      }
+    },
   "config": {
     "tournament": {
       "rounds": 10
