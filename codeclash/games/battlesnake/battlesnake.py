@@ -69,6 +69,7 @@ class BattleSnakeGame(CodeGame):
         return output["output"]
 
     def execute_round(self, agents: list[Player]):
+        self._failed_to_start_player = []
         assert len(agents) > 1, "Battlesnake requires at least two players"
         self.logger.debug("Starting game servers")
         player2port = {}
