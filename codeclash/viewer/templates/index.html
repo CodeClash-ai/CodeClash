@@ -15,6 +15,7 @@
         {% include 'includes/readme.html' %}
         {% include 'includes/setup.html' %}
         {% include 'includes/overview.html' %}
+        {% include 'includes/analysis.html' %}
         {% include 'includes/rounds.html' %}
     </main>
 
@@ -33,6 +34,9 @@
                     <div class="toc-section-title">Sections</div>
                     <button class="toc-item" onclick="scrollToElement('.overview-section')">
                         📊 Overview
+                    </button>
+                    <button class="toc-item" onclick="scrollToElement('.analysis-section')">
+                        📈 Analysis
                     </button>
                     <button class="toc-item" onclick="scrollToElement('.rounds-section')">
                         🎯 Rounds
@@ -66,11 +70,13 @@
     </div>
 
     <script src="https://unpkg.com/jsoneditor@latest/dist/jsoneditor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/clipboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/experiment.js') }}"></script>
     <script src="{{ url_for('static', filename='js/readme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/json-editors.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
     <script>
         // Initialize all components when page loads
         document.addEventListener('DOMContentLoaded', function() {

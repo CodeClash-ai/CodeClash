@@ -527,6 +527,72 @@ class LogParser:
 
         return sorted(trajectories)
 
+    def analyze_line_counts(self) -> dict[str, Any]:
+        """Analyze line counts across all rounds for all files that appear in changed files"""
+        # Collect all files that appear in any changed files across all rounds and players
+        all_files = set()
+        players_dir = self.log_dir / "players"
+
+        if not players_dir.exists():
+            return {"all_files": [], "line_counts_by_round": {}}
+
+        # First pass: collect all files from all changes_r*.json files
+        for player_dir in players_dir.iterdir():
+            if not player_dir.is_dir():
+                continue
+
+            for changes_file in player_dir.glob("changes_r*.json"):
+                try:
+                    changes_data = json.loads(changes_file.read_text())
+                    modified_files = changes_data.get("modified_files", {})
+                    all_files.update(modified_files.keys())
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+        all_files_list = sorted(list(all_files))
+
+        # Second pass: count lines for each file in each round for each player
+        line_counts_by_round = {}
+
+        for player_dir in players_dir.iterdir():
+            if not player_dir.is_dir():
+                continue
+
+            player_name = player_dir.name
+
+            # Get all rounds for this player
+            changes_files = sorted(player_dir.glob("changes_r*.json"), key=lambda x: int(x.stem.split("_r")[1]))
+
+            # Track line counts for this player across rounds
+            player_line_counts = {}
+            current_file_lines = {}  # Track current state of each file
+
+            for changes_file in changes_files:
+                try:
+                    round_num = int(changes_file.stem.split("_r")[1])
+                    changes_data = json.loads(changes_file.read_text())
+                    modified_files = changes_data.get("modified_files", {})
+
+                    # Update line counts for files that changed in this round
+                    for file_path, file_content in modified_files.items():
+                        if file_content:
+                            current_file_lines[file_path] = len(file_content.splitlines())
+
+                    # Record line counts for all files in this round
+                    round_line_counts = {}
+                    for file_path in all_files_list:
+                        round_line_counts[file_path] = current_file_lines.get(file_path, 0)
+
+                    player_line_counts[round_num] = round_line_counts
+
+                except (json.JSONDecodeError, KeyError, ValueError):
+                    continue
+
+            if player_line_counts:
+                line_counts_by_round[player_name] = player_line_counts
+
+        return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
+
 
 app = Flask(__name__)
 
@@ -583,6 +649,9 @@ def index():
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
 
+    # Get analysis data
+    analysis_data = parser.analyze_line_counts()
+
     # Get the full path of the selected folder
     selected_folder_path = str(folder_path)
 
@@ -592,6 +661,7 @@ def index():
         selected_folder_path=selected_folder_path,
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
+        analysis_data=analysis_data,
     )
 
 
@@ -883,6 +953,30 @@ def move_folder():
             }
         )
 
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/analysis/line-counts")
+def analysis_line_counts():
+    """Get line count analysis data for the current game"""
+    selected_folder = request.args.get("folder")
+
+    if not selected_folder:
+        return jsonify({"success": False, "error": "No folder specified"})
+
+    # Validate the selected folder exists and is a game folder
+    logs_dir = LOG_BASE_DIR
+    folder_path = logs_dir / selected_folder
+
+    if not folder_path.exists() or not is_game_folder(folder_path):
+        return jsonify({"success": False, "error": "Invalid folder"})
+
+    try:
+        parser = LogParser(folder_path)
+        analysis_data = parser.analyze_line_counts()
+
+        return jsonify({"success": True, "data": analysis_data})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 

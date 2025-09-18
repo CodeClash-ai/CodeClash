@@ -1331,3 +1331,77 @@ summary:focus {
 .move-dialog-buttons button:last-child:hover {
   background-color: var(--bg-tertiary);
 }
+
+/* Analysis Section Styles */
+.analysis-section {
+  margin-bottom: 2rem;
+}
+
+.line-analysis-container {
+  margin-top: 1rem;
+}
+
+.file-selector {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-selector label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.file-dropdown {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  min-width: 300px;
+  max-width: 100%;
+}
+
+.file-dropdown:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-theme="dark"] .file-dropdown:focus {
+  box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.25);
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+  margin: 1rem 0;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  padding: 1rem;
+}
+
+.chart-container canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Responsive design for analysis */
+@media (max-width: 768px) {
+  .file-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .file-dropdown {
+    min-width: 100%;
+  }
+
+  .chart-container {
+    height: 300px;
+    padding: 0.5rem;
+  }
+}
