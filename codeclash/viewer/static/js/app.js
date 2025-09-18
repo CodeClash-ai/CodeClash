@@ -1,35 +1,5 @@
 // CodeClash Trajectory Viewer - JavaScript Controls
 
-// Theme management
-function initializeTheme() {
-  // Check for saved theme preference or default to 'light'
-  const savedTheme = localStorage.getItem("theme") || "light";
-  setTheme(savedTheme);
-}
-
-function setTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-
-  // Update theme toggle button
-  const themeToggle = document.getElementById("theme-toggle");
-  const themeIcon = themeToggle.querySelector(".theme-icon");
-
-  if (theme === "dark") {
-    themeIcon.innerHTML = '<i class="bi bi-sun"></i>';
-    themeToggle.setAttribute("aria-label", "Switch to light mode");
-  } else {
-    themeIcon.innerHTML = '<i class="bi bi-moon"></i>';
-    themeToggle.setAttribute("aria-label", "Switch to dark mode");
-  }
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
-  const newTheme = currentTheme === "dark" ? "light" : "dark";
-  setTheme(newTheme);
-}
-
 // Game picker
 function openGamePicker() {
   window.location.href = "/picker";
@@ -101,12 +71,6 @@ function initializeKeyboardShortcuts() {
       }
       e.preventDefault();
       openGamePickerInNewTab();
-    }
-
-    // Ctrl/Cmd + D: Toggle dark mode
-    if ((e.ctrlKey || e.metaKey) && e.key === "d") {
-      e.preventDefault();
-      toggleTheme();
     }
 
     // Escape: Close all open details
@@ -332,12 +296,6 @@ function setupButtonEventListeners() {
     pickGameNewTabBtn.addEventListener("click", openGamePickerInNewTab);
   }
 
-  // Theme toggle button
-  const themeToggle = document.getElementById("theme-toggle");
-  if (themeToggle) {
-    themeToggle.addEventListener("click", toggleTheme);
-  }
-
   // Delete experiment button
   const deleteBtn = document.querySelector(".delete-experiment-btn");
   if (deleteBtn) {
@@ -380,7 +338,6 @@ function setupButtonEventListeners() {
 
 // Initialize everything when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
-  initializeTheme();
   initializeFoldouts();
   initializeKeyboardShortcuts();
   initializePerformanceMonitoring();
@@ -392,7 +349,6 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("  p: Open game picker (same tab)");
   console.log("  P: Open game picker (new tab)");
   console.log("  t: Toggle floating table of contents");
-  console.log("  Ctrl/Cmd + D: Toggle dark mode");
   console.log("  Ctrl/Cmd + E: Expand all sections");
   console.log("  Ctrl/Cmd + Shift + E: Collapse all sections");
   console.log("  Escape: Close all sections");

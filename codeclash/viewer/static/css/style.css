@@ -1,60 +1,32 @@
 /* CodeClash Trajectory Viewer - Bootstrap-enhanced Professional Design */
 
 :root {
-  /* Professional color palette - aligned with Bootstrap */
-  --bs-primary: #0d6efd;
-  --bs-secondary: #6c757d;
-  --bs-success: #198754;
-  --bs-info: #0dcaf0;
-  --bs-warning: #ffc107;
-  --bs-danger: #dc3545;
-  --bs-light: #f8f9fa;
-  --bs-dark: #212529;
+  /* Professional color palette - Dark theme with green accents */
+  --bs-primary: #00ff88;
+  --bs-secondary: #888888;
+  --bs-success: #00ff88;
+  --bs-info: #00ff88;
+  --bs-warning: #ffaa00;
+  --bs-danger: #ff4444;
+  --bs-light: #ffffff;
+  --bs-dark: #000000;
 
-  /* Custom theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
-  --text-muted: #adb5bd;
-  --border-color: #dee2e6;
-  --accent-color: var(--bs-primary);
-  --accent-hover: #0b5ed7;
-  --success-color: var(--bs-success);
-  --warning-color: var(--bs-warning);
-  --danger-color: var(--bs-danger);
-  --code-bg: #f8f9fa;
-  --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] {
-  /* Dark theme colors - Bootstrap compatible */
-  --bs-primary: #6ea8fe;
-  --bs-secondary: #6c757d;
-  --bs-success: #75b798;
-  --bs-info: #6edff6;
-  --bs-warning: #ffda6a;
-  --bs-danger: #ea868f;
-  --bs-light: #f8f9fa;
-  --bs-dark: #212529;
-
-  --bg-primary: #212529;
-  --bg-secondary: #343a40;
-  --bg-tertiary: #495057;
+  /* Dark theme colors - High contrast coding theme */
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --bg-tertiary: #222222;
   --text-primary: #ffffff;
-  --text-secondary: #adb5bd;
-  --text-muted: #6c757d;
-  --border-color: #495057;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+  --border-color: #333333;
   --accent-color: var(--bs-primary);
-  --accent-hover: #5a9cfc;
+  --accent-hover: #00cc66;
   --success-color: var(--bs-success);
   --warning-color: var(--bs-warning);
   --danger-color: var(--bs-danger);
-  --code-bg: #343a40;
-  --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+  --code-bg: #0a0a0a;
+  --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.9);
 }
 
 /* Base styles */
@@ -149,6 +121,14 @@ body {
   font-weight: 600;
   margin-left: 0.5rem;
   color: rgba(255, 255, 255, 0.9);
+}
+
+/* Keyboard shortcut indicator styling */
+.pick-game-button kbd {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  color: #000000;
+  font-weight: 700;
 }
 
 /* Bootstrap handles most styling */
@@ -288,6 +268,12 @@ body {
   text-transform: uppercase;
 }
 
+/* High contrast styling for UI elements */
+.winner-badge {
+  color: #000000;
+  font-weight: 700;
+}
+
 .winner-percentage {
   display: inline-block;
   margin-left: 0.5rem;
@@ -385,7 +371,8 @@ details summary {
 
 .foldout summary:hover {
   background-color: var(--accent-color);
-  color: white;
+  color: #000000;
+  font-weight: 600;
 }
 
 .foldout[open] summary {
@@ -534,7 +521,8 @@ details summary {
 
 .trajectory-messages-foldout summary:hover {
   background-color: var(--accent-color);
-  color: white;
+  color: #000000;
+  font-weight: 600;
 }
 
 .trajectory-messages-foldout[open] summary {
@@ -566,8 +554,9 @@ details summary {
 
 .btn-collapse-messages:hover {
   background-color: var(--accent-color);
-  color: white;
+  color: #000000;
   border-color: var(--accent-color);
+  font-weight: 600;
 }
 
 .trajectory-stats {
@@ -799,31 +788,31 @@ details summary {
   }
 }
 
-/* Bootstrap Integration & Dark Mode Support */
-[data-theme="dark"] .btn {
+/* Bootstrap Integration & High Contrast Support */
+.btn {
   --bs-btn-color: var(--text-primary);
   --bs-btn-bg: var(--bg-secondary);
   --bs-btn-border-color: var(--border-color);
 }
 
-[data-theme="dark"] .btn-primary {
-  --bs-btn-color: #fff;
+.btn-primary {
+  --bs-btn-color: #000000;
   --bs-btn-bg: var(--bs-primary);
   --bs-btn-border-color: var(--bs-primary);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: #000000;
   --bs-btn-hover-bg: var(--accent-hover);
   --bs-btn-hover-border-color: var(--accent-hover);
 }
 
-[data-theme="dark"] .btn-outline-primary {
+.btn-outline-primary {
   --bs-btn-color: var(--bs-primary);
   --bs-btn-border-color: var(--bs-primary);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: #000000;
   --bs-btn-hover-bg: var(--bs-primary);
   --bs-btn-hover-border-color: var(--bs-primary);
 }
 
-[data-theme="dark"] .btn-outline-secondary {
+.btn-outline-secondary {
   --bs-btn-color: var(--text-secondary);
   --bs-btn-border-color: var(--border-color);
   --bs-btn-hover-color: var(--text-primary);
@@ -831,7 +820,7 @@ details summary {
   --bs-btn-hover-border-color: var(--border-color);
 }
 
-[data-theme="dark"] .table {
+.table {
   --bs-table-color: var(--text-primary);
   --bs-table-bg: var(--bg-primary);
   --bs-table-border-color: var(--border-color);
@@ -839,13 +828,13 @@ details summary {
   --bs-table-hover-bg: var(--bg-tertiary);
 }
 
-[data-theme="dark"] .form-control {
+.form-control {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   border-color: var(--border-color);
 }
 
-[data-theme="dark"] .form-control:focus {
+.form-control:focus {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   border-color: var(--accent-color);
@@ -886,18 +875,17 @@ summary:focus {
   outline: none;
 }
 
-/* Scrollbar styling for webkit browsers */
+/* High contrast scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--text-muted);
   border-radius: 4px;
 }
 
@@ -938,8 +926,9 @@ summary:focus {
 
 .jsoneditor-menu > button:hover {
   background-color: var(--accent-color) !important;
-  color: white !important;
+  color: #000000 !important;
   border-color: var(--accent-color) !important;
+  font-weight: 600 !important;
 }
 
 .jsoneditor-tree {
@@ -958,7 +947,7 @@ summary:focus {
 }
 
 .jsoneditor-tree .jsoneditor-number {
-  color: var(--accent-color) !important;
+  color: var(--warning-color) !important;
 }
 
 .jsoneditor-tree .jsoneditor-boolean {
@@ -974,17 +963,83 @@ summary:focus {
   font-weight: 500 !important;
 }
 
-/* Dark mode adjustments for JSON viewer */
-[data-theme="dark"] .jsoneditor-tree {
+/* Dark mode adjustments for JSON viewer - High Contrast */
+.jsoneditor-tree {
   background-color: var(--bg-primary) !important;
+  border: none !important;
 }
 
-[data-theme="dark"] .jsoneditor-outer {
+.jsoneditor-outer {
   background-color: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-[data-theme="dark"] .jsoneditor-menu {
+.jsoneditor-menu {
   background-color: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Remove unwanted white borders and frames in JSON editor */
+.jsoneditor-tree table,
+.jsoneditor-tree tr,
+.jsoneditor-tree td {
+  border: none !important;
+  outline: none !important;
+}
+
+.jsoneditor-tree .jsoneditor-selected,
+.jsoneditor-tree .jsoneditor-selected.jsoneditor-first,
+.jsoneditor-tree .jsoneditor-selected.jsoneditor-last {
+  background-color: var(--bg-secondary) !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.jsoneditor-tree .jsoneditor-field,
+.jsoneditor-tree .jsoneditor-value {
+  color: var(--text-primary) !important;
+}
+
+.jsoneditor-tree .jsoneditor-string {
+  color: var(--success-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-number {
+  color: var(--warning-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-boolean {
+  color: var(--warning-color) !important;
+}
+
+.jsoneditor-tree .jsoneditor-null {
+  color: var(--text-muted) !important;
+}
+
+.jsoneditor-tree .jsoneditor-key {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Additional JSON editor dark mode fixes */
+.jsoneditor {
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-primary) !important;
+}
+
+.jsoneditor-tree .jsoneditor-button {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.jsoneditor-tree .jsoneditor-expandable {
+  border: none !important;
+  outline: none !important;
+}
+
+.jsoneditor-tree .jsoneditor-separator {
+  color: var(--text-secondary) !important;
 }
 
 /* Copy path buttons */
@@ -1000,6 +1055,12 @@ summary:focus {
   margin: 0 0 0.5rem 0;
   color: var(--text-primary);
   font-size: 1.1rem;
+}
+
+/* Dark mode high contrast fix for folder path header */
+.folder-path-container h3 {
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .path-display {
@@ -1021,9 +1082,15 @@ summary:focus {
   min-width: 0;
 }
 
+/* Dark mode high contrast fix for folder path */
+.folder-path {
+  color: #ffffff;
+  font-weight: 500;
+}
+
 .copy-path-btn {
   background: var(--accent-color);
-  color: white;
+  color: #000000;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -1031,14 +1098,16 @@ summary:focus {
   font-size: 0.9rem;
   transition: background-color 0.2s;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .copy-path-btn:hover {
   background: var(--accent-hover);
+  color: #000000;
 }
 
 .delete-experiment-btn {
-  background: var(--danger-color);
+  background: var(--success-color);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -1050,11 +1119,23 @@ summary:focus {
 }
 
 .delete-experiment-btn:hover {
-  background: #c82333;
+  background: var(--accent-hover);
+}
+
+/* Dark mode fix for delete button */
+.delete-experiment-btn {
+  background: var(--success-color);
+  color: #000000;
+  font-weight: 700;
+}
+
+.delete-experiment-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
 }
 
 .move-rename-btn {
-  background: var(--warning-color);
+  background: var(--success-color);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -1066,7 +1147,19 @@ summary:focus {
 }
 
 .move-rename-btn:hover {
-  background: #e8590c;
+  background: var(--accent-hover);
+}
+
+/* Dark mode fix for move/rename button */
+.move-rename-btn {
+  background: var(--success-color);
+  color: #000000;
+  font-weight: 700;
+}
+
+.move-rename-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
 }
 
 /* Readme Section */
@@ -1139,8 +1232,9 @@ summary:focus {
 
 .copy-path-btn-small:hover {
   background: var(--accent-color);
-  color: white;
+  color: #000000;
   border-color: var(--accent-color);
+  font-weight: 600;
 }
 
 /* Responsive adjustments for copy buttons */
@@ -1158,7 +1252,7 @@ summary:focus {
 /* Navigation button styles */
 .nav-to-round-btn {
   background: var(--accent-color);
-  color: white;
+  color: #000000;
   border: none;
   padding: 0.5rem 0.75rem;
   border-radius: 50%;
@@ -1170,10 +1264,12 @@ summary:focus {
   justify-content: center;
   min-width: 2rem;
   min-height: 2rem;
+  font-weight: 600;
 }
 
 .nav-to-round-btn:hover {
   background: var(--accent-hover);
+  color: #000000;
   transform: translateY(1px);
 }
 
@@ -1284,8 +1380,15 @@ summary:focus {
 }
 
 .toc-close:hover {
-  background-color: var(--danger-color);
+  background-color: #006644;
   color: white;
+}
+
+/* Dark mode fix for TOC close button */
+.toc-close:hover {
+  background-color: #006644;
+  color: #000000;
+  font-weight: 700;
 }
 
 .toc-content {
@@ -1329,7 +1432,8 @@ summary:focus {
 
 .toc-item:hover {
   background-color: var(--accent-color);
-  color: white;
+  color: #000000;
+  font-weight: 600;
 }
 
 .toc-item.toc-top {
@@ -1341,6 +1445,17 @@ summary:focus {
 
 .toc-item.toc-top:hover {
   background-color: #157347;
+}
+
+/* Dark mode contrast fix for TOC top button */
+.toc-item.toc-top {
+  color: #000000;
+  font-weight: 700;
+}
+
+.toc-item.toc-top:hover {
+  background-color: #00cc66;
+  color: #000000;
 }
 
 /* Responsive design for floating TOC */
@@ -1439,6 +1554,17 @@ summary:focus {
   filter: brightness(1.1);
 }
 
+/* Dark mode contrast fix for dialog buttons */
+.move-dialog-buttons button:first-child {
+  color: #000000;
+  font-weight: 700;
+}
+
+.move-dialog-buttons button:first-child:hover {
+  background-color: #00cc66;
+  color: #000000;
+}
+
 .move-dialog-buttons button:last-child {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
@@ -1487,7 +1613,7 @@ summary:focus {
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-[data-theme="dark"] .file-dropdown:focus {
+.file-dropdown:focus {
   box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.25);
 }
 
@@ -1521,4 +1647,71 @@ summary:focus {
     height: 300px;
     padding: 0.5rem;
   }
+}
+
+/* High contrast dark mode enhancements for coding theme */
+.code-block {
+  background-color: var(--code-bg);
+  border: 2px solid var(--border-color);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.message-text pre,
+.log-content pre {
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+.metadata-display {
+  background-color: var(--code-bg);
+  border: 2px solid var(--border-color);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.log-content-container {
+  background-color: var(--code-bg);
+  border: 2px solid var(--border-color);
+}
+
+.log-content-scrollable {
+  background-color: var(--code-bg);
+  color: var(--text-primary);
+}
+
+/* Enhanced foldout styling for dark mode */
+.foldout {
+  border: 2px solid var(--border-color);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.foldout summary {
+  background-color: var(--bg-tertiary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.foldout summary:hover {
+  background-color: var(--accent-color);
+  color: #000000;
+  font-weight: 600;
+}
+
+/* Enhanced message blocks for coding theme */
+.message-block {
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-primary);
+}
+
+.message-block.system {
+  border-left: 4px solid var(--warning-color);
+  box-shadow: inset 4px 0 0 var(--warning-color);
+}
+
+.message-block.user {
+  border-left: 4px solid var(--accent-color);
+  box-shadow: inset 4px 0 0 var(--accent-color);
+}
+
+.message-block.assistant {
+  border-left: 4px solid var(--success-color);
+  box-shadow: inset 4px 0 0 var(--success-color);
 }

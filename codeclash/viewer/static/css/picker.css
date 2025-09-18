@@ -273,6 +273,12 @@
   text-align: center;
 }
 
+/* Dark mode contrast fix for rounds count */
+.rounds-count {
+  color: #000000;
+  font-weight: 700;
+}
+
 .rounds-unknown {
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -298,6 +304,12 @@
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* Dark mode contrast fix for model tags */
+.model-tag {
+  color: #000000;
+  font-weight: 700;
 }
 
 .models-unknown {
@@ -330,6 +342,17 @@
   filter: brightness(1.1);
 }
 
+/* Dark mode contrast fix for open button */
+.open-button {
+  color: #000000;
+  font-weight: 700;
+}
+
+.open-button:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
 .open-new-tab-button {
   background-color: var(--accent-color);
   color: white;
@@ -347,8 +370,19 @@
   background-color: var(--accent-hover);
 }
 
+/* Dark mode contrast fix for new tab button */
+.open-new-tab-button {
+  color: #000000;
+  font-weight: 700;
+}
+
+.open-new-tab-button:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
 .move-button {
-  background-color: var(--warning-color);
+  background-color: #00aa66;
   color: white;
   border: none;
   padding: 0.4rem 0.6rem;
@@ -360,7 +394,19 @@
 }
 
 .move-button:hover {
-  filter: brightness(1.1);
+  background-color: #008855;
+}
+
+/* Dark mode fix for move button */
+.move-button {
+  background-color: #00aa66;
+  color: #000000;
+  font-weight: 700;
+}
+
+.move-button:hover {
+  background-color: #008855;
+  color: #000000;
 }
 
 .no-games-message {
@@ -457,6 +503,17 @@
 
 .move-dialog-buttons button:first-child:hover {
   filter: brightness(1.1);
+}
+
+/* Dark mode contrast fix for dialog buttons */
+.move-dialog-buttons button:first-child {
+  color: #000000;
+  font-weight: 700;
+}
+
+.move-dialog-buttons button:first-child:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
 }
 
 .move-dialog-buttons button:last-child {

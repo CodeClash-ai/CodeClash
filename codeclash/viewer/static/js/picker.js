@@ -508,16 +508,10 @@ document
     }
   });
 
-// Initialize theme and other functionality on page load
+// Initialize functionality on page load
 document.addEventListener("DOMContentLoaded", function () {
-  // initializeTheme is defined in app.js, which is loaded before this script
-  if (typeof initializeTheme === "function") {
-    initializeTheme();
-  }
-
   console.log("Game Picker initialized");
   console.log("Available keyboard shortcuts:");
-  console.log("  Ctrl/Cmd + D: Toggle dark mode");
   console.log("  Shift + Click: Range select checkboxes");
   console.log("  Escape: Close move dialog");
 });
