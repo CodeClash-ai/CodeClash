@@ -157,6 +157,7 @@ body {
 .readme-section,
 .setup-section,
 .overview-section,
+.analysis-section,
 .rounds-section {
   margin-bottom: 3rem;
 }
@@ -164,6 +165,7 @@ body {
 .readme-section h2,
 .setup-section h2,
 .overview-section h2,
+.analysis-section h2,
 .rounds-section h2 {
   color: var(--accent-color);
   font-size: 1.5rem;
@@ -1575,9 +1577,6 @@ summary:focus {
 }
 
 /* Analysis Section Styles */
-.analysis-section {
-  margin-bottom: 2rem;
-}
 
 .line-analysis-container {
   margin-top: 1rem;
