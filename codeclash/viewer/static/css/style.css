@@ -1239,6 +1239,13 @@ summary:focus {
   color: var(--text-muted);
 }
 
+.readme-textarea:disabled {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  opacity: 1 !important;
+}
+
 .readme-status {
   margin-top: 0.5rem;
   font-size: 0.8rem;
