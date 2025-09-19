@@ -38,6 +38,7 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "ruff",
+    "frozen-flask",
 ]
 
 [tool.setuptools.packages.find]
