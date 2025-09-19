@@ -35,3 +35,14 @@ aws s3 sync s3://codeclash/logs/ logs/
 ### Trajectory viewer
 
 Assuming that your logs ar in `logs/`, start the viewer with `python run_viewer.py`. Use `-d` (`--directory`) to specify a custom path to your logs.
+
+To deploy to the static site, run
+
+> [!CAUTION]
+> This will overwrite anything on the public display. Make sure you have all trajectories
+
+```bash
+cd REPO_ROOT
+aws s3 sync logs/ s3://codeclash/logs/
+./build_static_and_push.sh
+```
