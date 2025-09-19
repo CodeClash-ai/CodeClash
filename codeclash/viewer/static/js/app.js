@@ -2,11 +2,15 @@
 
 // Game picker
 function openGamePicker() {
-  window.location.href = "/picker";
+  const isStatic = document.body.hasAttribute("data-static-mode");
+  const url = isStatic ? "/picker.html" : "/picker";
+  window.location.href = url;
 }
 
 function openGamePickerInNewTab() {
-  window.open("/picker", "_blank");
+  const isStatic = document.body.hasAttribute("data-static-mode");
+  const url = isStatic ? "/picker.html" : "/picker";
+  window.open(url, "_blank");
 }
 
 function handlePickerClick(event) {

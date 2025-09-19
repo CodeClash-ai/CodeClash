@@ -2,14 +2,36 @@
 
 function openGame(gameName) {
   // Navigate to the viewer with the selected game
-  const url = `/?folder=${encodeURIComponent(gameName)}`;
-  window.location.href = url;
+  // In static mode, use path-based URLs; in dynamic mode, use query parameters
+  const isStatic = document.body.hasAttribute("data-static-mode");
+  if (isStatic) {
+    // For static mode, encode each path segment separately to preserve slashes
+    const pathSegments = gameName
+      .split("/")
+      .map((segment) => encodeURIComponent(segment));
+    const url = `/game/${pathSegments.join("/")}.html`;
+    window.location.href = url;
+  } else {
+    const url = `/?folder=${encodeURIComponent(gameName)}`;
+    window.location.href = url;
+  }
 }
 
 function openGameInNewTab(gameName) {
   // Open the viewer in a new tab with the selected game
-  const url = `/?folder=${encodeURIComponent(gameName)}`;
-  window.open(url, "_blank");
+  // In static mode, use path-based URLs; in dynamic mode, use query parameters
+  const isStatic = document.body.hasAttribute("data-static-mode");
+  if (isStatic) {
+    // For static mode, encode each path segment separately to preserve slashes
+    const pathSegments = gameName
+      .split("/")
+      .map((segment) => encodeURIComponent(segment));
+    const url = `/game/${pathSegments.join("/")}.html`;
+    window.open(url, "_blank");
+  } else {
+    const url = `/?folder=${encodeURIComponent(gameName)}`;
+    window.open(url, "_blank");
+  }
 }
 
 function handleGameClick(event, gameName) {

@@ -19,6 +19,9 @@ from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_dif
 # Global variable to store the directory to search for logs
 LOG_BASE_DIR = Path.cwd() / "logs"
 
+# Global flag to indicate if we're running in static mode
+STATIC_MODE = False
+
 
 @dataclass
 class AgentInfo:
@@ -33,6 +36,17 @@ def set_log_base_directory(directory: str | Path):
     """Set the logs directory directly"""
     global LOG_BASE_DIR
     LOG_BASE_DIR = Path(directory).resolve()
+
+
+def set_static_mode(enabled: bool = True):
+    """Enable or disable static mode"""
+    global STATIC_MODE
+    STATIC_MODE = enabled
+
+
+def is_static_mode() -> bool:
+    """Check if we're running in static mode"""
+    return STATIC_MODE
 
 
 def is_game_folder(log_dir: Path) -> bool:
@@ -705,6 +719,48 @@ def index():
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
         analysis_data=analysis_data,
+        is_static=STATIC_MODE,
+    )
+
+
+@app.route("/game/<path:folder_path>")
+def game_view(folder_path):
+    """Static-friendly game viewer route using path parameters"""
+    # Validate the selected folder exists and is a game folder
+    logs_dir = LOG_BASE_DIR
+    folder_path_obj = logs_dir / folder_path
+
+    if not folder_path_obj.exists() or not is_game_folder(folder_path_obj):
+        return redirect(url_for("game_picker"))
+
+    # Parse the selected game
+    parser = LogParser(folder_path_obj)
+    metadata = parser.parse_game_metadata()
+    available_trajectories = parser.get_available_trajectories()
+
+    # Group trajectories by round
+    trajectories_by_round = {}
+    for player_name, round_num in available_trajectories:
+        if round_num not in trajectories_by_round:
+            trajectories_by_round[round_num] = []
+        trajectory = parser.parse_trajectory(player_name, round_num)
+        if trajectory:
+            trajectories_by_round[round_num].append(trajectory)
+
+    # Get analysis data
+    analysis_data = parser.analyze_line_counts()
+
+    # Get the full path of the selected folder
+    selected_folder_path = str(folder_path_obj)
+
+    return render_template(
+        "index.html",
+        selected_folder=folder_path,
+        selected_folder_path=selected_folder_path,
+        metadata=metadata,
+        trajectories_by_round=trajectories_by_round,
+        analysis_data=analysis_data,
+        is_static=STATIC_MODE,
     )
 
 
@@ -714,7 +770,7 @@ def game_picker():
     logs_dir = LOG_BASE_DIR
     game_folders = find_all_game_folders(logs_dir)
 
-    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir))
+    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir), is_static=STATIC_MODE)
 
 
 @app.route("/delete-experiment", methods=["POST"])

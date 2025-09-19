@@ -13,7 +13,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body{% if is_static %} data-static-mode{% endif %}>
     {% include 'includes/header.html' %}
 
     <main class="container-fluid main-content">
@@ -83,8 +83,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Setup copy buttons
             setupCopyButtons();
-            // Setup readme autosave
+            // Setup readme autosave (only if not in static mode)
+            {% if not is_static %}
             setupReadmeAutosave();
+            {% endif %}
             // Initialize JSON editors with metadata
             initializeJSONEditors({{ metadata | tojson | safe }});
         });

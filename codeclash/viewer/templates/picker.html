@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/picker.css') }}">
 </head>
-<body>
+<body{% if is_static %} data-static-mode{% endif %}>
 
     <div class="picker-container">
         <div class="picker-header">
@@ -28,6 +28,7 @@
         {% if game_folders %}
         <div class="games-table">
         <div class="table-controls">
+            {% if not is_static %}
             <div class="selection-controls">
                 <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
                 <label for="select-all">Select All</label>
@@ -41,6 +42,17 @@
                     <option value="move-to-subfolder">Move to subfolder</option>
                 </select>
             </div>
+            {% else %}
+            <div class="selection-controls">
+                <input type="checkbox" id="select-all" disabled>
+                <label for="select-all" style="color: #666;">Select All (Disabled in static mode)</label>
+            </div>
+            <div class="action-controls">
+                <select id="action-dropdown" disabled>
+                    <option value="">Actions disabled in static mode</option>
+                </select>
+            </div>
+            {% endif %}
         </div>
         <div class="table-header">
             <div><i class="bi bi-check-square"></i> Select</div>
@@ -61,7 +73,7 @@
                 <div class="checkbox-cell">
                     {% if game.is_game %}
                     <input type="checkbox" class="game-checkbox" data-path="{{ game.name }}"
-                           onclick="handleCheckboxClick(event, '{{ game.name }}')">
+                           onclick="{% if not is_static %}handleCheckboxClick(event, '{{ game.name }}'){% endif %}" {% if is_static %}disabled{% endif %}>
                     {% else %}
                     <span class="checkbox-placeholder"></span>
                     {% endif %}
@@ -122,9 +134,15 @@
                     <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
+                    {% if not is_static %}
                     <button class="btn btn-outline-warning btn-sm move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
                         <i class="bi bi-folder-symlink"></i>
                     </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm move-button" disabled title="Not available in static mode">
+                        <i class="bi bi-folder-symlink"></i>
+                    </button>
+                    {% endif %}
                     {% else %}
                     <span class="folder-indicator">Folder</span>
                     {% endif %}
