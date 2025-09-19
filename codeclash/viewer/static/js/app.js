@@ -202,15 +202,6 @@ function scrollToRound(roundNum) {
       block: "start",
     });
 
-    // Add a brief highlight effect
-    const roundSection = roundAnchor.nextElementSibling;
-    if (roundSection) {
-      roundSection.classList.add("highlight-round");
-      setTimeout(() => {
-        roundSection.classList.remove("highlight-round");
-      }, 2000);
-    }
-
     // Close TOC menu after navigation (optional - user can keep it open)
     // closeTocMenu();
   } else {

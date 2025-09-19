@@ -1338,26 +1338,6 @@ summary:focus {
   visibility: hidden;
 }
 
-/* Highlight effect for jumped-to rounds */
-.highlight-round {
-  animation: roundHighlight 2s ease-in-out;
-}
-
-@keyframes roundHighlight {
-  0% {
-    background-color: var(--accent-color);
-    opacity: 0.1;
-  }
-  50% {
-    background-color: var(--accent-color);
-    opacity: 0.2;
-  }
-  100% {
-    background-color: transparent;
-    opacity: 1;
-  }
-}
-
 /* Bootstrap table hover styles are used instead of custom ones */
 
 /* Ensure text visibility in all table states */
