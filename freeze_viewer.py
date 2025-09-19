@@ -125,7 +125,7 @@ def _add_html_extensions(build_dir: Path):
     for file_path in build_path.rglob("*"):
         if file_path.is_file() and not file_path.name.endswith(".html"):
             # Skip known non-HTML files
-            if file_path.name in ["picker", "load-readme"] or file_path.name.startswith("line-counts"):
+            if file_path.name in ["load-readme"] or file_path.name.startswith("line-counts"):
                 continue
 
             # Skip if it's in static directory
