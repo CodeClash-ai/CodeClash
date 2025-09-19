@@ -19,6 +19,17 @@ two AI agent in a round-based game against each other.
 * Organize JavaScript into logical modules: clipboard.js, experiment.js, readme.js, json-editors.js, etc.
 * The application consists of two main pages: the viewer and the game picker
 
+### Design System & Styling
+
+* **Consistent Section Formatting**: All main sections (Overview, Analysis, Rounds) use the same styling with consistent margins, headers, and layout
+* **Color System**:
+  - Success states: Bright neon green (`#00ff88`) for submitted/successful statuses. This is also the accent color.
+  - Error/Warning states: Bright neon pink-red (`#ff1188`) for failed/error statuses
+  - Both colors maintain similar brightness and vibrancy for visual consistency
+* **Status Indicators**: Exit statuses are consistently colored across all views (overview table, detailed trajectories)
+* **Section Headers**: All sections use h2 headers with icons and consistent styling (font-size: 1.5rem, accent color)
+* **Responsive Layout**: Flexbox layouts that adapt from column (mobile) to row (desktop) as space allows
+
 ### Template Organization
 
 * **Main templates**: `index.html`, `picker.html`, `no_logs.html` are in the templates root
@@ -34,6 +45,7 @@ two AI agent in a round-based game against each other.
 * `includes/readme.html` - Editable readme section
 * `includes/setup.html` - Agent info, metadata, and tournament log foldouts
 * `includes/overview.html` - Results summary table with round navigation
+* `includes/analysis.html` - Analysis section with line counting charts and data visualization
 * `includes/trajectory.html` - Player trajectory display with messages, diffs, and files
 * `includes/rounds.html` - Main rounds section that includes trajectories and simulation logs
 
@@ -260,8 +272,9 @@ The application has two main pages:
 
 * **Floating Table of Contents**: A floating navigation panel that provides quick navigation (always visible by default)
   - **Go to Top button**: Smooth scroll to the top of the page
-  - **Round Navigation**: Quick links to jump to specific round sections
-  - **Section Navigation**: Quick links to Overview and Rounds sections
+  - **Flat Navigation Structure**: Simple, flat navigation without nested sections
+  - **Section Navigation**: Direct links to Overview, Analysis, and individual Round sections
+  - **Round Navigation**: Direct links to each round (Round 0, Round 1, etc.) without grouping
   - **Close Button**: × button in the header to hide the navigation panel
   - **Keyboard Toggle**: `t` key to show/hide the navigation panel
   - **Positioning**: Fixed position in bottom-right corner
@@ -351,7 +364,12 @@ The application has two main pages:
 * At the top, we show the content of `metadata.json`
 * There's a foldout that displays main.log (hidden by default)
 * **Overview table**: Shows results summary with round navigation
-  - **Header formatting**: Column headers should show player names directly followed by "Steps" (e.g., "sonnet-4-more-prescriptive Steps"), not "Player sonnet-4-more-prescriptive Steps"
+  - **Header formatting**: Column headers show just the model/player names (e.g., "sonnet-4-more-prescriptive"), not including "Steps"
+  - **Cell format**: Each player cell shows `<steps>/$<price> <exit_status>` with emphasis on performance metrics
+    - Steps/price is prominent (larger, bold text)
+    - Exit status is smaller and secondary
+    - Uses responsive flexbox layout (side-by-side on desktop, stacked on mobile)
+  - **Status coloring**: Exit statuses use consistent color scheme (green for "Submitted", neon red for errors)
   - **Navigation buttons**: Each row includes a button to jump to the specific round details
 * **All Logs section**: Shows all available log files with individual foldouts and scroll containers
   - **tournament.log**: Tournament-level logging
@@ -360,6 +378,15 @@ The application has two main pages:
   - **players/p1/player.log, players/p2/player.log**: Individual player logs for each player
   - Each log foldout includes a "Copy path" button and has its own scroll container with max-height of 500px for large logs
   - Logs are displayed in a dedicated section with proper styling and scrollbars
+
+#### Analysis Section
+
+* **Line Counting Analysis**: Interactive charts showing code evolution over time
+  - File selector dropdown to choose which file to analyze
+  - Chart.js-powered line charts showing changes across rounds
+  - Data visualization for understanding code development patterns
+* **Consistent Styling**: Uses same section formatting as Overview and Rounds sections
+* **Foldout Structure**: Analysis content is contained in collapsible foldouts for space efficiency
 
 #### Rounds
 
@@ -390,6 +417,8 @@ This is implemented as its own jinja template (`includes/trajectory.html`) that 
 The trajectory template displays:
 
 * **Trajectory Stats**: API calls, cost, and exit status from the `info` section
+  - **Exit Status Styling**: Non-"Submitted" statuses appear in bright neon red for immediate error identification
+  - **Consistent Coloring**: Uses same color scheme as overview table and other status indicators
 * **Messages Foldout**: All trajectory messages with role badges and content preview/expand functionality
 * **Diff Foldouts**: Full diff and incremental diff sections (if available)
 * **Modified Files**: Changed files during the trajectory (if available)
