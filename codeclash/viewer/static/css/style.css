@@ -24,6 +24,7 @@
   --success-color: var(--bs-success);
   --warning-color: var(--bs-warning);
   --danger-color: var(--bs-danger);
+  --neon-red: #ff1188;
   --code-bg: #0a0a0a;
   --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.8);
   --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.9);
@@ -290,7 +291,8 @@ body {
   font-weight: 500;
 }
 
-.score-breakdown {
+.score-breakdown,
+.winner-breakdown {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -308,6 +310,39 @@ body {
 .steps-count {
   font-weight: 500;
   color: var(--accent-color);
+}
+
+.cost-steps {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.steps-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.exit-status-small {
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.overview-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .overview-cell-content {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 }
 
 .no-result {
@@ -586,12 +621,19 @@ details summary {
   color: var(--success-color);
 }
 
+/* All non-submitted statuses should be neon red */
+.stat-value[class*="status-"]:not(.status-submitted),
+.exit-status-small[class*="status-"]:not(.status-submitted) {
+  color: var(--neon-red) !important;
+  font-weight: 600;
+}
+
 .status-failed {
-  color: var(--danger-color);
+  color: var(--neon-red);
 }
 
 .status-timeout {
-  color: var(--warning-color);
+  color: var(--neon-red);
 }
 
 /* Messages */
@@ -779,7 +821,8 @@ details summary {
     padding: 0.5rem;
   }
 
-  .score-breakdown {
+  .score-breakdown,
+  .winner-breakdown {
     flex-direction: column;
     gap: 0.25rem;
   }
@@ -1213,7 +1256,7 @@ summary:focus {
 }
 
 .readme-status.error {
-  color: var(--danger-color);
+  color: var(--neon-red);
 }
 
 .copy-path-btn-small {

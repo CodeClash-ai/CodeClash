@@ -10,7 +10,7 @@
                     <th>Winner</th>
                     <th>Results</th>
                     {% for trajectory in trajectories_by_round.get(1, []) %}
-                        <th>{{ trajectory.player_id }} Steps</th>
+                        <th>{{ trajectory.player_id }}</th>
                     {% endfor %}
                     <th>Actions</th>
                 </tr>
@@ -21,13 +21,15 @@
                         <td>{{ round_data.round_num }}</td>
                         <td>
                             {% if round_data.results and round_data.results.winner %}
-                                <span class="winner-badge">{{ round_data.results.winner }}</span>
-                                {% if round_data.results.winner_percentage %}
-                                    <span class="winner-percentage">({{ round_data.results.winner_percentage }}%)</span>
-                                {% endif %}
-                                {% if round_data.results.p_value is not none %}
-                                    <span class="p-value">(p={{ "%.2f"|format(round_data.results.p_value) }})</span>
-                                {% endif %}
+                                <div class="winner-breakdown">
+                                    <span class="winner-badge">{{ round_data.results.winner }}</span>
+                                    {% if round_data.results.winner_percentage %}
+                                        <span class="score-item">{{ round_data.results.winner_percentage }}%</span>
+                                    {% endif %}
+                                    {% if round_data.results.p_value is not none %}
+                                        <span class="score-item">p={{ "%.2f"|format(round_data.results.p_value) }}</span>
+                                    {% endif %}
+                                </div>
                             {% else %}
                                 <span class="no-result">-</span>
                             {% endif %}
@@ -46,7 +48,14 @@
                         {% if trajectories_by_round.get(round_data.round_num) %}
                             {% for trajectory in trajectories_by_round[round_data.round_num] %}
                                 <td>
-                                    <span class="steps-count">{{ trajectory.api_calls }}</span>
+                                    <div class="overview-cell-content">
+                                        <span class="steps-price">{{ trajectory.api_calls }}/${{ "%.2f"|format(trajectory.cost) }}</span>
+                                        {% if trajectory.exit_status %}
+                                            <span class="exit-status-small status-{{ trajectory.exit_status.lower() }}">{{ trajectory.exit_status }}</span>
+                                        {% else %}
+                                            <span class="no-result">-</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             {% endfor %}
                         {% else %}
