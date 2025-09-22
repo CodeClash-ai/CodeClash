@@ -405,21 +405,21 @@ If a file `matrix.json` exists, load it. It looks like this:
   "matrices": {
     "sonnet-4_vs_sonnet-4": {
       "0": {
-        "0": {
+        "1": {
           "round_num": "e2513f264ac04a019c25982d2b03b3bb",
           "winner": "sonnet-4_2",
           "scores": {
-            "sonnet-4_2": 1,
-            "sonnet-4_1": 0.0
+            "sonnet-4_r0": 1,
+            "sonnet-4_r1": 0.0
           },
           "player_stats": {
-            "sonnet-4_2": {
+            "sonnet-4_r0": {
               "name": "sonnet-4_2",
               "invalid_reason": "",
               "score": 1,
               "valid_submit": true
             },
-            "sonnet-4_1": {
+            "sonnet-4_r1": {
               "name": "sonnet-4_1",
               "invalid_reason": "",
               "score": 0.0,

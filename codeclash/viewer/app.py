@@ -628,11 +628,10 @@ class LogParser:
             for matrix_name, matrix in matrices.items():
                 processed_matrix = {"name": matrix_name, "data": {}, "max_rounds": 0}
 
-                # Find player 1 name (the one with _1 suffix in self-play matrices)
-                player1_name = None
+                # Extract base player name from matrix name
+                base_player_name = None
                 if "_vs_" in matrix_name:
-                    base_name = matrix_name.split("_vs_")[0]
-                    player1_name = f"{base_name}_1"
+                    base_player_name = matrix_name.split("_vs_")[0]
 
                 # Determine matrix dimensions
                 max_i = max_j = 0
@@ -655,19 +654,21 @@ class LogParser:
                         cell_data = matrix[i_str][j_str]
                         scores = cell_data.get("scores", {})
 
-                        # Calculate win percentage from player 1 perspective
-                        if player1_name and player1_name in scores:
-                            player1_score = scores.get(player1_name, 0)
+                        # Calculate win percentage from row player perspective (player using round i code)
+                        row_player_name = f"{base_player_name}_r{i}" if base_player_name else None
+
+                        if row_player_name and row_player_name in scores:
+                            row_player_score = scores.get(row_player_name, 0)
                             total_games = sum(scores.values())
 
                             if total_games > 0:
                                 # Handle ties if present
                                 ties = scores.get("Tie", 0)
-                                win_percentage = ((player1_score + 0.5 * ties) / total_games) * 100
+                                win_percentage = ((row_player_score + 0.5 * ties) / total_games) * 100
                             else:
                                 win_percentage = 0
                         else:
-                            # If we can't identify player 1, show raw scores
+                            # If we can't identify row player, show 0
                             win_percentage = 0
 
                         processed_matrix["data"][i][j] = {

@@ -95,12 +95,6 @@ class PvPMatrixEvaluator:
         if "matrices" in existing_data:
             self._metadata["matrices"] = existing_data["matrices"]
 
-    def _save_progress(self):
-        """Save current progress to matrix.json in a thread-safe manner."""
-        with self._save_lock:
-            self.output_file.write_text(json.dumps(self._metadata, indent=2))
-            self.logger.debug("Progress saved to matrix.json")
-
     def _initialize_game_pool(self):
         """Initialize a pool of game objects for parallel execution."""
         self.game_pool = []
@@ -214,9 +208,16 @@ class PvPMatrixEvaluator:
 
         round_id = str(uuid.uuid4().hex)
         stats = game_worker.run_round([agent1, agent2], round_id)
-        self.logger.debug(f"Result: {stats.to_dict()}")
+        result = stats.to_dict()
+        self.logger.debug(f"Result: {result}")
 
-        return (i, j, stats.to_dict())
+        # Save the result immediately after computation
+        with self._save_lock:
+            self.matrices[matrix_id][str(i)][str(j)] = result
+            self.output_file.write_text(json.dumps(self._metadata, indent=2))
+            self.logger.debug(f"Saved result for {player1_name} round {i} vs {player2_name} round {j}")
+
+        return (i, j, result)
 
     def _evaluate_matrix(self, player1_name: str, player2_name: str):
         """Evaluate a matrix between two players using parallel execution."""
@@ -234,7 +235,7 @@ class PvPMatrixEvaluator:
         game_worker_index = 0
 
         for i in range(self.rounds + 1):
-            j_range = range(i + 1) if symmetric else range(self.rounds + 1)
+            j_range = range(i) if symmetric else range(self.rounds + 1)
             for j in j_range:
                 # Skip if already completed
                 try:
@@ -258,19 +259,11 @@ class PvPMatrixEvaluator:
         # Execute tasks in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all tasks
-            future_to_task = {executor.submit(self._evaluate_matrix_cell_parallel, *task): task for task in tasks}
+            futures = [executor.submit(self._evaluate_matrix_cell_parallel, *task) for task in tasks]
 
-            # Process completed tasks as they finish
-            for future in as_completed(future_to_task):
-                i, j, result = future.result()
-                if result is not None:
-                    with self._save_lock:
-                        self.matrices[matrix_id][str(i)][str(j)] = result
-                    self._save_progress()
-
-                # Log progress
-                completed = len([f for f in future_to_task if f.done()])
-                self.logger.info(f"Progress: {completed}/{len(tasks)} matrix cells completed for {matrix_id}")
+            # Wait for all tasks to complete
+            for future in as_completed(futures):
+                future.result()  # This will raise any exceptions that occurred
 
         self.logger.info(f"Completed matrix evaluation for {matrix_id}")
 
