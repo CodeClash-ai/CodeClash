@@ -100,13 +100,16 @@ class PvPMatrixEvaluator:
         self.output_file.write_text(json.dumps(self._metadata, indent=2))
         self.logger.debug("Progress saved to matrix.json")
 
-    def _get_round_diff(self, player_name: str, round_num: int) -> str:
-        """Read diff data from changes_r{round}.json file."""
+    def _get_round_diff(self, player_name: str, round_num: int) -> str | None:
+        """Read diff data from changes_r{round}.json file. Returns None if file doesn't exist."""
         if round_num == 0:
             return ""
         changes_file = self.pvp_output_dir / "players" / player_name / f"changes_r{round_num}.json"
-        changes_data = json.loads(changes_file.read_text())
-        return changes_data.get("full_diff", "")
+        try:
+            changes_data = json.loads(changes_file.read_text())
+            return changes_data.get("full_diff", "")
+        except FileNotFoundError:
+            return None
 
     def _create_dummy_agent(self, player_name: str, agent_suffix: str = "") -> Dummy:
         """Create a dummy agent for matrix evaluation."""
@@ -140,8 +143,8 @@ class PvPMatrixEvaluator:
 
     def _evaluate_matrix_cell(
         self, agent1: Dummy, agent2: Dummy, player1_name: str, player2_name: str, i: int, j: int, matrix_id: str
-    ) -> dict:
-        """Evaluate a single matrix cell and return the stats object."""
+    ) -> dict | None:
+        """Evaluate a single matrix cell and return the stats object. Returns None if cell should be skipped."""
         # Return existing result if already completed
         try:
             existing_result = self.matrices[matrix_id][str(i)][str(j)]
@@ -153,6 +156,18 @@ class PvPMatrixEvaluator:
 
         patch1 = self._get_round_diff(player1_name, i)
         patch2 = self._get_round_diff(player2_name, j)
+
+        # Skip if any required changes file is missing
+        if patch1 is None:
+            self.logger.warning(
+                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing changes file for {player1_name} round {i}"
+            )
+            return None
+        if patch2 is None:
+            self.logger.warning(
+                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing changes file for {player2_name} round {j}"
+            )
+            return None
 
         agent1.reset_and_apply_patch(filter_git_diff(patch1))
         agent2.reset_and_apply_patch(filter_git_diff(patch2))
@@ -179,9 +194,9 @@ class PvPMatrixEvaluator:
             self.matrices[matrix_id].setdefault(str(i), {})
             j_range = range(i + 1) if symmetric else range(self.rounds + 1)
             for j in j_range:
-                self.matrices[matrix_id][str(i)][str(j)] = self._evaluate_matrix_cell(
-                    agent1, agent2, player1_name, player2_name, i, j, matrix_id
-                )
+                result = self._evaluate_matrix_cell(agent1, agent2, player1_name, player2_name, i, j, matrix_id)
+                if result is not None:
+                    self.matrices[matrix_id][str(i)][str(j)] = result
                 self._save_progress()
 
     def evaluate_all_matrices(self) -> dict:
