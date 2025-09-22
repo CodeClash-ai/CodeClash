@@ -135,13 +135,10 @@ class Player(ABC):
             dest_path="tmp_patch.txt",
         )
 
-        self.logger.debug(f"Applying patch to agent's codebase: {patch}")
-
         commands = ["git status", "git apply tmp_patch.txt", "rm -f tmp_patch.txt"]
-        for cmd in commands:
-            self.logger.debug(f"Executing command: {cmd}")
-            out = assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
-            self.logger.debug(out)
+        cmd = " && ".join(commands)
+        self.logger.debug(f"Executing command: {cmd}")
+        assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
 
     # --- Helper methods ---
 
