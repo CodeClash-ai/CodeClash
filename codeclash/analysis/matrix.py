@@ -2,9 +2,9 @@ import argparse
 import json
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from threading import Lock
+from queue import Queue
+from threading import Lock, Thread
 
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.utils import GameContext
@@ -211,16 +211,35 @@ class PvPMatrixEvaluator:
         result = stats.to_dict()
         self.logger.debug(f"Result: {result}")
 
-        # Save the result immediately after computation
         with self._save_lock:
             self.matrices[matrix_id][str(i)][str(j)] = result
             self.output_file.write_text(json.dumps(self._metadata, indent=2))
-            self.logger.debug(f"Saved result for {player1_name} round {i} vs {player2_name} round {j}")
 
         return (i, j, result)
 
+    def _worker_thread(self, worker_id: int, task_queue: Queue):
+        """Worker thread that processes tasks using a specific game worker."""
+        game_worker = self.game_pool[worker_id]
+        self.logger.debug(f"Worker {worker_id} started")
+
+        while True:
+            try:
+                task = task_queue.get(timeout=1)  # Short timeout to allow clean exit
+            except:
+                # Queue is empty and no more tasks coming
+                break
+
+            try:
+                self._evaluate_matrix_cell_parallel(game_worker, **task)
+            except Exception as e:
+                self.logger.error(f"Worker {worker_id} failed on task {task}: {e}")
+            finally:
+                task_queue.task_done()
+
+        self.logger.debug(f"Worker {worker_id} stopped")
+
     def _evaluate_matrix(self, player1_name: str, player2_name: str):
-        """Evaluate a matrix between two players using parallel execution."""
+        """Evaluate a matrix between two players using manual thread management."""
         symmetric = player1_name == player2_name
         matrix_id = f"{player1_name}_vs_{player2_name}"
         self.logger.info(f"Evaluating {matrix_id} matrix: {player1_name} vs {player2_name}")
@@ -230,9 +249,9 @@ class PvPMatrixEvaluator:
         for i in range(self.rounds + 1):
             self.matrices[matrix_id].setdefault(str(i), {})
 
-        # Collect all tasks to be executed
-        tasks = []
-        game_worker_index = 0
+        # Create task queue and populate it directly
+        task_queue = Queue()
+        task_count = 0
 
         for i in range(self.rounds + 1):
             j_range = range(i) if symmetric else range(self.rounds + 1)
@@ -243,27 +262,30 @@ class PvPMatrixEvaluator:
                         continue
                 except KeyError:
                     pass
+                task_queue.put(
+                    {"player1_name": player1_name, "player2_name": player2_name, "i": i, "j": j, "matrix_id": matrix_id}
+                )
+                task_count += 1
 
-                # Assign game worker in round-robin fashion
-                game_worker = self.game_pool[game_worker_index % len(self.game_pool)]
-                game_worker_index += 1
-
-                tasks.append((game_worker, player1_name, player2_name, i, j, matrix_id))
-
-        if not tasks:
+        if task_count == 0:
             self.logger.info(f"All matrix cells for {matrix_id} already completed")
             return
 
-        self.logger.info(f"Executing {len(tasks)} matrix cells in parallel with {self.max_workers} workers")
+        self.logger.info(f"Executing {task_count} matrix cells using {self.max_workers} dedicated workers")
 
-        # Execute tasks in parallel
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            futures = [executor.submit(self._evaluate_matrix_cell_parallel, *task) for task in tasks]
+        # Start worker threads - each bound to a specific game worker
+        self.logger.debug("Starting worker threads")
+        workers = []
+        for worker_id in range(self.max_workers):
+            worker = Thread(target=self._worker_thread, args=(worker_id, task_queue))
+            worker.start()
+            workers.append(worker)
 
-            # Wait for all tasks to complete
-            for future in as_completed(futures):
-                future.result()  # This will raise any exceptions that occurred
+        self.logger.debug("Waiting for tasks to complete")
+        task_queue.join()
+        self.logger.debug("Workers finished")
+        for worker in workers:
+            worker.join()
 
         self.logger.info(f"Completed matrix evaluation for {matrix_id}")
 
