@@ -26,6 +26,11 @@
   --danger-color: var(--bs-danger);
   --neon-red: #ff1188;
   --code-bg: #0a0a0a;
+
+  /* Message role colors */
+  --message-system-color: #ffaa00; /* Orange for system messages */
+  --message-user-color: #00ff88; /* Green for user messages (accent) */
+  --message-assistant-color: #00aaff; /* Blue for assistant messages */
   --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.8);
   --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.9);
 }
@@ -652,15 +657,15 @@ details summary {
 }
 
 .message-block.system {
-  border-left: 4px solid var(--warning-color);
+  border-left: 4px solid var(--message-system-color);
 }
 
 .message-block.user {
-  border-left: 4px solid var(--accent-color);
+  border-left: 4px solid var(--message-user-color);
 }
 
 .message-block.assistant {
-  border-left: 4px solid var(--success-color);
+  border-left: 4px solid var(--message-assistant-color);
 }
 
 .message-role-badge {
@@ -1721,25 +1726,4 @@ summary:focus {
   background-color: var(--accent-color);
   color: #000000;
   font-weight: 600;
-}
-
-/* Enhanced message blocks for coding theme */
-.message-block {
-  border: 2px solid var(--border-color);
-  background-color: var(--bg-primary);
-}
-
-.message-block.system {
-  border-left: 4px solid var(--warning-color);
-  box-shadow: inset 4px 0 0 var(--warning-color);
-}
-
-.message-block.user {
-  border-left: 4px solid var(--accent-color);
-  box-shadow: inset 4px 0 0 var(--accent-color);
-}
-
-.message-block.assistant {
-  border-left: 4px solid var(--success-color);
-  box-shadow: inset 4px 0 0 var(--success-color);
 }
