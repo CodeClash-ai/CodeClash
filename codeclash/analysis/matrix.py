@@ -165,14 +165,15 @@ class PvPMatrixEvaluator:
         # Create unique name for this agent instance
         original_config["name"] = f"{player_name}{agent_suffix}"
 
-        environment = self.game.get_environment(f"{self.game.game_id}.{original_config['name']}")
+        game = self.game_pool[0]
+        environment = game.get_environment(f"{game.game_id}.{original_config['name']}")
         game_context = GameContext(
-            id=self.game.game_id,
-            log_env=self.game.log_env,
-            log_local=self.game.log_local,
-            name=self.game.name,
+            id=game.game_id,
+            log_env=game.log_env,
+            log_local=game.log_local,
+            name=game.name,
             player_id=original_config["name"],
-            prompts=self.config["prompts"],
+            prompts=game.config["prompts"],
             round=0,
             rounds=self.rounds,
             working_dir=str(DIR_WORK),
