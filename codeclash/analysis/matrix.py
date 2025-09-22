@@ -2,7 +2,9 @@ import argparse
 import json
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Lock
 
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.utils import GameContext
@@ -16,16 +18,20 @@ from codeclash.utils.log import add_file_handler, get_logger
 
 
 class PvPMatrixEvaluator:
-    def __init__(self, pvp_output_dir: Path, n_repetitions: int = 3):
+    def __init__(self, pvp_output_dir: Path, n_repetitions: int = 3, max_workers: int = 4):
         self.pvp_output_dir = Path(pvp_output_dir)
         self.n_repetitions = n_repetitions
+        self.max_workers = max_workers
         self.metadata = json.loads((self.pvp_output_dir / "metadata.json").read_text())
 
         assert len(self.players) == 2, f"Expected exactly 2 players, got {len(self.players)}"
 
-        # Set up logging
+        # Set up logging with thread safety
         self.logger = get_logger("MatrixEvaluator", log_path=self.pvp_output_dir / "matrix_eval.log", emoji="📊")
         add_file_handler(get_logger("."), self.pvp_output_dir / "matrix_eval.log")
+
+        # Thread safety for progress saving
+        self._save_lock = Lock()
 
         # Initialize metadata similar to tournament class
         self._metadata = {
@@ -35,6 +41,7 @@ class PvPMatrixEvaluator:
             "p2_name": self.players[1],
             "rounds": self.rounds,
             "n_repetitions": n_repetitions,
+            "max_workers": max_workers,
             "created_timestamp": int(time.time()),
             "matrices": {},
         }
@@ -42,20 +49,13 @@ class PvPMatrixEvaluator:
         # Load existing progress if available
         self._load_existing_progress()
 
-        # Create game instance for evaluation
-        tournament_id = f"MatrixEval.{self.metadata['name']}.{time.strftime('%y%m%d%H%M%S')}"
-
-        self.config["game"]["sims_per_round"] = n_repetitions
-
-        self.game = get_game(
-            self.config,
-            tournament_id=tournament_id,
-            local_output_dir=self.pvp_output_dir / "matrix_eval",
-            keep_containers=False,
-        )
+        # Initialize game pool and agent pools
+        self._initialize_game_pool()
+        self._initialize_agent_pools()
 
         self.logger.info(f"Initialized matrix evaluator for {self.players[0]} vs {self.players[1]}")
         self.logger.info(f"Will evaluate {self.rounds + 1} rounds with {n_repetitions} repetitions each")
+        self.logger.info(f"Using {max_workers} parallel workers")
 
     # Quick access properties
     # -----------------------
@@ -96,9 +96,48 @@ class PvPMatrixEvaluator:
             self._metadata["matrices"] = existing_data["matrices"]
 
     def _save_progress(self):
-        """Save current progress to matrix.json."""
-        self.output_file.write_text(json.dumps(self._metadata, indent=2))
-        self.logger.debug("Progress saved to matrix.json")
+        """Save current progress to matrix.json in a thread-safe manner."""
+        with self._save_lock:
+            self.output_file.write_text(json.dumps(self._metadata, indent=2))
+            self.logger.debug("Progress saved to matrix.json")
+
+    def _initialize_game_pool(self):
+        """Initialize a pool of game objects for parallel execution."""
+        self.game_pool = []
+        for i in range(self.max_workers):
+            tournament_id = f"MatrixEval.{self.metadata['name']}.{time.strftime('%y%m%d%H%M%S')}.worker{i}"
+            config = self.config.copy()
+            config["game"]["sims_per_round"] = self.n_repetitions
+
+            game = get_game(
+                config,
+                tournament_id=tournament_id,
+                local_output_dir=self.pvp_output_dir / "matrix_eval" / f"worker_{i}",
+                keep_containers=False,
+            )
+            self.game_pool.append(game)
+
+        self.logger.info(f"Initialized {len(self.game_pool)} game workers")
+
+    def _initialize_agent_pools(self):
+        """Pre-initialize agents for all rounds for each player."""
+        self.agent_pools = {}
+
+        for player_name in self.players:
+            self.agent_pools[player_name] = {}
+            for round_num in range(self.rounds + 1):
+                # Pre-load the diff for this round
+                patch = self._get_round_diff(player_name, round_num)
+                if patch is not None:
+                    # Create agent for this round and player
+                    agent = self._create_dummy_agent(player_name, f"_r{round_num}")
+                    agent.reset_and_apply_patch(filter_git_diff(patch))
+                    self.agent_pools[player_name][round_num] = agent
+                    self.logger.debug(f"Pre-initialized agent for {player_name} round {round_num}")
+                else:
+                    self.logger.warning(f"Missing changes file for {player_name} round {round_num}")
+
+        self.logger.info(f"Pre-initialized agents for {len(self.players)} players across {self.rounds + 1} rounds")
 
     def _get_round_diff(self, player_name: str, round_num: int) -> str | None:
         """Read diff data from changes_r{round}.json file. Returns None if file doesn't exist."""
@@ -141,63 +180,98 @@ class PvPMatrixEvaluator:
 
         return Dummy(original_config, environment, game_context)
 
-    def _evaluate_matrix_cell(
-        self, agent1: Dummy, agent2: Dummy, player1_name: str, player2_name: str, i: int, j: int, matrix_id: str
-    ) -> dict | None:
-        """Evaluate a single matrix cell and return the stats object. Returns None if cell should be skipped."""
+    def _evaluate_matrix_cell_parallel(
+        self, game_worker, player1_name: str, player2_name: str, i: int, j: int, matrix_id: str
+    ) -> tuple[int, int, dict | None]:
+        """Evaluate a single matrix cell using pre-initialized agents. Returns (i, j, result)."""
         # Return existing result if already completed
         try:
             existing_result = self.matrices[matrix_id][str(i)][str(j)]
+            if existing_result:
+                self.logger.debug(f"Skipping {player1_name} round {i} vs {player2_name} round {j} - already completed")
+                return (i, j, existing_result)
         except KeyError:
-            existing_result = None
-        if existing_result:
-            self.logger.debug(f"Skipping {player1_name} round {i} vs {player2_name} round {j} - already completed")
-            return existing_result
+            pass
 
-        patch1 = self._get_round_diff(player1_name, i)
-        patch2 = self._get_round_diff(player2_name, j)
-
-        # Skip if any required changes file is missing
-        if patch1 is None:
+        # Check if agents are available for these rounds
+        if i not in self.agent_pools[player1_name]:
             self.logger.warning(
-                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing changes file for {player1_name} round {i}"
+                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing agent for {player1_name} round {i}"
             )
-            return None
-        if patch2 is None:
+            return (i, j, None)
+        if j not in self.agent_pools[player2_name]:
             self.logger.warning(
-                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing changes file for {player2_name} round {j}"
+                f"Skipping {player1_name} round {i} vs {player2_name} round {j} - missing agent for {player2_name} round {j}"
             )
-            return None
+            return (i, j, None)
 
-        agent1.reset_and_apply_patch(filter_git_diff(patch1))
-        agent2.reset_and_apply_patch(filter_git_diff(patch2))
+        # Get pre-initialized agents
+        agent1 = self.agent_pools[player1_name][i]
+        agent2 = self.agent_pools[player2_name][j]
 
         self.logger.info(f"Evaluating {player1_name} round {i} vs {player2_name} round {j}")
 
         round_id = str(uuid.uuid4().hex)
-        stats = self.game.run_round([agent1, agent2], round_id)
+        stats = game_worker.run_round([agent1, agent2], round_id)
         self.logger.debug(f"Result: {stats.to_dict()}")
 
-        return stats.to_dict()
+        return (i, j, stats.to_dict())
 
     def _evaluate_matrix(self, player1_name: str, player2_name: str):
-        """Generic method to evaluate a matrix between two players (or same player)."""
+        """Evaluate a matrix between two players using parallel execution."""
         symmetric = player1_name == player2_name
         matrix_id = f"{player1_name}_vs_{player2_name}"
         self.logger.info(f"Evaluating {matrix_id} matrix: {player1_name} vs {player2_name}")
 
-        agent1 = self._create_dummy_agent(player1_name, "_1" if player1_name == player2_name else "")
-        agent2 = self._create_dummy_agent(player2_name, "_2" if player1_name == player2_name else "")
-
+        # Initialize matrix structure
         self.matrices.setdefault(matrix_id, {})
         for i in range(self.rounds + 1):
             self.matrices[matrix_id].setdefault(str(i), {})
+
+        # Collect all tasks to be executed
+        tasks = []
+        game_worker_index = 0
+
+        for i in range(self.rounds + 1):
             j_range = range(i + 1) if symmetric else range(self.rounds + 1)
             for j in j_range:
-                result = self._evaluate_matrix_cell(agent1, agent2, player1_name, player2_name, i, j, matrix_id)
+                # Skip if already completed
+                try:
+                    if self.matrices[matrix_id][str(i)][str(j)]:
+                        continue
+                except KeyError:
+                    pass
+
+                # Assign game worker in round-robin fashion
+                game_worker = self.game_pool[game_worker_index % len(self.game_pool)]
+                game_worker_index += 1
+
+                tasks.append((game_worker, player1_name, player2_name, i, j, matrix_id))
+
+        if not tasks:
+            self.logger.info(f"All matrix cells for {matrix_id} already completed")
+            return
+
+        self.logger.info(f"Executing {len(tasks)} matrix cells in parallel with {self.max_workers} workers")
+
+        # Execute tasks in parallel
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all tasks
+            future_to_task = {executor.submit(self._evaluate_matrix_cell_parallel, *task): task for task in tasks}
+
+            # Process completed tasks as they finish
+            for future in as_completed(future_to_task):
+                i, j, result = future.result()
                 if result is not None:
-                    self.matrices[matrix_id][str(i)][str(j)] = result
-                self._save_progress()
+                    with self._save_lock:
+                        self.matrices[matrix_id][str(i)][str(j)] = result
+                    self._save_progress()
+
+                # Log progress
+                completed = len([f for f in future_to_task if f.done()])
+                self.logger.info(f"Progress: {completed}/{len(tasks)} matrix cells completed for {matrix_id}")
+
+        self.logger.info(f"Completed matrix evaluation for {matrix_id}")
 
     def evaluate_all_matrices(self) -> dict:
         """Evaluate vs matrix between the two players."""
@@ -212,12 +286,21 @@ class PvPMatrixEvaluator:
         """Save metadata and clean up resources."""
         self.output_file.write_text(json.dumps(self._metadata, indent=2))
         self.logger.info(f"Matrix evaluation results saved to {self.output_file}")
-        self.game.end(cleanup=True)
+
+        # Clean up all game workers
+        for i, game in enumerate(self.game_pool):
+            try:
+                game.end(cleanup=True)
+                self.logger.debug(f"Cleaned up game worker {i}")
+            except Exception as e:
+                self.logger.warning(f"Error cleaning up game worker {i}: {e}")
+
+        self.logger.info("All game workers cleaned up")
 
 
-def main(pvp_output_dir: Path, n_repetitions: int = 3):
+def main(pvp_output_dir: Path, n_repetitions: int = 3, max_workers: int = 4):
     """Main function to evaluate PvP tournament matrices."""
-    evaluator = PvPMatrixEvaluator(pvp_output_dir, n_repetitions)
+    evaluator = PvPMatrixEvaluator(pvp_output_dir, n_repetitions, max_workers)
     return evaluator.evaluate_all_matrices()
 
 
@@ -227,6 +310,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--repetitions", "-r", type=int, default=3, help="Number of repetitions per matrix cell (default: 3)"
     )
+    parser.add_argument("--max-workers", "-w", type=int, default=4, help="Number of parallel game workers (default: 4)")
 
     args = parser.parse_args()
-    main(args.pvp_output_dir, args.repetitions)
+    main(args.pvp_output_dir, args.repetitions, args.max_workers)
