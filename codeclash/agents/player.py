@@ -118,6 +118,11 @@ class Player(ABC):
         """Clean all uncommitted changes. If base_commit is provided, reset to that commit.
         Then apply the patch to the codebase.
         """
+        # Need to clean before we copy over the patch (else it's gonna be removed by git clean)
+        self.logger.debug(
+            assert_zero_exit_code(self.environment.execute(f"git reset --hard {base_commit} && git clean -fd"))
+        )
+
         patch = filter_git_diff(patch) if filter_patch else patch
 
         if not patch.strip():
@@ -130,18 +135,13 @@ class Player(ABC):
             dest_path="tmp_patch.txt",
         )
 
-        # Need to clean before we copy over the patch (else it's gonna be removed by git clean)
-        commands = [
-            "git reset --hard {base_commit}",
-            "git clean -fd",
-            "git status",
-            "git apply tmp_patch.txt",
-            "rm -f tmp_patch.txt",
-        ]
-        cmd = " && ".join(commands)
-        self.logger.debug(f"Executing command: {cmd}")
-        out = assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
-        self.logger.debug(out)
+        self.logger.debug(f"Applying patch to agent's codebase: {patch}")
+
+        commands = ["git status", "git apply tmp_patch.txt", "rm -f tmp_patch.txt"]
+        for cmd in commands:
+            self.logger.debug(f"Executing command: {cmd}")
+            out = assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
+            self.logger.debug(out)
 
     # --- Helper methods ---
 
