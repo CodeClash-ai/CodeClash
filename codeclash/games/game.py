@@ -17,8 +17,8 @@ from codeclash.utils.log import get_logger
 class PlayerStats:
     def __init__(self, name: str):
         self.name = name
-        self.invalid_reason: str | None = None
-        self.score: float | None = None
+        self.invalid_reason: str = ""
+        self.score: float = 0.0
         self.valid_submit = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -48,14 +48,14 @@ class RoundStats:
         return "\n".join(rv)
 
     def to_dict(self) -> dict[str, Any]:
-        result = {
+        # Going through some pain to ensure that the scores dict is always complete
+        player_names = set(self.player_stats.keys()) | set(self.scores.keys())
+        return {
             "round_num": self.round_num,
             "winner": self.winner,
-            "scores": self.scores,
+            "scores": {name: self.scores.get(name, 0.0) for name in player_names},
+            "player_stats": {name: stats.to_dict() for name, stats in self.player_stats.items()},
         }
-        if self.player_stats:
-            result["player_stats"] = {name: stats.to_dict() for name, stats in self.player_stats.items()}
-        return result
 
 
 class CodeGame(ABC):

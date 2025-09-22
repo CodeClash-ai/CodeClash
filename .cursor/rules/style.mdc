@@ -20,6 +20,7 @@ alwaysApply: true
 12. Don't catch exceptions just to re-raise them slightly differently. This doesn't add any value.
 13. Write concise code and thing of elegant solution.
 14. When logging exceptions, always include `exc_info=True` to capture the full traceback.
+15. Command line arguments should be parsed with `argparse`.
 
 ## Test style
 
@@ -39,3 +40,7 @@ assert result == b
 # good
 assert func() == b
 ```
+
+## Chat style
+
+* Do not summarize your changes at the end of the chat.

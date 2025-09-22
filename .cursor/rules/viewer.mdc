@@ -385,8 +385,60 @@ The application has two main pages:
   - File selector dropdown to choose which file to analyze
   - Chart.js-powered line charts showing changes across rounds
   - Data visualization for understanding code development patterns
+* **Matrix Analysis**: Show "self-play" matrix analysis
 * **Consistent Styling**: Uses same section formatting as Overview and Rounds sections
 * **Foldout Structure**: Analysis content is contained in collapsible foldouts for space efficiency
+
+##### Matrix Analysis
+
+If a file `matrix.json` exists, load it. It looks like this:
+
+```
+{
+  "name": "MatrixEvaluator",
+  "pvp_output_dir": "logs/klieret/real_games/PvpTournament.BattleSnake.250918193642.sonnet_vs_o3",
+  "p1_name": "sonnet-4",
+  "p2_name": "o3",
+  "rounds": 11,
+  "n_repetitions": 1,
+  "created_timestamp": 1758572722,
+  "matrices": {
+    "sonnet-4_vs_sonnet-4": {
+      "0": {
+        "0": {
+          "round_num": "e2513f264ac04a019c25982d2b03b3bb",
+          "winner": "sonnet-4_2",
+          "scores": {
+            "sonnet-4_2": 1,
+            "sonnet-4_1": 0.0
+          },
+          "player_stats": {
+            "sonnet-4_2": {
+              "name": "sonnet-4_2",
+              "invalid_reason": "",
+              "score": 1,
+              "valid_submit": true
+            },
+            "sonnet-4_1": {
+              "name": "sonnet-4_1",
+              "invalid_reason": "",
+              "score": 0.0,
+              "valid_submit": true
+            }
+          }
+        }
+      },
+
+      ...
+    }
+```
+
+For this, you want to now show a dropdown with all the matrix names, e.g., "sonnet-4_vs_sonnet-4".
+Visualize the matrix by always showing the scores dictionary. You always want to show it relative to the player 1 perspective,
+i.e., here `sonnet-4_1`, so you would put a 0% for the 0-0 cell.
+Other than that, follow the logic with the % value similar to the overall results table, i.e., you calculate
+wins + 0.5 * ties / total games * 100 for the % value. All this calculation should be done in the python code.
+Note that the table might be incomplete.
 
 #### Rounds
 

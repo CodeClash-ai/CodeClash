@@ -31,4 +31,72 @@
             {% endif %}
         </div>
     </details>
+
+    <!-- Matrix Analysis -->
+    {% if matrix_data and matrix_data.matrices %}
+    <details class="foldout matrix-foldout">
+        <summary><i class="bi bi-grid-3x3-gap"></i> Matrix Analysis</summary>
+        <div class="log-content-container matrix-log-container">
+            <div class="matrix-analysis-container">
+                <!-- Matrix Dropdown -->
+                <div class="matrix-selector">
+                    <label for="matrix-dropdown">Select Matrix:</label>
+                    <select id="matrix-dropdown" class="matrix-dropdown">
+                        {% for matrix_name in matrix_data.matrices.keys() %}
+                            <option value="{{ matrix_name }}">{{ matrix_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Matrix Tables (one for each matrix, hidden/shown via JS) -->
+                {% for matrix_name, matrix_info in matrix_data.matrices.items() %}
+                <div class="matrix-table-container" id="matrix-{{ matrix_name }}" style="display: none;">
+                    <h4>{{ matrix_name }}</h4>
+                    <p class="matrix-description">
+                        Win percentages from player 1 perspective ({{ matrix_name.split('_vs_')[0] }}_1).
+                        Each cell shows the win rate when player 1 uses round i code vs round j code.
+                    </p>
+
+                    <div class="matrix-table-wrapper">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th class="matrix-header-corner">Round i \ Round j</th>
+                                    {% for j in range(matrix_info.max_rounds + 1) %}
+                                        <th class="matrix-header-col">{{ j }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(matrix_info.max_rounds + 1) %}
+                                <tr>
+                                    <th class="matrix-header-row">{{ i }}</th>
+                                    {% for j in range(matrix_info.max_rounds + 1) %}
+                                        {% set cell_data = matrix_info.data.get(i, {}).get(j) %}
+                                        <td class="matrix-cell {% if cell_data %}matrix-cell-filled{% else %}matrix-cell-empty{% endif %}"
+                                            {% if cell_data %}
+                                                title="Win Rate (Player 1): {{ cell_data.win_percentage }}%&#10;Total Games: {{ cell_data.total_games }}&#10;&#10;Game Results:&#10;{% for player, wins in cell_data.scores.items() | sort(attribute=1, reverse=True) %}{{ player }}: {{ wins }} wins ({{ ((wins / cell_data.total_games) * 100) | round(1) }}%)&#10;{% endfor %}"
+                                            {% endif %}>
+                                            {% if cell_data %}
+                                                <span class="matrix-percentage">{{ cell_data.win_percentage }}%</span>
+                                                <span class="matrix-games">({{ cell_data.total_games }})</span>
+                                            {% else %}
+                                                <span class="matrix-empty">-</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Matrix data for JavaScript -->
+                <script type="application/json" id="matrix-data">{{ matrix_data | tojson }}</script>
+            </div>
+        </div>
+    </details>
+    {% endif %}
 </section>

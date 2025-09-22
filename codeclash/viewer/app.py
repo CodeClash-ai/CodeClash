@@ -612,6 +612,87 @@ class LogParser:
 
         return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
 
+    def load_matrix_analysis(self) -> dict[str, Any] | None:
+        """Load and process matrix.json if it exists"""
+        matrix_file = self.log_dir / "matrix.json"
+        if not matrix_file.exists():
+            return None
+
+        try:
+            matrix_data = json.loads(matrix_file.read_text())
+            matrices = matrix_data.get("matrices", {})
+
+            # Process each matrix to calculate win percentages from player 1 perspective
+            processed_matrices = {}
+
+            for matrix_name, matrix in matrices.items():
+                processed_matrix = {"name": matrix_name, "data": {}, "max_rounds": 0}
+
+                # Find player 1 name (the one with _1 suffix in self-play matrices)
+                player1_name = None
+                if "_vs_" in matrix_name:
+                    base_name = matrix_name.split("_vs_")[0]
+                    player1_name = f"{base_name}_1"
+
+                # Determine matrix dimensions
+                max_i = max_j = 0
+                for i_str in matrix.keys():
+                    i = int(i_str)
+                    max_i = max(max_i, i)
+                    for j_str in matrix[i_str].keys():
+                        j = int(j_str)
+                        max_j = max(max_j, j)
+
+                processed_matrix["max_rounds"] = max(max_i, max_j)
+
+                # Process each cell
+                for i_str in matrix.keys():
+                    i = int(i_str)
+                    processed_matrix["data"][i] = {}
+
+                    for j_str in matrix[i_str].keys():
+                        j = int(j_str)
+                        cell_data = matrix[i_str][j_str]
+                        scores = cell_data.get("scores", {})
+
+                        # Calculate win percentage from player 1 perspective
+                        if player1_name and player1_name in scores:
+                            player1_score = scores.get(player1_name, 0)
+                            total_games = sum(scores.values())
+
+                            if total_games > 0:
+                                # Handle ties if present
+                                ties = scores.get("Tie", 0)
+                                win_percentage = ((player1_score + 0.5 * ties) / total_games) * 100
+                            else:
+                                win_percentage = 0
+                        else:
+                            # If we can't identify player 1, show raw scores
+                            win_percentage = 0
+
+                        processed_matrix["data"][i][j] = {
+                            "win_percentage": round(win_percentage, 1),
+                            "scores": scores,
+                            "winner": cell_data.get("winner"),
+                            "total_games": sum(scores.values()) if scores else 0,
+                        }
+
+                processed_matrices[matrix_name] = processed_matrix
+
+            return {
+                "matrices": processed_matrices,
+                "metadata": {
+                    "p1_name": matrix_data.get("p1_name"),
+                    "p2_name": matrix_data.get("p2_name"),
+                    "rounds": matrix_data.get("rounds"),
+                    "n_repetitions": matrix_data.get("n_repetitions"),
+                },
+            }
+
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Error loading matrix.json: {e}")
+            return None
+
     def _parse_all_logs(self) -> dict[str, dict[str, str]]:
         """Parse all available log files in the tournament directory"""
         all_logs = {}
@@ -709,6 +790,9 @@ def index():
     # Get analysis data
     analysis_data = parser.analyze_line_counts()
 
+    # Get matrix analysis data
+    matrix_data = parser.load_matrix_analysis()
+
     # Get the full path of the selected folder
     selected_folder_path = str(folder_path)
 
@@ -719,6 +803,7 @@ def index():
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
         analysis_data=analysis_data,
+        matrix_data=matrix_data,
         is_static=STATIC_MODE,
     )
 
@@ -750,6 +835,9 @@ def game_view(folder_path):
     # Get analysis data
     analysis_data = parser.analyze_line_counts()
 
+    # Get matrix analysis data
+    matrix_data = parser.load_matrix_analysis()
+
     # Get the full path of the selected folder
     selected_folder_path = str(folder_path_obj)
 
@@ -760,6 +848,7 @@ def game_view(folder_path):
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
         analysis_data=analysis_data,
+        matrix_data=matrix_data,
         is_static=STATIC_MODE,
     )
 

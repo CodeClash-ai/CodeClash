@@ -433,6 +433,22 @@ details summary {
   background-color: var(--code-bg);
 }
 
+/* Override for matrix analysis - needs more space */
+.matrix-log-container {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.matrix-foldout .log-content-container {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.matrix-analysis-container .log-content-container {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 .log-content-scrollable {
   max-height: 500px;
   overflow-y: auto;
@@ -1734,4 +1750,261 @@ summary:focus {
   background-color: var(--accent-color);
   color: #000000;
   font-weight: 600;
+}
+
+/* Matrix Analysis Styles */
+.matrix-analysis-container {
+  padding: 1rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.matrix-selector {
+  margin-bottom: 1.5rem;
+}
+
+.matrix-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.matrix-dropdown {
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  min-width: 200px;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.matrix-dropdown:focus {
+  outline: 0;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 255, 136, 0.25);
+}
+
+.matrix-table-container {
+  margin-top: 1.5rem;
+}
+
+.matrix-table-container h4 {
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.matrix-description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.matrix-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-secondary);
+  max-width: 100%;
+  width: 100%;
+  max-height: 600px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-primary);
+}
+
+/* Custom scrollbar for matrix table */
+.matrix-table-wrapper::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-radius: 6px;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 6px;
+  border: 2px solid var(--bg-primary);
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-corner {
+  background: var(--bg-primary);
+}
+
+.matrix-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  table-layout: auto;
+}
+
+.matrix-header-corner,
+.matrix-header-row,
+.matrix-header-col {
+  background-color: var(--bg-tertiary);
+  color: var(--accent-color);
+  font-weight: 600;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  position: sticky;
+}
+
+.matrix-header-corner {
+  top: 0;
+  left: 0;
+  z-index: 3;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  min-width: 60px;
+  padding: 0.4rem 0.3rem;
+}
+
+.matrix-header-row {
+  left: 0;
+  z-index: 2;
+  background-color: var(--bg-tertiary);
+  min-width: 60px;
+  padding: 0.4rem 0.3rem;
+}
+
+.matrix-header-col {
+  top: 0;
+  z-index: 1;
+  background-color: var(--bg-tertiary);
+  min-width: 60px;
+  padding: 0.4rem 0.3rem;
+}
+
+.matrix-cell {
+  text-align: center;
+  padding: 0.4rem 0.2rem;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  position: relative;
+  min-width: 60px;
+}
+
+.matrix-cell-filled {
+  background-color: var(--bg-secondary);
+}
+
+.matrix-cell-filled:hover {
+  background-color: var(--bg-tertiary);
+  box-shadow: inset 0 0 0 2px var(--accent-color);
+}
+
+.matrix-cell-empty {
+  background-color: var(--bg-primary);
+  opacity: 0.5;
+}
+
+.matrix-percentage {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.matrix-games {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.matrix-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Color coding for win percentages */
+.matrix-cell[data-win-percentage] {
+  position: relative;
+}
+
+.matrix-cell[data-win-percentage]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* Green gradient for high win rates */
+.matrix-cell[data-win-percentage^="9"]::before,
+.matrix-cell[data-win-percentage^="8"]::before,
+.matrix-cell[data-win-percentage^="7"]::before,
+.matrix-cell[data-win-percentage="100"]::before {
+  background-color: var(--success-color);
+}
+
+/* Yellow for medium win rates */
+.matrix-cell[data-win-percentage^="6"]::before,
+.matrix-cell[data-win-percentage^="5"]::before,
+.matrix-cell[data-win-percentage^="4"]::before {
+  background-color: var(--warning-color);
+}
+
+/* Red for low win rates */
+.matrix-cell[data-win-percentage^="3"]::before,
+.matrix-cell[data-win-percentage^="2"]::before,
+.matrix-cell[data-win-percentage^="1"]::before,
+.matrix-cell[data-win-percentage="0"]::before {
+  background-color: var(--neon-red);
+}
+
+/* Responsive matrix table */
+@media (max-width: 768px) {
+  .matrix-analysis-container {
+    padding: 0.5rem;
+  }
+
+  .matrix-table {
+    font-size: 0.8rem;
+  }
+
+  .matrix-cell {
+    min-width: 50px;
+    padding: 0.3rem 0.1rem;
+  }
+
+  .matrix-percentage {
+    font-size: 0.7rem;
+  }
+
+  .matrix-games {
+    font-size: 0.55rem;
+  }
+
+  .matrix-header-corner,
+  .matrix-header-row,
+  .matrix-header-col {
+    min-width: 50px;
+    padding: 0.3rem 0.15rem;
+    font-size: 0.7rem;
+  }
 }
