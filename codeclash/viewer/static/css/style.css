@@ -865,6 +865,14 @@ details summary {
   --bs-btn-hover-border-color: var(--border-color);
 }
 
+.btn-outline-warning {
+  --bs-btn-color: var(--accent-color);
+  --bs-btn-border-color: var(--accent-color);
+  --bs-btn-hover-color: #000000;
+  --bs-btn-hover-bg: var(--accent-color);
+  --bs-btn-hover-border-color: var(--accent-color);
+}
+
 .table {
   --bs-table-color: var(--text-primary);
   --bs-table-bg: var(--bg-primary);

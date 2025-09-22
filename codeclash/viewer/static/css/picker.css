@@ -382,30 +382,19 @@
 }
 
 .move-button {
-  background-color: #00aa66;
-  color: white;
+  background-color: var(--accent-color);
+  color: #000000;
   border: none;
   padding: 0.4rem 0.6rem;
   border-radius: 0.25rem;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .move-button:hover {
-  background-color: #008855;
-}
-
-/* Dark mode fix for move button */
-.move-button {
-  background-color: #00aa66;
-  color: #000000;
-  font-weight: 700;
-}
-
-.move-button:hover {
-  background-color: #008855;
+  background-color: var(--accent-hover);
   color: #000000;
 }
 
