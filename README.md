@@ -50,19 +50,21 @@ aws s3 sync logs/ s3://codeclash/logs/
 ## AWS EC2
 
 > [!note]
-> This is for an ubuntu aws machine
+> This is for an ubuntu aws machine.
+> To avoid having to log in to AWS for s3 access, choose the `kilian-ec2-full-s3-access` role (add it in "details")
+
+Instance types: `c6a.32xlarge` (128 CPUs)
 
 ```bash
-ssh-keygen
-cat ~/.ssh/id_ed25519
-# add as deploy key in github
+export GITHUB_TOKEN=''
 
 sudo apt update
-sudo apt install -Y python3-pip python3.12-venv
+sudo apt install -y python3-pip python3.12-venv
 sudo snap install docker
 sudo snap install aws-cli --classic
+sudo chmod 666 /var/run/docker.sock
 
-git clone git@github.com:emagedoc/CodeClash.git
+git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git
 cd CodeClash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -70,9 +72,9 @@ pip install -e .
 
 aws configure
 
+mkdir logs
 aws s3 sync s3://codeclash/logs/ logs/
 
-export GITHUB_TOKEN='...'
-
-sudo chmod 666 /var/run/docker.sock
+# if evaluating matrix:
+ulimit -n 65536  # increase number of open files
 ```
