@@ -207,7 +207,7 @@ class PvPMatrixEvaluator:
         self.logger.info(f"Evaluating {player1_name} round {i} vs {player2_name} round {j}")
 
         round_id = str(uuid.uuid4().hex)
-        stats = game_worker.run_round([agent1, agent2], round_id)
+        stats = game_worker.run_round([agent1, agent2], round_id, copy_logs=False)
         result = stats.to_dict()
         self.logger.debug(f"Result: {result}")
 

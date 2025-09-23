@@ -226,7 +226,7 @@ class CodeGame(ABC):
             logger=self.logger,
         )
 
-    def run_round(self, agents: list[Player], round_num: int) -> RoundStats:
+    def run_round(self, agents: list[Player], round_num: int, *, copy_logs: bool = True) -> RoundStats:
         """
         Run a single round of the game with the given agents.
 
@@ -252,7 +252,8 @@ class CodeGame(ABC):
         if len(validated) > 1:
             self._pre_round_setup(validated)
             self.execute_round(validated)
-            self.copy_logs_from_env(round_num)
+            if copy_logs:
+                self.copy_logs_from_env(round_num)
             self.get_results(validated, round_num, stats)
         elif len(validated) == 1:
             self.logger.info(f"Only one valid agent ({validated[0].name}), automatic win")
