@@ -49,6 +49,9 @@ aws s3 sync logs/ s3://codeclash/logs/
 
 ## AWS EC2
 
+> [!note]
+> This is for an ubuntu aws machine
+
 ```bash
 ssh-keygen
 cat ~/.ssh/id_ed25519
