@@ -87,6 +87,15 @@ class PvPMatrixEvaluator:
 
     # -----------------------
 
+    def _save(self):
+        """Save metadata to matrix.json."""
+        with self._save_lock:
+            # let's make this high stakes write atomic, because else if you run out of disk space,
+            # you'll lose all progress
+            tmp_file = self.output_file.with_suffix(".tmp")
+            tmp_file.write_text(json.dumps(self._metadata, indent=2))
+            tmp_file.rename(self.output_file)
+
     def _load_existing_progress(self):
         """Load existing progress from matrix.json if it exists."""
         if not self.output_file.exists():
@@ -213,7 +222,7 @@ class PvPMatrixEvaluator:
 
         with self._save_lock:
             self.matrices[matrix_id][str(i)][str(j)] = result
-            self.output_file.write_text(json.dumps(self._metadata, indent=2))
+            self._save()
 
         return (i, j, result)
 
@@ -300,7 +309,7 @@ class PvPMatrixEvaluator:
 
     def end(self):
         """Save metadata and clean up resources."""
-        self.output_file.write_text(json.dumps(self._metadata, indent=2))
+        self._save()
         self.logger.info(f"Matrix evaluation results saved to {self.output_file}")
 
         # Clean up all game workers
