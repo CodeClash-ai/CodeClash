@@ -28,7 +28,10 @@ def copy_between_containers(
     of docker cp is also different depending on whether the destination exists.
     """
     print(f"Copy between containers: {src_path} -> {dest_path}")
-    with tempfile.TemporaryDirectory() as temp_dir:
+    # Some weird stuff happening on AWS where /tmp doesn't work properly
+    dir = Path.home() / "tmp"
+    dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=dir) as temp_dir:
         temp_path = Path(temp_dir) / Path(src_path).name
 
         # Copy from source container to temporary local directory
@@ -133,11 +136,11 @@ def create_file_in_container(
     Create a file with given content on a Docker container.
     Uses a temporary file on the local filesystem for the transfer.
     """
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+    # Some weird stuff happening on AWS where /tmp doesn't work properly
+    dir = Path.home() / "tmp"
+    dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode="w", delete=True, suffix=".tmp", dir=dir) as tmp_file:
         tmp_file.write(content)
+        tmp_file.flush()  # Ensure content is written to disk
         tmp_file_path = Path(tmp_file.name)
-
-    try:
         copy_to_container(container, tmp_file_path, dest_path)
-    finally:
-        tmp_file_path.unlink()  # Clean up the temporary file
