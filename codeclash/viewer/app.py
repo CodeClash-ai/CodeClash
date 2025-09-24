@@ -612,6 +612,41 @@ class LogParser:
 
         return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
 
+    def analyze_sim_wins_per_round(self) -> dict[str, Any]:
+        """Analyze number of simulations won per round for each competitor from round_stats in metadata.json"""
+        metadata_file = self.log_dir / "metadata.json"
+        if not metadata_file.exists():
+            return {"players": [], "rounds": [], "wins_by_player": {}}
+
+        try:
+            metadata = json.loads(metadata_file.read_text())
+            round_stats = metadata.get("round_stats", {})
+            # Collect all player names from all rounds
+            player_names = set()
+            for round_data in round_stats.values():
+                scores = round_data.get("scores", {})
+                player_names.update([k for k in scores.keys() if k != "Tie"])
+            player_names = sorted(player_names)
+
+            # Collect all round numbers (sorted)
+            round_nums = sorted([int(k) for k in round_stats.keys()])
+
+            # Build wins_by_player: {player: [wins_per_round]}
+            wins_by_player = {p: [] for p in player_names}
+            for round_num in round_nums:
+                round_data = round_stats.get(str(round_num), {})
+                scores = round_data.get("scores", {})
+                for p in player_names:
+                    wins_by_player[p].append(scores.get(p, 0))
+
+            return {
+                "players": player_names,
+                "rounds": round_nums,
+                "wins_by_player": wins_by_player,
+            }
+        except Exception:
+            return {"players": [], "rounds": [], "wins_by_player": {}}
+
     def load_matrix_analysis(self) -> dict[str, Any] | None:
         """Load and process matrix.json if it exists"""
         matrix_file = self.log_dir / "matrix.json"
@@ -790,6 +825,7 @@ def index():
 
     # Get analysis data
     analysis_data = parser.analyze_line_counts()
+    sim_wins_data = parser.analyze_sim_wins_per_round()
 
     # Get matrix analysis data
     matrix_data = parser.load_matrix_analysis()
@@ -804,6 +840,7 @@ def index():
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
         analysis_data=analysis_data,
+        sim_wins_data=sim_wins_data,
         matrix_data=matrix_data,
         is_static=STATIC_MODE,
     )

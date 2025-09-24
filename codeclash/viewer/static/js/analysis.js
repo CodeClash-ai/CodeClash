@@ -184,6 +184,97 @@ function prepareChartData(fileName) {
 }
 
 // Initialize when DOM is loaded
+// --- Sim Wins Per Round Chart ---
+let simWinsChart = null;
+let simWinsData = null;
+
+function initializeSimWinsChart() {
+  const simWinsDataElement = document.getElementById("sim-wins-data");
+  if (!simWinsDataElement) return;
+  try {
+    simWinsData = JSON.parse(simWinsDataElement.textContent);
+    if (
+      simWinsData &&
+      simWinsData.players &&
+      simWinsData.players.length > 0 &&
+      simWinsData.rounds &&
+      simWinsData.rounds.length > 0
+    ) {
+      createSimWinsChart();
+    }
+  } catch (error) {
+    console.error("Error parsing sim wins data:", error);
+  }
+}
+
+function createSimWinsChart() {
+  const canvas = document.getElementById("sim-wins-chart");
+  if (!canvas || !simWinsData) return;
+  const ctx = canvas.getContext("2d");
+  if (simWinsChart) simWinsChart.destroy();
+
+  // Prepare datasets
+  const colors = [
+    "#FF6384",
+    "#36A2EB",
+    "#FFCE56",
+    "#4BC0C0",
+    "#9966FF",
+    "#FF9F40",
+    "#C9CBCF",
+    "#4BC0C0",
+    "#FF6384",
+  ];
+  let colorIndex = 0;
+  const datasets = simWinsData.players.map((player) => {
+    const data = simWinsData.rounds.map((round, i) => ({ x: round, y: simWinsData.wins_by_player[player][i] }));
+    const color = colors[colorIndex % colors.length];
+    colorIndex++;
+    return {
+      label: player,
+      data: data,
+      borderColor: color,
+      backgroundColor: color + "20",
+      borderWidth: 2,
+      fill: false,
+      tension: 0.1,
+    };
+  });
+
+  simWinsChart = new Chart(ctx, {
+    type: "line",
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Simulations Won Per Round`,
+        },
+        legend: {
+          display: true,
+          position: "top",
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Round" },
+          type: "linear",
+          position: "bottom",
+        },
+        y: {
+          title: { display: true, text: "Simulations Won" },
+          beginAtZero: true,
+        },
+      },
+      interaction: { intersect: false, mode: "index" },
+    },
+  });
+}
+
+// Initialize both analyses when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeAnalysis();
+  initializeSimWinsChart();
 });

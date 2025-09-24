@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
     "litellm",
     "mini-swe-agent",
+    "portkey-ai",
     "python-dotenv",
     "ghapi",
     "flask",
@@ -38,7 +39,8 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "ruff",
-    "frozen-flask",
+    "Werkzeug==2.3.7",
+    "frozen-flask==0.18",
 ]
 
 [tool.setuptools.packages.find]
