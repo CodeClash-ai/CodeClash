@@ -15,7 +15,8 @@ RUN apt update && apt install -y \
 
 # Install Docker with proper setup for Docker-in-Docker
 RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh \
-    && usermod -aG docker root
+    && usermod -aG docker root \
+    && rm get-docker.sh
 
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -37,19 +38,32 @@ RUN git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git 
 RUN echo "* soft nofile 65536" >> /etc/security/limits.conf \
     && echo "* hard nofile 65536" >> /etc/security/limits.conf
 
-# Create Docker directory and set permissions
-RUN mkdir -p /var/lib/docker && chmod 755 /var/lib/docker
+# Create Docker directories and set proper permissions
+RUN mkdir -p /var/lib/docker /var/run/docker \
+    && chmod 755 /var/lib/docker /var/run/docker \
+    && mkdir -p /etc/docker \
+    && echo '{"storage-driver": "vfs", "iptables": false, "ip-masq": false, "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
 
 # Start Docker daemon temporarily to build game images
-RUN dockerd --storage-driver=vfs --iptables=false --ip-masq=false & \
-    # Wait for Docker daemon to be ready
-    for i in {1..30}; do \
+RUN echo "Starting Docker daemon for image building..." && \
+    dockerd --config-file=/etc/docker/daemon.json > /var/log/dockerd-build.log 2>&1 & \
+    DOCKERD_PID=$! && \
+    echo "Docker daemon PID: $DOCKERD_PID" && \
+    # Wait for Docker daemon to be ready with better error detection
+    for i in {1..60}; do \
+        echo "Attempt $i/60: Checking Docker daemon status..." && \
         if docker info >/dev/null 2>&1; then \
-            echo "Docker daemon is ready for building images!"; \
+            echo "✅ Docker daemon is ready for building images!"; \
             break; \
         fi; \
-        if [ $i -eq 30 ]; then \
-            echo "ERROR: Docker daemon failed to start"; \
+        if ! kill -0 $DOCKERD_PID 2>/dev/null; then \
+            echo "❌ ERROR: Docker daemon process died. Log contents:"; \
+            cat /var/log/dockerd-build.log; \
+            exit 1; \
+        fi; \
+        if [ $i -eq 60 ]; then \
+            echo "❌ ERROR: Docker daemon failed to start after 60 seconds. Log contents:"; \
+            cat /var/log/dockerd-build.log; \
             exit 1; \
         fi; \
         sleep 1; \
@@ -59,10 +73,21 @@ RUN dockerd --storage-driver=vfs --iptables=false --ip-masq=false & \
     docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/dummygame -f ../docker/DummyGame.Dockerfile . && \
     docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/robotrumble -f ../docker/RobotRumble.Dockerfile . && \
     docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/huskybench -f ../docker/HuskyBench.Dockerfile . && \
-    # Stop the Docker daemon
-    pkill dockerd || true && \
-    # Wait for daemon to stop
-    sleep 5
+    # Stop the Docker daemon gracefully
+    echo "Stopping Docker daemon..." && \
+    kill $DOCKERD_PID && \
+    # Wait for daemon to stop properly
+    for i in {1..10}; do \
+        if ! kill -0 $DOCKERD_PID 2>/dev/null; then \
+            echo "✅ Docker daemon stopped successfully"; \
+            break; \
+        fi; \
+        if [ $i -eq 10 ]; then \
+            echo "⚠️  Force killing Docker daemon"; \
+            kill -9 $DOCKERD_PID || true; \
+        fi; \
+        sleep 1; \
+    done
 
 # Set build timestamp as environment variable
 ARG BUILD_TIMESTAMP

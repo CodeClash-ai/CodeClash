@@ -20,18 +20,28 @@ trap cleanup EXIT
 
 # Start Docker daemon with proper configuration for AWS Batch
 echo "Starting Docker daemon..."
-# Use vfs storage driver to avoid overlay permission issues
-dockerd --storage-driver=vfs --iptables=false --ip-masq=false &
+# Start daemon with config file and capture logs
+dockerd --config-file=/etc/docker/daemon.json > /var/log/dockerd-runtime.log 2>&1 &
+DOCKERD_PID=$!
+echo "Docker daemon PID: $DOCKERD_PID"
 
-# Wait for Docker daemon to be ready
+# Wait for Docker daemon to be ready with better error detection
 echo "Waiting for Docker daemon to start..."
-for i in {1..30}; do
+for i in {1..60}; do
+    echo "Attempt $i/60: Checking Docker daemon status..."
     if docker info >/dev/null 2>&1; then
-        echo "Docker daemon is ready!"
+        echo "✅ Docker daemon is ready!"
         break
     fi
-    if [ $i -eq 30 ]; then
-        echo "ERROR: Docker daemon failed to start after 30 seconds"
+    # Check if daemon process is still alive
+    if ! kill -0 $DOCKERD_PID 2>/dev/null; then
+        echo "❌ ERROR: Docker daemon process died. Log contents:"
+        cat /var/log/dockerd-runtime.log
+        exit 1
+    fi
+    if [ $i -eq 60 ]; then
+        echo "❌ ERROR: Docker daemon failed to start after 60 seconds. Log contents:"
+        cat /var/log/dockerd-runtime.log
         exit 1
     fi
     sleep 1
