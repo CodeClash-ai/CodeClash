@@ -1,13 +1,40 @@
 #!/bin/bash
+
+# This script is used to build and push a Docker image to AWS ECR
+# Example usage:
+# ./build_and_push_aws.sh AWSCodeClash.Dockerfile codeclash .
+# from parent directory:
+# ./aws/build_and_push_aws.sh BattleSnake.Dockerfile codeclash/battlesnake .
+
 set -euo pipefail
+
+# Check if required arguments are provided
+if [ $# -lt 3 ]; then
+    echo "Usage: $0 <dockerfile_path> <ecr_repository> <docker_context>"
+    echo "Example: $0 AWSCodeClash.Dockerfile codeclash ."
+    exit 1
+fi
+
+DOCKERFILE_PATH="$1"
+ECR_REPOSITORY="$2"
+DOCKER_CONTEXT="$3"
+
+# Check if dockerfile exists
+if [ ! -f "$DOCKERFILE_PATH" ]; then
+    echo "Error: Dockerfile '$DOCKERFILE_PATH' not found."
+    exit 1
+fi
+
+# Check if docker context exists
+if [ ! -d "$DOCKER_CONTEXT" ] && [ "$DOCKER_CONTEXT" != "." ]; then
+    echo "Error: Docker context directory '$DOCKER_CONTEXT' not found."
+    exit 1
+fi
 
 # Configuration
 ECR_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
-ECR_REPOSITORY="codeclash"
 IMAGE_TAG="latest"
 REGION="us-east-1"
-DOCKERFILE_PATH="AWSCodeClash.Dockerfile"
-DOCKER_CONTEXT="."
 
 # Colors for output
 RED='\033[0;31m'
@@ -35,6 +62,16 @@ FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 # Authenticate with ECR
 echo -e "${YELLOW}Authenticating with AWS ECR...${NC}"
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# Check if ECR repository exists, create if it doesn't
+echo -e "${YELLOW}Checking if ECR repository '$ECR_REPOSITORY' exists...${NC}"
+if ! aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --region "$REGION" >/dev/null 2>&1; then
+    echo -e "${YELLOW}Repository '$ECR_REPOSITORY' does not exist. Creating it...${NC}"
+    aws ecr create-repository --repository-name "$ECR_REPOSITORY" --region "$REGION"
+    echo -e "${GREEN}Successfully created ECR repository: $ECR_REPOSITORY${NC}"
+else
+    echo -e "${GREEN}ECR repository '$ECR_REPOSITORY' already exists.${NC}"
+fi
 
 docker build \
     --build-arg GITHUB_TOKEN="$GITHUB_TOKEN" \
