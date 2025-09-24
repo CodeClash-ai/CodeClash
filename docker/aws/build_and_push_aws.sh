@@ -49,8 +49,3 @@ echo -e "${YELLOW}Pushing image to ECR...${NC}"
 docker push "$FULL_IMAGE_NAME"
 
 echo -e "${GREEN}Successfully built and pushed image: $FULL_IMAGE_NAME${NC}"
-echo -e "${GREEN}You can now use this image in your AWS services.${NC}"
-echo ""
-echo -e "${YELLOW}IMPORTANT: When running this container on AWS Batch or other services,${NC}"
-echo -e "${YELLOW}make sure to enable privileged mode for Docker-in-Docker functionality.${NC}"
-echo -e "${YELLOW}For AWS Batch, add 'privileged: true' to your job definition.${NC}"

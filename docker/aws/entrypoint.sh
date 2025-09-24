@@ -21,7 +21,7 @@ trap cleanup EXIT
 # Start Docker daemon with proper configuration for AWS Batch
 echo "Starting Docker daemon..."
 # Use vfs storage driver to avoid overlay permission issues
-dockerd --storage-driver=vfs --iptables=false --ip-masq=false --bridge=none &
+dockerd --storage-driver=vfs --iptables=false --ip-masq=false &
 
 # Wait for Docker daemon to be ready
 echo "Waiting for Docker daemon to start..."
