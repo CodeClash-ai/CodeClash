@@ -40,6 +40,16 @@ done
 # Smoke test
 docker run hello-world
 
+# Verify all game images are available
+echo "Verifying game Docker images are available..."
+for image in codeclash/battlesnake codeclash/dummygame codeclash/robotrumble codeclash/huskybench; do
+    if docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "$image"; then
+        echo "✅ $image is available"
+    else
+        echo "❌ WARNING: $image is not available"
+    fi
+done
+
 # Activate venv
 source .venv/bin/activate
 

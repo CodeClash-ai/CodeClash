@@ -40,6 +40,30 @@ RUN echo "* soft nofile 65536" >> /etc/security/limits.conf \
 # Create Docker directory and set permissions
 RUN mkdir -p /var/lib/docker && chmod 755 /var/lib/docker
 
+# Start Docker daemon temporarily to build game images
+RUN dockerd --storage-driver=vfs --iptables=false --ip-masq=false & \
+    # Wait for Docker daemon to be ready
+    for i in {1..30}; do \
+        if docker info >/dev/null 2>&1; then \
+            echo "Docker daemon is ready for building images!"; \
+            break; \
+        fi; \
+        if [ $i -eq 30 ]; then \
+            echo "ERROR: Docker daemon failed to start"; \
+            exit 1; \
+        fi; \
+        sleep 1; \
+    done && \
+    # Build all game-specific Docker images
+    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/battlesnake -f ../docker/BattleSnake.Dockerfile . && \
+    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/dummygame -f ../docker/DummyGame.Dockerfile . && \
+    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/robotrumble -f ../docker/RobotRumble.Dockerfile . && \
+    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/huskybench -f ../docker/HuskyBench.Dockerfile . && \
+    # Stop the Docker daemon
+    pkill dockerd || true && \
+    # Wait for daemon to stop
+    sleep 5
+
 # Set build timestamp as environment variable
 ARG BUILD_TIMESTAMP
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}

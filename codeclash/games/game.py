@@ -111,6 +111,7 @@ class CodeGame(ABC):
         """
 
         # Check if container exists using subprocess
+        self.logger.debug(f"Checking if container {self.image_name} exists")
         result = subprocess.run(
             f"docker images -q {self.image_name}",
             shell=True,
@@ -118,9 +119,12 @@ class CodeGame(ABC):
             text=True,
         )
         if result.stdout.strip():
+            self.logger.debug(f"Container {self.image_name} exists")
             return
 
-        # Build the Docker image
+        self.logger.info(
+            f"Building Docker image {self.image_name}. This may take 1-5 minutes and only work on Linux for some games."
+        )
         result = subprocess.run(
             (
                 "export $(cat .env | xargs);"
