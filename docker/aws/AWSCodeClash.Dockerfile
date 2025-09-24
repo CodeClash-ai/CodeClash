@@ -7,10 +7,15 @@ RUN apt update && apt install -y \
     git \
     curl \
     unzip \
+    iptables \
+    ca-certificates \
+    gnupg \
+    lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker
-RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+# Install Docker with proper setup for Docker-in-Docker
+RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh \
+    && usermod -aG docker root
 
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -26,14 +31,22 @@ ARG GITHUB_TOKEN
 RUN git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git . \
     && python3 -m venv .venv \
     && . .venv/bin/activate \
-    && pip install -e .
+    && pip install -e '.[dev]'
 
 # Set ulimit for open files
 RUN echo "* soft nofile 65536" >> /etc/security/limits.conf \
     && echo "* hard nofile 65536" >> /etc/security/limits.conf
 
+# Create Docker directory and set permissions
+RUN mkdir -p /var/lib/docker && chmod 755 /var/lib/docker
+
+# Set build timestamp as environment variable
+ARG BUILD_TIMESTAMP
+ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
+
 # Entry script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Note: Container must be run with --privileged flag for Docker-in-Docker
 ENTRYPOINT ["/entrypoint.sh"]
