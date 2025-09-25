@@ -55,8 +55,13 @@ done
 # Smoke test
 docker run hello-world
 
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 039984708918.dkr.ecr.us-east-1.amazonaws.com
-docker pull 039984708918.dkr.ecr.us-east-1.amazonaws.com/codeclash/battlesnake
+DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+
+for game in battlesnake; do
+    docker pull $DOCKER_REGISTRY/codeclash/$game
+    docker tag $DOCKER_REGISTRY/codeclash/$game codeclash/$game
+done
 
 # Activate venv
 source .venv/bin/activate
