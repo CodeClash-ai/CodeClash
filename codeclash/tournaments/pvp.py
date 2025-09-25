@@ -15,6 +15,8 @@ from codeclash.constants import DIR_WORK, FILE_RESULTS
 from codeclash.games import get_game
 from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
+from codeclash.utils.atomic_write import atomic_write
+from codeclash.utils.aws import is_running_in_aws_batch, s3_log_sync
 from codeclash.utils.environment import copy_to_container
 
 
@@ -127,7 +129,11 @@ class PvpTournament(AbstractTournament):
 
     def _save(self) -> None:
         self.local_output_dir.mkdir(parents=True, exist_ok=True)
-        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
+        metadata_file = self.local_output_dir / "metadata.json"
+        atomic_write(metadata_file, json.dumps(self.get_metadata(), indent=2))
+        self.logger.debug(f"Metadata saved to {metadata_file}")
+        if is_running_in_aws_batch():
+            s3_log_sync(self.local_output_dir, logger=self.logger)
 
     def _compress_round_logs(self) -> None:
         self.logger.info("Compressing round logs, this might take a while...")

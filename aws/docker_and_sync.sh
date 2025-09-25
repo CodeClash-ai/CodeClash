@@ -63,6 +63,8 @@ docker run hello-world
 # Pull images from ECR so we don't have to build them
 export AWS_DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+export AWS_S3_BUCKET="codeclash"
+export AWS_S3_PREFIX="logs"
 
 # Create logs directory
 mkdir -p logs
