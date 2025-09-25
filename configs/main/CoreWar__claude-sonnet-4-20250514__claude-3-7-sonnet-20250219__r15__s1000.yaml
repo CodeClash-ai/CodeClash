@@ -6,20 +6,21 @@ game:
   args: {}
 players:
 - agent: mini
-  name: claude-opus-4-1-20250805
+  name: claude-sonnet-4-20250514
   config:
     agent: !include mini/semi_prescriptive.yaml
     model:
-      model_name: anthropic/claude-opus-4-1-20250805
+      model_name: anthropic/claude-sonnet-4-20250514
       model_kwargs:
         temperature: 0.0
 - agent: mini
-  name: o3
+  name: claude-3-7-sonnet-20250219
   config:
     agent: !include mini/semi_prescriptive.yaml
     model:
-      model_name: '@openai/o3'
-      model_class: portkey
+      model_name: anthropic/claude-3-7-sonnet-20250219
+      model_kwargs:
+        temperature: 0.0
 prompts:
   game_description: "You are a software developer ({{player_id}}) competing in a coding\
     \ game called CoreWar.\nCoreWar is a programming battle where you write \"warriors\"\
