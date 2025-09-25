@@ -1,0 +1,18 @@
+{
+  "jobQueueName": "codeclash-test-queue",
+  "jobQueueArn": "arn:aws:batch:us-east-1:039984708918:job-queue/codeclash-test-queue",
+  "state": "ENABLED",
+  "status": "VALID",
+  "statusReason": "JobQueue Healthy",
+  "priority": 1,
+  "computeEnvironmentOrder": [
+    {
+      "order": 1,
+      "computeEnvironment": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch-test"
+    }
+  ],
+  "serviceEnvironmentOrder": [],
+  "jobQueueType": "ECS",
+  "tags": {},
+  "jobStateTimeLimitActions": []
+}

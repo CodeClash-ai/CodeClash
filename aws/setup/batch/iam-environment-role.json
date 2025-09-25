@@ -1,0 +1,27 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "kilian-codeclash-ecsInstanceRole",
+        "RoleId": "AROAQST2GHU3K4I5VM26G",
+        "Arn": "arn:aws:iam::039984708918:role/kilian-codeclash-ecsInstanceRole",
+        "CreateDate": "2025-09-24T02:40:57+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "ec2.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "Description": "Allows EC2 instances to call AWS services on your behalf.",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2025-09-25T03:23:04+00:00",
+            "Region": "us-east-1"
+        }
+    }
+}
