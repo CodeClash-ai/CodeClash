@@ -34,6 +34,8 @@ ARENAS: list[CodeGame] = [
     RobotRumbleGame,
 ]
 
+NUM_TOURNAMENTS = 10
+
 
 def prompt_game_desc(arena, rounds):
     return f"""You are a software developer ({{{{player_id}}}}) competing in a coding game called {arena.name}.
@@ -61,6 +63,13 @@ def main(models, rounds, simulations, output):
         for j in range(i + 1, len(models)):
             pairs.append((models[i], models[j]))
 
+    # Tracking csv
+    tracking_csv = [
+        "config,arena,player1,player2,rounds,sims_per_round,"
+        + ",".join(f"t{i}" for i in range(1, NUM_TOURNAMENTS + 1))
+        + "\n"
+    ]
+
     for arena in ARENAS:
         for pair in pairs:
             config = {
@@ -76,7 +85,7 @@ def main(models, rounds, simulations, output):
                     {
                         "agent": "mini",
                         "name": get_name(p),
-                        "config": {"agent": IncludeTag("mini/default.yaml"), "model": p},
+                        "config": {"agent": IncludeTag("mini/semi_prescriptive.yaml"), "model": p},
                     }
                     for p in pair
                 ],
@@ -85,6 +94,16 @@ def main(models, rounds, simulations, output):
             config_name = f"{arena.name}__{get_name(pair[0])}__{get_name(pair[1])}__r{rounds}__s{simulations}.yaml"
             with open(f"{output}/{config_name}", "w") as f:
                 yaml.dump(config, f, default_style=None, sort_keys=False)
+
+            tracking_csv.append(
+                f"{config_name},{arena.name},{get_name(pair[0])},{get_name(pair[1])},{rounds},{simulations},"
+                + ",".join([""] * NUM_TOURNAMENTS)
+                + "\n"
+            )
+
+    with open(f"{output}/tracking.csv", "w") as f:
+        f.writelines(tracking_csv)
+    print(f"Wrote tracking file to '{output}/tracking.csv'.")
 
     print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
     print(f"- # Models: {len(models)}")
