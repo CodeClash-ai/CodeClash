@@ -75,7 +75,53 @@ function copyToClipboard(text, button) {
   }
 }
 
-// Setup copy button event listeners
+// Download file function
+function downloadFile(filePath, button) {
+  function showSuccessMessage() {
+    if (button) {
+      const originalText = button.textContent;
+      const originalColor = button.style.color;
+      button.textContent = "✓ Downloading";
+      button.style.color = "green";
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.color = originalColor;
+      }, 1500);
+    }
+  }
+
+  function showErrorMessage() {
+    if (button) {
+      const originalText = button.textContent;
+      const originalColor = button.style.color;
+      button.textContent = "✗ Failed";
+      button.style.color = "red";
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.color = originalColor;
+      }, 1500);
+    }
+  }
+
+  try {
+    // Create a temporary link element to trigger download
+    const downloadUrl = `/download-file?path=${encodeURIComponent(filePath)}`;
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showSuccessMessage();
+    console.log("Downloading file:", filePath);
+  } catch (err) {
+    console.error("Failed to download file:", err);
+    showErrorMessage();
+  }
+}
+
+// Setup copy and download button event listeners
 function setupCopyButtons() {
   // Add event listeners to all copy path buttons
   document
@@ -90,6 +136,26 @@ function setupCopyButtons() {
           copyToClipboard(path, this);
         } else {
           console.error("No path found on button:", this);
+        }
+      });
+    });
+}
+
+// Setup download button event listeners
+function setupDownloadButtons() {
+  // Add event listeners to all download buttons
+  document
+    .querySelectorAll(".download-btn, .download-btn-small")
+    .forEach((button) => {
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const path = this.getAttribute("data-path");
+        if (path) {
+          downloadFile(path, this);
+        } else {
+          console.error("No path found on download button:", this);
         }
       });
     });
