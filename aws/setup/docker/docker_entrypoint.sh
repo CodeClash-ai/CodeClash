@@ -22,10 +22,11 @@ echo "Last commit information:"
 git log -1 --pretty=format:"   Hash: %H%n   Message: %s%n   Author: %an <%ae>%n   Date: %ad" --date=format:"%Y-%m-%d %H:%M:%S %Z"
 echo
 
-echo "🚀 AWS_BATCH_CE_NAME: ${AWS_BATCH_CE_NAME:-<not set>}"
-echo "🚀 AWS_BATCH_JOB_ATTEMPT: ${AWS_BATCH_JOB_ATTEMPT:-<not set>}"
-echo "🚀 AWS_BATCH_JOB_ID: ${AWS_BATCH_JOB_ID:-<not set>}"
-echo "🚀 AWS_BATCH_JQ_NAME: ${AWS_BATCH_JQ_NAME:-<not set>}"
+echo "🚀 AWS Batch Environment Variables:"
+echo "  AWS_BATCH_CE_NAME: ${AWS_BATCH_CE_NAME:-<not set>}"
+echo "  AWS_BATCH_JOB_ATTEMPT: ${AWS_BATCH_JOB_ATTEMPT:-<not set>}"
+echo "  AWS_BATCH_JOB_ID: ${AWS_BATCH_JOB_ID:-<not set>}"
+echo "  AWS_BATCH_JQ_NAME: ${AWS_BATCH_JQ_NAME:-<not set>}"
 
 source .venv/bin/activate
 
@@ -35,3 +36,6 @@ echo "$@"
 echo "═══════════════════════════════════════════════════════════════════════════════"
 # Execute the remaining command arguments
 exec "$@"
+echo "═══════════════════════════════════════════════════════════════════════════════"
+echo "✅ docker_entrypoint.sh finished"
+echo "═══════════════════════════════════════════════════════════════════════════════"
