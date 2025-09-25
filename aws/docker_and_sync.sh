@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# This wrapper is used together with a script like main.py to run a command in a container
+# while ensuring that docker is alive and guaranteeing to sync logs to S3 on exit.
+
 set -x
 set -euo pipefail
 
 echo "📅 Container built at: $BUILD_TIMESTAMP"
 
-echo "Git pull"
-git pull
 
 # Function to sync logs on exit
 cleanup() {
@@ -56,13 +57,8 @@ done
 docker run hello-world
 
 # Pull images from ECR so we don't have to build them
-DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $DOCKER_REGISTRY
-
-for game in battlesnake; do
-    docker pull $DOCKER_REGISTRY/codeclash/$game
-    docker tag $DOCKER_REGISTRY/codeclash/$game codeclash/$game
-done
+export AWS_DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
 
 # Create logs directory
 mkdir -p logs

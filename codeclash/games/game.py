@@ -10,6 +10,7 @@ from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG, RESULT_TIE
+from codeclash.utils.aws import is_running_in_aws_batch, pull_game_container_aws_ecr
 from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers, copy_from_container
 from codeclash.utils.log import get_logger
 
@@ -111,7 +112,10 @@ class CodeGame(ABC):
     def build_image(self):
         """
         Build a Docker image for the game using the Dockerfile in the codebase.
+        If running in AWS, pull the image from the AWS Docker registry instead.
         """
+        if is_running_in_aws_batch():
+            pull_game_container_aws_ecr(game_name=self.name, image_name=self.image_name, logger=self.logger)
 
         # Check if container exists using subprocess
         self.logger.debug(f"Checking if container {self.image_name} exists")

@@ -3,6 +3,7 @@ import time
 import traceback
 from pathlib import Path
 
+from codeclash.utils.aws import get_aws_metadata
 from codeclash.utils.environment import create_file_in_container
 from codeclash.utils.log import add_file_handler, get_logger
 
@@ -18,6 +19,7 @@ class AbstractTournament:
             "tournament_id": self.tournament_id,
             "config": self.config,
             "created_timestamp": int(time.time()),
+            "aws": get_aws_metadata(),
         }
         self.logger = get_logger(self.name, log_path=self.local_output_dir / "tournament.log", emoji="🏆")
         add_file_handler(get_logger("."), self.local_output_dir / "everything.log")
