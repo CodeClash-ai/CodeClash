@@ -54,10 +54,10 @@ def get_name(p):
     return p["model_name"].split("/")[-1]
 
 
-def main(models, rounds, simulations, output):
+def main(models, rounds, simulations, output: Path):
     # Get all unique pairs of models
     models = yaml.safe_load(open(models))
-    Path(output).mkdir(parents=True, exist_ok=True)
+    output.mkdir(parents=True, exist_ok=True)
     pairs = []
     for i in range(len(models)):
         for j in range(i + 1, len(models)):
@@ -92,8 +92,19 @@ def main(models, rounds, simulations, output):
                 "prompts": {"game_description": prompt_game_desc(arena, rounds)},
             }
             config_name = f"{arena.name}__{get_name(pair[0])}__{get_name(pair[1])}__r{rounds}__s{simulations}.yaml"
-            with open(f"{output}/{config_name}", "w") as f:
+            with open(output / config_name, "w") as f:
                 yaml.dump(config, f, default_style=None, sort_keys=False)
+
+            # Post-process to remove quotes around include paths
+            with open(output / config_name) as f:
+                content = f.read()
+
+            # Remove quotes around include paths
+            content = content.replace("!include 'mini/", "!include mini/")
+            content = content.replace(".yaml'", ".yaml")
+
+            with open(output / config_name, "w") as f:
+                f.write(content)
 
             tracking_csv.append(
                 f"{config_name},{arena.name},{get_name(pair[0])},{get_name(pair[1])},{rounds},{simulations},"
@@ -101,9 +112,9 @@ def main(models, rounds, simulations, output):
                 + "\n"
             )
 
-    with open(f"{output}/tracking.csv", "w") as f:
+    with open(output / "tracking.csv", "w") as f:
         f.writelines(tracking_csv)
-    print(f"Wrote tracking file to '{output}/tracking.csv'.")
+    print(f"Wrote tracking file to '{output / 'tracking.csv'}'.")
 
     print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
     print(f"- # Models: {len(models)}")
@@ -115,7 +126,7 @@ def main(models, rounds, simulations, output):
     print("\n(Assuming each tournament is run once)")
     print(f"- Total rounds played across all models: {total_rounds}")
     rounds_per_model = total_rounds // len(models)
-    print(f"- Each model: {rounds_per_model}.")
+    print(f"- Each model: {rounds_per_model}")
 
 
 if __name__ == "__main__":
@@ -144,8 +155,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output",
-        type=str,
-        default="configs/main/",
+        type=Path,
+        default=Path("configs/main/"),
         help="Output directory for configuration files (default: main/).",
     )
     args = parser.parse_args()
