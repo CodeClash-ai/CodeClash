@@ -48,9 +48,9 @@ RUN mkdir -p /var/lib/docker /var/run/docker \
 ARG BUILD_TIMESTAMP
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 
-# Entry script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Entry script - replace the existing COPY and ENTRYPOINT lines
+COPY bootstrap.sh /bootstrap.sh
+RUN chmod +x /bootstrap.sh
 
 # Note: Container must be run with --privileged flag for Docker-in-Docker
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bootstrap.sh"]

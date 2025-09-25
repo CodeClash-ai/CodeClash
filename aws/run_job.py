@@ -13,6 +13,8 @@ Usage:
 
 import argparse
 import json
+import shlex
+import subprocess
 import sys
 import time
 from typing import Any
@@ -22,6 +24,18 @@ import boto3
 from codeclash.utils.log import get_logger
 
 logger = get_logger("launch", emoji="🚀")
+
+
+def get_current_git_branch() -> str:
+    """Get the current git branch name."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to get git branch: {e}")
+        raise
 
 
 class AWSBatchJobLauncher:
@@ -54,6 +68,10 @@ class AWSBatchJobLauncher:
             timestamp = int(time.time())
             job_name = f"codeclash-{cmd_name}-{timestamp}"
 
+        # Get current git branch and prepend it to the command
+        current_branch = get_current_git_branch()
+        full_command = [current_branch] + command
+
         # Get the latest job definition
         job_definition_arn = self.get_latest_job_definition_arn()
 
@@ -61,14 +79,15 @@ class AWSBatchJobLauncher:
             jobName=job_name,
             jobQueue=self.job_queue,
             jobDefinition=job_definition_arn,
-            containerOverrides={"command": command},
+            containerOverrides={"command": full_command},
         )
 
         job_id = response["jobId"]
         logger.info("Job submitted successfully!")
         logger.info(f"Job ID: {job_id}")
         logger.info(f"Job Name: {job_name}")
-        logger.info(f"Command: {' '.join(command)}")
+        logger.info(f"Original Command: {shlex.join(command)}")
+        logger.info(f"Full Command (passed to container entrypoint/bootstrap.sh): {shlex.join(full_command)}")
         logger.info(f"To retrieve logs later, run: python get_job_log.py {job_id}")
 
         return job_id
@@ -132,12 +151,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="Submit jobs to AWS Batch",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s -- main.py configs/test/battlesnake_pvp_test.yaml
-  %(prog)s --job-name my-test -- main.py @battlesnake_pvp_test.yaml --suffix test-run
-  %(prog)s --wait --show-logs -- python -m pytest tests/
-        """,
     )
     parser.add_argument("--job-name", help="Custom job name (auto-generated if not specified)")
     parser.add_argument(

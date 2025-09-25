@@ -55,6 +55,7 @@ done
 # Smoke test
 docker run hello-world
 
+# Pull images from ECR so we don't have to build them
 DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $DOCKER_REGISTRY
 
@@ -62,9 +63,6 @@ for game in battlesnake; do
     docker pull $DOCKER_REGISTRY/codeclash/$game
     docker tag $DOCKER_REGISTRY/codeclash/$game codeclash/$game
 done
-
-# Activate venv
-source .venv/bin/activate
 
 # Create logs directory
 mkdir -p logs
