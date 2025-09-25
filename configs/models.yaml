@@ -1,4 +1,4 @@
-- model_name: "anthropic/claude-opus-4-1-20250805"
+- model_name: "anthropic/claude-sonnet-4-20250514"
   model_kwargs:
     temperature: 0.0
 - model_name: "anthropic/claude-3-7-sonnet-20250219"

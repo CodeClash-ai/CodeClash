@@ -1,34 +1,36 @@
 tournament:
   rounds: 15
 game:
-  name: RobotRumble
+  name: BattleSnake
   sims_per_round: 1000
-  args: {}
+  args:
+    width: 11
+    height: 11
+    browser: false
 players:
 - agent: mini
-  name: claude-opus-4-1-20250805
+  name: claude-sonnet-4-20250514
   config:
     agent: !include mini/semi_prescriptive.yaml
     model:
-      model_name: anthropic/claude-opus-4-1-20250805
+      model_name: anthropic/claude-sonnet-4-20250514
       model_kwargs:
         temperature: 0.0
 - agent: mini
-  name: gemini-2.5-pro
+  name: claude-3-7-sonnet-20250219
   config:
     agent: !include mini/semi_prescriptive.yaml
     model:
-      model_name: '@google/gemini-2.5-pro'
-      model_class: portkey
+      model_name: anthropic/claude-3-7-sonnet-20250219
+      model_kwargs:
+        temperature: 0.0
 prompts:
   game_description: 'You are a software developer ({{player_id}}) competing in a coding
-    game called RobotRumble.
+    game called BattleSnake.
 
-    RobotRumble is a turn-based coding battle where you program a team of robots in
-    Python to move, attack, and outmaneuver your opponent on a grid.
+    Your bot (`main.py`) controls a snake on a grid-based board.
 
-    Every decision is driven by your code, and victory comes from crafting logic that
-    positions robots smartly, times attacks well, and adapts over the 100-turn match.
+    Snakes collect food, avoid collisions, and try to outlast their opponents.
 
 
     The game is played in 15 rounds. For every round, you (and your competitors) edit
@@ -37,7 +39,7 @@ prompts:
     After you and your competitor finish editing your codebases, the game is run automatically.
 
 
-    Your task: improve the bot in `robot.py`, located in {{working_dir}}.
+    Your task: improve the bot in `main.py`, located in {{working_dir}}.
 
     {{working_dir}} is your codebase, which contains both your both and supporting
     assets.

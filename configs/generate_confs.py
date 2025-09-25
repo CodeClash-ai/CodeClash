@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 
 import yaml
@@ -63,14 +64,9 @@ def main(models, rounds, simulations, output: Path):
         for j in range(i + 1, len(models)):
             pairs.append((models[i], models[j]))
 
-    # Tracking csv
-    tracking_csv = [
-        "config,arena,player1,player2,rounds,sims_per_round,"
-        + ",".join(f"t{i}" for i in range(1, NUM_TOURNAMENTS + 1))
-        + "\n"
-    ]
-
+    tracking_dict = {}
     for arena in ARENAS:
+        tracking_dict[arena.name] = {}
         for pair in pairs:
             config = {
                 "tournament": {
@@ -106,15 +102,13 @@ def main(models, rounds, simulations, output: Path):
             with open(output / config_name, "w") as f:
                 f.write(content)
 
-            tracking_csv.append(
-                f"{config_name},{arena.name},{get_name(pair[0])},{get_name(pair[1])},{rounds},{simulations},"
-                + ",".join([""] * NUM_TOURNAMENTS)
-                + "\n"
-            )
+            pvp = ".".join(sorted([get_name(pair[0]), get_name(pair[1])]))
+            tracking_key = f"r{rounds}.s{simulations}.p2.{pvp}"
+            tracking_dict[arena.name][tracking_key] = 0
 
-    with open(output / "tracking.csv", "w") as f:
-        f.writelines(tracking_csv)
-    print(f"Wrote tracking file to '{output / 'tracking.csv'}'.")
+    with open(output / "main_tracker.json", "w") as f:
+        json.dump(tracking_dict, f, indent=2)
+    print(f"Wrote tracking file to '{output / 'main_tracker.json'}'.")
 
     print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
     print(f"- # Models: {len(models)}")
