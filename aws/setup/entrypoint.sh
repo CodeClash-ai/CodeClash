@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 set -euo pipefail
 
 echo "📅 Container built at: $BUILD_TIMESTAMP"
@@ -13,6 +14,8 @@ cleanup() {
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
         echo "Syncing logs to S3..."
         aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
+    else
+        echo "No logs to sync"
     fi
     exit $exit_code
 }
@@ -52,15 +55,8 @@ done
 # Smoke test
 docker run hello-world
 
-# Verify all game images are available
-echo "Verifying game Docker images are available..."
-for image in codeclash/battlesnake codeclash/dummygame codeclash/robotrumble codeclash/huskybench; do
-    if docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "$image"; then
-        echo "✅ $image is available"
-    else
-        echo "❌ WARNING: $image is not available"
-    fi
-done
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 039984708918.dkr.ecr.us-east-1.amazonaws.com
+docker pull 039984708918.dkr.ecr.us-east-1.amazonaws.com/codeclash/battlesnake
 
 # Activate venv
 source .venv/bin/activate
