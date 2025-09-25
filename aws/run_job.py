@@ -14,28 +14,24 @@ Usage:
 import argparse
 import json
 import shlex
-import subprocess
 import sys
 import time
 from typing import Any
 
 import boto3
 
+from codeclash.utils.git_utils import get_current_git_branch, has_unpushed_commits, is_git_repo_dirty
 from codeclash.utils.log import get_logger
 
 logger = get_logger("launch", emoji="🚀")
 
 
-def get_current_git_branch() -> str:
-    """Get the current git branch name."""
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to get git branch: {e}")
-        raise
+def check_git_status_and_confirm() -> None:
+    if not is_git_repo_dirty() and not has_unpushed_commits():
+        return
+
+    if input("Git repository dirty/unpushed, continue anyway? (y/N): ").strip().lower() not in ("y", "yes"):
+        sys.exit(1)
 
 
 class AWSBatchJobLauncher:
@@ -168,6 +164,8 @@ def main():
         raise ValueError("No command specified. Use -- to separate AWS args from the command to run.")
 
     args = parser.parse_args(aws_args)
+
+    check_git_status_and_confirm()
 
     launcher = AWSBatchJobLauncher(job_definition_name=args.job_definition, job_queue=args.job_queue)
 
