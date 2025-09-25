@@ -15,6 +15,8 @@ from codeclash.games import get_game
 from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
+from codeclash.utils.atomic_write import atomic_write
+from codeclash.utils.aws import is_running_in_aws_batch, s3_log_sync
 from codeclash.utils.environment import copy_to_container
 
 
@@ -131,7 +133,9 @@ class SinglePlayerTraining(AbstractTournament):
 
     def _save(self) -> None:
         self.local_output_dir.mkdir(parents=True, exist_ok=True)
-        (self.local_output_dir / "metadata.json").write_text(json.dumps(self.get_metadata(), indent=2))
+        atomic_write(self.local_output_dir / "metadata.json", json.dumps(self.get_metadata(), indent=2))
+        if is_running_in_aws_batch():
+            s3_log_sync(self.local_output_dir, logger=self.logger)
 
     def end(self):
         """Clean up game resources."""

@@ -1,0 +1,29 @@
+{
+  "LaunchTemplateName": "kilian-codeclash-launch-template",
+  "LaunchTemplateData": {
+    "BlockDeviceMappings": [
+      {
+        "DeviceName": "/dev/xvda",
+        "Ebs": {
+          "VolumeSize": 30,
+          "VolumeType": "gp3"
+        }
+      }
+    ]
+  },
+  "TagSpecifications": [
+    {
+      "ResourceType": "launch-template",
+      "Tags": [
+        {
+          "Key": "project",
+          "Value": "codeclash"
+        },
+        {
+          "Key": "author",
+          "Value": "kilian"
+        }
+      ]
+    }
+  ]
+}

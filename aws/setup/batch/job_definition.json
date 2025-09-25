@@ -1,0 +1,50 @@
+{
+  "jobDefinitionName": "codeclash-default-job",
+  "jobDefinitionArn": "arn:aws:batch:us-east-1:039984708918:job-definition/codeclash-default-job:1",
+  "revision": 1,
+  "status": "ACTIVE",
+  "type": "container",
+  "parameters": {},
+  "containerProperties": {
+    "image": "039984708918.dkr.ecr.us-east-1.amazonaws.com/codeclash:latest",
+    "command": [
+      "echo",
+      "hello world"
+    ],
+    "jobRoleArn": "arn:aws:iam::039984708918:role/kilian-codeclash-job-role",
+    "executionRoleArn": "arn:aws:iam::039984708918:role/kilian-codeclash-execution-role",
+    "volumes": [],
+    "environment": [],
+    "mountPoints": [],
+    "privileged": true,
+    "ulimits": [],
+    "resourceRequirements": [
+      {
+        "value": "2",
+        "type": "VCPU"
+      },
+      {
+        "value": "8192",
+        "type": "MEMORY"
+      }
+    ],
+    "secrets": [
+      {
+        "name": "GITHUB_TOKEN",
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-github-key-LIkSby:GITHUB_KEY::"
+      },
+      {
+        "name": "OPENAI_API_KEY",
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-github-key-LIkSby:OPENAI_API_KEY::"
+      }
+    ]
+  },
+  "tags": {
+    "project": "codeclash",
+    "author": "kilian"
+  },
+  "platformCapabilities": [
+    "EC2"
+  ],
+  "containerOrchestrationType": "ECS"
+}

@@ -63,10 +63,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="Retrieve logs for AWS Batch jobs",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s abc123-def456-ghi789
-        """,
     )
 
     parser.add_argument("job_id", help="Job ID to retrieve logs for")

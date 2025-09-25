@@ -49,8 +49,8 @@ ARG BUILD_TIMESTAMP
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 
 # Entry script - replace the existing COPY and ENTRYPOINT lines
-COPY bootstrap.sh /bootstrap.sh
-RUN chmod +x /bootstrap.sh
+COPY docker_entrypoint.sh /docker_entrypoint.sh
+RUN chmod +x /docker_entrypoint.sh
 
 # Note: Container must be run with --privileged flag for Docker-in-Docker
-ENTRYPOINT ["/bootstrap.sh"]
+ENTRYPOINT ["/docker_entrypoint.sh"]

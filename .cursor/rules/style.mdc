@@ -21,6 +21,8 @@ alwaysApply: true
 13. Write concise code and thing of elegant solution.
 14. When logging exceptions, always include `exc_info=True` to capture the full traceback.
 15. Command line arguments should be parsed with `argparse`.
+16. Generally prefer to use keyword arguments over positional arguments. If there are somewhat specific optional arguments, mark them as keyword-only.
+17. Use logger instead of print statements.
 
 ## Test style
 

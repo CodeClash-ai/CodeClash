@@ -1113,8 +1113,8 @@ summary:focus {
   color: var(--text-secondary) !important;
 }
 
-/* Copy path buttons */
-.folder-path-section {
+/* Storage Section */
+.storage-section {
   margin-bottom: 2rem;
   padding: 1rem;
   background: var(--bg-secondary);
@@ -1122,18 +1122,40 @@ summary:focus {
   border: 1px solid var(--border-color);
 }
 
-.folder-path-container h3 {
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.1rem;
-}
-
-/* Dark mode high contrast fix for folder path header */
-.folder-path-container h3 {
+.storage-container h3 {
+  margin: 0 0 1rem 0;
   color: #ffffff;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
+.storage-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.storage-item:last-child {
+  margin-bottom: 0;
+}
+
+.storage-label {
+  flex-shrink: 0;
+  min-width: 120px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.storage-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Keep existing path-display styles for backward compatibility */
 .path-display {
   display: flex;
   align-items: center;

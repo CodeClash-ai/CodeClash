@@ -11,6 +11,7 @@ from codeclash.agents.utils import GameContext
 from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
 from codeclash.tournaments.utils.git_utils import filter_git_diff
+from codeclash.utils.atomic_write import atomic_write
 from codeclash.utils.log import add_file_handler, get_logger
 
 # todo: add visualization code
@@ -90,11 +91,7 @@ class PvPMatrixEvaluator:
     def _save(self):
         """Save metadata to matrix.json."""
         with self._save_lock:
-            # let's make this high stakes write atomic, because else if you run out of disk space,
-            # you'll lose all progress
-            tmp_file = self.output_file.with_suffix(".tmp")
-            tmp_file.write_text(json.dumps(self._metadata, indent=2))
-            tmp_file.rename(self.output_file)
+            atomic_write(self.output_file, json.dumps(self._metadata, indent=2))
 
     def _load_existing_progress(self):
         """Load existing progress from matrix.json if it exists."""
