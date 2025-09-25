@@ -44,50 +44,10 @@ RUN mkdir -p /var/lib/docker /var/run/docker \
     && mkdir -p /etc/docker \
     && echo '{"storage-driver": "vfs", "iptables": false, "ip-masq": false, "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
 
-# Start Docker daemon temporarily to build game images
-RUN echo "Starting Docker daemon for image building..." && \
-    dockerd --config-file=/etc/docker/daemon.json > /var/log/dockerd-build.log 2>&1 & \
-    DOCKERD_PID=$! && \
-    echo "Docker daemon PID: $DOCKERD_PID" && \
-    # Wait for Docker daemon to be ready with better error detection
-    for i in {1..60}; do \
-        echo "Attempt $i/60: Checking Docker daemon status..." && \
-        if docker info >/dev/null 2>&1; then \
-            echo "✅ Docker daemon is ready for building images!"; \
-            break; \
-        fi; \
-        if ! kill -0 $DOCKERD_PID 2>/dev/null; then \
-            echo "❌ ERROR: Docker daemon process died. Log contents:"; \
-            cat /var/log/dockerd-build.log; \
-            exit 1; \
-        fi; \
-        if [ $i -eq 60 ]; then \
-            echo "❌ ERROR: Docker daemon failed to start after 60 seconds. Log contents:"; \
-            cat /var/log/dockerd-build.log; \
-            exit 1; \
-        fi; \
-        sleep 1; \
-    done && \
-    # Build all game-specific Docker images
-    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/battlesnake -f ../docker/BattleSnake.Dockerfile . && \
-    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/dummygame -f ../docker/DummyGame.Dockerfile . && \
-    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/robotrumble -f ../docker/RobotRumble.Dockerfile . && \
-    docker build --no-cache --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} -t codeclash/huskybench -f ../docker/HuskyBench.Dockerfile . && \
-    # Stop the Docker daemon gracefully
-    echo "Stopping Docker daemon..." && \
-    kill $DOCKERD_PID && \
-    # Wait for daemon to stop properly
-    for i in {1..10}; do \
-        if ! kill -0 $DOCKERD_PID 2>/dev/null; then \
-            echo "✅ Docker daemon stopped successfully"; \
-            break; \
-        fi; \
-        if [ $i -eq 10 ]; then \
-            echo "⚠️  Force killing Docker daemon"; \
-            kill -9 $DOCKERD_PID || true; \
-        fi; \
-        sleep 1; \
-    done
+# Copy and run the Docker image building script
+COPY build_children_docker_files.sh /build_children_docker_files.sh
+RUN chmod +x /build_children_docker_files.sh && \
+    /build_children_docker_files.sh
 
 # Set build timestamp as environment variable
 ARG BUILD_TIMESTAMP
