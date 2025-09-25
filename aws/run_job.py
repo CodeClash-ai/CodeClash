@@ -139,8 +139,6 @@ Examples:
   %(prog)s --wait --show-logs -- python -m pytest tests/
         """,
     )
-
-    # AWS Batch specific arguments
     parser.add_argument("--job-name", help="Custom job name (auto-generated if not specified)")
     parser.add_argument(
         "--job-definition", default="codeclash-yolo-test", help="Job definition name (default: codeclash-yolo-test)"
@@ -148,18 +146,18 @@ Examples:
     parser.add_argument(
         "--job-queue", default="codeclash-test-queue", help="Job queue name (default: codeclash-test-queue)"
     )
-
-    # Job monitoring arguments
     parser.add_argument("--wait", action="store_true", help="Wait for the job to complete before exiting")
     parser.add_argument("--show-logs", action="store_true", help="Show job logs after completion (implies --wait)")
 
-    # Parse known args to handle the -- separator
-    args, command = parser.parse_known_args()
+    if "--" in sys.argv:
+        separator_index = sys.argv.index("--")
+        aws_args = sys.argv[1:separator_index]
+        command = sys.argv[separator_index + 1 :]
+    else:
+        raise ValueError("No command specified. Use -- to separate AWS args from the command to run.")
 
-    if not command:
-        parser.error("No command specified. Use -- to separate AWS args from the command to run.")
+    args = parser.parse_args(aws_args)
 
-    # Create launcher
     launcher = AWSBatchJobLauncher(job_definition_name=args.job_definition, job_queue=args.job_queue)
 
     # Submit the job
