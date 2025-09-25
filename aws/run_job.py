@@ -114,17 +114,17 @@ class AWSBatchJobLauncher:
         latest_attempt = attempts[-1]
         container_info = latest_attempt.get("container", {})
         log_stream_name = container_info.get("logStreamName")
+        logger.debug(f"Log stream name: {log_stream_name}")
 
         if not log_stream_name:
             logger.warning("No log stream found for this job")
             return None
 
-        # Extract log group name from the log stream name
-        # Format is typically: <log-group>/<stream-name>
-        log_group_name = log_stream_name.split("/")[0]
+        # AWS Batch logs are typically in the /aws/batch/job log group
+        log_group_name = "/aws/batch/job"
+        logger.debug(f"Log group name: {log_group_name}")
 
         response = self.logs_client.get_log_events(logGroupName=log_group_name, logStreamName=log_stream_name)
-
         return "\n".join(event["message"] for event in response["events"])
 
 
