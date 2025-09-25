@@ -32,7 +32,8 @@
     ],
     "instanceRole": "arn:aws:iam::039984708918:instance-profile/kilian-codeclash-ecsInstanceRole",
     "launchTemplate": {
-      "launchTemplateName": "kilian-codeclash-launch-template"
+      "launchTemplateName": "kilian-codeclash-launch-template",
+      "version": "$Latest"
     },
     "ec2Configuration": [
       {
