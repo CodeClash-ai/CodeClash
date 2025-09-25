@@ -4,7 +4,7 @@
   "ecsClusterArn": "arn:aws:ecs:us-east-1:039984708918:cluster/AWSBatch-codeclash-batch-test-1561352c-9234-3de1-999a-dcd1c9989b32",
   "tags": {},
   "type": "MANAGED",
-  "state": "DISABLED",
+  "state": "ENABLED",
   "status": "VALID",
   "statusReason": "ComputeEnvironment Healthy",
   "computeResources": {

@@ -11,8 +11,6 @@
       "computeEnvironment": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch-test"
     }
   ],
-  "serviceEnvironmentOrder": [],
-  "jobQueueType": "ECS",
   "tags": {},
   "jobStateTimeLimitActions": []
 }

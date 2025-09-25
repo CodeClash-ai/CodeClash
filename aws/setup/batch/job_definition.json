@@ -1,5 +1,10 @@
 {
-  "containerOrchestrationType": "ECS",
+  "jobDefinitionName": "codeclash-yolo-test",
+  "jobDefinitionArn": "arn:aws:batch:us-east-1:039984708918:job-definition/codeclash-yolo-test:9",
+  "revision": 9,
+  "status": "ACTIVE",
+  "type": "container",
+  "parameters": {},
   "containerProperties": {
     "image": "039984708918.dkr.ecr.us-east-1.amazonaws.com/codeclash:latest",
     "command": [
@@ -34,14 +39,9 @@
       }
     ]
   },
-  "jobDefinitionArn": "arn:aws:batch:us-east-1:039984708918:job-definition/codeclash-yolo-test:9",
-  "jobDefinitionName": "codeclash-yolo-test",
-  "parameters": {},
+  "tags": {},
   "platformCapabilities": [
     "EC2"
   ],
-  "revision": 9,
-  "status": "ACTIVE",
-  "tags": {},
-  "type": "container"
+  "containerOrchestrationType": "ECS"
 }

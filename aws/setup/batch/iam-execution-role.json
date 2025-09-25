@@ -1,28 +1,28 @@
 {
-    "Role": {
-        "Path": "/",
-        "RoleName": "kilian-codeclash-execution-role",
-        "RoleId": "AROAQST2GHU3FIDU7YRBJ",
-        "Arn": "arn:aws:iam::039984708918:role/kilian-codeclash-execution-role",
-        "CreateDate": "2025-09-24T17:49:33+00:00",
-        "AssumeRolePolicyDocument": {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "",
-                    "Effect": "Allow",
-                    "Principal": {
-                        "Service": "ecs-tasks.amazonaws.com"
-                    },
-                    "Action": "sts:AssumeRole"
-                }
-            ]
-        },
-        "Description": "Allows ECS tasks to call AWS services on your behalf.",
-        "MaxSessionDuration": 3600,
-        "RoleLastUsed": {
-            "LastUsedDate": "2025-09-25T03:17:46+00:00",
-            "Region": "us-east-1"
+  "Role": {
+    "Path": "/",
+    "RoleName": "kilian-codeclash-execution-role",
+    "RoleId": "AROAQST2GHU3FIDU7YRBJ",
+    "Arn": "arn:aws:iam::039984708918:role/kilian-codeclash-execution-role",
+    "CreateDate": "2025-09-24 17:49:33+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "",
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ecs-tasks.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
         }
+      ]
+    },
+    "Description": "Allows ECS tasks to call AWS services on your behalf.",
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2025-09-25 19:02:55+00:00",
+      "Region": "us-east-1"
     }
+  }
 }
