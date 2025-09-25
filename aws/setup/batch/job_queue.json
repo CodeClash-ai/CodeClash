@@ -8,9 +8,12 @@
   "computeEnvironmentOrder": [
     {
       "order": 1,
-      "computeEnvironment": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch-test"
+      "computeEnvironment": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch"
     }
   ],
-  "tags": {},
+  "tags": {
+    "project": "codeclash",
+    "author": "kilian"
+  },
   "jobStateTimeLimitActions": []
 }

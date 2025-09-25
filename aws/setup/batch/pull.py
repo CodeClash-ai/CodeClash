@@ -73,7 +73,7 @@ def pull_file(json_path: Path, region: str) -> None:
             data = pull_iam_role("kilian-codeclash-job-role", boto3.client("iam", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=True)
         case "environment.json":
-            data = pull_compute_environment("codeclash-batch-test", boto3.client("batch", region_name=region))
+            data = pull_compute_environment("codeclash-batch", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "job_queue.json":
             data = pull_job_queue("codeclash-queue", boto3.client("batch", region_name=region))

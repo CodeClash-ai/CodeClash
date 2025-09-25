@@ -20,6 +20,16 @@
     },
     "Description": "These are all the policies for the running job. Don't confuse with execution role. ",
     "MaxSessionDuration": 3600,
+    "Tags": [
+      {
+        "Key": "project",
+        "Value": "codeclash"
+      },
+      {
+        "Key": "author",
+        "Value": "kilian"
+      }
+    ],
     "RoleLastUsed": {
       "LastUsedDate": "2025-09-25 19:02:58+00:00",
       "Region": "us-east-1"

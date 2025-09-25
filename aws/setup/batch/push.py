@@ -13,6 +13,29 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
+def _update_batch_resource_tags(resource_type: str, resource_name: str, tags: dict, batch_client: Any) -> None:
+    if not tags:
+        return
+
+    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    region = batch_client.meta.region_name
+    resource_arn = f"arn:aws:batch:{region}:{account_id}:{resource_type}/{resource_name}"
+
+    batch_client.tag_resource(resourceArn=resource_arn, tags=tags)
+
+
+def _update_iam_role_tags(role_name: str, tags: list, iam_client: Any) -> None:
+    if not tags:
+        return
+
+    existing_tags = iam_client.list_role_tags(RoleName=role_name)["Tags"]
+    if existing_tags:
+        tag_keys = [tag["Key"] for tag in existing_tags]
+        iam_client.untag_role(RoleName=role_name, TagKeys=tag_keys)
+
+    iam_client.tag_role(RoleName=role_name, Tags=tags)
+
+
 def _update_iam_role(role: dict, iam_client: Any) -> None:
     """Update existing IAM role."""
     role_name = role["RoleName"]
@@ -23,18 +46,24 @@ def _update_iam_role(role: dict, iam_client: Any) -> None:
     if "Description" in role:
         iam_client.update_role_description(RoleName=role_name, Description=role["Description"])
 
+    _update_iam_role_tags(role_name, role.get("Tags"), iam_client)
+
 
 def _create_iam_role(role: dict, iam_client: Any) -> None:
     """Create new IAM role."""
     role_name = role["RoleName"]
     logger.info(f"Creating new IAM role: {role_name}")
-    iam_client.create_role(
-        RoleName=role_name,
-        AssumeRolePolicyDocument=json.dumps(role["AssumeRolePolicyDocument"]),
-        Description=role.get("Description", ""),
-        Path=role.get("Path", "/"),
-        MaxSessionDuration=role.get("MaxSessionDuration", 3600),
-    )
+    create_params = {
+        "RoleName": role_name,
+        "AssumeRolePolicyDocument": json.dumps(role["AssumeRolePolicyDocument"]),
+        "Description": role.get("Description", ""),
+        "Path": role.get("Path", "/"),
+        "MaxSessionDuration": role.get("MaxSessionDuration", 3600),
+    }
+    if "Tags" in role:
+        create_params["Tags"] = role["Tags"]
+
+    iam_client.create_role(**create_params)
 
 
 def push_iam_role(role_data: dict, iam_client: Any) -> None:
@@ -83,6 +112,8 @@ def _create_compute_environment(env_data: dict, batch_client) -> None:
         create_params["computeResources"] = env_data["computeResources"]
     if "serviceRole" in env_data:
         create_params["serviceRole"] = env_data["serviceRole"]
+    if "tags" in env_data:
+        create_params["tags"] = env_data["tags"]
 
     batch_client.create_compute_environment(**create_params)
 
@@ -95,6 +126,7 @@ def push_compute_environment(env_data: dict, batch_client) -> None:
 
     if response["computeEnvironments"]:
         _update_compute_environment(env_data, batch_client)
+        _update_batch_resource_tags("compute-environment", env_name, env_data.get("tags"), batch_client)
     else:
         _create_compute_environment(env_data, batch_client)
 
@@ -115,14 +147,19 @@ def push_job_queue(queue_data: dict, batch_client) -> None:
             priority=queue_data.get("priority", 1),
             computeEnvironmentOrder=queue_data.get("computeEnvironmentOrder", []),
         )
+        _update_batch_resource_tags("job-queue", queue_name, queue_data.get("tags"), batch_client)
     else:
         logger.info(f"Creating new job queue: {queue_name}")
-        batch_client.create_job_queue(
-            jobQueueName=queue_name,
-            state=queue_data.get("state", "ENABLED"),
-            priority=queue_data.get("priority", 1),
-            computeEnvironmentOrder=queue_data.get("computeEnvironmentOrder", []),
-        )
+        create_params = {
+            "jobQueueName": queue_name,
+            "state": queue_data.get("state", "ENABLED"),
+            "priority": queue_data.get("priority", 1),
+            "computeEnvironmentOrder": queue_data.get("computeEnvironmentOrder", []),
+        }
+        if "tags" in queue_data:
+            create_params["tags"] = queue_data["tags"]
+
+        batch_client.create_job_queue(**create_params)
 
     logger.info(f"✅ Successfully pushed job queue: {queue_name}")
 
@@ -174,6 +211,8 @@ def main():
     parser = argparse.ArgumentParser(description="Push AWS resources from JSON files")
     parser.add_argument("json_files", nargs="+", help="Path(s) to JSON file(s) containing resource definitions")
     parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
+
+    logger.info("Note: You need to wait a minute before updating job queue after you have pushed the environment.")
 
     args = parser.parse_args()
 

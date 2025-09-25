@@ -1,8 +1,11 @@
 {
-  "computeEnvironmentName": "codeclash-batch-test",
-  "computeEnvironmentArn": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch-test",
-  "ecsClusterArn": "arn:aws:ecs:us-east-1:039984708918:cluster/AWSBatch-codeclash-batch-test-1561352c-9234-3de1-999a-dcd1c9989b32",
-  "tags": {},
+  "computeEnvironmentName": "codeclash-batch",
+  "computeEnvironmentArn": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch",
+  "ecsClusterArn": "arn:aws:ecs:us-east-1:039984708918:cluster/AWSBatch-codeclash-batch-1561352c-9234-3de1-999a-dcd1c9989b32",
+  "tags": {
+    "project": "codeclash",
+    "author": "kilian"
+  },
   "type": "MANAGED",
   "state": "ENABLED",
   "status": "VALID",
@@ -28,7 +31,6 @@
       "sg-014723b4566a8214d"
     ],
     "instanceRole": "arn:aws:iam::039984708918:instance-profile/kilian-codeclash-ecsInstanceRole",
-    "tags": {},
     "ec2Configuration": [
       {
         "imageType": "ECS_AL2"

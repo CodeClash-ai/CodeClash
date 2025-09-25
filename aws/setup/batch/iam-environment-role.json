@@ -19,6 +19,16 @@
     },
     "Description": "Allows EC2 instances to call AWS services on your behalf.",
     "MaxSessionDuration": 3600,
+    "Tags": [
+      {
+        "Key": "project",
+        "Value": "codeclash"
+      },
+      {
+        "Key": "author",
+        "Value": "kilian"
+      }
+    ],
     "RoleLastUsed": {
       "LastUsedDate": "2025-09-25 19:28:45+00:00",
       "Region": "us-east-1"
