@@ -82,9 +82,6 @@
             <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
                 <i class="bi bi-clipboard"></i> Copy path
             </button>
-            <button class="download-btn-small" data-path="{{ metadata.main_log_path }}" title="Download file">
-                <i class="bi bi-download"></i> Download
-            </button>
             {% endif %}
         </summary>
         <div class="log-content-container">
@@ -102,9 +99,6 @@
                     {% if log_data.path %}
                     <button class="copy-path-btn-small" data-path="{{ log_data.path }}" title="Copy file path">
                         <i class="bi bi-clipboard"></i> Copy path
-                    </button>
-                    <button class="download-btn-small" data-path="{{ log_data.path }}" title="Download file">
-                        <i class="bi bi-download"></i> Download
                     </button>
                     {% endif %}
                 </summary>

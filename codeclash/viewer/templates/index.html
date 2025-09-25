@@ -84,8 +84,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Setup copy buttons
             setupCopyButtons();
-            // Setup download buttons
-            setupDownloadButtons();
             // Setup readme autosave (only if not in static mode)
             {% if not is_static %}
             setupReadmeAutosave();
