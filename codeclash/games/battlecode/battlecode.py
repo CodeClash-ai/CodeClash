@@ -11,12 +11,18 @@ BC_TIE = "Reason: The winning team won arbitrarily (coin flip)."
 
 class BattleCodeGame(CodeGame):
     name: str = "BattleCode"
+    description: str = """Battlecode 25 throws you into a real-time strategy showdown where your Python bot pilots a team of specialized robots—Soldiers, Moppers, Splashers—alongside towers that spawn units or generate resources.
+Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating cleanups, area cover, and tower-building through tight bytecode budgets and clever unit synergy."""
+    default_args: dict = {
+        "maps": "quack",
+    }
+    submission: str = "src/mysubmission"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         assert len(config["players"]) == 2, "BattleCode is a two-player game"
         self.run_cmd_round: str = "python run.py run"
-        for arg, val in self.game_config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" --{arg}"

@@ -60,6 +60,9 @@ class RoundStats:
 
 class CodeGame(ABC):
     name: str
+    description: str
+    default_args: dict = {}
+    submission: str
 
     def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path, keep_containers: bool = False):
         """The CodeGame class is responsible for running games, i.e., taking a list of code

@@ -12,6 +12,9 @@ from codeclash.games.game import CodeGame, RoundStats
 
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
+    description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
+Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match."""
+    submission: str = "robot.py"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
@@ -20,7 +23,7 @@ class RobotRumbleGame(CodeGame):
 
     def _run_single_simulation(self, agents: list[Player], idx: int) -> str:
         """Run a single robotrumble simulation and return the output."""
-        args = [f"/{agent.name}/robot.py" for agent in agents]
+        args = [f"/{agent.name}/{self.submission}" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)} > {self.log_env / f'sim_{idx}.txt'}"
 
         # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
@@ -92,15 +95,15 @@ class RobotRumbleGame(CodeGame):
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if "robot.py" not in agent.environment.execute("ls")["output"]:
-            return False, "There should be a `robot.py` file"
-        if "def robot(state, unit):" not in agent.environment.execute("cat robot.py")["output"]:
+        if self.submission not in agent.environment.execute("ls")["output"]:
+            return False, f"There should be a `{self.submission}` file"
+        if "def robot(state, unit):" not in agent.environment.execute(f"cat {self.submission}")["output"]:
             return (
                 False,
-                "robot.py does not contain the required robot function. It should be defined as 'def robot(state, unit): ...'",
+                f"{self.submission} does not contain the required robot function. It should be defined as 'def robot(state, unit): ...'",
             )
-        test_run_cmd = f"{self.run_cmd_round} robot.py robot.py -t 1"
+        test_run_cmd = f"{self.run_cmd_round} {self.submission} {self.submission} -t 1"
         test_run = agent.environment.execute(test_run_cmd)["output"]
         if "Some errors occurred:" in test_run:
-            return False, f"Running robot.py (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
+            return False, f"Running {self.submission} (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
         return True, None

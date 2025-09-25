@@ -9,9 +9,11 @@ DUMMY_LOG = "result.log"
 
 class DummyGame(CodeGame):
     name: str = "DummyGame"
+    description: str = """WARNING: This is a dummy game meant for testing the CodeClash infrastructure. It does not represent a real game."""
+    submission: str = "main.py"
 
     def execute_round(self, agents: list[Player]) -> None:
-        args = [f"/{agent.name}/main.py" for agent in agents]
+        args = [f"/{agent.name}/{self.submission}" for agent in agents]
         cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / DUMMY_LOG};"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))

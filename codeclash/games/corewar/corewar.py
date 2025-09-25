@@ -10,11 +10,14 @@ COREWAR_FILE = "warrior.red"
 
 class CoreWarGame(CodeGame):
     name: str = "CoreWar"
+    description: str = """CoreWar is a programming battle where you write "warriors" in an assembly-like language called Redcode to compete within a virtual machine (MARS), aiming to eliminate your rivals by making their code self-terminate.
+Victory comes from crafting clever tactics—replicators, scanners, bombers—that exploit memory layout and instruction timing to control the core."""
+    submission: str = f"warriors/{COREWAR_FILE}"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.run_cmd_round: str = "./src/pmars"
-        for arg, val in self.game_config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" -{arg}"

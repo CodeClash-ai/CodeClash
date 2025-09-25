@@ -12,6 +12,9 @@ HB_SCRIPT = "run_game.sh"
 
 class HuskyBenchGame(CodeGame):
     name: str = "HuskyBench"
+    description: str = """In this game, you will write code to control a poker-playing bot, aiming to outsmart your opponents and win chips.
+Victory comes from crafting clever strategies—bluffing, reading opponents, and managing your chip stack effectively."""
+    submission: str = "client/player.py"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
@@ -20,7 +23,7 @@ class HuskyBenchGame(CodeGame):
             f"python engine/main.py --port {HB_PORT} --players {self.num_players} "
             f"--sim --sim-rounds {self.game_config['sims_per_round']}"
         )
-        for arg, val in self.game_config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" --{arg}"

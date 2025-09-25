@@ -12,11 +12,18 @@ RC_FILE = Path("MyTank.java")
 
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
+    description: str = """Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
+Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots."""
+    default_args: dict = {
+        "nodisplay": True,
+        "nosound": True,
+    }
+    submission: str = "robots/custom/"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.run_cmd_round: str = "./robocode.sh"
-        for arg, val in self.game_config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" -{arg}"

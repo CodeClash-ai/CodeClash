@@ -13,11 +13,19 @@ from codeclash.games.game import CodeGame, RoundStats
 
 class BattleSnakeGame(CodeGame):
     name: str = "BattleSnake"
+    submission: str = "main.py"
+    description: str = """Your bot (`main.py`) controls a snake on a grid-based board.
+Snakes collect food, avoid collisions, and try to outlast their opponents."""
+    default_args: dict = {
+        "width": 11,
+        "height": 11,
+        "browser": False,
+    }
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.run_cmd_round: str = "./battlesnake play"
-        for arg, val in self.game_config.get("args", {}).items():
+        for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
                     self.run_cmd_round += f" --{arg}"
@@ -85,7 +93,7 @@ class BattleSnakeGame(CodeGame):
             player2port[agent.name] = port
             # Surprisingly slow despite using &
             # Start server in background - just add & to run in background!
-            self.environment.execute(f"PORT={port} python main.py &", cwd=f"/{agent.name}")
+            self.environment.execute(f"PORT={port} python {self.submission} &", cwd=f"/{agent.name}")
 
         self.logger.debug(f"Waiting for ports: {player2port}")
         available_ports = self._wait_for_ports(list(player2port.values()))
@@ -121,7 +129,7 @@ class BattleSnakeGame(CodeGame):
                     future.result()
         finally:
             # Kill all python servers when done
-            self.environment.execute("pkill -f 'python main.py' || true")
+            self.environment.execute(f"pkill -f 'python {self.submission}' || true")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         scores = {}
@@ -154,10 +162,10 @@ class BattleSnakeGame(CodeGame):
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if "main.py" not in agent.environment.execute("ls")["output"]:
-            return False, "No main.py file found in the root directory"
+        if self.submission not in agent.environment.execute("ls")["output"]:
+            return False, f"No {self.submission} file found in the root directory"
         # note: no longer calling splitlines
-        bot_content = agent.environment.execute("cat main.py")["output"]
+        bot_content = agent.environment.execute(f"cat {self.submission}")["output"]
         error_msg = []
         for func in [
             "def info(",
@@ -166,7 +174,7 @@ class BattleSnakeGame(CodeGame):
             "def move(",
         ]:
             if func not in bot_content:
-                error_msg.append(f"There should be a `{func}` function implemented in `main.py`")
+                error_msg.append(f"There should be a `{func}` function implemented in `{self.submission}`")
         if len(error_msg) > 0:
             return False, "\n".join(error_msg + ["Don't change the function signatures!"])
         return True, None
