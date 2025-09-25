@@ -77,9 +77,7 @@ def main():
     logs_dir = Path(args.logs_dir).resolve()
     output_dir = Path(args.output_dir).resolve()
 
-    if not logs_dir.exists():
-        print(f"Error: Logs directory '{logs_dir}' does not exist")
-        return 1
+    assert logs_dir.exists()
 
     # Set the logs directory for the app
     set_log_base_directory(logs_dir)
@@ -99,22 +97,16 @@ def main():
     freezer = setup_freezer(str(output_dir))
 
     # Generate static site
-    try:
-        print("Freezing Flask application...")
-        freezer.freeze()
+    print("Freezing Flask application...")
+    freezer.freeze()
 
-        # Post-process: Add .html extensions to files that don't have them
-        print("Post-processing: Adding .html extensions...")
-        _add_html_extensions(output_dir)
+    # Post-process: Add .html extensions to files that don't have them
+    print("Post-processing: Adding .html extensions...")
+    _add_html_extensions(output_dir)
 
-        print(f"✅ Static site generated successfully in: {output_dir}")
-        print(f"📁 Open {output_dir}/index.html in your browser to view the static site")
-        print(f"💡 For best results, serve via HTTP server: cd {output_dir} && python -m http.server 8000")
-
-        return 0
-    except Exception as e:
-        print(f"❌ Error generating static site: {e}")
-        return 1
+    print(f"✅ Static site generated successfully in: {output_dir}")
+    print(f"📁 Open {output_dir}/index.html in your browser to view the static site")
+    print(f"💡 For best results, serve via HTTP server: cd {output_dir} && python -m http.server 8000")
 
 
 def _add_html_extensions(build_dir: Path):
