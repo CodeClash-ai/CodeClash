@@ -106,9 +106,9 @@ def main(models, rounds, simulations, output: Path):
             tracking_key = f"r{rounds}.s{simulations}.p2.{pvp}"
             tracking_dict[arena.name][tracking_key] = 0
 
-    with open(output / "main_tracker.json", "w") as f:
+    with open("configs/scripts/main_tracker.json", "w") as f:
         json.dump(tracking_dict, f, indent=2)
-    print(f"Wrote tracking file to '{output / 'main_tracker.json'}'.")
+    print("Wrote tracking file to 'configs/scripts/main_tracker.json'.")
 
     print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
     print(f"- # Models: {len(models)}")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         "-m",
         "--models",
         type=str,
-        default="configs/models.yaml",
+        default="configs/scripts/models.yaml",
         help="Path to model configurations.",
     )
     parser.add_argument(
