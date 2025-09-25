@@ -1,0 +1,16 @@
+game:
+  name: BattleSnake
+  sims_per_round: 1000
+  args:
+    width: 11
+    height: 11
+    browser: false
+tournament:
+  rounds: 1
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2
+prompts:
+  game_description: ""
