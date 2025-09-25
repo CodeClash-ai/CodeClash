@@ -86,6 +86,18 @@ def main(models, rounds, simulations, output):
             with open(f"{output}/{config_name}", "w") as f:
                 yaml.dump(config, f, default_style=None, sort_keys=False)
 
+    print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
+    print(f"- # Models: {len(models)}")
+    print(f"- # Arenas: {len(ARENAS)}")
+    print(f"- r (rounds) {rounds}")
+    print(f"- s (sims_per_round) {simulations}")
+    total_rounds = (len(models) * (len(models) - 1) // 2) * rounds * len(ARENAS)
+
+    print("\n(Assuming each tournament is run once)")
+    print(f"- Total rounds played across all models: {total_rounds}")
+    rounds_per_model = total_rounds // len(models)
+    print(f"- Each model: {rounds_per_model}.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate configuration files.")
