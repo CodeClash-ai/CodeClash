@@ -376,7 +376,7 @@ The application has two main pages:
   - **game.log**: Game-specific logging
   - **everything.log**: Combined comprehensive logging
   - **players/p1/player.log, players/p2/player.log**: Individual player logs for each player
-  - Each log foldout includes a "Copy path" button and has its own scroll container with max-height of 500px for large logs
+  - Each log foldout includes "Copy path" and "Download" buttons and has its own scroll container with max-height of 500px for large logs
   - Logs are displayed in a dedicated section with proper styling and scrollbars
 
 #### Analysis Section
@@ -480,6 +480,31 @@ The trajectory template displays:
 **Message Role Badges**: Each message displays a small role badge (e.g., "User #1", "Assistant #2") in the top-right corner. These badges automatically hide on hover over the message block to improve readability and allow users to see text that might be obscured by the badge.
 
 **Content Preview**: Long message content (>5 lines) shows a preview with expand/collapse functionality to keep the interface manageable.
+
+## Download Functionality
+
+The trajectory viewer provides download capabilities for all files that have "Copy path" buttons (except the current folder path):
+
+### Download Locations
+
+* **Tournament and Game Logs**: All log files in the Overview section (tournament.log, game.log, everything.log, player logs)
+* **Metadata Files**: The metadata.json file in the Setup section
+* **Trajectory Files**: Individual trajectory files (.traj.json) in the Rounds section
+
+### Implementation Details
+
+* **Download Buttons**: Each "Copy path" button (except current folder) is accompanied by a "Download" button with a download icon
+* **Server Endpoint**: `GET /download-file?path=<file_path>` serves files with proper security checks
+* **Security**: Files must exist within the logs directory, be actual files (not directories), and be accessible
+* **File Naming**: Downloaded files retain their original names
+* **JavaScript**: Download functionality is handled by `downloadFile()` function in `clipboard.js`
+* **User Feedback**: Download buttons show success/error states similar to copy buttons
+
+### Button Styling
+
+* **Download buttons** use the same styling as copy buttons but with download icon (`bi-download`)
+* **Button classes**: `.download-btn` and `.download-btn-small` for consistent styling
+* **Placement**: Download buttons appear immediately after their corresponding copy path buttons
 
 ## Multi-Select Actions Specification
 
