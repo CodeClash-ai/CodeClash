@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import json
 import sys
 import time
 from typing import Any
@@ -41,6 +42,7 @@ class AWSBatchJobLauncher:
 
         # Find the job definition with the highest revision number
         latest_job_def = max(response["jobDefinitions"], key=lambda x: x["revision"])
+        logger.debug(f"Latest job definition:\n{json.dumps(latest_job_def, indent=2, default=str)}")
         return latest_job_def["jobDefinitionArn"]
 
     def submit_job(self, command: list[str], job_name: str | None = None) -> str:
@@ -48,6 +50,7 @@ class AWSBatchJobLauncher:
         if job_name is None:
             # Generate a job name based on command and timestamp
             cmd_name = command[0] if command else "job"
+            cmd_name = "".join(letter.lower() for letter in cmd_name if letter.isalpha())
             timestamp = int(time.time())
             job_name = f"codeclash-{cmd_name}-{timestamp}"
 
@@ -62,10 +65,11 @@ class AWSBatchJobLauncher:
         )
 
         job_id = response["jobId"]
-        print("Job submitted successfully!")
-        print(f"Job ID: {job_id}")
-        print(f"Job Name: {job_name}")
-        print(f"Command: {' '.join(command)}")
+        logger.info("Job submitted successfully!")
+        logger.info(f"Job ID: {job_id}")
+        logger.info(f"Job Name: {job_name}")
+        logger.info(f"Command: {' '.join(command)}")
+        logger.info(f"To retrieve logs later, run: python get_job_log.py {job_id}")
 
         return job_id
 
@@ -79,20 +83,20 @@ class AWSBatchJobLauncher:
 
     def wait_for_job(self, job_id: str, check_interval: int = 30) -> bool:
         """Wait for a job to complete and return success status."""
-        print(f"Waiting for job {job_id} to complete...")
+        logger.info(f"Waiting for job {job_id} to complete...")
 
         while True:
             job_info = self.get_job_status(job_id)
             status = job_info["status"]
-            print(f"Job status: {status}")
+            logger.info(f"Job status: {status}")
 
             if status in ["SUCCEEDED", "FAILED"]:
                 if status == "SUCCEEDED":
-                    print("Job completed successfully!")
+                    logger.info("Job completed successfully!")
                     return True
                 else:
-                    print("Job failed!")
-                    print(f"Status reason: {job_info.get('statusReason', 'Unknown')}")
+                    logger.error("Job failed!")
+                    logger.error(f"Status reason: {job_info.get('statusReason', 'Unknown')}")
                     return False
 
             time.sleep(check_interval)
@@ -166,9 +170,9 @@ Examples:
         success = launcher.wait_for_job(job_id)
 
         if args.show_logs:
-            logger.info("\n" + "=" * 50)
-            logger.info("JOB LOGS")
-            logger.info("=" * 50)
+            print("\n" + "=" * 50)
+            print("JOB LOGS")
+            print("=" * 50)
             logs = launcher.get_job_logs(job_id)
             if logs:
                 print(logs)  # Print raw logs without logger formatting
