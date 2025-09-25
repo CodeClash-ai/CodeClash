@@ -18,6 +18,7 @@ two AI agent in a round-based game against each other.
 * **NEVER use inline JavaScript in HTML templates** - all JavaScript must be in separate .js files in the static/js directory
 * Organize JavaScript into logical modules: clipboard.js, experiment.js, readme.js, json-editors.js, etc.
 * The application consists of two main pages: the viewer and the game picker
+* **Static/Frozen Version Compatibility** - The viewer supports both dynamic (Flask server) and static (frozen) versions. The frozen version is generated using `freeze_viewer.py` and uses different routes (`/game/<path>` instead of `/?folder=`). **Every feature must work in both versions**. When making changes, ensure both the `index()` route and `game_view()` route receive the same data and functionality.
 
 ### Design System & Styling
 

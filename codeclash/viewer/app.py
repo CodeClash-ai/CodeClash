@@ -872,6 +872,7 @@ def game_view(folder_path):
 
     # Get analysis data
     analysis_data = parser.analyze_line_counts()
+    sim_wins_data = parser.analyze_sim_wins_per_round()
 
     # Get matrix analysis data
     matrix_data = parser.load_matrix_analysis()
@@ -886,6 +887,7 @@ def game_view(folder_path):
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
         analysis_data=analysis_data,
+        sim_wins_data=sim_wins_data,
         matrix_data=matrix_data,
         is_static=STATIC_MODE,
     )
