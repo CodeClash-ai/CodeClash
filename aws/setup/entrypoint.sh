@@ -74,4 +74,4 @@ mkdir -p logs
 ulimit -n 65536
 
 # Execute the command passed to container
-exec "$@"
+"$@"
