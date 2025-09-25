@@ -25,8 +25,14 @@ def main(
     config = yaml.safe_load(preprocessed_yaml)
 
     timestamp = time.strftime("%y%m%d%H%M%S")
+    rounds = config["tournament"]["rounds"]
+    sims = config["tournament"]["sims_per_round"]
+
+    players = [p["name"] for p in config["players"]]
+    p_num = len(players)
+    p_list = ".".join(sorted(players))
     suffix_part = f".{suffix}" if suffix else ""
-    folder_name = f"PvpTournament.{config['game']['name']}.{timestamp}{suffix_part}"
+    folder_name = f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}.{timestamp}{suffix_part}"
     if output_dir is None:
         full_output_dir = DIR_LOGS / getpass.getuser() / folder_name
     else:

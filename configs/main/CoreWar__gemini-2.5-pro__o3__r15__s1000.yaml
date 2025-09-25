@@ -1,0 +1,35 @@
+tournament:
+  rounds: 15
+game:
+  name: CoreWar
+  sims_per_round: 1000
+  args: {}
+players:
+- agent: mini
+  name: gemini-2.5-pro
+  config:
+    agent: !include mini/semi_prescriptive.yaml
+    model:
+      model_name: '@google/gemini-2.5-pro'
+      model_class: portkey
+- agent: mini
+  name: o3
+  config:
+    agent: !include mini/semi_prescriptive.yaml
+    model:
+      model_name: '@openai/o3'
+      model_class: portkey
+prompts:
+  game_description: "You are a software developer ({{player_id}}) competing in a coding\
+    \ game called CoreWar.\nCoreWar is a programming battle where you write \"warriors\"\
+    \ in an assembly-like language called Redcode to compete within a virtual machine\
+    \ (MARS), aiming to eliminate your rivals by making their code self-terminate.\n\
+    Victory comes from crafting clever tactics\u2014replicators, scanners, bombers\u2014\
+    that exploit memory layout and instruction timing to control the core.\n\nThe\
+    \ game is played in 15 rounds. For every round, you (and your competitors) edit\
+    \ program code that controls your bot. This is round {{round}}.\nAfter you and\
+    \ your competitor finish editing your codebases, the game is run automatically.\n\
+    \nYour task: improve the bot in `warriors/warrior.red`, located in {{working_dir}}.\n\
+    {{working_dir}} is your codebase, which contains both your both and supporting\
+    \ assets.\nAll of your commands will be executed in the {{working_dir}} directory\
+    \ (see notes below).\n"

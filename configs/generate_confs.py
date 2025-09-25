@@ -135,7 +135,7 @@ if __name__ == "__main__":
         "-m",
         "--models",
         type=str,
-        default="configs/model_configs.yaml",
+        default="configs/models.yaml",
         help="Path to model configurations.",
     )
     parser.add_argument(
