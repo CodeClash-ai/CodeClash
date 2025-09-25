@@ -44,11 +44,6 @@ RUN mkdir -p /var/lib/docker /var/run/docker \
     && mkdir -p /etc/docker \
     && echo '{"storage-driver": "vfs", "iptables": false, "ip-masq": false, "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
 
-# Copy and run the Docker image building script
-COPY build_children_docker_files.sh /build_children_docker_files.sh
-RUN chmod +x /build_children_docker_files.sh && \
-    /build_children_docker_files.sh
-
 # Set build timestamp as environment variable
 ARG BUILD_TIMESTAMP
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
