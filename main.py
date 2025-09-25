@@ -32,7 +32,7 @@ def main(
     p_num = len(players)
     p_list = ".".join(sorted(players))
     suffix_part = f".{suffix}" if suffix else ""
-    folder_name = f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}.{timestamp}{suffix_part}"
+    folder_name = f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
     if output_dir is None:
         full_output_dir = DIR_LOGS / getpass.getuser() / folder_name
     else:

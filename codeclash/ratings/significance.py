@@ -1,13 +1,17 @@
+import math
+
 from scipy.stats import binomtest
 
 from codeclash.constants import RESULT_TIE
 
 
-def calculate_p_value(scores: dict[str, int]) -> float:
+def calculate_p_value(scores: dict[str, int | float]) -> float:
     """Calculate the p-value for the statistical significance of the winner.
 
     Input: scores as a dictionary of player names and number of games won.
     Special case: 'Tie' (constants.RESULT_TIE) is a tie between all players.
+
+    Score values must be whole numbers (integers or floats close to integers).
 
     Ties (RESULT_TIE) are excluded by conditioning on decisive games.
 
@@ -15,7 +19,14 @@ def calculate_p_value(scores: dict[str, int]) -> float:
     Bonferroni-corrected for choosing the winner post hoc among K players.
     Returns 1.0 if there is no unique winner or no decisive games.
     """
-    player_wins = {p: c for p, c in scores.items() if p != RESULT_TIE}
+    # Convert scores to integers, but only if they're close to whole numbers
+    player_wins = {}
+    for p, c in scores.items():
+        if p == RESULT_TIE:
+            continue
+        if isinstance(c, float) and not math.isclose(c, round(c)):
+            raise ValueError(f"Score for player '{p}' is {c}, but game wins must be whole numbers")
+        player_wins[p] = int(round(c))
     decisive_games = sum(player_wins.values())
     n_players = len(player_wins)
     assert n_players > 1, "At least two players are required to calculate significance"
