@@ -20,11 +20,11 @@
     "ulimits": [],
     "resourceRequirements": [
       {
-        "value": "1",
+        "value": "2",
         "type": "VCPU"
       },
       {
-        "value": "2048",
+        "value": "8192",
         "type": "MEMORY"
       }
     ],
