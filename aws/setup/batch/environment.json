@@ -31,6 +31,9 @@
       "sg-014723b4566a8214d"
     ],
     "instanceRole": "arn:aws:iam::039984708918:instance-profile/kilian-codeclash-ecsInstanceRole",
+    "launchTemplate": {
+      "launchTemplateName": "kilian-codeclash-launch-template"
+    },
     "ec2Configuration": [
       {
         "imageType": "ECS_AL2"

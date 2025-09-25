@@ -28,6 +28,9 @@ echo "  AWS_BATCH_JOB_ATTEMPT: ${AWS_BATCH_JOB_ATTEMPT:-<not set>}"
 echo "  AWS_BATCH_JOB_ID: ${AWS_BATCH_JOB_ID:-<not set>}"
 echo "  AWS_BATCH_JQ_NAME: ${AWS_BATCH_JQ_NAME:-<not set>}"
 
+echo "💾 Disk usage before job:"
+df -h
+
 source .venv/bin/activate
 
 echo "═══════════════════════════════════════════════════════════════════════════════"
@@ -36,6 +39,13 @@ echo "$@"
 echo "═══════════════════════════════════════════════════════════════════════════════"
 # Execute the remaining command arguments
 exec "$@"
+echo "═══════════════════════════════════════════════════════════════════════════════"
+echo "✅ User provided command finished"
+echo "═══════════════════════════════════════════════════════════════════════════════"
+
+echo "💾 Disk usage after job:"
+df -h
+
 echo "═══════════════════════════════════════════════════════════════════════════════"
 echo "✅ docker_entrypoint.sh finished"
 echo "═══════════════════════════════════════════════════════════════════════════════"

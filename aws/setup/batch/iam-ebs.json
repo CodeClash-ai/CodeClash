@@ -1,0 +1,30 @@
+{
+  "Role": {
+    "Path": "/",
+    "RoleName": "kilian-codeclash-ecs-role-for-ebs-volumes",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ecs.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Description": "ECS Infrastructure role for managing EBS volumes",
+    "MaxSessionDuration": 3600,
+    "Tags": [
+      {
+        "Key": "project",
+        "Value": "codeclash"
+      },
+      {
+        "Key": "author",
+        "Value": "kilian"
+      }
+    ]
+  }
+}

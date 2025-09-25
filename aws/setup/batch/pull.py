@@ -46,6 +46,36 @@ def pull_job_definition(job_name: str, batch_client) -> dict:
     return job_data
 
 
+def pull_launch_template(template_name: str, ec2_client) -> dict:
+    """Pull EC2 launch template from AWS."""
+    response = ec2_client.describe_launch_templates(LaunchTemplateNames=[template_name])
+    template_data = response["LaunchTemplates"][0]
+
+    # Get the latest version of the template
+    version_response = ec2_client.describe_launch_template_versions(
+        LaunchTemplateId=template_data["LaunchTemplateId"], Versions=["$Latest"]
+    )
+    template_version = version_response["LaunchTemplateVersions"][0]
+
+    # Combine template metadata with version data
+    result = {
+        "LaunchTemplateName": template_data["LaunchTemplateName"],
+        "LaunchTemplateData": template_version["LaunchTemplateData"],
+    }
+
+    # Add tags if they exist
+    if template_data.get("Tags"):
+        result["TagSpecifications"] = [
+            {
+                "ResourceType": "launch-template",
+                "Tags": [{"Key": tag["Key"], "Value": tag["Value"]} for tag in template_data["Tags"]],
+            }
+        ]
+
+    logger.info(f"✅ Successfully pulled launch template: {template_name}")
+    return result
+
+
 def clean_response_data(data: dict, is_iam_role: bool) -> dict:
     """Clean AWS response data to remove metadata and format for JSON storage."""
     if is_iam_role:
@@ -55,6 +85,11 @@ def clean_response_data(data: dict, is_iam_role: bool) -> dict:
     cleaned.pop("ResponseMetadata", None)
     cleaned.pop("createdAt", None)
     cleaned.pop("schedulingPriority", None)
+    # Remove AWS-specific metadata fields for job definitions
+    cleaned.pop("jobDefinitionArn", None)
+    cleaned.pop("revision", None)
+    cleaned.pop("status", None)
+    cleaned.pop("containerOrchestrationType", None)
     return cleaned
 
 
@@ -72,6 +107,9 @@ def pull_file(json_path: Path, region: str) -> None:
         case "iam-job-role.json":
             data = pull_iam_role("kilian-codeclash-job-role", boto3.client("iam", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=True)
+        case "iam-ebs.json":
+            data = pull_iam_role("kilian-codeclash-ecs-role-for-ebs-volumes", boto3.client("iam", region_name=region))
+            cleaned_data = clean_response_data(data, is_iam_role=True)
         case "environment.json":
             data = pull_compute_environment("codeclash-batch", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
@@ -79,8 +117,11 @@ def pull_file(json_path: Path, region: str) -> None:
             data = pull_job_queue("codeclash-queue", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "job_definition.json":
-            data = pull_job_definition("codeclash-default-job", boto3.client("batch", region_name=region))
+            data = pull_job_definition("codeclash-ebs-20g", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
+        case "launch_template.json":
+            data = pull_launch_template("kilian-codeclash-launch-template", boto3.client("ec2", region_name=region))
+            cleaned_data = data  # No cleaning needed for launch templates
         case _:
             logger.error(f"Unknown filename: {filename}")
             raise ValueError(f"Unknown filename: {filename}")

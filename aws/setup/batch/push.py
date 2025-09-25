@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import boto3
+from botocore.exceptions import ClientError
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -173,9 +174,14 @@ def push_job_definition(job_data: dict, batch_client) -> None:
     register_params = {
         "jobDefinitionName": job_name,
         "type": job_data.get("type", "container"),
-        "containerProperties": job_data["containerProperties"],
         "platformCapabilities": job_data.get("platformCapabilities", ["EC2"]),
     }
+
+    # Handle both old containerProperties and new ecsProperties formats
+    if "ecsProperties" in job_data:
+        register_params["ecsProperties"] = job_data["ecsProperties"]
+    elif "containerProperties" in job_data:
+        register_params["containerProperties"] = job_data["containerProperties"]
 
     if "parameters" in job_data:
         register_params["parameters"] = job_data["parameters"]
@@ -188,13 +194,61 @@ def push_job_definition(job_data: dict, batch_client) -> None:
     logger.info(f"✅ Successfully pushed job definition: {job_name}:{revision}")
 
 
+def _update_launch_template(template_data: dict, existing_template: dict, ec2_client) -> None:
+    """Update existing launch template by creating a new version."""
+    template_name = template_data["LaunchTemplateName"]
+    logger.info(f"Launch template {template_name} already exists, creating new version")
+
+    create_params = {
+        "LaunchTemplateId": existing_template["LaunchTemplateId"],
+        "LaunchTemplateData": template_data["LaunchTemplateData"],
+    }
+
+    response = ec2_client.create_launch_template_version(**create_params)
+    version = response["LaunchTemplateVersion"]["VersionNumber"]
+
+    logger.info(f"✅ Successfully created new version {version} for launch template: {template_name}")
+
+
+def _create_launch_template(template_data: dict, ec2_client) -> None:
+    """Create new launch template."""
+    template_name = template_data["LaunchTemplateName"]
+    logger.info(f"Creating new launch template: {template_name}")
+
+    create_params = {
+        "LaunchTemplateName": template_name,
+        "LaunchTemplateData": template_data["LaunchTemplateData"],
+    }
+
+    if "TagSpecifications" in template_data:
+        create_params["TagSpecifications"] = template_data["TagSpecifications"]
+
+    ec2_client.create_launch_template(**create_params)
+    logger.info(f"✅ Successfully created launch template: {template_name}")
+
+
+def push_launch_template(template_data: dict, ec2_client) -> None:
+    """Push EC2 launch template to AWS."""
+    template_name = template_data["LaunchTemplateName"]
+
+    try:
+        response = ec2_client.describe_launch_templates(LaunchTemplateNames=[template_name])
+        existing_template = response["LaunchTemplates"][0]
+        _update_launch_template(template_data, existing_template, ec2_client)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "InvalidLaunchTemplateName.NotFoundException":
+            _create_launch_template(template_data, ec2_client)
+        else:
+            raise
+
+
 def push_file(json_path: Path, region: str) -> None:
     """Push a single JSON file to AWS."""
     data = json.loads(json_path.read_text())
     filename = json_path.name
 
     match filename:
-        case "iam-environment-role.json" | "iam-execution-role.json" | "iam-job-role.json":
+        case "iam-environment-role.json" | "iam-execution-role.json" | "iam-job-role.json" | "iam-ebs.json":
             push_iam_role(data, boto3.client("iam", region_name=region))
         case "environment.json":
             push_compute_environment(data, boto3.client("batch", region_name=region))
@@ -202,6 +256,8 @@ def push_file(json_path: Path, region: str) -> None:
             push_job_queue(data, boto3.client("batch", region_name=region))
         case "job_definition.json":
             push_job_definition(data, boto3.client("batch", region_name=region))
+        case "launch_template.json":
+            push_launch_template(data, boto3.client("ec2", region_name=region))
         case _:
             logger.error(f"Unknown filename: {filename}")
             raise ValueError(f"Unknown filename: {filename}")
