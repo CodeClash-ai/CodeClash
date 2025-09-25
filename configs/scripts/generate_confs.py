@@ -87,7 +87,8 @@ def main(models, rounds, simulations, output: Path):
                 ],
                 "prompts": {"game_description": prompt_game_desc(arena, rounds)},
             }
-            config_name = f"{arena.name}__{get_name(pair[0])}__{get_name(pair[1])}__r{rounds}__s{simulations}.yaml"
+            pair_names = "__".join(sorted([get_name(pair[0]), get_name(pair[1])]))
+            config_name = f"{arena.name}__{pair_names}__r{rounds}__s{simulations}.yaml"
             with open(output / config_name, "w") as f:
                 yaml.dump(config, f, default_style=None, sort_keys=False)
 
