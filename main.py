@@ -26,7 +26,7 @@ def main(
 
     timestamp = time.strftime("%y%m%d%H%M%S")
     rounds = config["tournament"]["rounds"]
-    sims = config["tournament"]["sims_per_round"]
+    sims = config["game"]["sims_per_round"]
 
     players = [p["name"] for p in config["players"]]
     p_num = len(players)
