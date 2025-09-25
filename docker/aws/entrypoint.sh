@@ -10,8 +10,10 @@ git pull
 # Function to sync logs on exit
 cleanup() {
     local exit_code=$?
-    echo "Syncing logs to S3..."
-    aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
+    if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
+        echo "Syncing logs to S3..."
+        aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
+    fi
     exit $exit_code
 }
 

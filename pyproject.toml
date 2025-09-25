@@ -42,6 +42,9 @@ dev = [
     "Werkzeug==2.3.7",
     "frozen-flask==0.18",
 ]
+aws = [
+    "boto3",
+]
 
 [tool.setuptools.packages.find]
 include = ["codeclash*"]
