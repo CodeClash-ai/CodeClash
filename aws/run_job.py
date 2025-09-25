@@ -39,7 +39,7 @@ def get_current_git_branch() -> str:
 
 
 class AWSBatchJobLauncher:
-    def __init__(self, job_definition_name: str = "codeclash-yolo-test", job_queue: str = "codeclash-test-queue"):
+    def __init__(self, job_definition_name: str = "codeclash-default-job", job_queue: str = "codeclash-queue"):
         self.batch_client = boto3.client("batch")
         self.logs_client = boto3.client("logs")
         self.job_definition_name = job_definition_name
@@ -154,11 +154,9 @@ def main():
     )
     parser.add_argument("--job-name", help="Custom job name (auto-generated if not specified)")
     parser.add_argument(
-        "--job-definition", default="codeclash-yolo-test", help="Job definition name (default: codeclash-yolo-test)"
+        "--job-definition", default="codeclash-default-job", help="Job definition name (default: codeclash-default-job)"
     )
-    parser.add_argument(
-        "--job-queue", default="codeclash-test-queue", help="Job queue name (default: codeclash-test-queue)"
-    )
+    parser.add_argument("--job-queue", default="codeclash-queue", help="Job queue name (default: codeclash-queue)")
     parser.add_argument("--wait", action="store_true", help="Wait for the job to complete before exiting")
     parser.add_argument("--show-logs", action="store_true", help="Show job logs after completion (implies --wait)")
 

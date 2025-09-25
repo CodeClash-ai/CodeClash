@@ -1,6 +1,6 @@
 {
-  "jobQueueName": "codeclash-test-queue",
-  "jobQueueArn": "arn:aws:batch:us-east-1:039984708918:job-queue/codeclash-test-queue",
+  "jobQueueName": "codeclash-queue",
+  "jobQueueArn": "arn:aws:batch:us-east-1:039984708918:job-queue/codeclash-queue",
   "state": "ENABLED",
   "status": "VALID",
   "statusReason": "JobQueue Healthy",

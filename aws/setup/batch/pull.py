@@ -76,10 +76,10 @@ def pull_file(json_path: Path, region: str) -> None:
             data = pull_compute_environment("codeclash-batch-test", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "job_queue.json":
-            data = pull_job_queue("codeclash-test-queue", boto3.client("batch", region_name=region))
+            data = pull_job_queue("codeclash-queue", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "job_definition.json":
-            data = pull_job_definition("codeclash-yolo-test", boto3.client("batch", region_name=region))
+            data = pull_job_definition("codeclash-default-job", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case _:
             logger.error(f"Unknown filename: {filename}")

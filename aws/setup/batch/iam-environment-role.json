@@ -20,7 +20,7 @@
     "Description": "Allows EC2 instances to call AWS services on your behalf.",
     "MaxSessionDuration": 3600,
     "RoleLastUsed": {
-      "LastUsedDate": "2025-09-25 19:17:57+00:00",
+      "LastUsedDate": "2025-09-25 19:28:45+00:00",
       "Region": "us-east-1"
     }
   }
