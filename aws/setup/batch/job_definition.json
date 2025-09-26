@@ -1,8 +1,5 @@
 {
   "jobDefinitionName": "codeclash-default-job",
-  "jobDefinitionArn": "arn:aws:batch:us-east-1:039984708918:job-definition/codeclash-default-job:1",
-  "revision": 1,
-  "status": "ACTIVE",
   "type": "container",
   "parameters": {},
   "containerProperties": {
@@ -49,6 +46,5 @@
   },
   "platformCapabilities": [
     "EC2"
-  ],
-  "containerOrchestrationType": "ECS"
+  ]
 }

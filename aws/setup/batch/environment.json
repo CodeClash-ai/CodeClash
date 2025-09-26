@@ -1,21 +1,20 @@
 {
   "computeEnvironmentName": "codeclash-batch",
   "computeEnvironmentArn": "arn:aws:batch:us-east-1:039984708918:compute-environment/codeclash-batch",
-  "ecsClusterArn": "arn:aws:ecs:us-east-1:039984708918:cluster/AWSBatch-codeclash-batch-1561352c-9234-3de1-999a-dcd1c9989b32",
+  "ecsClusterArn": "arn:aws:ecs:us-east-1:039984708918:cluster/AWSBatch-codeclash-batch-a9d4e10e-95a6-327b-ad6e-67ea5235e964",
   "tags": {
     "project": "codeclash",
     "author": "kilian"
   },
   "type": "MANAGED",
   "state": "ENABLED",
-  "status": "VALID",
   "statusReason": "ComputeEnvironment Healthy",
   "computeResources": {
     "type": "EC2",
     "allocationStrategy": "BEST_FIT_PROGRESSIVE",
-    "minvCpus": 2,
-    "maxvCpus": 16,
-    "desiredvCpus": 2,
+    "minvCpus": 0,
+    "maxvCpus": 32,
+    "desiredvCpus": 0,
     "instanceTypes": [
       "optimal"
     ],
@@ -31,9 +30,11 @@
       "sg-014723b4566a8214d"
     ],
     "instanceRole": "arn:aws:iam::039984708918:instance-profile/kilian-codeclash-ecsInstanceRole",
+    "tags": {},
     "launchTemplate": {
       "launchTemplateName": "kilian-codeclash-launch-template",
-      "version": "$Latest"
+      "version": "$Latest",
+      "overrides": []
     },
     "ec2Configuration": [
       {
@@ -46,6 +47,5 @@
     "terminateJobsOnUpdate": false,
     "jobExecutionTimeoutMinutes": 30
   },
-  "containerOrchestrationType": "ECS",
-  "uuid": "f413880a-eecc-3dfd-b139-0e9143381b4d"
+  "uuid": "5246d4a1-4dd8-397e-82c2-af986d0f7a87"
 }
