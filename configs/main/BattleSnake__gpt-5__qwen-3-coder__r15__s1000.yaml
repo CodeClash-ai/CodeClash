@@ -15,6 +15,10 @@ players:
     model:
       model_name: '@openai/gpt-5'
       model_class: portkey
+      model_kwargs:
+        drop_params: true
+        reasoning_effort: high
+        verbosity: medium
 - agent: mini
   name: qwen-3-coder
   config:

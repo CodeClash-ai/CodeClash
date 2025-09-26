@@ -13,6 +13,10 @@ players:
     model:
       model_name: '@openai/gpt-5'
       model_class: portkey
+      model_kwargs:
+        drop_params: true
+        reasoning_effort: high
+        verbosity: medium
 - agent: mini
   name: gpt-5-mini
   config:
@@ -20,6 +24,10 @@ players:
     model:
       model_name: '@openai/gpt-5-mini'
       model_class: portkey
+      model_kwargs:
+        drop_params: true
+        reasoning_effort: high
+        verbosity: medium
 prompts:
   game_description: "You are a software developer ({{player_id}}) competing in a coding\
     \ game called BattleCode.\nBattlecode 25 throws you into a real-time strategy\
