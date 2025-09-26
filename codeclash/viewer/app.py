@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_file, url_for
 
 from codeclash.ratings.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
@@ -1207,6 +1207,39 @@ def analysis_line_counts():
         return jsonify({"success": True, "data": analysis_data})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/download-file")
+def download_file():
+    """Download a file with proper security checks"""
+    file_path = request.args.get("path")
+
+    if not file_path:
+        return jsonify({"success": False, "error": "No file path provided"}), 400
+
+    try:
+        # Convert to Path object
+        file_path_obj = Path(file_path)
+
+        # Security check: ensure the file exists
+        if not file_path_obj.exists():
+            return jsonify({"success": False, "error": "File does not exist"}), 404
+
+        # Security check: ensure the file is not a directory
+        if not file_path_obj.is_file():
+            return jsonify({"success": False, "error": "Path is not a file"}), 400
+
+        # Security check: ensure the path is within our expected logs directory
+        try:
+            file_path_obj.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid file path"}), 403
+
+        # Send the file as an attachment
+        return send_file(file_path_obj, as_attachment=True, download_name=file_path_obj.name)
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # Use run_viewer.py to launch the application

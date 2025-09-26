@@ -1199,20 +1199,22 @@ summary:focus {
   color: #000000;
 }
 
-/* AWS Command Display Styling */
-.aws-command-display {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+.download-btn {
+  background: var(--accent-color);
+  color: #000000;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  font-weight: 600;
 }
 
-.aws-command-display h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  color: var(--accent-color);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.download-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
 }
 
 .delete-experiment-btn {
@@ -1353,6 +1355,26 @@ summary:focus {
   font-weight: 600;
 }
 
+.download-btn-small {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  transition: all 0.2s;
+  vertical-align: middle;
+}
+
+.download-btn-small:hover {
+  background: var(--accent-color);
+  color: #000000;
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
 /* Responsive adjustments for copy buttons */
 @media (max-width: 768px) {
   .path-display {
@@ -1361,6 +1383,10 @@ summary:focus {
   }
 
   .copy-path-btn {
+    align-self: flex-start;
+  }
+
+  .download-btn {
     align-self: flex-start;
   }
 }
