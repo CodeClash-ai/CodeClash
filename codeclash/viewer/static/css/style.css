@@ -915,14 +915,12 @@ details summary {
 /* Professional subtle animations */
 .btn,
 .foldout summary,
-.nav-to-round-btn {
+.nav-to-round-btn,
+.btn-action {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn:hover {
-  transform: translateY(-1px);
-}
-
+.btn:hover,
 .foldout:hover {
   transform: translateY(-1px);
 }
@@ -1034,64 +1032,6 @@ summary:focus {
   font-weight: 500 !important;
 }
 
-/* Dark mode adjustments for JSON viewer - High Contrast */
-.jsoneditor-tree {
-  background-color: var(--bg-primary) !important;
-  border: none !important;
-}
-
-.jsoneditor-outer {
-  background-color: var(--bg-primary) !important;
-  border: 1px solid var(--border-color) !important;
-}
-
-.jsoneditor-menu {
-  background-color: var(--bg-tertiary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-}
-
-/* Remove unwanted white borders and frames in JSON editor */
-.jsoneditor-tree table,
-.jsoneditor-tree tr,
-.jsoneditor-tree td {
-  border: none !important;
-  outline: none !important;
-}
-
-.jsoneditor-tree .jsoneditor-selected,
-.jsoneditor-tree .jsoneditor-selected.jsoneditor-first,
-.jsoneditor-tree .jsoneditor-selected.jsoneditor-last {
-  background-color: var(--bg-secondary) !important;
-  border: none !important;
-  outline: none !important;
-}
-
-.jsoneditor-tree .jsoneditor-field,
-.jsoneditor-tree .jsoneditor-value {
-  color: var(--text-primary) !important;
-}
-
-.jsoneditor-tree .jsoneditor-string {
-  color: var(--success-color) !important;
-}
-
-.jsoneditor-tree .jsoneditor-number {
-  color: var(--warning-color) !important;
-}
-
-.jsoneditor-tree .jsoneditor-boolean {
-  color: var(--warning-color) !important;
-}
-
-.jsoneditor-tree .jsoneditor-null {
-  color: var(--text-muted) !important;
-}
-
-.jsoneditor-tree .jsoneditor-key {
-  color: var(--text-primary) !important;
-  font-weight: 600 !important;
-}
-
 /* Additional JSON editor dark mode fixes */
 .jsoneditor {
   border: 1px solid var(--border-color) !important;
@@ -1173,104 +1113,85 @@ summary:focus {
   word-break: break-all;
   flex: 1;
   min-width: 0;
-}
-
-/* Dark mode high contrast fix for folder path */
-.folder-path {
   color: #ffffff;
   font-weight: 500;
 }
 
-.copy-path-btn {
-  background: var(--accent-color);
-  color: #000000;
+/* Consolidated Button Base Styles */
+.btn-action {
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
   font-weight: 600;
-}
-
-.copy-path-btn:hover {
-  background: var(--accent-hover);
   color: #000000;
 }
 
+/* Specific button classes using consolidated styles */
+.copy-path-btn,
 .download-btn {
-  background: var(--accent-color);
-  color: #000000;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
   font-weight: 600;
+  color: #000000;
+  background: var(--accent-color);
 }
 
+.copy-path-btn:hover,
 .download-btn:hover {
   background: var(--accent-hover);
   color: #000000;
 }
 
-.delete-experiment-btn {
-  background: var(--success-color);
-  color: white;
+.delete-experiment-btn,
+.move-rename-btn {
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
-}
-
-.delete-experiment-btn:hover {
-  background: var(--accent-hover);
-}
-
-/* Dark mode fix for delete button */
-.delete-experiment-btn {
-  background: var(--success-color);
-  color: #000000;
   font-weight: 700;
+  color: #000000;
+  background: var(--success-color);
 }
 
-.delete-experiment-btn:hover {
+.delete-experiment-btn:hover,
+.move-rename-btn:hover {
   background: var(--accent-hover);
   color: #000000;
 }
 
-.move-rename-btn {
-  background: var(--success-color);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+.copy-path-btn-small,
+.download-btn-small {
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
-.move-rename-btn:hover {
-  background: var(--accent-hover);
-}
-
-/* Dark mode fix for move/rename button */
-.move-rename-btn {
-  background: var(--success-color);
+.copy-path-btn-small:hover,
+.download-btn-small:hover {
+  background: var(--accent-color);
   color: #000000;
-  font-weight: 700;
-}
-
-.move-rename-btn:hover {
-  background: var(--accent-hover);
-  color: #000000;
+  border-color: var(--accent-color);
+  font-weight: 600;
 }
 
 /* Readme Section */
@@ -1400,7 +1321,7 @@ summary:focus {
   border-radius: 50%;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1505,12 +1426,6 @@ summary:focus {
 
 .toc-close:hover {
   background-color: #006644;
-  color: white;
-}
-
-/* Dark mode fix for TOC close button */
-.toc-close:hover {
-  background-color: #006644;
   color: #000000;
   font-weight: 700;
 }
@@ -1562,19 +1477,9 @@ summary:focus {
 
 .toc-item.toc-top {
   background-color: var(--success-color);
-  color: white;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.toc-item.toc-top:hover {
-  background-color: #157347;
-}
-
-/* Dark mode contrast fix for TOC top button */
-.toc-item.toc-top {
   color: #000000;
   font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
 .toc-item.toc-top:hover {
@@ -1671,15 +1576,6 @@ summary:focus {
 
 .move-dialog-buttons button:first-child {
   background-color: var(--success-color);
-  color: white;
-}
-
-.move-dialog-buttons button:first-child:hover {
-  filter: brightness(1.1);
-}
-
-/* Dark mode contrast fix for dialog buttons */
-.move-dialog-buttons button:first-child {
   color: #000000;
   font-weight: 700;
 }
