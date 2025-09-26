@@ -20,10 +20,6 @@
             <p>Select a game session to view its trajectory</p>
         </div>
 
-        <div class="base-dir-info">
-            <h3><i class="bi bi-folder"></i> Base Directory:</h3>
-            <div class="base-dir-path">{{ base_dir }}</div>
-        </div>
 
         {% if game_folders %}
         <div class="games-table">
@@ -55,8 +51,8 @@
             {% endif %}
         </div>
         <div class="table-header">
-            <div><i class="bi bi-check-square"></i> Select</div>
-            <div><i class="bi bi-folder"></i> Game Session</div>
+            <div><i class="bi bi-check-square"></i></div>
+            <div>Game Session</div>
             <div><i class="bi bi-journal-text"></i> Note</div>
             <div><i class="bi bi-target"></i> Rounds</div>
             <div><i class="bi bi-robot"></i> Models</div>
@@ -84,15 +80,8 @@
                         {% for i in range(depth) %}
                         <span class="folder-icon">&nbsp;&nbsp;</span>
                         {% endfor %}
-                        {% if depth > 0 %}
-                        <span class="folder-icon">└─</span>
-                        {% endif %}
                     </span>
-                    {% if game.is_game %}
-                    <span class="folder-icon"><i class="bi bi-controller"></i></span>
-                    {% else %}
-                    <span class="folder-icon collapse-icon"><i class="bi bi-folder"></i></span>
-                    {% endif %}
+                    <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
                 </div>
 

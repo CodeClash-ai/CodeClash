@@ -23,28 +23,6 @@
   font-size: 1.1rem;
 }
 
-.base-dir-info {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 2rem;
-}
-
-.base-dir-info h3 {
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-}
-
-.base-dir-path {
-  background-color: var(--code-bg);
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  font-family: monospace;
-  font-size: 0.9rem;
-  word-break: break-all;
-}
-
 .games-table {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -242,6 +220,36 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   flex-shrink: 0;
+}
+
+.collapse-icon {
+  color: var(--accent-color);
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+  min-width: 12px;
+  text-align: center;
+}
+
+/* Only show collapse icon for intermediate folders */
+.intermediate-folder .collapse-icon::before {
+  content: "▶";
+}
+
+.intermediate-folder:not(.collapsed) .collapse-icon::before {
+  content: "▼";
+}
+
+/* Hide collapse icon for game folders */
+.game-folder .collapse-icon {
+  display: none;
+}
+
+.collapse-icon:hover {
+  color: var(--accent-hover);
+  transform: scale(1.1);
 }
 
 .game-name {
