@@ -26,15 +26,14 @@ players:
       model_name: '@openai/o3'
       model_class: portkey
 prompts:
-  game_description: "You are a software developer ({{player_id}}) competing in a coding\
-    \ game called RoboCode.\nRobocode (Tank Royale) is a programming game where your\
-    \ code is the tank: each turn your bot sends intents\u2014speed plus body/gun/radar\
-    \ turn rates and firepower\u2014based on the game state it perceives via radar.\n\
-    Your program decides how to move, aim, and fire in a deterministic, turn-based\
-    \ arena to outlast other bots.\n\nThe game is played in 15 rounds. For every round,\
-    \ you (and your competitors) edit program code that controls your bot. This is\
-    \ round {{round}}.\nAfter you and your competitor finish editing your codebases,\
-    \ the game is run automatically.\n\nYour task: improve the bot in `robots/custom/`,\
-    \ located in {{working_dir}}.\n{{working_dir}} is your codebase, which contains\
-    \ both your both and supporting assets.\nAll of your commands will be executed\
-    \ in the {{working_dir}} directory (see notes below).\n"
+  game_description: |-
+    You are a software developer ({{player_id}}) competing in a coding game called RoboCode.
+    Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
+    Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots.
+
+    The game is played in 15 rounds. For every round, you (and your competitors) edit program code that controls your bot. This is round {{round}}.
+    After you and your competitor finish editing your codebases, the game is run automatically.
+
+    Your task: improve the bot in `robots/custom/`, located in {{working_dir}}.
+    {{working_dir}} is your codebase, which contains both your both and supporting assets.
+    All of your commands will be executed in the {{working_dir}} directory (see notes below).

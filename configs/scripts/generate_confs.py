@@ -20,11 +20,22 @@ class IncludeTag:
         self.value = value
 
 
+class LiteralString(str):
+    pass
+
+
 def include_representer(dumper, data):
     return dumper.represent_scalar("!include", data.value)
 
 
+def literal_representer(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+
+
 yaml.add_representer(IncludeTag, include_representer)
+yaml.add_representer(LiteralString, literal_representer)
+yaml.SafeDumper.add_representer(IncludeTag, include_representer)
+yaml.SafeDumper.add_representer(LiteralString, literal_representer)
 
 ARENAS: list[CodeGame] = [
     BattleCodeGame,
@@ -39,7 +50,8 @@ NUM_TOURNAMENTS = 10
 
 
 def prompt_game_desc(arena, rounds):
-    return f"""You are a software developer ({{{{player_id}}}}) competing in a coding game called {arena.name}.
+    # Return as a LiteralString to get proper YAML literal block scalar formatting
+    content = f"""You are a software developer ({{{{player_id}}}}) competing in a coding game called {arena.name}.
 {arena.description}
 
 The game is played in {rounds} rounds. For every round, you (and your competitors) edit program code that controls your bot. This is round {{{{round}}}}.
@@ -47,8 +59,8 @@ After you and your competitor finish editing your codebases, the game is run aut
 
 Your task: improve the bot in `{arena.submission}`, located in {{{{working_dir}}}}.
 {{{{working_dir}}}} is your codebase, which contains both your both and supporting assets.
-All of your commands will be executed in the {{{{working_dir}}}} directory (see notes below).
-"""
+All of your commands will be executed in the {{{{working_dir}}}} directory (see notes below)."""
+    return LiteralString(content)
 
 
 def get_name(p):
@@ -90,7 +102,15 @@ def main(models, rounds, simulations, output: Path):
             pair_names = "__".join(sorted([get_name(pair[0]), get_name(pair[1])]))
             config_name = f"{arena.name}__{pair_names}__r{rounds}__s{simulations}.yaml"
             with open(output / config_name, "w") as f:
-                yaml.dump(config, f, default_style=None, sort_keys=False)
+                yaml.dump(
+                    config,
+                    f,
+                    default_style=None,
+                    sort_keys=False,
+                    allow_unicode=True,
+                    default_flow_style=False,
+                    Dumper=yaml.SafeDumper,
+                )
 
             # Post-process to remove quotes around include paths
             with open(output / config_name) as f:
