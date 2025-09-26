@@ -38,6 +38,7 @@ class RoundStats:
         # Map of player to game metric (e.g. # of wins, assets accumulated)
         self.scores: dict[str, float] = {}
         self.player_stats: dict[str, PlayerStats] = {agent.name: PlayerStats(name=agent.name) for agent in agents}
+        self.details: list[str] = []
 
     def __str__(self) -> str:
         rv = [f"In round {self.round_num}, the winner is {self.winner}.", "\nSummary of player performance:"]
@@ -46,6 +47,8 @@ class RoundStats:
                 rv.append(f"- {player}: submission compiled successfully, score={stats.score}")
             else:
                 rv.append(f"- {player}: submission failed with error: {stats.invalid_reason}")
+        if self.details:
+            rv.extend(["Details:"] + [f"- {line}" for line in self.details])
         return "\n".join(rv)
 
     def to_dict(self) -> dict[str, Any]:
@@ -54,6 +57,7 @@ class RoundStats:
         return {
             "round_num": self.round_num,
             "winner": self.winner,
+            "details": self.details,
             "scores": {name: self.scores.get(name, 0.0) for name in player_names},
             "player_stats": {name: stats.to_dict() for name, stats in self.player_stats.items()},
         }

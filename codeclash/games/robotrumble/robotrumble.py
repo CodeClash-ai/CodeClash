@@ -89,6 +89,7 @@ Every decision is driven by your code, and victory comes from crafting logic tha
 
         # Update stats
         stats.winner = final_winner
+        stats.details.append(f"In this round, {agents[0].name} was Blue and {agents[1].name} was Red.")
         stats.scores = dict(counts)
         for player, score in counts.items():
             if player != RESULT_TIE:
