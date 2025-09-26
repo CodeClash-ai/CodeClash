@@ -2,6 +2,14 @@
 <section class="overview-section">
     <h2><i class="bi bi-bar-chart"></i> Overview</h2>
 
+    <!-- Scores Per Round Chart -->
+    {% if sim_wins_data and sim_wins_data.players and sim_wins_data.rounds %}
+        <div class="chart-container">
+            <canvas id="overview-scores-chart" width="800" height="400"></canvas>
+        </div>
+        <script type="application/json" id="overview-scores-data">{{ sim_wins_data | tojson }}</script>
+    {% endif %}
+
     <div class="overview-summary">
         <table class="table table-striped table-hover results-table">
             <thead>
@@ -82,6 +90,9 @@
             <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
                 <i class="bi bi-clipboard"></i> Copy path
             </button>
+            <button class="download-btn-small" data-path="{{ metadata.main_log_path }}" title="Download file">
+                <i class="bi bi-download"></i> Download
+            </button>
             {% endif %}
         </summary>
         <div class="log-content-container">
@@ -99,6 +110,9 @@
                     {% if log_data.path %}
                     <button class="copy-path-btn-small" data-path="{{ log_data.path }}" title="Copy file path">
                         <i class="bi bi-clipboard"></i> Copy path
+                    </button>
+                    <button class="download-btn-small" data-path="{{ log_data.path }}" title="Download file">
+                        <i class="bi bi-download"></i> Download
                     </button>
                     {% endif %}
                 </summary>

@@ -3,7 +3,7 @@ import subprocess
 from logging import Logger
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS
+from codeclash.constants import LOCAL_LOG_DIR
 
 
 def is_running_in_aws_batch() -> bool:
@@ -22,6 +22,7 @@ def get_aws_metadata() -> dict:
         "AWS_BATCH_JOB_ATTEMPT",
         "AWS_BATCH_JOB_ID",
         "AWS_BATCH_JQ_NAME",
+        "AWS_USER_PROVIDED_COMMAND",  # we defined that ourselves in docker_entrypoint.sh
     ]
     return {env_variable: os.getenv(env_variable) for env_variable in env_variables}
 
@@ -81,17 +82,17 @@ def s3_log_sync(local_output_dir: Path, *, logger: Logger) -> None:
     # Construct S3 path: s3://bucket/prefix/logs/relative_path
     # where relative_path is local_output_dir relative to DIR_LOGS
     try:
-        relative_path = local_output_dir.relative_to(DIR_LOGS)
+        relative_path = local_output_dir.relative_to(LOCAL_LOG_DIR)
     except ValueError:
         # If local_output_dir is not under DIR_LOGS, use the full path
         relative_path = local_output_dir
 
-    s3_path = f"s3://{aws_s3_bucket}/{aws_s3_prefix}/logs/{relative_path}"
+    s3_path = f"s3://{aws_s3_bucket}/{aws_s3_prefix}/{relative_path}"
 
     logger.debug(f"Syncing {local_output_dir} to {s3_path}")
 
     result = subprocess.run(
-        ["aws", "s3", "sync", str(local_output_dir), s3_path, "--exclude", "*/rounds/*"],
+        ["aws", "s3", "sync", str(local_output_dir), s3_path, "--exclude", "rounds", "--exclude", "*/rounds"],
         capture_output=True,
         text=True,
     )

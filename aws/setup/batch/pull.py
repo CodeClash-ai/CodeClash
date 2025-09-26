@@ -39,6 +39,9 @@ def pull_job_definition(job_name: str, batch_client) -> dict:
     """Pull Batch job definition from AWS."""
     response = batch_client.describe_job_definitions(jobDefinitionName=job_name, status="ACTIVE")
 
+    if not response["jobDefinitions"]:
+        raise ValueError(f"No job definitions found with name '{job_name}' and status 'ACTIVE'")
+
     latest_revision = max(jd["revision"] for jd in response["jobDefinitions"])
     job_data = next(jd for jd in response["jobDefinitions"] if jd["revision"] == latest_revision)
 
@@ -107,9 +110,6 @@ def pull_file(json_path: Path, region: str) -> None:
         case "iam-job-role.json":
             data = pull_iam_role("kilian-codeclash-job-role", boto3.client("iam", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=True)
-        case "iam-ebs.json":
-            data = pull_iam_role("kilian-codeclash-ecs-role-for-ebs-volumes", boto3.client("iam", region_name=region))
-            cleaned_data = clean_response_data(data, is_iam_role=True)
         case "environment.json":
             data = pull_compute_environment("codeclash-batch", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
@@ -117,7 +117,7 @@ def pull_file(json_path: Path, region: str) -> None:
             data = pull_job_queue("codeclash-queue", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "job_definition.json":
-            data = pull_job_definition("codeclash-ebs-20g", boto3.client("batch", region_name=region))
+            data = pull_job_definition("codeclash-default-job", boto3.client("batch", region_name=region))
             cleaned_data = clean_response_data(data, is_iam_role=False)
         case "launch_template.json":
             data = pull_launch_template("kilian-codeclash-launch-template", boto3.client("ec2", region_name=region))

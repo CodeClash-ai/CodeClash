@@ -135,48 +135,109 @@ function toggleFolder(folderPath) {
   const folderRow = document.querySelector(`[data-path="${folderPath}"]`);
   if (!folderRow) return;
 
-  const isCollapsed = folderRow.classList.contains("collapsed");
-  const collapseIcon = folderRow.querySelector(".collapse-icon");
+  const currentState = folderStates.get(folderPath) || "collapsed";
+  const newState = currentState === "collapsed" ? "expanded" : "collapsed";
+  folderStates.set(folderPath, newState);
 
-  if (isCollapsed) {
-    // Expand folder - show all children
+  if (newState === "expanded") {
+    // Expand folder - show only direct children
     folderRow.classList.remove("collapsed");
-    if (collapseIcon) collapseIcon.innerHTML = '<i class="bi bi-folder"></i>';
 
-    // Show all descendant rows
+    // Show only direct children (one level down) and restore their states
     const allRows = document.querySelectorAll(".game-row");
     allRows.forEach((row) => {
       const rowPath = row.getAttribute("data-path");
       if (rowPath && rowPath.startsWith(folderPath + "/")) {
-        row.style.display = "";
-        // If this child row is also a collapsed folder, don't show its children
-        const childFolderPath = rowPath;
-        const childRow = document.querySelector(
-          `[data-path="${childFolderPath}"]`,
-        );
-        if (childRow && childRow.classList.contains("collapsed")) {
-          // Hide this collapsed folder's children
-          hideChildrenOfFolder(childFolderPath);
+        // Check if this is a direct child (not a grandchild)
+        const relativePath = rowPath.substring(folderPath.length + 1);
+        if (!relativePath.includes("/")) {
+          // This is a direct child, show it
+          row.style.display = "";
+
+          // If this is a folder, restore its individual state
+          if (row.classList.contains("intermediate-folder")) {
+            const childState = folderStates.get(rowPath) || "collapsed";
+            if (childState === "expanded") {
+              // This child was expanded, so expand it and show its children
+              row.classList.remove("collapsed");
+              showChildrenOfFolder(rowPath);
+            } else {
+              // This child was collapsed, so collapse it and hide its children
+              row.classList.add("collapsed");
+              hideChildrenOfFolder(rowPath);
+            }
+          }
         }
       }
     });
   } else {
     // Collapse folder - hide all children
     folderRow.classList.add("collapsed");
-    if (collapseIcon)
-      collapseIcon.innerHTML = '<i class="bi bi-folder-open"></i>';
 
     hideChildrenOfFolder(folderPath);
   }
 }
 
 function hideChildrenOfFolder(folderPath) {
-  // Hide all descendant rows of a folder
+  // Hide all descendant rows of a folder, but respect their individual states
   const allRows = document.querySelectorAll(".game-row");
   allRows.forEach((row) => {
     const rowPath = row.getAttribute("data-path");
     if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      row.style.display = "none";
+      // Check if this is a direct child or a descendant
+      const relativePath = rowPath.substring(folderPath.length + 1);
+
+      if (!relativePath.includes("/")) {
+        // This is a direct child - hide it
+        row.style.display = "none";
+      } else {
+        // This is a grandchild or deeper - check if its parent is visible
+        const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
+        const parentRow = document.querySelector(`[data-path="${parentPath}"]`);
+
+        if (parentRow && parentRow.style.display === "none") {
+          // Parent is hidden, so hide this child too
+          row.style.display = "none";
+        }
+        // If parent is visible, don't change this child's visibility
+        // (it will be handled by its own parent's state)
+      }
+    }
+  });
+}
+
+function showChildrenOfFolder(folderPath) {
+  // Show all descendant rows of a folder, respecting their individual states
+  const allRows = document.querySelectorAll(".game-row");
+  allRows.forEach((row) => {
+    const rowPath = row.getAttribute("data-path");
+    if (rowPath && rowPath.startsWith(folderPath + "/")) {
+      // Check if this is a direct child or a descendant
+      const relativePath = rowPath.substring(folderPath.length + 1);
+
+      if (!relativePath.includes("/")) {
+        // This is a direct child - show it
+        row.style.display = "";
+      } else {
+        // This is a grandchild or deeper - check if its parent is visible and expanded
+        const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
+        const parentRow = document.querySelector(`[data-path="${parentPath}"]`);
+
+        if (parentRow && parentRow.style.display !== "none") {
+          // Parent is visible, check if it's expanded
+          const parentState = folderStates.get(parentPath) || "collapsed";
+          if (parentState === "expanded") {
+            // Parent is expanded, so show this child
+            row.style.display = "";
+          } else {
+            // Parent is collapsed, so hide this child
+            row.style.display = "none";
+          }
+        } else {
+          // Parent is hidden, so hide this child too
+          row.style.display = "none";
+        }
+      }
     }
   });
 }
@@ -536,4 +597,30 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Available keyboard shortcuts:");
   console.log("  Shift + Click: Range select checkboxes");
   console.log("  Escape: Close move dialog");
+
+  // Collapse all folders by default
+  collapseAllFolders();
 });
+
+// Track individual folder states
+const folderStates = new Map();
+
+function collapseAllFolders() {
+  // Find all intermediate folder rows and collapse them
+  const folderRows = document.querySelectorAll(".intermediate-folder");
+  folderRows.forEach((folderRow) => {
+    const folderPath = folderRow.getAttribute("data-path");
+    if (folderPath) {
+      // Set initial state to collapsed
+      folderStates.set(folderPath, "collapsed");
+
+      // Collapse the folder
+      folderRow.classList.add("collapsed");
+
+      // Hide all children of this folder
+      hideChildrenOfFolder(folderPath);
+    }
+  });
+
+  console.log(`Collapsed ${folderRows.length} folders on startup`);
+}

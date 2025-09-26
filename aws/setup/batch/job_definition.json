@@ -1,8 +1,5 @@
 {
   "jobDefinitionName": "codeclash-default-job",
-  "jobDefinitionArn": "arn:aws:batch:us-east-1:039984708918:job-definition/codeclash-default-job:1",
-  "revision": 1,
-  "status": "ACTIVE",
   "type": "container",
   "parameters": {},
   "containerProperties": {
@@ -31,11 +28,15 @@
     "secrets": [
       {
         "name": "GITHUB_TOKEN",
-        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-github-key-LIkSby:GITHUB_KEY::"
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:GITHUB_TOKEN::"
       },
       {
-        "name": "OPENAI_API_KEY",
-        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-github-key-LIkSby:OPENAI_API_KEY::"
+        "name": "PORTKEY_API_KEY",
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:PORTKEY_API_KEY::"
+      },
+      {
+        "name": "ANTHROPIC_API_KEY",
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:ANTHROPIC_API_KEY::"
       }
     ]
   },
@@ -45,6 +46,5 @@
   },
   "platformCapabilities": [
     "EC2"
-  ],
-  "containerOrchestrationType": "ECS"
+  ]
 }

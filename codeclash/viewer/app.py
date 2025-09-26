@@ -6,15 +6,18 @@ A Flask-based web application to visualize AI agent game trajectories
 """
 
 import json
+import logging
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_file, url_for
 
 from codeclash.ratings.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
+
+logger = logging.getLogger(__name__)
 
 # Global variable to store the directory to search for logs
 LOG_BASE_DIR = Path.cwd() / "logs"
@@ -55,85 +58,53 @@ def is_game_folder(log_dir: Path) -> bool:
     return metadata_file.exists()
 
 
+def load_metadata(log_dir: Path) -> dict[str, Any] | None:
+    """Load metadata.json from log directory"""
+    metadata_file = log_dir / "metadata.json"
+    if not metadata_file.exists():
+        return None
+
+    try:
+        return json.loads(metadata_file.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def get_round_count_from_metadata(log_dir: Path) -> tuple[int, int] | None:
-    """Extract round count from metadata.json and rounds folder if they exist
+    """Extract round count from metadata.json
 
     Returns:
         tuple[int, int] | None: (completed_rounds, total_rounds) or None if not available
     """
-    metadata_file = log_dir / "metadata.json"
-    rounds_dir = log_dir / "rounds"
+    metadata = load_metadata(log_dir)
+    if not metadata:
+        return None
 
-    total_rounds = None
-    completed_rounds = 0
+    total_rounds = metadata.get("config", {}).get("tournament", {}).get("rounds")
 
-    # First, try to get total rounds from metadata
-    if metadata_file.exists():
-        try:
-            metadata = json.loads(metadata_file.read_text())
-            total_rounds = metadata.get("config", {}).get("tournament", {}).get("rounds")
-
-            # Count completed rounds from round_stats (excluding round 0 which is warmup)
-            round_stats = metadata.get("round_stats", {})
-            if round_stats:
-                # Count rounds > 0 (exclude warmup round 0)
-                for round_key in round_stats.keys():
-                    if int(round_key) > 0:
-                        completed_rounds += 1
-        except (json.JSONDecodeError, KeyError, ValueError):
-            pass
-
-    # If we don't have round_stats or metadata, count from rounds folder
-    if completed_rounds == 0 and rounds_dir.exists():
-        try:
-            # Count subdirectories in rounds folder (excluding round 0 if it exists)
-            round_dirs = [d for d in rounds_dir.iterdir() if d.is_dir()]
-            for round_dir in round_dirs:
-                try:
-                    round_num = int(round_dir.name)
-                    if round_num > 0:  # Exclude warmup round 0
-                        completed_rounds += 1
-                except ValueError:
-                    continue
-        except (OSError, PermissionError):
-            pass
+    # Count completed rounds from round_stats (excluding round 0 which is warmup)
+    round_stats = metadata.get("round_stats", {})
+    completed_rounds = sum(1 for round_key in round_stats.keys() if int(round_key) > 0)
 
     if total_rounds is not None:
         return (completed_rounds, total_rounds)
-
     return None
 
 
 def get_models_from_metadata(log_dir: Path) -> list[str]:
     """Extract model names from metadata.json if it exists"""
-    metadata_file = log_dir / "metadata.json"
-    if not metadata_file.exists():
+    metadata = load_metadata(log_dir)
+    if not metadata:
         return []
 
-    try:
-        metadata = json.loads(metadata_file.read_text())
-        models = []
-        players_config = metadata.get("config", {}).get("players", [])
-
-        # Handle both list and dict formats
-        if isinstance(players_config, list):
-            # If players is a list, iterate through each player
-            for player_config in players_config:
-                if isinstance(player_config, dict):
-                    model_name = player_config.get("config", {}).get("model", {}).get("model_name")
-                    if model_name and model_name not in models:
-                        models.append(model_name)
-        elif isinstance(players_config, dict):
-            # If players is a dict, iterate through player keys (p1, p2, etc.)
-            for _player_key, player_config in players_config.items():
-                if isinstance(player_config, dict):
-                    model_name = player_config.get("config", {}).get("model", {}).get("model_name")
-                    if model_name and model_name not in models:
-                        models.append(model_name)
-
-        return models
-    except (json.JSONDecodeError, KeyError, AttributeError):
-        return []
+    players_config = metadata.get("config", {}).get("players", [])
+    models = []
+    for player_config in players_config:
+        if isinstance(player_config, dict):
+            model_name = player_config.get("config", {}).get("model", {}).get("model_name")
+            if model_name and model_name not in models:
+                models.append(model_name)
+    return models
 
 
 def get_readme_first_line(log_dir: Path) -> str:
@@ -147,8 +118,7 @@ def get_readme_first_line(log_dir: Path) -> str:
         if not content:
             return ""
         # Get the first non-empty line
-        lines = content.split("\n")
-        for line in lines:
+        for line in content.split("\n"):
             line = line.strip()
             if line:
                 return line
@@ -162,31 +132,17 @@ def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
     agents = []
     players_config = metadata.get("config", {}).get("players", [])
 
-    # Handle both list and dict formats
-    if isinstance(players_config, list):
-        for player_config in players_config:
-            if isinstance(player_config, dict):
-                name = player_config.get("name", "unknown")
-                config = player_config.get("config", {})
-                model_name = (
-                    config.get("model", {}).get("model_name")
-                    if isinstance(config.get("model"), dict)
-                    else config.get("model")
-                )
-                agent_class = config.get("agent_class")
-                agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
-    elif isinstance(players_config, dict):
-        for player_key, player_config in sorted(players_config.items()):
-            if isinstance(player_config, dict):
-                name = player_config.get("name", player_key)
-                config = player_config.get("config", {})
-                model_name = (
-                    config.get("model", {}).get("model_name")
-                    if isinstance(config.get("model"), dict)
-                    else config.get("model")
-                )
-                agent_class = config.get("agent_class")
-                agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
+    for player_config in players_config:
+        if isinstance(player_config, dict):
+            name = player_config.get("name", "unknown")
+            config = player_config.get("config", {})
+            model_name = (
+                config.get("model", {}).get("model_name")
+                if isinstance(config.get("model"), dict)
+                else config.get("model")
+            )
+            agent_class = config.get("agent_class")
+            agents.append(AgentInfo(name=name, model_name=model_name, agent_class=agent_class))
 
     return agents
 
@@ -295,7 +251,7 @@ def process_round_results(
         expected_players = {agent.name for agent in agent_info}
         missing_players = expected_players - set(scores.keys())
         if missing_players:
-            print(f"WARNING: Players {sorted(missing_players)} not found in round results, adding with 0 wins")
+            logger.warning(f"Players {sorted(missing_players)} not found in round results, adding with 0 wins")
             for player in missing_players:
                 scores[player] = 0
 
@@ -318,9 +274,9 @@ def process_round_results(
                 processed["winner_percentage"] = None  # No percentage for ties
 
             # Calculate p-value for statistical significance
-            print(f"Calculating p-value for scores: {dict(sorted(scores.items()))}")
+            logger.debug(f"Calculating p-value for scores: {dict(sorted(scores.items()))}")
             p_value = calculate_p_value(scores)
-            print(f"P-value result: {p_value} (rounded: {round(p_value, 2)})")
+            logger.debug(f"P-value result: {p_value} (rounded: {round(p_value, 2)})")
             processed["p_value"] = round(p_value, 2)
         else:
             processed["winner_percentage"] = None
@@ -357,25 +313,16 @@ class LogParser:
 
     def __init__(self, log_dir: Path):
         self.log_dir = Path(log_dir)
-        self._player_metadata = {}
 
     def parse_game_metadata(self) -> GameMetadata:
         """Parse overall game metadata"""
-        # Look for metadata.json
-        metadata_file = self.log_dir / "metadata.json"
-        if metadata_file.exists():
-            results = json.loads(metadata_file.read_text())
-            metadata_file_path = str(metadata_file)
-        else:
+        # Load metadata.json
+        results = load_metadata(self.log_dir)
+        if not results:
             results = {"status": "No metadata file found"}
             metadata_file_path = ""
-
-        # Store player metadata for later use
-        self._player_metadata = {}
-        if "agents" in results:
-            for agent in results["agents"]:
-                player_name = agent.get("name", "")
-                self._player_metadata[player_name] = agent
+        else:
+            metadata_file_path = str(self.log_dir / "metadata.json")
 
         # Parse tournament.log if it exists
         main_log_file = self.log_dir / "tournament.log"
@@ -385,49 +332,23 @@ class LogParser:
         # Parse all available logs
         all_logs = self._parse_all_logs()
 
-        # Parse round data - prioritize round_stats from metadata.json
+        # Parse round data from metadata.json round_stats
         rounds = []
-
-        # First, try to get round data from metadata.json round_stats
         if "round_stats" in results:
             # Get agent info for processing round results
-            agent_info = get_agent_info_from_metadata(results) if results else []
+            agent_info = get_agent_info_from_metadata(results)
 
             # Process each round from round_stats
             for round_key, round_data in results["round_stats"].items():
                 round_num = int(round_key)
-
-                # Process the round results from metadata
                 round_results = process_round_results(round_data, agent_info)
-
                 rounds.append({"round_num": round_num, "sim_logs": [], "results": round_results})
-
-        else:
-            # Fallback: Parse round directories and their sim logs (for older games)
-            rounds_dir = self.log_dir / "rounds"
-            if rounds_dir.exists():
-                # Get all round directories (sorted numerically)
-                round_dirs = sorted([d for d in rounds_dir.iterdir() if d.is_dir()], key=lambda x: int(x.name))
-
-                for round_dir in round_dirs:
-                    round_num = int(round_dir.name)
-
-                    # Check for round results
-                    results_file = round_dir / "results.json"
-                    round_results = None
-                    if results_file.exists():
-                        round_results = json.loads(results_file.read_text())
-                        # Get agent info for this round (we'll need to get it from metadata)
-                        agent_info = get_agent_info_from_metadata(results) if results else []
-                        round_results = process_round_results(round_results, agent_info)
-
-                    rounds.append({"round_num": round_num, "sim_logs": [], "results": round_results})
 
         # Sort rounds by round number to ensure consistent ordering
         rounds.sort(key=lambda x: x["round_num"])
 
         # Extract agent information
-        agent_info = get_agent_info_from_metadata(results) if results else []
+        agent_info = get_agent_info_from_metadata(results)
 
         return GameMetadata(
             results=results,
@@ -441,7 +362,6 @@ class LogParser:
 
     def parse_trajectory(self, player_name: str, round_num: int) -> TrajectoryInfo | None:
         """Parse a specific trajectory file"""
-        # Look in players/$player_name/ directory
         player_dir = self.log_dir / "players" / player_name
         if not player_dir.exists():
             return None
@@ -452,18 +372,11 @@ class LogParser:
             if traj_file.exists():
                 try:
                     data = json.loads(traj_file.read_text())
-
                     info = data.get("info", {})
                     model_stats = info.get("model_stats", {})
 
-                    # Get diff data from changes file (preferred) or fall back to metadata
-                    diff = None
-                    incremental_diff = None
-                    modified_files = None
-                    diff_by_files = {}
-                    incremental_diff_by_files = {}
-
-                    # Try to read all changes from separate JSON file first
+                    # Get diff data from changes file
+                    diff = incremental_diff = modified_files = None
                     changes_file = player_dir / f"changes_r{round_num}.json"
                     if changes_file.exists():
                         try:
@@ -472,20 +385,7 @@ class LogParser:
                             incremental_diff = changes_data.get("incremental_diff", "")
                             modified_files = changes_data.get("modified_files", {})
                         except (json.JSONDecodeError, KeyError):
-                            # Fall back to metadata if changes file is corrupted
-                            if player_name in self._player_metadata:
-                                player_meta = self._player_metadata[player_name]
-                                diff = player_meta.get("diff", {}).get(str(round_num), "")
-                                incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
-                                modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
-                    else:
-                        # todo: Legacy: Remove this at some point after we have migrated
-                        # Fall back to metadata if changes file doesn't exist
-                        if player_name in self._player_metadata:
-                            player_meta = self._player_metadata[player_name]
-                            diff = player_meta.get("diff", {}).get(str(round_num), "")
-                            incremental_diff = player_meta.get("incremental_diff", {}).get(str(round_num), "")
-                            modified_files = player_meta.get("modified_files", {}).get(str(round_num), {})
+                            pass
 
                     # Filter and split diffs by files
                     filtered_diff = filter_git_diff(diff) if diff else ""
@@ -496,7 +396,7 @@ class LogParser:
                     )
 
                     return TrajectoryInfo(
-                        player_id=player_name,  # Now stores player name instead of numeric ID
+                        player_id=player_name,
                         round_num=round_num,
                         api_calls=model_stats.get("api_calls", 0),
                         cost=model_stats.get("instance_cost", 0.0),
@@ -512,39 +412,22 @@ class LogParser:
                         incremental_diff_by_files=incremental_diff_by_files,
                     )
                 except (json.JSONDecodeError, KeyError) as e:
-                    print(f"Error parsing {traj_file}: {e}")
+                    logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
 
         return None
 
     def get_available_trajectories(self) -> list[tuple]:
-        """Get list of available trajectory files as (player_name, round_num) tuples"""
-        trajectories = []
-        players_dir = self.log_dir / "players"
+        """Get list of available trajectory files as (player_name, round_num) tuples using metadata"""
+        metadata = self.parse_game_metadata()
 
-        if not players_dir.exists():
-            return trajectories
+        # Get player names from agent_info
+        player_names = [agent.name for agent in metadata.agent_info] if metadata.agent_info else []
 
-        # Iterate through player directories
-        for player_dir in players_dir.iterdir():
-            if not player_dir.is_dir():
-                continue
+        # Get round numbers from rounds data
+        round_nums = [round_data["round_num"] for round_data in metadata.rounds]
 
-            player_name = player_dir.name
-
-            # Find trajectory files in this player's directory
-            for traj_file in player_dir.glob("*_r*.traj.*"):
-                # Extract round from filename like gpt5_r2.traj.json
-                parts = traj_file.stem.split(".")  # Remove extension
-                if parts:
-                    name_part = parts[0]  # gpt5_r2
-                    try:
-                        _, round_part = name_part.split("_")
-                        round_num = int(round_part[1:])  # Remove 'r' prefix
-                        trajectories.append((player_name, round_num))
-                    except (ValueError, IndexError):
-                        continue
-
-        return sorted(trajectories)
+        # Generate all possible (player_name, round_num) combinations
+        return sorted((player_name, round_num) for player_name in player_names for round_num in round_nums)
 
     def analyze_line_counts(self) -> dict[str, Any]:
         """Analyze line counts across all rounds for all files that appear in changed files"""
@@ -613,39 +496,46 @@ class LogParser:
         return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
 
     def analyze_sim_wins_per_round(self) -> dict[str, Any]:
-        """Analyze number of simulations won per round for each competitor from round_stats in metadata.json"""
-        metadata_file = self.log_dir / "metadata.json"
-        if not metadata_file.exists():
-            return {"players": [], "rounds": [], "wins_by_player": {}}
+        """Analyze scores per round for each competitor from round_stats in metadata.json.
+        Scores are calculated as wins + 0.5*ties, same as in the table."""
+        metadata = load_metadata(self.log_dir)
+        if not metadata:
+            return {"players": [], "rounds": [], "scores_by_player": {}}
 
-        try:
-            metadata = json.loads(metadata_file.read_text())
-            round_stats = metadata.get("round_stats", {})
-            # Collect all player names from all rounds
-            player_names = set()
-            for round_data in round_stats.values():
-                scores = round_data.get("scores", {})
-                player_names.update([k for k in scores.keys() if k != "Tie"])
-            player_names = sorted(player_names)
+        round_stats = metadata.get("round_stats", {})
+        # Collect all player names from all rounds
+        player_names = set()
+        for round_data in round_stats.values():
+            scores = round_data.get("scores", {})
+            player_names.update([k for k in scores.keys() if k != "Tie"])
+        player_names = sorted(player_names)
 
-            # Collect all round numbers (sorted)
-            round_nums = sorted([int(k) for k in round_stats.keys()])
+        # Collect all round numbers (sorted)
+        round_nums = sorted([int(k) for k in round_stats.keys()])
 
-            # Build wins_by_player: {player: [wins_per_round]}
-            wins_by_player = {p: [] for p in player_names}
-            for round_num in round_nums:
-                round_data = round_stats.get(str(round_num), {})
-                scores = round_data.get("scores", {})
-                for p in player_names:
-                    wins_by_player[p].append(scores.get(p, 0))
+        # Build scores_by_player: {player: [scores_per_round]}
+        # Scores = (wins + 0.5*ties) / total_games * 100 (percentage, same as in process_round_results)
+        scores_by_player = {p: [] for p in player_names}
+        for round_num in round_nums:
+            round_data = round_stats.get(str(round_num), {})
+            scores = round_data.get("scores", {})
+            ties = scores.get("Tie", 0)
+            total_games = sum(scores.values())
 
-            return {
-                "players": player_names,
-                "rounds": round_nums,
-                "wins_by_player": wins_by_player,
-            }
-        except Exception:
-            return {"players": [], "rounds": [], "wins_by_player": {}}
+            for p in player_names:
+                wins = scores.get(p, 0)
+                if total_games > 0:
+                    # Calculate score as percentage: (wins + 0.5*ties) / total_games * 100
+                    player_score = ((wins + 0.5 * ties) / total_games) * 100
+                else:
+                    player_score = 0
+                scores_by_player[p].append(round(player_score, 1))
+
+        return {
+            "players": player_names,
+            "rounds": round_nums,
+            "scores_by_player": scores_by_player,
+        }
 
     def load_matrix_analysis(self) -> dict[str, Any] | None:
         """Load and process matrix.json if it exists"""
@@ -656,17 +546,13 @@ class LogParser:
         try:
             matrix_data = json.loads(matrix_file.read_text())
             matrices = matrix_data.get("matrices", {})
-
-            # Process each matrix to calculate win percentages from player 1 perspective
             processed_matrices = {}
 
             for matrix_name, matrix in matrices.items():
                 processed_matrix = {"name": matrix_name, "data": {}, "max_rounds": 0}
 
                 # Extract base player name from matrix name
-                base_player_name = None
-                if "_vs_" in matrix_name:
-                    base_player_name = matrix_name.split("_vs_")[0]
+                base_player_name = matrix_name.split("_vs_")[0] if "_vs_" in matrix_name else None
 
                 # Determine matrix dimensions
                 max_i = max_j = 0
@@ -689,21 +575,16 @@ class LogParser:
                         cell_data = matrix[i_str][j_str]
                         scores = cell_data.get("scores", {})
 
-                        # Calculate win percentage from row player perspective (player using round i code)
+                        # Calculate win percentage from row player perspective
                         row_player_name = f"{base_player_name}_r{i}" if base_player_name else None
-
                         if row_player_name and row_player_name in scores:
                             row_player_score = scores.get(row_player_name, 0)
                             total_games = sum(scores.values())
-
-                            if total_games > 0:
-                                # Handle ties if present
-                                ties = scores.get("Tie", 0)
-                                win_percentage = ((row_player_score + 0.5 * ties) / total_games) * 100
-                            else:
-                                win_percentage = 0
+                            ties = scores.get("Tie", 0)
+                            win_percentage = (
+                                ((row_player_score + 0.5 * ties) / total_games) * 100 if total_games > 0 else 0
+                            )
                         else:
-                            # If we can't identify row player, show 0
                             win_percentage = 0
 
                         processed_matrix["data"][i][j] = {
@@ -726,7 +607,7 @@ class LogParser:
             }
 
         except (json.JSONDecodeError, KeyError) as e:
-            print(f"Error loading matrix.json: {e}")
+            logger.error(f"Error loading matrix.json: {e}", exc_info=True)
             return None
 
     def _parse_all_logs(self) -> dict[str, dict[str, str]]:
@@ -789,6 +670,39 @@ def unescape_content(value):
     return value.replace("\\n", "\n")
 
 
+def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
+    """Common logic for rendering game viewer pages"""
+    # Parse the selected game
+    parser = LogParser(folder_path)
+    metadata = parser.parse_game_metadata()
+
+    # Group trajectories by round
+    trajectories_by_round = {}
+    for player_name, round_num in parser.get_available_trajectories():
+        if round_num not in trajectories_by_round:
+            trajectories_by_round[round_num] = []
+        trajectory = parser.parse_trajectory(player_name, round_num)
+        if trajectory:
+            trajectories_by_round[round_num].append(trajectory)
+
+    # Get analysis data
+    analysis_data = parser.analyze_line_counts()
+    sim_wins_data = parser.analyze_sim_wins_per_round()
+    matrix_data = parser.load_matrix_analysis()
+
+    return render_template(
+        "index.html",
+        selected_folder=selected_folder,
+        selected_folder_path=str(folder_path),
+        metadata=metadata,
+        trajectories_by_round=trajectories_by_round,
+        analysis_data=analysis_data,
+        sim_wins_data=sim_wins_data,
+        matrix_data=matrix_data,
+        is_static=STATIC_MODE,
+    )
+
+
 # Register the custom filters
 app.jinja_env.filters["nl2br"] = nl2br
 app.jinja_env.filters["unescape_content"] = unescape_content
@@ -803,94 +717,24 @@ def index():
         return redirect(url_for("game_picker"))
 
     # Validate the selected folder exists and is a game folder
-    logs_dir = LOG_BASE_DIR
-    folder_path = logs_dir / selected_folder
+    folder_path = LOG_BASE_DIR / selected_folder
 
     if not folder_path.exists() or not is_game_folder(folder_path):
         return redirect(url_for("game_picker"))
 
-    # Parse the selected game
-    parser = LogParser(folder_path)
-    metadata = parser.parse_game_metadata()
-    available_trajectories = parser.get_available_trajectories()
-
-    # Group trajectories by round
-    trajectories_by_round = {}
-    for player_name, round_num in available_trajectories:
-        if round_num not in trajectories_by_round:
-            trajectories_by_round[round_num] = []
-        trajectory = parser.parse_trajectory(player_name, round_num)
-        if trajectory:
-            trajectories_by_round[round_num].append(trajectory)
-
-    # Get analysis data
-    analysis_data = parser.analyze_line_counts()
-    sim_wins_data = parser.analyze_sim_wins_per_round()
-
-    # Get matrix analysis data
-    matrix_data = parser.load_matrix_analysis()
-
-    # Get the full path of the selected folder
-    selected_folder_path = str(folder_path)
-
-    return render_template(
-        "index.html",
-        selected_folder=selected_folder,
-        selected_folder_path=selected_folder_path,
-        metadata=metadata,
-        trajectories_by_round=trajectories_by_round,
-        analysis_data=analysis_data,
-        sim_wins_data=sim_wins_data,
-        matrix_data=matrix_data,
-        is_static=STATIC_MODE,
-    )
+    return render_game_viewer(folder_path, selected_folder)
 
 
 @app.route("/game/<path:folder_path>")
 def game_view(folder_path):
     """Static-friendly game viewer route using path parameters"""
     # Validate the selected folder exists and is a game folder
-    logs_dir = LOG_BASE_DIR
-    folder_path_obj = logs_dir / folder_path
+    folder_path_obj = LOG_BASE_DIR / folder_path
 
     if not folder_path_obj.exists() or not is_game_folder(folder_path_obj):
         return redirect(url_for("game_picker"))
 
-    # Parse the selected game
-    parser = LogParser(folder_path_obj)
-    metadata = parser.parse_game_metadata()
-    available_trajectories = parser.get_available_trajectories()
-
-    # Group trajectories by round
-    trajectories_by_round = {}
-    for player_name, round_num in available_trajectories:
-        if round_num not in trajectories_by_round:
-            trajectories_by_round[round_num] = []
-        trajectory = parser.parse_trajectory(player_name, round_num)
-        if trajectory:
-            trajectories_by_round[round_num].append(trajectory)
-
-    # Get analysis data
-    analysis_data = parser.analyze_line_counts()
-    sim_wins_data = parser.analyze_sim_wins_per_round()
-
-    # Get matrix analysis data
-    matrix_data = parser.load_matrix_analysis()
-
-    # Get the full path of the selected folder
-    selected_folder_path = str(folder_path_obj)
-
-    return render_template(
-        "index.html",
-        selected_folder=folder_path,
-        selected_folder_path=selected_folder_path,
-        metadata=metadata,
-        trajectories_by_round=trajectories_by_round,
-        analysis_data=analysis_data,
-        sim_wins_data=sim_wins_data,
-        matrix_data=matrix_data,
-        is_static=STATIC_MODE,
-    )
+    return render_game_viewer(folder_path_obj, folder_path)
 
 
 @app.route("/picker")
@@ -1207,6 +1051,39 @@ def analysis_line_counts():
         return jsonify({"success": True, "data": analysis_data})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/download-file")
+def download_file():
+    """Download a file with proper security checks"""
+    file_path = request.args.get("path")
+
+    if not file_path:
+        return jsonify({"success": False, "error": "No file path provided"}), 400
+
+    try:
+        # Convert to Path object
+        file_path_obj = Path(file_path)
+
+        # Security check: ensure the file exists
+        if not file_path_obj.exists():
+            return jsonify({"success": False, "error": "File does not exist"}), 404
+
+        # Security check: ensure the file is not a directory
+        if not file_path_obj.is_file():
+            return jsonify({"success": False, "error": "Path is not a file"}), 400
+
+        # Security check: ensure the path is within our expected logs directory
+        try:
+            file_path_obj.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid file path"}), 403
+
+        # Send the file as an attachment
+        return send_file(file_path_obj, as_attachment=True, download_name=file_path_obj.name)
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # Use run_viewer.py to launch the application

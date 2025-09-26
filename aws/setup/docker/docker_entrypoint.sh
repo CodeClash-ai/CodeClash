@@ -13,6 +13,9 @@ echo "🔄 Updating repository..."
 BRANCH_NAME="$1"
 shift  # Remove first argument, leaving the rest for exec
 
+# Save the user provided command in environment variable
+export AWS_USER_PROVIDED_COMMAND="$*"
+
 echo "🌿 Checking out branch: $BRANCH_NAME"
 git fetch
 git checkout "$BRANCH_NAME"

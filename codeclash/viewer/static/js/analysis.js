@@ -184,34 +184,37 @@ function prepareChartData(fileName) {
 }
 
 // Initialize when DOM is loaded
-// --- Sim Wins Per Round Chart ---
-let simWinsChart = null;
-let simWinsData = null;
 
-function initializeSimWinsChart() {
-  const simWinsDataElement = document.getElementById("sim-wins-data");
-  if (!simWinsDataElement) return;
+// --- Overview Scores Chart ---
+let overviewScoresChart = null;
+let overviewScoresData = null;
+
+function initializeOverviewScoresChart() {
+  const overviewScoresDataElement = document.getElementById(
+    "overview-scores-data",
+  );
+  if (!overviewScoresDataElement) return;
   try {
-    simWinsData = JSON.parse(simWinsDataElement.textContent);
+    overviewScoresData = JSON.parse(overviewScoresDataElement.textContent);
     if (
-      simWinsData &&
-      simWinsData.players &&
-      simWinsData.players.length > 0 &&
-      simWinsData.rounds &&
-      simWinsData.rounds.length > 0
+      overviewScoresData &&
+      overviewScoresData.players &&
+      overviewScoresData.players.length > 0 &&
+      overviewScoresData.rounds &&
+      overviewScoresData.rounds.length > 0
     ) {
-      createSimWinsChart();
+      createOverviewScoresChart();
     }
   } catch (error) {
-    console.error("Error parsing sim wins data:", error);
+    console.error("Error parsing overview scores data:", error);
   }
 }
 
-function createSimWinsChart() {
-  const canvas = document.getElementById("sim-wins-chart");
-  if (!canvas || !simWinsData) return;
+function createOverviewScoresChart() {
+  const canvas = document.getElementById("overview-scores-chart");
+  if (!canvas || !overviewScoresData) return;
   const ctx = canvas.getContext("2d");
-  if (simWinsChart) simWinsChart.destroy();
+  if (overviewScoresChart) overviewScoresChart.destroy();
 
   // Prepare datasets
   const colors = [
@@ -226,8 +229,11 @@ function createSimWinsChart() {
     "#FF6384",
   ];
   let colorIndex = 0;
-  const datasets = simWinsData.players.map((player) => {
-    const data = simWinsData.rounds.map((round, i) => ({ x: round, y: simWinsData.wins_by_player[player][i] }));
+  const datasets = overviewScoresData.players.map((player) => {
+    const data = overviewScoresData.rounds.map((round, i) => ({
+      x: round,
+      y: overviewScoresData.scores_by_player[player][i],
+    }));
     const color = colors[colorIndex % colors.length];
     colorIndex++;
     return {
@@ -241,7 +247,7 @@ function createSimWinsChart() {
     };
   });
 
-  simWinsChart = new Chart(ctx, {
+  overviewScoresChart = new Chart(ctx, {
     type: "line",
     data: { datasets },
     options: {
@@ -250,7 +256,7 @@ function createSimWinsChart() {
       plugins: {
         title: {
           display: true,
-          text: `Simulations Won Per Round`,
+          text: `Scores Per Round`,
         },
         legend: {
           display: true,
@@ -264,8 +270,9 @@ function createSimWinsChart() {
           position: "bottom",
         },
         y: {
-          title: { display: true, text: "Simulations Won" },
+          title: { display: true, text: "Score %" },
           beginAtZero: true,
+          max: 100,
         },
       },
       interaction: { intersect: false, mode: "index" },
@@ -273,8 +280,8 @@ function createSimWinsChart() {
   });
 }
 
-// Initialize both analyses when DOM is loaded
+// Initialize all analyses when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeAnalysis();
-  initializeSimWinsChart();
+  initializeOverviewScoresChart();
 });

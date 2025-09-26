@@ -31,6 +31,21 @@
             </div>
         </div>
 
+        <!-- AWS User Provided Command -->
+        {% if metadata and metadata.results and metadata.results.aws and metadata.results.aws.AWS_USER_PROVIDED_COMMAND %}
+        <div class="storage-item">
+            <div class="storage-label">
+                <i class="bi bi-cloud"></i> AWS Command:
+            </div>
+            <div class="storage-content">
+                <code class="folder-path">aws/run_job.py -- {{ metadata.results.aws.AWS_USER_PROVIDED_COMMAND }}</code>
+                <button class="btn btn-outline-primary btn-sm copy-aws-command-btn" title="Copy AWS command">
+                    <i class="bi bi-clipboard"></i> Copy command
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- External Links -->
         <div class="storage-item">
             <div class="storage-label">

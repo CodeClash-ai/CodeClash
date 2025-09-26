@@ -58,11 +58,8 @@ class AWSBatchJobLauncher:
     def submit_job(self, command: list[str], job_name: str | None = None) -> str:
         """Submit a job to AWS Batch."""
         if job_name is None:
-            # Generate a job name based on command and timestamp
-            cmd_name = command[0] if command else "job"
-            cmd_name = "".join(letter.lower() for letter in cmd_name if letter.isalpha())
             timestamp = int(time.time())
-            job_name = f"codeclash-{cmd_name}-{timestamp}"
+            job_name = f"codeclash-{timestamp}"
 
         # Get current git branch and prepend it to the command
         current_branch = get_current_git_branch()
@@ -148,7 +145,7 @@ def main():
         description="Submit jobs to AWS Batch",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--job-name", help="Custom job name (auto-generated if not specified)")
+    parser.add_argument("-n", "--job-name", help="Custom job name (auto-generated if not specified)")
     parser.add_argument(
         "--job-definition", default="codeclash-default-job", help="Job definition name (default: codeclash-default-job)"
     )

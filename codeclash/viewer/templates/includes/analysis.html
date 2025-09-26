@@ -2,23 +2,6 @@
 <section class="analysis-section">
     <h2><i class="bi bi-graph-up"></i> Analysis</h2>
 
-    <!-- Sim Wins Per Round Analysis -->
-    <details class="foldout">
-        <summary><i class="bi bi-bar-chart-line"></i> Sim Wins Per Round</summary>
-        <div class="log-content-container">
-            {% if sim_wins_data and sim_wins_data.players and sim_wins_data.rounds %}
-                <div class="sim-wins-analysis-container">
-                    <div class="chart-container">
-                        <canvas id="sim-wins-chart" width="800" height="400"></canvas>
-                    </div>
-                    <script type="application/json" id="sim-wins-data">{{ sim_wins_data | tojson }}</script>
-                </div>
-            {% else %}
-                <p>No simulation win data available. This analysis requires games with round stats.</p>
-            {% endif %}
-        </div>
-    </details>
-
     <!-- Line Counting Analysis -->
     <details class="foldout">
         <summary><i class="bi bi-graph-up-arrow"></i> Line Counting Analysis</summary>
