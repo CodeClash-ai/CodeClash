@@ -97,10 +97,10 @@ Every decision is driven by your code, and victory comes from crafting logic tha
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if self.submission not in agent.environment.execute("ls")["output"]:
             return False, f"There should be a `{self.submission}` file"
-        if "def robot(state, unit):" not in agent.environment.execute(f"cat {self.submission}")["output"]:
+        if "function robot(state, unit) {" not in agent.environment.execute(f"cat {self.submission}")["output"]:
             return (
                 False,
-                f"{self.submission} does not contain the required robot function. It should be defined as 'def robot(state, unit): ...'",
+                f"{self.submission} does not contain the required robot function. It should be defined as 'function robot(state, unit) {{ ... }}'.",
             )
         test_run_cmd = f"{self.run_cmd_round} {self.submission} {self.submission} -t 1"
         test_run = agent.environment.execute(test_run_cmd)["output"]
