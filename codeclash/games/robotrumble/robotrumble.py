@@ -14,7 +14,7 @@ class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
     description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
 Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match."""
-    submission: str = "robot.py"
+    submission: str = "robot.js"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
