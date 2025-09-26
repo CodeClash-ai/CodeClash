@@ -517,32 +517,26 @@ class LogParser:
         return None
 
     def get_available_trajectories(self) -> list[tuple]:
-        """Get list of available trajectory files as (player_name, round_num) tuples"""
+        """Get list of available trajectory files as (player_name, round_num) tuples using metadata"""
         trajectories = []
-        players_dir = self.log_dir / "players"
 
-        if not players_dir.exists():
-            return trajectories
+        # Get metadata to extract player and round information
+        metadata = self.parse_game_metadata()
 
-        # Iterate through player directories
-        for player_dir in players_dir.iterdir():
-            if not player_dir.is_dir():
-                continue
+        # Get player names from agent_info
+        player_names = []
+        if metadata.agent_info:
+            player_names = [agent.name for agent in metadata.agent_info]
+        elif metadata.results and "agents" in metadata.results:
+            player_names = [agent.get("name", "") for agent in metadata.results["agents"] if agent.get("name")]
 
-            player_name = player_dir.name
+        # Get round numbers from rounds data
+        round_nums = [round_data["round_num"] for round_data in metadata.rounds]
 
-            # Find trajectory files in this player's directory
-            for traj_file in player_dir.glob("*_r*.traj.*"):
-                # Extract round from filename like gpt5_r2.traj.json
-                parts = traj_file.stem.split(".")  # Remove extension
-                if parts:
-                    name_part = parts[0]  # gpt5_r2
-                    try:
-                        _, round_part = name_part.split("_")
-                        round_num = int(round_part[1:])  # Remove 'r' prefix
-                        trajectories.append((player_name, round_num))
-                    except (ValueError, IndexError):
-                        continue
+        # Generate all possible (player_name, round_num) combinations
+        for player_name in player_names:
+            for round_num in round_nums:
+                trajectories.append((player_name, round_num))
 
         return sorted(trajectories)
 
@@ -812,16 +806,16 @@ def index():
     # Parse the selected game
     parser = LogParser(folder_path)
     metadata = parser.parse_game_metadata()
-    available_trajectories = parser.get_available_trajectories()
 
-    # Group trajectories by round
     trajectories_by_round = {}
-    for player_name, round_num in available_trajectories:
+    for player_name, round_num in parser.get_available_trajectories():
         if round_num not in trajectories_by_round:
             trajectories_by_round[round_num] = []
         trajectory = parser.parse_trajectory(player_name, round_num)
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
+
+    # print({k: [_v.player_id for _v in v] for k, v in trajectories_by_round.items()})
 
     # Get analysis data
     analysis_data = parser.analyze_line_counts()
