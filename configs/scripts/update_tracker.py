@@ -5,6 +5,11 @@ from pathlib import Path
 tracker = json.load(open("configs/scripts/main_tracker.json"))
 arena_logs = [p.parent for p in Path("logs").rglob("game.log")]
 
+# Set all tracker values to 0
+for arena in tracker:
+    for k in tracker[arena]:
+        tracker[arena][k] = 0
+
 tournaments = []
 for arena_log in arena_logs:
     arena = arena_log.stem.split(".", 2)[1]
