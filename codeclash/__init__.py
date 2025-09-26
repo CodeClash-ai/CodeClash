@@ -10,4 +10,5 @@ except ImportError:
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
-CONFIG_DIR = PACKAGE_DIR / "configs"
+REPO_DIR = PACKAGE_DIR.parent
+CONFIG_DIR = REPO_DIR / "configs"
