@@ -8,6 +8,7 @@ import yaml
 from codeclash import CONFIG_DIR
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.tournaments.pvp import PvpTournament
+from codeclash.utils.aws import is_running_in_aws_batch
 from codeclash.utils.yaml_utils import resolve_includes
 
 
@@ -34,7 +35,10 @@ def main(
     suffix_part = f".{suffix}" if suffix else ""
     folder_name = f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
     if output_dir is None:
-        full_output_dir = LOCAL_LOG_DIR / getpass.getuser() / folder_name
+        if is_running_in_aws_batch():
+            full_output_dir = LOCAL_LOG_DIR / "batch" / folder_name
+        else:
+            full_output_dir = LOCAL_LOG_DIR / getpass.getuser() / folder_name
     else:
         full_output_dir = output_dir / folder_name
 
