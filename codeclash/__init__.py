@@ -9,4 +9,5 @@ except ImportError:
     pass
 
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
+PACKAGE_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = PACKAGE_DIR / "configs"

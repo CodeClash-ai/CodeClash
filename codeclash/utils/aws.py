@@ -3,7 +3,7 @@ import subprocess
 from logging import Logger
 from pathlib import Path
 
-from codeclash.constants import DIR_LOGS
+from codeclash.constants import LOCAL_LOG_DIR
 
 
 def is_running_in_aws_batch() -> bool:
@@ -81,7 +81,7 @@ def s3_log_sync(local_output_dir: Path, *, logger: Logger) -> None:
     # Construct S3 path: s3://bucket/prefix/logs/relative_path
     # where relative_path is local_output_dir relative to DIR_LOGS
     try:
-        relative_path = local_output_dir.relative_to(DIR_LOGS)
+        relative_path = local_output_dir.relative_to(LOCAL_LOG_DIR)
     except ValueError:
         # If local_output_dir is not under DIR_LOGS, use the full path
         relative_path = local_output_dir

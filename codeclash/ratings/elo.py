@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from codeclash.constants import DIR_LOGS, FILE_RESULTS
+from codeclash.constants import FILE_RESULTS, LOCAL_LOG_DIR
 
 K_FACTOR = 32  # ELO constant, changeable
 
@@ -99,6 +99,6 @@ def main(log_dir: Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--log_dir", type=Path, help="Path to game logs (Default: logs/)", default=DIR_LOGS)
+    parser.add_argument("-d", "--log_dir", type=Path, help="Path to game logs (Default: logs/)", default=LOCAL_LOG_DIR)
     args = parser.parse_args()
     main(args.log_dir)
