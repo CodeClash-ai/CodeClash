@@ -9,6 +9,7 @@ Usage:
     python run_job.py -- main.py configs/test/battlesnake_pvp_test.yaml
     python run_job.py --job-name my-test -- main.py @battlesnake_pvp_test.yaml --suffix test-run
     python run_job.py --wait --show-logs -- python -m pytest tests/
+    python run_job.py -y -- main.py configs/test/battlesnake_pvp_test.yaml
 """
 
 import argparse
@@ -58,8 +59,16 @@ class AWSBatchJobLauncher:
     def submit_job(self, command: list[str], job_name: str | None = None) -> str:
         """Submit a job to AWS Batch."""
         if job_name is None:
+            human_name = command[0]
+            # If have config take that instead
+            for arg in command:
+                if arg.startswith("configs/") or "/configs/" in arg:
+                    config_name = arg.split("/")[-1]
+                    human_name = (
+                        config_name.replace(".yaml", "").replace(".yml", "").replace(" ", "_").replace(".", "-")
+                    )
             timestamp = int(time.time())
-            job_name = f"codeclash-{timestamp}"
+            job_name = f"codeclash-{human_name}-{timestamp}"
 
         # Get current git branch and prepend it to the command
         current_branch = get_current_git_branch()
@@ -152,6 +161,7 @@ def main():
     parser.add_argument("--job-queue", default="codeclash-queue", help="Job queue name (default: codeclash-queue)")
     parser.add_argument("--wait", action="store_true", help="Wait for the job to complete before exiting")
     parser.add_argument("--show-logs", action="store_true", help="Show job logs after completion (implies --wait)")
+    parser.add_argument("-y", action="store_true", help="Skip git dirty prompt and continue automatically")
 
     if "--" in sys.argv:
         separator_index = sys.argv.index("--")
@@ -162,7 +172,8 @@ def main():
 
     args = parser.parse_args(aws_args)
 
-    check_git_status_and_confirm()
+    if not args.y:
+        check_git_status_and_confirm()
 
     launcher = AWSBatchJobLauncher(job_definition_name=args.job_definition, job_queue=args.job_queue)
 
