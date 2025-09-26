@@ -22,6 +22,12 @@ cleanup() {
     else
         echo "No logs to sync"
     fi
+    echo "Docker space usage:"
+    docker system df
+    echo "Docker cleanup"
+    docker system prune -af
+    echo "Docker space usage:"
+    docker system df
     exit $exit_code
 }
 
@@ -59,6 +65,9 @@ done
 
 # Smoke test
 docker run hello-world
+
+echo "Docker space usage:"
+docker system df
 
 # Pull images from ECR so we don't have to build them
 export AWS_DOCKER_REGISTRY="039984708918.dkr.ecr.us-east-1.amazonaws.com"
