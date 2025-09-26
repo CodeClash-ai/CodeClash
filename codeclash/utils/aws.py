@@ -87,7 +87,7 @@ def s3_log_sync(local_output_dir: Path, *, logger: Logger) -> None:
         # If local_output_dir is not under DIR_LOGS, use the full path
         relative_path = local_output_dir
 
-    s3_path = f"s3://{aws_s3_bucket}/{aws_s3_prefix}/logs/{relative_path}"
+    s3_path = f"s3://{aws_s3_bucket}/{aws_s3_prefix}/{relative_path}"
 
     logger.debug(f"Syncing {local_output_dir} to {s3_path}")
 
