@@ -92,7 +92,7 @@ def s3_log_sync(local_output_dir: Path, *, logger: Logger) -> None:
     logger.debug(f"Syncing {local_output_dir} to {s3_path}")
 
     result = subprocess.run(
-        ["aws", "s3", "sync", str(local_output_dir), s3_path, "--exclude", "*/rounds/*"],
+        ["aws", "s3", "sync", str(local_output_dir), s3_path, "--exclude", "rounds", "--exclude", "*/rounds"],
         capture_output=True,
         text=True,
     )
