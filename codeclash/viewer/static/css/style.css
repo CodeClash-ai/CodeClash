@@ -1199,6 +1199,22 @@ summary:focus {
   color: #000000;
 }
 
+/* AWS Command Display Styling */
+.aws-command-display {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.aws-command-display h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .delete-experiment-btn {
   background: var(--success-color);
   color: white;

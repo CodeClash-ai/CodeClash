@@ -22,6 +22,7 @@ def get_aws_metadata() -> dict:
         "AWS_BATCH_JOB_ATTEMPT",
         "AWS_BATCH_JOB_ID",
         "AWS_BATCH_JQ_NAME",
+        "AWS_USER_PROVIDED_COMMAND",  # we defined that ourselves in docker_entrypoint.sh
     ]
     return {env_variable: os.getenv(env_variable) for env_variable in env_variables}
 

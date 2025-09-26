@@ -93,4 +93,21 @@ function setupCopyButtons() {
         }
       });
     });
+
+  // Add event listeners to AWS command copy buttons
+  document.querySelectorAll(".copy-aws-command-btn").forEach((button) => {
+    button.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Get the AWS command from the code element next to this button
+      const codeElement = this.parentElement.querySelector(".folder-path");
+      if (codeElement) {
+        const command = codeElement.textContent.trim();
+        copyToClipboard(command, this);
+      } else {
+        console.error("No AWS command found near button:", this);
+      }
+    });
+  });
 }
