@@ -496,10 +496,11 @@ class LogParser:
         return {"all_files": all_files_list, "line_counts_by_round": line_counts_by_round}
 
     def analyze_sim_wins_per_round(self) -> dict[str, Any]:
-        """Analyze number of simulations won per round for each competitor from round_stats in metadata.json"""
+        """Analyze scores per round for each competitor from round_stats in metadata.json.
+        Scores are calculated as wins + 0.5*ties, same as in the table."""
         metadata = load_metadata(self.log_dir)
         if not metadata:
-            return {"players": [], "rounds": [], "wins_by_player": {}}
+            return {"players": [], "rounds": [], "scores_by_player": {}}
 
         round_stats = metadata.get("round_stats", {})
         # Collect all player names from all rounds
@@ -512,18 +513,28 @@ class LogParser:
         # Collect all round numbers (sorted)
         round_nums = sorted([int(k) for k in round_stats.keys()])
 
-        # Build wins_by_player: {player: [wins_per_round]}
-        wins_by_player = {p: [] for p in player_names}
+        # Build scores_by_player: {player: [scores_per_round]}
+        # Scores = (wins + 0.5*ties) / total_games * 100 (percentage, same as in process_round_results)
+        scores_by_player = {p: [] for p in player_names}
         for round_num in round_nums:
             round_data = round_stats.get(str(round_num), {})
             scores = round_data.get("scores", {})
+            ties = scores.get("Tie", 0)
+            total_games = sum(scores.values())
+
             for p in player_names:
-                wins_by_player[p].append(scores.get(p, 0))
+                wins = scores.get(p, 0)
+                if total_games > 0:
+                    # Calculate score as percentage: (wins + 0.5*ties) / total_games * 100
+                    player_score = ((wins + 0.5 * ties) / total_games) * 100
+                else:
+                    player_score = 0
+                scores_by_player[p].append(round(player_score, 1))
 
         return {
             "players": player_names,
             "rounds": round_nums,
-            "wins_by_player": wins_by_player,
+            "scores_by_player": scores_by_player,
         }
 
     def load_matrix_analysis(self) -> dict[str, Any] | None:
