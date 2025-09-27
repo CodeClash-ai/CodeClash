@@ -1,3 +1,4 @@
+import json
 import shlex
 import subprocess
 from collections import Counter
@@ -14,17 +15,26 @@ class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
     description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
 Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match."""
+    default_args: dict = {"raw": True}
     submission: str = "robot.js"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         assert len(config["players"]) == 2, "RobotRumble is a two-player game"
         self.run_cmd_round: str = "./rumblebot run term"
+        self.sim_ext = "txt"
+        for arg, val in self.game_config.get("args", self.default_args).items():
+            if isinstance(val, bool):
+                if val:
+                    self.run_cmd_round += f" --{arg}"
+                    if arg == "raw":
+                        self.sim_ext = "json"
+            else:
+                self.run_cmd_round += f" --{arg} {val}"
 
-    def _run_single_simulation(self, agents: list[Player], idx: int) -> str:
+    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str) -> str:
         """Run a single robotrumble simulation and return the output."""
-        args = [f"/{agent.name}/{self.submission}" for agent in agents]
-        cmd = f"{self.run_cmd_round} {shlex.join(args)} > {self.log_env / f'sim_{idx}.txt'}"
+        cmd = f"{cmd} > {self.log_env / f'sim_{idx}.{self.sim_ext}'}"
 
         # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
         try:
@@ -40,42 +50,63 @@ Every decision is driven by your code, and victory comes from crafting logic tha
 
     def execute_round(self, agents: list[Player]):
         self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")
+        args = [f"/{agent.name}/{self.submission}" for agent in agents]
+        cmd = f"{self.run_cmd_round} {shlex.join(args)}"
 
         with ThreadPoolExecutor(20) as executor:
             # Submit all simulations to the thread pool
             futures = [
-                executor.submit(self._run_single_simulation, agents, idx)
+                executor.submit(self._run_single_simulation, agents, idx, cmd)
                 for idx in range(self.game_config.get("sims_per_round", 100))
             ]
+
+            # Log command being run
+            self.logger.info(f"Running game: {cmd}")
 
             # Collect results as they complete
             for future in tqdm(as_completed(futures), total=len(futures)):
                 future.result()
 
+    def _get_winner_txt(self, output_file: str, agents: list[Player]) -> str:
+        with open(output_file) as f:
+            lines = f.read().strip().split("\n")
+
+        # Get the last 2 lines which contain the game result (same as original)
+        relevant_lines = lines[-2:] if len(lines) >= 2 else lines
+        log_text = "\n".join(relevant_lines)
+
+        if "Blue won" in log_text:
+            return agents[0].name
+        elif "Red won" in log_text:
+            return agents[1].name
+        elif "it was a tie" in log_text:
+            return RESULT_TIE
+        return RESULT_TIE
+
+    def _get_winner_json(self, output_file: str, agents: list[Player]) -> str:
+        with open(output_file) as f:
+            data = json.load(f)
+        if "winner" in data:
+            if data["winner"] == "Blue":
+                return agents[0].name
+            elif data["winner"] == "Red":
+                return agents[1].name
+            else:
+                return RESULT_TIE
+        return RESULT_TIE
+
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         winners = []
         for idx in range(self.game_config.get("sims_per_round", 100)):
-            output_file = self.log_round(round_num) / f"sim_{idx}.txt"
+            output_file = self.log_round(round_num) / f"sim_{idx}.{self.sim_ext}"
             if not output_file.exists():
                 self.logger.warning(f"Simulation {idx} not found, skipping")
                 continue
-            with open(output_file) as f:
-                lines = f.read().strip().split("\n")
-
-            # Get the last 2 lines which contain the game result (same as original)
-            relevant_lines = lines[-2:] if len(lines) >= 2 else lines
-            log_text = "\n".join(relevant_lines)
-
-            if "Blue won" in log_text:
-                winner = agents[0].name
-                winners.append(winner)
-            elif "Red won" in log_text:
-                winner = agents[1].name
-                winners.append(winner)
-            elif "it was a tie" in log_text:
-                winners.append(RESULT_TIE)
-            else:
-                winners.append(RESULT_TIE)
+            winners.append(
+                self._get_winner_txt(output_file, agents)
+                if self.sim_ext == "txt"
+                else self._get_winner_json(output_file, agents)
+            )
 
         # Count occurrences of each winner
         counts = Counter(winners)
