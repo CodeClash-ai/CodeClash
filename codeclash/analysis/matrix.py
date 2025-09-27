@@ -12,7 +12,7 @@ from codeclash.constants import DIR_WORK
 from codeclash.games import get_game
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.atomic_write import atomic_write
-from codeclash.utils.log import add_file_handler, get_logger
+from codeclash.utils.log import add_root_file_handler, get_logger
 
 # todo: add visualization code
 # todo: Should start from initial commit set in metadata rather than last commit
@@ -29,7 +29,7 @@ class PvPMatrixEvaluator:
 
         # Set up logging with thread safety
         self.logger = get_logger("MatrixEvaluator", log_path=self.pvp_output_dir / "matrix_eval.log", emoji="📊")
-        add_file_handler(get_logger("."), self.pvp_output_dir / "matrix_eval.log")
+        add_root_file_handler(self.pvp_output_dir / "matrix_everything.log")
 
         # Thread safety for progress saving
         self._save_lock = Lock()
