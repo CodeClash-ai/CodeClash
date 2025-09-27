@@ -9,14 +9,14 @@ players:
 - agent: mini
   name: gemini-2.5-pro
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@google/gemini-2.5-pro'
       model_class: portkey
 - agent: mini
   name: o3
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/o3'
       model_class: portkey

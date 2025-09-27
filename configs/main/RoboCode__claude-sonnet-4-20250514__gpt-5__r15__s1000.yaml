@@ -10,7 +10,7 @@ players:
 - agent: mini
   name: claude-sonnet-4-20250514
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: anthropic/claude-sonnet-4-20250514
       model_kwargs:
@@ -18,7 +18,7 @@ players:
 - agent: mini
   name: gpt-5
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/gpt-5'
       model_class: portkey

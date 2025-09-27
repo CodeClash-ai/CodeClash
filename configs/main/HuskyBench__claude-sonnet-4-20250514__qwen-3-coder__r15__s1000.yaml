@@ -8,7 +8,7 @@ players:
 - agent: mini
   name: claude-sonnet-4-20250514
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: anthropic/claude-sonnet-4-20250514
       model_kwargs:
@@ -16,7 +16,7 @@ players:
 - agent: mini
   name: qwen-3-coder
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@qwen/qwen-3-coder'
       model_class: portkey

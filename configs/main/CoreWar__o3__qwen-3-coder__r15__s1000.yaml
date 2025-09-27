@@ -8,14 +8,14 @@ players:
 - agent: mini
   name: qwen-3-coder
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@qwen/qwen-3-coder'
       model_class: portkey
 - agent: mini
   name: o3
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/o3'
       model_class: portkey
