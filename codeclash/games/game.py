@@ -95,7 +95,7 @@ class CodeGame(ABC):
             "game_id": tournament_id,
             "created_timestamp": int(time.time()),
         }
-        self.log_env: Path = (DIR_WORK / DIR_LOGS).resolve()
+        self.log_env: Path = DIR_LOGS
         self.log_local: Path = local_output_dir
         self.logger = get_logger(self.name, log_path=self.log_local / "game.log", emoji="🏓")
         self.environment: DockerEnvironment = self.get_environment()

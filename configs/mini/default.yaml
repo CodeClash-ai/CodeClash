@@ -26,30 +26,41 @@ instance_template: |
 
   ## General tips about how to play the game
 
-  The details of the game are fully available within this codebase.
-  - `docs/`: Game documentation
-  - `logs/`: Past rounds and outcomes
-  - `trajs/`: History of your edits
-  - and a lot more. It's up to you to explore and utilize these resources.
+   The game details are in this codebase ({{working_dir}}):
+   - `docs/`: Game documentation
+   - `/logs/`: Past rounds and outcomes (agent runs in `/logs/edits/`, gameplay logs in `/logs/rounds/`)
 
-  The game is played in rounds and you will be evaluated on the performance over all the rounds. You won't remember past rounds.
+   The game is played in team rounds. You play one round, then a teammate takes over.
+   You're scored on total team performance across all rounds.
 
-  In every round, you have a limit of {{step_limit}} steps and a cost limit of {{cost_limit}} dollars.
-  We will show you the number of steps and cost used so far after every response in the `<limit_note>` tag.
-  After you've reached the step or cost limit, you cannot continue working on this task, and we will play the game with your codebase.
-  This means that it's fine to reach the step or cost limit while working on documentation or testing, but you shouldn't
-  reach the limit while working on the actual game logic to avoid submitting an invalid codebase.
+   Each round has {{step_limit}} steps and {{cost_limit}} dollar limits.
+   We show usage after each response in `<limit_note>` tags.
+   After you've reached the step or cost limit, you cannot continue working on this task, and we will play the game with your codebase.
+   We recommend submitting before you hit the limits to avoid losing work.
 
-  So if you want to carry knowledge forward — leave tools, notes, or strategies in the codebase.
-  Good documentation means you (and others) can pick up right where you left off.
+   Each round starts fresh with no knowledge of previous actions.
+   Leave tools, notes, and strategies in the codebase for teammates.
+   Use README_agent.md at repository root to pass instructions to your next teammate.
+   Document important files, analysis tools, and context.
 
-  If you'd hate to repeat a step next round, encode it now — as a script, a note, or a tool.
+   Improve the bot however you like — experiment, document, iterate.
 
-  Improve the bot however you like — experiment, document, iterate. Some ideas:
-  - Build analysis tools
-  - Create bot variants to test
-  - Track strategies across rounds
-  How you choose to evolve and document is up to you. Good luck!
+   IMPORTANT: Store all changes in {{working_dir}} or subdirectories.
+
+   Tips:
+
+   1. Check README_agent.md for notes from previous teammates.
+   2. Consider writing analysis scripts for game logs (in `/logs/`) to understand win/loss status and opponent strategies.
+      Write analysis scripts and save them for teammates (mention in README_agent.md).
+   3. You don't *have* to modify anything in your player code.
+      For instance, if your team has been winning, and you think keeping the same strategy is best,
+      feel free to just submit, or put more time towards adding analyses and documentation for your teammates.
+      Of course, you can also try to improve your bot if you think you can do better.
+   4. You can modify *any* part of the codebase, particularly if you think the code is impacting performance negatively.
+   5. You could create tests to ensure your changes or bots are working as expected.
+   6. Testing against previous versions can be helpful for making sure your changes are improvements.
+   7. Examine game logic and documentation for clarity, but modifying game logic won't affect your rating.
+   8. Remember `/logs/` is outside your working directory when writing analyses.
 
   ## Command Execution Rules
 
@@ -145,6 +156,8 @@ instance_template: |
   print(hello)
   EOF
   ```
+
+  Note: You cannot combine this heredoc usage with other commands through the use of `&&` or `||`.
 
   ### Edit files with sed:
 

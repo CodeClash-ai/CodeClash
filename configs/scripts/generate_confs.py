@@ -93,7 +93,7 @@ def main(models, rounds, simulations, output: Path):
                     {
                         "agent": "mini",
                         "name": get_name(p),
-                        "config": {"agent": IncludeTag("mini/semi_prescriptive.yaml"), "model": p},
+                        "config": {"agent": IncludeTag("mini/default.yaml"), "model": p},
                     }
                     for p in pair
                 ],
