@@ -3,7 +3,8 @@ tournament:
 game:
   name: RobotRumble
   sims_per_round: 1000
-  args: {}
+  args:
+    raw: true
 players:
 - agent: mini
   name: grok-code-fast-1
