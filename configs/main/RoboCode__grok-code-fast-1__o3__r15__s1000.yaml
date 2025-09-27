@@ -10,7 +10,7 @@ players:
 - agent: mini
   name: grok-code-fast-1
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@x-ai/grok-code-fast-1'
       model_class: portkey
@@ -18,7 +18,7 @@ players:
 - agent: mini
   name: o3
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/o3'
       model_class: portkey

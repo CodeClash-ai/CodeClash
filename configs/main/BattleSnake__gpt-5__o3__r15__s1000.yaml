@@ -11,7 +11,7 @@ players:
 - agent: mini
   name: gpt-5
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/gpt-5'
       model_class: portkey
@@ -22,7 +22,7 @@ players:
 - agent: mini
   name: o3
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/o3'
       model_class: portkey

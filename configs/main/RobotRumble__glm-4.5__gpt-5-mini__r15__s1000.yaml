@@ -9,14 +9,14 @@ players:
 - agent: mini
   name: glm-4.5
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@zhipu/glm-4.5'
       model_class: portkey
 - agent: mini
   name: gpt-5-mini
   config:
-    agent: !include mini/semi_prescriptive.yaml
+    agent: !include mini/default.yaml
     model:
       model_name: '@openai/gpt-5-mini'
       model_class: portkey
