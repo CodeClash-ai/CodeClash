@@ -80,6 +80,11 @@ def add_file_handler(logger: logging.Logger, log_path: Path) -> None:
     logger.addHandler(file_handler)
 
 
+def add_root_file_handler(log_path: Path) -> None:
+    """Add a file handler to the root logger to capture all log messages."""
+    add_file_handler(logging.getLogger(), log_path)
+
+
 def get_logger(name: str, *, emoji: str = "", log_path: Path | None = None) -> logging.Logger:
     """Get logger. Use this instead of `logging.getLogger` to ensure
     that the logger is set up with the correct handlers.
