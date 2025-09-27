@@ -28,38 +28,38 @@ def main(log_dir: Path):
     # - game.log
     # - metadata.json
     model_profiles = {}
-    for user_folder in log_dir.iterdir():
-        print(f"Processing games under user `{user_folder.name}`")
-        for game_log_folder in tqdm(list(user_folder.iterdir())):
-            if not game_log_folder.is_dir():
+    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
+        game_id = game_log_folder.name.split(".")[1]
+        player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
+        metadata = json.load(open(game_log_folder / "metadata.json"))
+        try:
+            player_to_model = {
+                x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]
+            }
+        except KeyError:
+            continue
+        num_rounds = len(metadata["round_stats"])
+
+        # Only count each unique model once per game
+        unique_models = {player_to_model[player] for player in player_ids}
+        for model_name in unique_models:
+            k = f"{game_id}.{model_name}"
+            if k in model_profiles:
+                model_profiles[k].count += num_rounds
+            else:
+                # Use the first player_id that matches this model_name for display
+                player_id = next(pid for pid in player_ids if player_to_model[pid] == model_name)
+                model_profiles[k] = PlayerGameProfile(
+                    player_id=player_id, model_name=model_name, game_id=game_id, count=num_rounds
+                )
+
+        for round, details in metadata["round_stats"].items():
+            if round == "0":
+                # Skip initial round
                 continue
-            game_id = game_log_folder.name.split(".")[1]
-            player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
-            metadata = json.load(open(game_log_folder / "metadata.json"))
-            player_to_model = {x["name"]: x["config"]["model"]["model_name"] for x in metadata["config"]["players"]}
-            print(player_to_model)
-            num_rounds = len(metadata["round_stats"])
-
-            # Only count each unique model once per game
-            unique_models = {player_to_model[player] for player in player_ids}
-            for model_name in unique_models:
-                k = f"{game_id}.{model_name}"
-                if k in model_profiles:
-                    model_profiles[k].count += num_rounds
-                else:
-                    # Use the first player_id that matches this model_name for display
-                    player_id = next(pid for pid in player_ids if player_to_model[pid] == model_name)
-                    model_profiles[k] = PlayerGameProfile(
-                        player_id=player_id, model_name=model_name, game_id=game_id, count=num_rounds
-                    )
-
-            for round, details in metadata["round_stats"].items():
-                if round == "0":
-                    # Skip initial round
-                    continue
-                winner = details["winner"]
-                if winner != RESULT_TIE:
-                    model_profiles[f"{game_id}.{player_to_model[winner]}"].wins += 1
+            winner = details["winner"]
+            if winner != RESULT_TIE:
+                model_profiles[f"{game_id}.{player_to_model[winner]}"].wins += 1
 
     print("Player profiles:")
     for profile in model_profiles.values():
