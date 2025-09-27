@@ -12,12 +12,12 @@ lsof \
 && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/HuskyBench.git /testbed \
-    && cd /testbed \
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/HuskyBench.git /workspace \
+    && cd /workspace \
     && git remote set-url origin https://github.com/emagedoc/HuskyBench.git \
     && unset GITHUB_TOKEN
 
-WORKDIR /testbed
+WORKDIR /workspace
 
 RUN pip install -r engine/requirements.txt
-RUN mkdir -p /testbed/engine/output
+RUN mkdir -p /workspace/engine/output

@@ -1,6 +1,7 @@
 import re
 
 from codeclash.agents.player import Player
+from codeclash.constants import DIR_WORK
 from codeclash.games.game import CodeGame, RoundStats
 from codeclash.utils.environment import create_file_in_container
 
@@ -56,7 +57,7 @@ Victory comes from crafting clever strategies—bluffing, reading opponents, and
     def execute_round(self, agents: list[Player]):
         cmd = f"{self.run_cmd_round} > {self.log_env / HB_LOG_ENGINE} 2>&1 &"
         script = self._construct_game_script(agents, cmd, verbose=True)
-        create_file_in_container(container=self.environment, content=script, dest_path=f"/testbed/{HB_SCRIPT}")
+        create_file_in_container(container=self.environment, content=script, dest_path=DIR_WORK / HB_SCRIPT)
         self.environment.execute(f"chmod +x {HB_SCRIPT}; ./{HB_SCRIPT}")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):

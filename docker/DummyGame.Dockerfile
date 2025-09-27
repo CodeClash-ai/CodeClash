@@ -13,9 +13,9 @@ RUN apt-get update \
 
 # Inject GitHub token for private repo access
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/DummyGame.git /testbed \
-    && cd /testbed \
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/DummyGame.git /workspace \
+    && cd /workspace \
     && git remote set-url origin https://github.com/emagedoc/DummyGame.git \
     && unset GITHUB_TOKEN
 
-WORKDIR /testbed
+WORKDIR /workspace

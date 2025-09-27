@@ -25,17 +25,17 @@ RUN mkdir -p /root/.cargo \
 # Clone the repo... (OMITTED)
 
 # Pull public S3 assets
-RUN cd /testbed/cli && aws --no-sign-request s3 sync s3://rr-public-assets/lang-runners ../logic/wasm-dist/lang-runners
-RUN cd /testbed/cli && aws --no-sign-request s3 sync s3://rr-public-assets/cli-assets dist/
+RUN cd /workspace/cli && aws --no-sign-request s3 sync s3://rr-public-assets/lang-runners ../logic/wasm-dist/lang-runners
+RUN cd /workspace/cli && aws --no-sign-request s3 sync s3://rr-public-assets/cli-assets dist/
 
 # Build without updating deps; use Cargo.lock as-is
-RUN cd /testbed/cli && cargo build --locked --release
+RUN cd /workspace/cli && cargo build --locked --release
 
-# Place the built binary at /testbed/rumblebot
-RUN install -Dm755 /testbed/cli/target/release/rumblebot /testbed/rumblebot
+# Place the built binary at /workspace/rumblebot
+RUN install -Dm755 /workspace/cli/target/release/rumblebot /workspace/rumblebot
 
 # Remove some unnecessary bloat
-RUN rm -rf /testbed/cli/target
+RUN rm -rf /workspace/cli/target
 
 # Remove rust toolchains & caches
 RUN rm -rf /root/.cargo /root/.rustup /root/.cache \

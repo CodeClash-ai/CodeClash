@@ -20,12 +20,12 @@ RUN ARCH=$(dpkg --print-architecture) && \
 
 # Inject GitHub token for private repo access
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/BattleSnake.git /testbed \
-    && cd /testbed \
+RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/BattleSnake.git /workspace \
+    && cd /workspace \
     && git remote set-url origin https://github.com/emagedoc/BattleSnake.git \
     && unset GITHUB_TOKEN
 
-WORKDIR /testbed
+WORKDIR /workspace
 
 RUN cd game && go build -o battlesnake ./cli/battlesnake/main.go
 RUN pip install -r requirements.txt
