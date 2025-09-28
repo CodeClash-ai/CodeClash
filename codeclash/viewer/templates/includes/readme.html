@@ -1,13 +1,10 @@
 <!-- Readme Section -->
-<section class="readme-section">
-    <h2><i class="bi bi-journal-text"></i> Readme</h2>
-    <div class="readme-container">
-        {% if not is_static %}
-        <textarea id="readme-textarea" class="form-control readme-textarea" placeholder="Add notes about this experiment..."></textarea>
-        <div class="readme-status" id="readme-status">Loading...</div>
-        {% else %}
-        <textarea id="readme-textarea" class="form-control readme-textarea" placeholder="Readme editing not available in static mode" disabled></textarea>
-        <div class="readme-status" id="readme-status">Static Mode - Editing Disabled</div>
-        {% endif %}
-    </div>
-</section>
+<div class="readme-container readme-in-setup">
+    {% if not is_static %}
+    <textarea id="readme-textarea" class="form-control readme-textarea" placeholder="Enter readme content here"></textarea>
+    <div class="readme-status" id="readme-status">Loading...</div>
+    {% else %}
+    <textarea id="readme-textarea" class="form-control readme-textarea" placeholder="Readme editing not available in static mode" disabled></textarea>
+    <div class="readme-status" id="readme-status">Static Mode - Editing Disabled</div>
+    {% endif %}
+</div>

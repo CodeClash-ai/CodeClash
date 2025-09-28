@@ -692,6 +692,27 @@ def unescape_content(value):
     return value.replace("\\n", "\n")
 
 
+def get_folder_name(path):
+    """Extract the folder name from a path"""
+    if not path:
+        return ""
+    from pathlib import Path
+
+    return Path(path).name
+
+
+def get_parent_folder(path):
+    """Extract the parent folder name from a path"""
+    if not path:
+        return ""
+    from pathlib import Path
+
+    parent = Path(path).parent
+    if str(parent) == "." or str(parent) == "/":
+        return ""
+    return parent.name
+
+
 def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     """Get previous and next game folders for navigation"""
     # Get all game folders
@@ -755,6 +776,8 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
 # Register the custom filters
 app.jinja_env.filters["nl2br"] = nl2br
 app.jinja_env.filters["unescape_content"] = unescape_content
+app.jinja_env.filters["get_folder_name"] = get_folder_name
+app.jinja_env.filters["get_parent_folder"] = get_parent_folder
 
 
 @app.route("/")
