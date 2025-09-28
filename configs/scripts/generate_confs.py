@@ -124,8 +124,10 @@ def main(models, rounds, simulations, output: Path):
                 f.write(content)
 
             pvp = ".".join(sorted([get_name(pair[0]), get_name(pair[1])]))
-            tracking_key = f"r{rounds}.s{simulations}.p2.{pvp}"
-            tracking_dict[arena.name][tracking_key] = 0
+            tracking_key = f"r{rounds}.s{simulations}.p2"
+            if tracking_key not in tracking_dict[arena.name]:
+                tracking_dict[arena.name][tracking_key] = {}
+            tracking_dict[arena.name][tracking_key][pvp] = 0
 
     with open("configs/scripts/main_tracker.json", "w") as f:
         json.dump(tracking_dict, f, indent=2)
