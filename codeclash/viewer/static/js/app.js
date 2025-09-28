@@ -13,6 +13,37 @@ function openGamePickerInNewTab() {
   window.open(url, "_blank");
 }
 
+// Game navigation
+function navigateToGame(gameName) {
+  if (!gameName) return;
+
+  const isStatic = document.body.hasAttribute("data-static-mode");
+  const url = isStatic
+    ? `/game/${gameName}.html`
+    : `/?folder=${encodeURIComponent(gameName)}`;
+  window.location.href = url;
+}
+
+function navigateToPreviousGame() {
+  const prevBtn = document.getElementById("prev-game-btn");
+  if (prevBtn && !prevBtn.disabled) {
+    prevBtn.click();
+  }
+}
+
+function navigateToNextGame() {
+  const nextBtn = document.getElementById("next-game-btn");
+  if (nextBtn && !nextBtn.disabled) {
+    nextBtn.click();
+  }
+}
+
+// Help modal functionality
+function showHelpModal() {
+  const helpModal = new bootstrap.Modal(document.getElementById("help-modal"));
+  helpModal.show();
+}
+
 function handlePickerClick(event) {
   // Handle different types of clicks for picker button
   if (event.button === 1 || event.ctrlKey || event.metaKey) {
@@ -58,23 +89,64 @@ function initializeFoldouts() {
 // Keyboard shortcuts
 function initializeKeyboardShortcuts() {
   document.addEventListener("keydown", function (e) {
-    // p: Open game picker in same tab, P: Open game picker in new tab
-    if (e.key === "p") {
-      // Don't trigger if user is typing in an input field
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+    // Don't trigger shortcuts if user is typing in an input field
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    // Handle move dialog shortcuts first
+    const dialog = document.getElementById("move-dialog");
+    if (dialog && dialog.style.display === "flex") {
+      if (e.key === "Escape") {
+        window.cancelMove();
         return;
       }
+      if (e.key === "Enter") {
+        window.confirmMove();
+        return;
+      }
+      return;
+    }
+
+    // h or Left Arrow: Navigate to previous game
+    if (e.key === "h" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      navigateToPreviousGame();
+      return;
+    }
+
+    // l or Right Arrow: Navigate to next game
+    if (e.key === "l" || e.key === "ArrowRight") {
+      e.preventDefault();
+      navigateToNextGame();
+      return;
+    }
+
+    // p: Open game picker in same tab, P: Open game picker in new tab
+    if (e.key === "p") {
       e.preventDefault();
       openGamePicker();
+      return;
     }
 
     if (e.key === "P") {
-      // Don't trigger if user is typing in an input field
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
-        return;
-      }
       e.preventDefault();
       openGamePickerInNewTab();
+      return;
+    }
+
+    // t/T: Toggle TOC menu visibility
+    if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      toggleTocMenu();
+      return;
+    }
+
+    // ?: Show help modal
+    if (e.key === "?") {
+      e.preventDefault();
+      showHelpModal();
+      return;
     }
 
     // Escape: Close all open details
@@ -83,6 +155,7 @@ function initializeKeyboardShortcuts() {
       openDetails.forEach((details) => {
         details.removeAttribute("open");
       });
+      return;
     }
 
     // Ctrl/Cmd + E: Expand all details
@@ -92,6 +165,7 @@ function initializeKeyboardShortcuts() {
       allDetails.forEach((details) => {
         details.setAttribute("open", "");
       });
+      return;
     }
 
     // Ctrl/Cmd + Shift + E: Collapse all details
@@ -101,6 +175,7 @@ function initializeKeyboardShortcuts() {
       allDetails.forEach((details) => {
         details.removeAttribute("open");
       });
+      return;
     }
   });
 }
@@ -250,17 +325,7 @@ function initializeFloatingToc() {
     e.stopPropagation();
   });
 
-  // Keyboard shortcuts for TOC
-  document.addEventListener("keydown", function (e) {
-    // T: Toggle TOC menu visibility
-    if (e.key === "t" || e.key === "T") {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
-        return;
-      }
-      e.preventDefault();
-      toggleTocMenu();
-    }
-  });
+  // TOC keyboard shortcuts are now handled in the main keyboard handler
 }
 
 function toggleTocMenu() {
@@ -289,6 +354,12 @@ function setupButtonEventListeners() {
   const pickGameNewTabBtn = document.getElementById("pick-game-new-tab-btn");
   if (pickGameNewTabBtn) {
     pickGameNewTabBtn.addEventListener("click", openGamePickerInNewTab);
+  }
+
+  // Help button
+  const helpBtn = document.getElementById("help-btn");
+  if (helpBtn) {
+    helpBtn.addEventListener("click", showHelpModal);
   }
 
   // Delete experiment button
@@ -341,6 +412,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("CodeClash Trajectory Viewer initialized");
   console.log("Keyboard shortcuts:");
+  console.log("  h or ←: Navigate to previous game");
+  console.log("  l or →: Navigate to next game");
   console.log("  p: Open game picker (same tab)");
   console.log("  P: Open game picker (new tab)");
   console.log("  t: Toggle floating table of contents");
@@ -424,20 +497,4 @@ window.confirmMove = function () {
   window.cancelMove();
 };
 
-// Enhanced keyboard shortcuts for move dialog
-document.addEventListener("keydown", function (e) {
-  const dialog = document.getElementById("move-dialog");
-
-  if (e.key === "Escape") {
-    if (dialog && dialog.style.display === "flex") {
-      window.cancelMove();
-    }
-  }
-
-  // Enter key to confirm move
-  if (e.key === "Enter") {
-    if (dialog && dialog.style.display === "flex") {
-      window.confirmMove();
-    }
-  }
-});
+// Move dialog keyboard shortcuts are now handled in the main keyboard handler

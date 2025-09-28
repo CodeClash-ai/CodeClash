@@ -261,13 +261,36 @@ The application has two main pages:
 
 ### Keyboard Shortcuts
 
+#### Navigation Shortcuts
+* `h` or `←` (Left Arrow): Navigate to previous game in the folder structure
+* `l` or `→` (Right Arrow): Navigate to next game in the folder structure
 * `p` (lowercase): Open game picker in same tab (from viewer)
 * `P` (uppercase): Open game picker in new tab (from viewer)
+
+#### Interface Shortcuts
+* `?`: Show keyboard shortcuts help modal (available on both viewer and picker pages)
 * `t` (lowercase): Toggle floating table of contents
 * `Ctrl/Cmd + D`: Toggle dark/light mode
 * `Ctrl/Cmd + E`: Expand all sections
 * `Ctrl/Cmd + Shift + E`: Collapse all sections
 * `Escape`: Close all open sections
+
+### Keyboard Shortcuts Help Modal
+
+Both the viewer and picker pages include a help modal accessible via the `?` button or `?` keyboard shortcut:
+
+#### Modal Features
+* **Trigger**: `?` button in header or `?` keyboard shortcut
+* **Content**: Displays all available keyboard shortcuts organized by category
+* **Styling**: Bootstrap modal with consistent dark theme styling
+* **Dismissal**: Click outside modal, press Escape, or click close button
+* **Responsive**: Adapts to mobile screens appropriately
+
+#### Modal Content Structure
+* **Navigation Shortcuts**: Game navigation (h/←, l/→, p/P)
+* **Interface Shortcuts**: UI controls (?/t, Ctrl+E combinations, Escape)
+* **Mouse Shortcuts**: Click behaviors and multi-click actions
+* **Page-Specific Shortcuts**: Different content for viewer vs picker pages
 
 ### Floating Navigation
 
@@ -295,6 +318,12 @@ The application has two main pages:
 * **Left-click on ↗ button**: Always open in new tab
 
 ## Game Picker Design (`/picker`)
+
+### Header
+
+* **Help button**: `?` button that shows keyboard shortcuts modal (same functionality as viewer page)
+* **Title**: "Pick a Game" with game controller icon
+* **Description**: Brief explanation of the picker functionality
 
 ### Features
 
@@ -341,10 +370,18 @@ The application has two main pages:
 
 ### Header
 
-* **"Pick Game" button**: Navigate to picker (supports middle-click for new tab)
+#### Navigation Controls
+* **Previous/Next Game Buttons**: Navigate between games in alphabetical order within the folder structure
+  - **Previous button**: Shows `h` and `←` keyboard shortcut indicators, disabled when no previous game available
+  - **Next button**: Shows `l` and `→` keyboard shortcut indicators, disabled when no next game available
+  - **Button styling**: Uses Bootstrap secondary button styling, similar to Pick Game button
+* **"Pick Game" button**: Navigate to picker (supports middle-click for new tab) - positioned in the center between navigation buttons
   - Shows `p` keyboard shortcut indicator
   - Tooltip explains middle-click functionality
 * **"↗" button**: Always open picker in new tab
+* **Help button**: `?` button that shows keyboard shortcuts modal (available on both viewer and picker pages)
+
+#### Other Header Elements
 * **Dark/light mode toggle button**
 * **Current folder path display** with copy functionality, move/rename button, and delete button
   - **Move/Rename button**: 📁 icon that opens a dialog for moving or renaming the experiment folder (exact same functionality as in the game picker)
@@ -567,6 +604,25 @@ Both the game picker and trajectory viewer include move/rename functionality for
 ### Viewer-Specific Behavior
 - After successful move/rename in the trajectory viewer, the user is automatically redirected to the new folder path
 - The move/rename button appears in the folder path section alongside copy and delete buttons
+
+## Navigation Implementation Details
+
+### Game Navigation Logic
+* **Navigation Order**: Games are sorted alphabetically by their folder path within the logs directory
+* **Backend Function**: `get_navigation_info(selected_folder)` determines previous/next games
+* **Button States**: Navigation buttons are automatically disabled when no previous/next game is available
+* **URL Generation**: Supports both dynamic Flask routes (`/?folder=`) and static frozen routes (`/game/`)
+
+### Keyboard Shortcut Implementation
+* **Event Handling**: Single consolidated keyboard event listener to prevent conflicts
+* **Input Field Detection**: Shortcuts are disabled when typing in input fields or textareas
+* **Modal Priority**: Dialog shortcuts (Escape/Enter) take precedence when modals are open
+* **Arrow Key Support**: Both letter keys (h/l) and arrow keys (←/→) work for navigation
+
+### Button Layout
+* **Header Organization**: Navigation buttons (Previous, Pick Game, Next, Help) in logical left-to-right order
+* **Consistent Styling**: All buttons use Bootstrap classes with consistent kbd shortcut indicators
+* **Responsive Design**: Button layout adapts appropriately on mobile devices
 
 ### Important
 

@@ -116,6 +116,27 @@ body {
   min-width: 120px;
 }
 
+/* Navigation buttons */
+.nav-button {
+  min-width: 60px;
+}
+
+.nav-button kbd {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nav-button:disabled kbd {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #888888;
+}
+
 /* Let Bootstrap handle hover states */
 
 .pick-game-button kbd {
@@ -141,6 +162,91 @@ body {
 .pick-game-new-tab-button {
   margin-left: 0.5rem;
   min-width: 40px;
+}
+
+/* Help button */
+.help-button {
+  min-width: 60px;
+}
+
+.help-button kbd {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Help modal styling */
+.shortcut-section {
+  margin-bottom: 1.5rem;
+}
+
+.shortcut-section h6 {
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.shortcut-item:last-child {
+  border-bottom: none;
+}
+
+.shortcut-item kbd {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.shortcut-item .mouse-action {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.shortcut-item span:last-child {
+  flex: 1;
+  text-align: left;
+  color: var(--text-primary) !important;
+}
+
+/* Bootstrap modal overrides for dark theme */
+.modal-content {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.modal-title {
+  color: var(--text-primary) !important;
+}
+
+.modal-body {
+  color: var(--text-primary) !important;
 }
 
 /* Let Bootstrap handle hover states */

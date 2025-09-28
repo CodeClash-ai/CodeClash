@@ -670,6 +670,29 @@ def unescape_content(value):
     return value.replace("\\n", "\n")
 
 
+def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
+    """Get previous and next game folders for navigation"""
+    # Get all game folders
+    game_folders = find_all_game_folders(LOG_BASE_DIR)
+
+    # Filter to only actual game folders and sort them
+    game_names = [folder["name"] for folder in game_folders if folder["is_game"]]
+    game_names.sort()
+
+    # Find current game index
+    try:
+        current_index = game_names.index(selected_folder)
+    except ValueError:
+        # Current folder not found in the list
+        return {"previous": None, "next": None}
+
+    # Determine previous and next
+    previous_game = game_names[current_index - 1] if current_index > 0 else None
+    next_game = game_names[current_index + 1] if current_index < len(game_names) - 1 else None
+
+    return {"previous": previous_game, "next": next_game}
+
+
 def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
     """Common logic for rendering game viewer pages"""
     # Parse the selected game
@@ -690,6 +713,9 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
     sim_wins_data = parser.analyze_sim_wins_per_round()
     matrix_data = parser.load_matrix_analysis()
 
+    # Get navigation info
+    navigation_info = get_navigation_info(selected_folder)
+
     return render_template(
         "index.html",
         selected_folder=selected_folder,
@@ -699,6 +725,7 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
         analysis_data=analysis_data,
         sim_wins_data=sim_wins_data,
         matrix_data=matrix_data,
+        navigation=navigation_info,
         is_static=STATIC_MODE,
     )
 

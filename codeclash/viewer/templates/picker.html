@@ -16,8 +16,15 @@
 
     <div class="picker-container">
         <div class="picker-header">
-            <h1><i class="bi bi-controller"></i> Pick a Game</h1>
-            <p>Select a game session to view its trajectory</p>
+            <div class="picker-title-section">
+                <h1><i class="bi bi-controller"></i> Pick a Game</h1>
+                <p>Select a game session to view its trajectory</p>
+            </div>
+            <div class="picker-controls">
+                <button id="help-btn" class="btn btn-outline-secondary help-button" title="Show Keyboard Shortcuts (Press ?)">
+                    <i class="bi bi-question-circle"></i> <kbd>?</kbd>
+                </button>
+            </div>
         </div>
 
 
@@ -157,6 +164,50 @@
             <div class="move-dialog-buttons">
                 <button onclick="confirmMove()">Move</button>
                 <button onclick="cancelMove()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div class="modal fade" id="help-modal" tabindex="-1" aria-labelledby="help-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="help-modal-label">
+                        <i class="bi bi-keyboard"></i> Keyboard Shortcuts
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="shortcut-section">
+                        <h6><i class="bi bi-gear"></i> Interface</h6>
+                        <div class="shortcut-item">
+                            <kbd>?</kbd> <span>Show this help modal</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Escape</kbd> <span>Close dialogs</span>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-section">
+                        <h6><i class="bi bi-mouse"></i> Mouse</h6>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Left-click</span> <span>Select game or toggle folder</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Middle-click</span> <span>Open game in new tab</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Ctrl+click</span> <span>Open game in new tab</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Shift+click</span> <span>Range select checkboxes</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Drag</span> <span>Multi-select checkboxes</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
