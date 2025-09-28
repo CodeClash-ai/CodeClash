@@ -16,11 +16,6 @@
     {% include 'includes/picker_header.html' %}
 
     <main class="container-fluid main-content">
-        <div class="picker-description">
-            <p>Select a game session to view its trajectory</p>
-        </div>
-
-
         {% if game_folders %}
         <div class="games-table">
         <div class="table-controls">
@@ -29,33 +24,51 @@
                 <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
                 <label for="select-all">Select All</label>
             </div>
-            <div class="action-controls">
-                <select id="action-dropdown" onchange="handleAction(this.value)">
-                    <option value="">Choose action...</option>
-                    <option value="copy-paths">Copy paths</option>
-                    <option value="add-suffix">Add suffix</option>
-                    <option value="copy-foldernames">Copy foldernames</option>
-                    <option value="move-to-subfolder">Move to subfolder</option>
-                </select>
+            <div class="right-controls">
+                <div class="filter-controls">
+                    <button id="clear-filters" onclick="clearFilters()" title="Clear all filters">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </button>
+                </div>
+                <div class="action-controls">
+                    <select id="action-dropdown" onchange="handleAction(this.value)">
+                        <option value="">Choose action...</option>
+                        <option value="copy-paths">Copy paths</option>
+                        <option value="add-suffix">Add suffix</option>
+                        <option value="copy-foldernames">Copy foldernames</option>
+                        <option value="move-to-subfolder">Move to subfolder</option>
+                    </select>
+                </div>
             </div>
             {% else %}
             <div class="selection-controls">
                 <input type="checkbox" id="select-all" disabled>
                 <label for="select-all" style="color: #666;">Select All (Disabled in static mode)</label>
             </div>
-            <div class="action-controls">
-                <select id="action-dropdown" disabled>
-                    <option value="">Actions disabled in static mode</option>
-                </select>
+            <div class="right-controls">
+                <div class="filter-controls">
+                    <button id="clear-filters" disabled title="Not available in static mode">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </button>
+                </div>
+                <div class="action-controls">
+                    <select id="action-dropdown" disabled>
+                        <option value="">Actions disabled in static mode</option>
+                    </select>
+                </div>
             </div>
             {% endif %}
         </div>
         <div class="table-header">
             <div><i class="bi bi-check-square"></i></div>
-            <div>Game Session</div>
-            <div><i class="bi bi-journal-text"></i> Note</div>
+            <div>Name</div>
+            <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
+                <option value="">All Games</option>
+            </select>
             <div><i class="bi bi-target"></i> Rounds</div>
-            <div><i class="bi bi-robot"></i> Models</div>
+            <select id="model-filter" onchange="applyFilters()" class="header-filter-only">
+                <option value="">All Models</option>
+            </select>
             <div>Action</div>
         </div>
             {% for game in game_folders %}
@@ -75,7 +88,7 @@
                     {% endif %}
                 </div>
 
-                <div class="game-name-cell">
+                <div class="session-name-cell">
                     <span class="folder-indent">
                         {% for i in range(depth) %}
                         <span class="folder-icon">&nbsp;&nbsp;</span>
@@ -85,11 +98,11 @@
                     <span class="game-name">{{ folder_name }}</span>
                 </div>
 
-                <div class="readme-cell">
-                    {% if game.is_game and game.readme_first_line %}
-                    <span class="readme-text" title="{{ game.readme_first_line }}">{{ game.readme_first_line }}</span>
+                <div class="game-name-cell">
+                    {% if game.is_game and game.game_name %}
+                    <span class="game-name-text">{{ game.game_name }}</span>
                     {% else %}
-                    <span class="readme-empty">-</span>
+                    <span class="game-name-empty">-</span>
                     {% endif %}
                 </div>
 
