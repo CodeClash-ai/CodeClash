@@ -62,10 +62,11 @@ def main(log_dir: Path):
                 model_profiles[f"{game_id}.{player_to_model[winner]}"].wins += 1
 
     print("Player profiles:")
-    for profile in model_profiles.values():
-        print(
-            f" - {profile.model_name} (Game: {profile.game_id}) - Win Rate: {profile.win_rate:.2%} ({profile.wins}/{profile.count})"
-        )
+    lines = [
+        f" - {profile.model_name} (Game: {profile.game_id}) - Win Rate: {profile.win_rate:.2%} ({profile.wins}/{profile.count})"
+        for profile in model_profiles.values()
+    ]
+    print("\n".join(sorted(lines)))
 
     # Player-specific (game-agnostic) win rates (micro average)
     total_wins = {}
@@ -78,12 +79,12 @@ def main(log_dir: Path):
         model_names[mid] = profile.model_name
 
     print("\nPlayer-specific win rates (game-agnostic, micro average):")
-    for mid in total_wins:
-        if total_games[mid] > 0:
-            win_rate = total_wins[mid] / total_games[mid]
-        else:
-            win_rate = 0.0
-        print(f" - {model_names[mid]}: Win Rate {win_rate:.2%} ({total_wins[mid]}/{total_games[mid]})")
+    calc_win_rate = lambda w, c: w / c if c > 0 else 0.0
+    lines = [
+        f" - {model_names[mid]}: Win Rate {calc_win_rate(total_wins[mid], total_games[mid]):.2%} ({total_wins[mid]}/{total_games[mid]})"
+        for mid in total_wins
+    ]
+    print("\n".join(sorted(lines)))
 
 
 if __name__ == "__main__":

@@ -163,6 +163,7 @@ ignore = [
     "E501",    # line too long
     "E402",    # import not on top of file
     "E722",    # bare except
+    "E731",    # lambdas
     "E741",    # ambiguous symbol
     # pytest
     "PT011",
