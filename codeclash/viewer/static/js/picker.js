@@ -591,15 +591,24 @@ document
     }
   });
 
+// Keyboard navigation state
+let currentSelectedIndex = -1;
+let allNavigableRows = [];
+
 // Initialize functionality on page load
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Game Picker initialized");
   console.log("Available keyboard shortcuts:");
   console.log("  Shift + Click: Range select checkboxes");
   console.log("  Escape: Close move dialog");
+  console.log("  Arrow keys / hjkl: Navigate");
+  console.log("  Enter: Open selected game");
 
   // Collapse all folders by default
   collapseAllFolders();
+
+  // Initialize keyboard navigation
+  initializeKeyboardNavigation();
 });
 
 // Track individual folder states
@@ -623,4 +632,201 @@ function collapseAllFolders() {
   });
 
   console.log(`Collapsed ${folderRows.length} folders on startup`);
+}
+
+// Keyboard Navigation Functions
+function initializeKeyboardNavigation() {
+  updateNavigableRows();
+
+  // Add keyboard event listener
+  document.addEventListener("keydown", handleKeyboardNavigation);
+
+  // Select first visible row by default
+  if (allNavigableRows.length > 0) {
+    setSelectedRow(0);
+  }
+}
+
+function updateNavigableRows() {
+  // Get all visible rows (both games and folders)
+  allNavigableRows = Array.from(document.querySelectorAll(".game-row")).filter(
+    (row) => row.style.display !== "none",
+  );
+}
+
+function setSelectedRow(index) {
+  // Remove previous selection
+  if (
+    currentSelectedIndex >= 0 &&
+    currentSelectedIndex < allNavigableRows.length
+  ) {
+    allNavigableRows[currentSelectedIndex].classList.remove(
+      "keyboard-selected",
+    );
+  }
+
+  // Set new selection
+  currentSelectedIndex = index;
+  if (
+    currentSelectedIndex >= 0 &&
+    currentSelectedIndex < allNavigableRows.length
+  ) {
+    const selectedRow = allNavigableRows[currentSelectedIndex];
+    selectedRow.classList.add("keyboard-selected");
+
+    // Scroll into view if needed
+    selectedRow.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }
+}
+
+function handleKeyboardNavigation(event) {
+  // Don't handle keyboard navigation if a dialog is open or input is focused
+  if (
+    document.getElementById("move-dialog").style.display === "flex" ||
+    document.activeElement.tagName === "INPUT" ||
+    document.activeElement.tagName === "SELECT"
+  ) {
+    return;
+  }
+
+  // Don't handle if no navigable rows
+  if (allNavigableRows.length === 0) {
+    return;
+  }
+
+  let handled = false;
+
+  switch (event.key) {
+    case "ArrowUp":
+    case "k":
+      event.preventDefault();
+      navigateUp();
+      handled = true;
+      break;
+
+    case "ArrowDown":
+    case "j":
+      event.preventDefault();
+      navigateDown();
+      handled = true;
+      break;
+
+    case "ArrowLeft":
+    case "h":
+      event.preventDefault();
+      navigateLeft();
+      handled = true;
+      break;
+
+    case "ArrowRight":
+    case "l":
+      event.preventDefault();
+      navigateRight();
+      handled = true;
+      break;
+
+    case "Enter":
+      event.preventDefault();
+      activateSelectedRow();
+      handled = true;
+      break;
+  }
+
+  if (handled) {
+    // Update navigable rows in case visibility changed
+    updateNavigableRows();
+  }
+}
+
+function navigateUp() {
+  if (currentSelectedIndex > 0) {
+    setSelectedRow(currentSelectedIndex - 1);
+  }
+}
+
+function navigateDown() {
+  if (currentSelectedIndex < allNavigableRows.length - 1) {
+    setSelectedRow(currentSelectedIndex + 1);
+  }
+}
+
+function navigateLeft() {
+  if (
+    currentSelectedIndex >= 0 &&
+    currentSelectedIndex < allNavigableRows.length
+  ) {
+    const selectedRow = allNavigableRows[currentSelectedIndex];
+    const folderPath = selectedRow.getAttribute("data-path");
+
+    // If it's a folder and it's expanded, collapse it
+    if (selectedRow.classList.contains("intermediate-folder")) {
+      const currentState = folderStates.get(folderPath) || "collapsed";
+      if (currentState === "expanded") {
+        toggleFolder(folderPath);
+        updateNavigableRows();
+        // Keep selection on the same row after collapse
+        const newIndex = allNavigableRows.findIndex(
+          (row) => row.getAttribute("data-path") === folderPath,
+        );
+        if (newIndex >= 0) {
+          setSelectedRow(newIndex);
+        }
+      }
+    }
+  }
+}
+
+function navigateRight() {
+  if (
+    currentSelectedIndex >= 0 &&
+    currentSelectedIndex < allNavigableRows.length
+  ) {
+    const selectedRow = allNavigableRows[currentSelectedIndex];
+    const folderPath = selectedRow.getAttribute("data-path");
+
+    // If it's a folder and it's collapsed, expand it
+    if (selectedRow.classList.contains("intermediate-folder")) {
+      const currentState = folderStates.get(folderPath) || "collapsed";
+      if (currentState === "collapsed") {
+        toggleFolder(folderPath);
+        updateNavigableRows();
+        // Keep selection on the same row after expand
+        const newIndex = allNavigableRows.findIndex(
+          (row) => row.getAttribute("data-path") === folderPath,
+        );
+        if (newIndex >= 0) {
+          setSelectedRow(newIndex);
+        }
+      }
+    }
+  }
+}
+
+function activateSelectedRow() {
+  if (
+    currentSelectedIndex >= 0 &&
+    currentSelectedIndex < allNavigableRows.length
+  ) {
+    const selectedRow = allNavigableRows[currentSelectedIndex];
+    const folderPath = selectedRow.getAttribute("data-path");
+
+    if (selectedRow.classList.contains("intermediate-folder")) {
+      // Toggle folder
+      toggleFolder(folderPath);
+      updateNavigableRows();
+      // Keep selection on the same row after toggle
+      const newIndex = allNavigableRows.findIndex(
+        (row) => row.getAttribute("data-path") === folderPath,
+      );
+      if (newIndex >= 0) {
+        setSelectedRow(newIndex);
+      }
+    } else if (selectedRow.classList.contains("game-folder")) {
+      // Open game
+      openGame(folderPath);
+    }
+  }
 }

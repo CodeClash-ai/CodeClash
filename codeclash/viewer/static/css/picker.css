@@ -8,8 +8,19 @@
 }
 
 .picker-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 3rem;
+}
+
+.picker-title-section {
+  text-align: left;
+}
+
+.picker-controls {
+  display: flex;
+  align-items: center;
 }
 
 .picker-header h1 {
@@ -112,6 +123,18 @@
 .game-row:hover {
   background-color: var(--bg-primary);
   border-left: 3px solid var(--accent-color);
+}
+
+.game-row.keyboard-selected {
+  background-color: var(--bg-primary);
+  border-left: 4px solid var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.game-row.keyboard-selected:hover {
+  background-color: var(--bg-primary);
+  border-left: 4px solid var(--accent-hover);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 .game-folder {

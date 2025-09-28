@@ -13,10 +13,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/picker.css') }}">
 </head>
 <body{% if is_static %} data-static-mode{% endif %}>
+    {% include 'includes/picker_header.html' %}
 
-    <div class="picker-container">
-        <div class="picker-header">
-            <h1><i class="bi bi-controller"></i> Pick a Game</h1>
+    <main class="container-fluid main-content">
+        <div class="picker-description">
             <p>Select a game session to view its trajectory</p>
         </div>
 
@@ -146,7 +146,7 @@
             <p>Make sure you have run some games and they have generated log files.</p>
         </div>
         {% endif %}
-    </div>
+    </main>
 
     <!-- Move/Rename Dialog -->
     <div id="move-dialog" class="move-dialog" style="display: none;">
@@ -157,6 +157,69 @@
             <div class="move-dialog-buttons">
                 <button onclick="confirmMove()">Move</button>
                 <button onclick="cancelMove()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div class="modal fade" id="help-modal" tabindex="-1" aria-labelledby="help-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="help-modal-label">
+                        <i class="bi bi-keyboard"></i> Keyboard Shortcuts
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="shortcut-section">
+                        <h6><i class="bi bi-gear"></i> Interface</h6>
+                        <div class="shortcut-item">
+                            <kbd>?</kbd> <span>Show this help modal</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Escape</kbd> <span>Close dialogs</span>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-section">
+                        <h6><i class="bi bi-keyboard"></i> Navigation</h6>
+                        <div class="shortcut-item">
+                            <kbd>↑</kbd> / <kbd>k</kbd> <span>Navigate up</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>↓</kbd> / <kbd>j</kbd> <span>Navigate down</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>←</kbd> / <kbd>h</kbd> <span>Collapse folder</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>→</kbd> / <kbd>l</kbd> <span>Expand folder</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Enter</kbd> <span>Open game or toggle folder</span>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-section">
+                        <h6><i class="bi bi-mouse"></i> Mouse</h6>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Left-click</span> <span>Select game or toggle folder</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Middle-click</span> <span>Open game in new tab</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Ctrl+click</span> <span>Open game in new tab</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Shift+click</span> <span>Range select checkboxes</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="mouse-action">Drag</span> <span>Multi-select checkboxes</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
