@@ -1031,23 +1031,3 @@ function handleModelTagClick(event, modelName) {
   event.stopPropagation();
   setModelFilter(modelName);
 }
-
-function sortBy(column) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const currentSort = urlParams.get("sort") || "name";
-  const currentOrder = urlParams.get("order") || "asc";
-
-  let newOrder = "asc";
-
-  // If clicking the same column, toggle the order
-  if (currentSort === column) {
-    newOrder = currentOrder === "asc" ? "desc" : "asc";
-  }
-
-  // Update URL parameters
-  urlParams.set("sort", column);
-  urlParams.set("order", newOrder);
-
-  // Navigate to the new URL
-  window.location.search = urlParams.toString();
-}

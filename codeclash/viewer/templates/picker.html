@@ -61,30 +61,7 @@
         </div>
         <div class="table-header">
             <div><i class="bi bi-check-square"></i></div>
-            <div class="sortable-header" onclick="sortBy('name')">
-                Name
-                {% if current_sort == 'name' %}
-                    {% if current_order == 'asc' %}
-                        <i class="bi bi-arrow-up"></i>
-                    {% else %}
-                        <i class="bi bi-arrow-down"></i>
-                    {% endif %}
-                {% else %}
-                    <i class="bi bi-arrow-up-down sort-inactive"></i>
-                {% endif %}
-            </div>
-            <div class="sortable-header" onclick="sortBy('time')">
-                <i class="bi bi-clock"></i> Time
-                {% if current_sort == 'time' %}
-                    {% if current_order == 'asc' %}
-                        <i class="bi bi-arrow-up"></i>
-                    {% else %}
-                        <i class="bi bi-arrow-down"></i>
-                    {% endif %}
-                {% else %}
-                    <i class="bi bi-arrow-up-down sort-inactive"></i>
-                {% endif %}
-            </div>
+            <div>Name</div>
             <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
                 <option value="">All Games</option>
             </select>
@@ -119,14 +96,6 @@
                     </span>
                     <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
-                </div>
-
-                <div class="time-cell">
-                    {% if game.is_game and game.creation_time %}
-                        <span class="time-text">{{ game.creation_time }}</span>
-                    {% else %}
-                        <span class="time-unknown">-</span>
-                    {% endif %}
                 </div>
 
                 <div class="game-name-cell">

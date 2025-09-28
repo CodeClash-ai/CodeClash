@@ -146,32 +146,6 @@ def get_readme_first_line(log_dir: Path) -> str:
         return ""
 
 
-def get_creation_time_from_metadata(log_dir: Path) -> str:
-    """Extract creation time from metadata.json and format as MM/DD-HH:MM"""
-    from datetime import datetime
-
-    metadata = load_metadata(log_dir)
-    if not metadata:
-        return ""
-
-    # Try to get creation timestamp from metadata
-    timestamp = None
-    if "created_timestamp" in metadata:
-        timestamp = metadata["created_timestamp"]
-    elif "game" in metadata and "created_timestamp" in metadata["game"]:
-        timestamp = metadata["game"]["created_timestamp"]
-
-    if timestamp:
-        try:
-            # Convert timestamp to datetime and format as MM/DD-HH:MM
-            dt = datetime.fromtimestamp(timestamp)
-            return dt.strftime("%m/%d-%H:%M")
-        except (ValueError, OSError):
-            return ""
-
-    return ""
-
-
 def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
     """Extract detailed agent information from metadata"""
     agents = []
@@ -192,7 +166,7 @@ def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
     return agents
 
 
-def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str = "asc") -> list[dict[str, Any]]:
+def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
     """Recursively find all folders and mark which ones contain metadata.json"""
     all_folders = []
     game_folders = set()  # Track which folders are actual game folders
@@ -214,7 +188,6 @@ def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str
                         models = get_models_from_metadata(item)
                         readme_first_line = get_readme_first_line(item)
                         game_name = get_game_name_from_metadata(item)
-                        creation_time = get_creation_time_from_metadata(item)
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
@@ -224,7 +197,6 @@ def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str
                                 "models": models,
                                 "readme_first_line": readme_first_line,
                                 "game_name": game_name,
-                                "creation_time": creation_time,
                                 "is_game": True,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -240,7 +212,6 @@ def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str
                                 "models": [],
                                 "readme_first_line": "",
                                 "game_name": "",
-                                "creation_time": "",
                                 "is_game": False,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -257,7 +228,7 @@ def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str
 
     # Filter out intermediate folders that don't lead to any game folders
     filtered_folders = []
-    for folder in all_folders:
+    for folder in sorted(all_folders, key=lambda x: x["name"]):
         if folder["is_game"]:
             # Always include game folders
             filtered_folders.append(folder)
@@ -267,32 +238,6 @@ def find_all_game_folders(base_dir: Path, sort_by: str = "name", sort_order: str
             has_game_descendants = any(game_path.startswith(folder_path + "/") for game_path in game_folders)
             if has_game_descendants:
                 filtered_folders.append(folder)
-
-    # Sort the filtered folders
-    def get_sort_key(folder):
-        if sort_by == "time":
-            # For time sorting, prioritize game folders and sort by creation time
-            if folder["is_game"] and folder["creation_time"]:
-                # Parse time back to comparable format for sorting
-                try:
-                    from datetime import datetime
-
-                    time_str = folder["creation_time"]
-                    # Convert MM/DD-HH:MM back to datetime for comparison
-                    # Assume current year for comparison
-                    current_year = datetime.now().year
-                    dt = datetime.strptime(f"{current_year}/{time_str}", "%Y/%m/%d-%H:%M")
-                    return (0, dt)  # 0 for game folders (higher priority)
-                except (ValueError, TypeError):
-                    return (1, folder["name"])  # Fallback to name sorting
-            else:
-                return (1, folder["name"])  # Non-game folders or no time, sort by name
-        else:  # sort_by == "name" or default
-            # For name sorting, sort by folder depth first, then by name
-            return (folder["depth"], folder["name"])
-
-    reverse_sort = sort_order == "desc"
-    filtered_folders.sort(key=get_sort_key, reverse=reverse_sort)
 
     return filtered_folders
 
@@ -868,19 +813,9 @@ def game_view(folder_path):
 def game_picker():
     """Game picker page with recursive folder support"""
     logs_dir = LOG_BASE_DIR
-    sort_by = request.args.get("sort", "name")  # Default to name
-    sort_order = request.args.get("order", "asc")  # Default to ascending
+    game_folders = find_all_game_folders(logs_dir)
 
-    game_folders = find_all_game_folders(logs_dir, sort_by=sort_by, sort_order=sort_order)
-
-    return render_template(
-        "picker.html",
-        game_folders=game_folders,
-        base_dir=str(logs_dir),
-        is_static=STATIC_MODE,
-        current_sort=sort_by,
-        current_order=sort_order,
-    )
+    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir), is_static=STATIC_MODE)
 
 
 @app.route("/delete-experiment", methods=["POST"])
