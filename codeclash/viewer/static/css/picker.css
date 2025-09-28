@@ -233,7 +233,7 @@
 }
 
 .game-folder {
-  cursor: pointer;
+  /* Removed cursor: pointer to prevent hand cursor on entire row */
 }
 
 .intermediate-folder {
@@ -323,8 +323,20 @@
 }
 
 .game-name-text {
-  color: var(--text-primary);
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Dark mode contrast fix for game name tags */
+.game-name-text {
+  color: #000000;
+  font-weight: 700;
 }
 
 .game-name-empty {
@@ -418,6 +430,7 @@
   flex: 1;
   min-width: 0;
   margin-left: 0.5rem;
+  cursor: pointer;
 }
 
 .rounds-cell {
@@ -481,6 +494,30 @@
   color: var(--text-muted);
   font-size: 0.8rem;
   font-style: italic;
+}
+
+/* Clickable filter styles */
+.clickable-filter {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.clickable-filter:hover {
+  background-color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.game-name-text.clickable-filter:hover {
+  filter: brightness(1.2);
+  background-color: var(--accent-hover);
+}
+
+.model-tag.clickable-filter:hover {
+  filter: brightness(1.2);
+  background-color: var(--accent-color);
 }
 
 .action-cell {

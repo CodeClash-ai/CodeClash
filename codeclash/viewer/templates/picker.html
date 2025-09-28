@@ -100,7 +100,7 @@
 
                 <div class="game-name-cell">
                     {% if game.is_game and game.game_name %}
-                    <span class="game-name-text">{{ game.game_name }}</span>
+                    <span class="game-name-text clickable-filter" onclick="handleGameNameClick(event, '{{ game.game_name }}')" title="Click to filter by this game">{{ game.game_name }}</span>
                     {% else %}
                     <span class="game-name-empty">-</span>
                     {% endif %}
@@ -121,7 +121,7 @@
                 <div class="models-cell">
                     {% if game.is_game and game.models %}
                         {% for model in game.models %}
-                        <span class="model-tag">{{ model }}</span>
+                        <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model }}')" title="Click to filter by this model">{{ model }}</span>
                         {% endfor %}
                     {% else %}
                         <span class="models-unknown">-</span>

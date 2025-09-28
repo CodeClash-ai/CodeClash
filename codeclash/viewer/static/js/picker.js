@@ -63,6 +63,13 @@ function handleRowClick(event, gameName) {
   const checkbox = event.target.closest('input[type="checkbox"]');
   const checkboxCell = event.target.closest(".checkbox-cell");
 
+  // Check if click is on name column content (session name)
+  const sessionNameCell = event.target.closest(".session-name-cell");
+  const sessionNameContent = event.target.closest(".game-name");
+
+  // Check if click is on action buttons (these have their own handlers)
+  const actionButton = event.target.closest(".action-cell button");
+
   if (checkbox || checkboxCell) {
     // Click is on checkbox or in checkbox area - handle selection
     event.stopPropagation();
@@ -74,8 +81,8 @@ function handleRowClick(event, gameName) {
       // Click in checkbox area but not on checkbox - toggle selection
       toggleGameSelection(gameName);
     }
-  } else {
-    // Click is elsewhere - open game (original behavior)
+  } else if (sessionNameCell && sessionNameContent) {
+    // Click is on the session name content - open game
     if (event.button === 1 || event.ctrlKey || event.metaKey) {
       // Middle click, Ctrl+click, or Cmd+click - open in new tab
       event.preventDefault();
@@ -84,6 +91,12 @@ function handleRowClick(event, gameName) {
       // Left click - open in same tab
       openGame(gameName);
     }
+  } else if (actionButton) {
+    // Click is on action button - let the button handle it (don't interfere)
+    return;
+  } else {
+    // Click is elsewhere - do nothing (changed behavior)
+    return;
   }
 }
 
@@ -991,4 +1004,30 @@ function clearFilters() {
 
   // Reapply the current folder states without any filters
   applyFilters();
+}
+
+function setGameFilter(gameName) {
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) {
+    gameFilter.value = gameName;
+    applyFilters();
+  }
+}
+
+function setModelFilter(modelName) {
+  const modelFilter = document.getElementById("model-filter");
+  if (modelFilter) {
+    modelFilter.value = modelName;
+    applyFilters();
+  }
+}
+
+function handleGameNameClick(event, gameName) {
+  event.stopPropagation();
+  setGameFilter(gameName);
+}
+
+function handleModelTagClick(event, modelName) {
+  event.stopPropagation();
+  setModelFilter(modelName);
 }
