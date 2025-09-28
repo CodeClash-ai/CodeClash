@@ -13,18 +13,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/picker.css') }}">
 </head>
 <body{% if is_static %} data-static-mode{% endif %}>
+    {% include 'includes/picker_header.html' %}
 
-    <div class="picker-container">
-        <div class="picker-header">
-            <div class="picker-title-section">
-                <h1><i class="bi bi-controller"></i> Pick a Game</h1>
-                <p>Select a game session to view its trajectory</p>
-            </div>
-            <div class="picker-controls">
-                <button id="help-btn" class="btn btn-outline-secondary help-button" title="Show Keyboard Shortcuts (Press ?)">
-                    <i class="bi bi-question-circle"></i> <kbd>?</kbd>
-                </button>
-            </div>
+    <main class="container-fluid main-content">
+        <div class="picker-description">
+            <p>Select a game session to view its trajectory</p>
         </div>
 
 
@@ -153,7 +146,7 @@
             <p>Make sure you have run some games and they have generated log files.</p>
         </div>
         {% endif %}
-    </div>
+    </main>
 
     <!-- Move/Rename Dialog -->
     <div id="move-dialog" class="move-dialog" style="display: none;">
