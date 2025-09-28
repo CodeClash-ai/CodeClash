@@ -195,7 +195,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 100px 2.5fr 100px 3fr 180px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -203,7 +203,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 100px 2.5fr 100px 3fr 180px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -496,6 +496,65 @@
   font-style: italic;
 }
 
+.time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+}
+
+.time-text {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: monospace;
+  min-width: 3.5rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.time-unknown {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.sortable-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  user-select: none;
+}
+
+.sortable-header:hover {
+  background-color: var(--bg-primary);
+  color: var(--accent-color);
+}
+
+.sortable-header i {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.sortable-header:hover i {
+  opacity: 1;
+}
+
+.sort-inactive {
+  opacity: 0.4;
+}
+
+.sortable-header:hover .sort-inactive {
+  opacity: 0.7;
+}
+
 /* Clickable filter styles */
 .clickable-filter {
   cursor: pointer;
@@ -750,6 +809,7 @@
 
   .readme-cell,
   .models-cell,
+  .time-cell,
   .action-cell {
     display: none; /* Hide on mobile to save space */
   }
