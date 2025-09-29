@@ -1,76 +1,98 @@
 <!-- Storage Section -->
 <section class="storage-section">
-    <div class="storage-container">
-        <h3><i class="bi bi-hdd"></i> Storage</h3>
+    <!-- Storage Foldout -->
+    <details class="foldout">
+        <summary>
+            <i class="bi bi-hdd"></i> Storage:
+            <code class="storage-path-summary">
+            {% set folder_name = selected_folder_path | get_folder_name %}
+            {% set parent_folder = selected_folder_path | get_parent_folder %}
+            {% if parent_folder %}
+                {{ parent_folder }}/{{ folder_name }}
+            {% else %}
+                {{ folder_name }}
+            {% endif %}
+            </code>
+        </summary>
 
-        <!-- Current Folder Path -->
-        <div class="storage-item">
-            <div class="storage-label">
-                <i class="bi bi-folder"></i> Current Folder:
+        <div class="storage-container">
+            <!-- Current Folder Path -->
+            <div class="storage-item">
+                <div class="storage-label">
+                    <i class="bi bi-folder"></i> Current Folder:
+                </div>
+                <div class="storage-content">
+                    <code class="folder-path">{{ selected_folder_path }}</code>
+                    <button class="btn btn-outline-primary btn-sm copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
+                        <i class="bi bi-clipboard"></i> Copy path
+                    </button>
+                    {% if not is_static %}
+                    <button class="btn btn-outline-warning btn-sm move-rename-btn" onclick="showMoveDialog('{{ selected_folder_path }}')" title="Move/rename this experiment">
+                        <i class="bi bi-folder-symlink"></i> Move/Rename
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm" disabled title="Not available in static mode">
+                        <i class="bi bi-folder-symlink"></i> Move/Rename
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" disabled title="Not available in static mode">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                    {% endif %}
+                </div>
             </div>
-            <div class="storage-content">
-                <code class="folder-path">{{ selected_folder_path }}</code>
-                <button class="btn btn-outline-primary btn-sm copy-path-btn" data-path="{{ selected_folder_path }}" title="Copy folder path">
-                    <i class="bi bi-clipboard"></i> Copy path
-                </button>
-                {% if not is_static %}
-                <button class="btn btn-outline-warning btn-sm move-rename-btn" onclick="showMoveDialog('{{ selected_folder_path }}')" title="Move/rename this experiment">
-                    <i class="bi bi-folder-symlink"></i> Move/Rename
-                </button>
-                <button class="btn btn-outline-danger btn-sm delete-experiment-btn" data-folder-path="{{ selected_folder_path }}" title="Delete this experiment">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-                {% else %}
-                <button class="btn btn-outline-secondary btn-sm" disabled title="Not available in static mode">
-                    <i class="bi bi-folder-symlink"></i> Move/Rename
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" disabled title="Not available in static mode">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-                {% endif %}
+
+            <!-- AWS User Provided Command -->
+            {% if metadata and metadata.results and metadata.results.aws and metadata.results.aws.AWS_USER_PROVIDED_COMMAND %}
+            <div class="storage-item">
+                <div class="storage-label">
+                    <i class="bi bi-cloud"></i> AWS Command:
+                </div>
+                <div class="storage-content">
+                    <code class="folder-path">aws/run_job.py -- {{ metadata.results.aws.AWS_USER_PROVIDED_COMMAND }}</code>
+                    <button class="btn btn-outline-primary btn-sm copy-aws-command-btn" title="Copy AWS command">
+                        <i class="bi bi-clipboard"></i> Copy command
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- External Links -->
+            <div class="storage-item">
+                <div class="storage-label">
+                    <i class="bi bi-link-45deg"></i> External Links:
+                </div>
+                <div class="storage-content">
+                    <!-- S3 Bucket Link -->
+                    {% set s3_path = selected_folder.replace('\\', '/') if selected_folder else '' %}
+                    <a href="https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/s3/buckets/codeclash?region=us-east-1&bucketType=general&prefix=logs%2F{{ s3_path | urlencode }}%2F&showversions=false"
+                       target="_blank"
+                       class="btn btn-outline-info btn-sm"
+                       title="View in S3 Bucket">
+                        <i class="bi bi-bucket"></i> S3
+                    </a>
+
+                    <!-- AWS Job Link (only if AWS metadata exists) -->
+                    {% if metadata.results.aws and metadata.results.aws.AWS_BATCH_JOB_ID %}
+                    <a href="https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/batch/home?region=us-east-1#jobs/ec2/detail/{{ metadata.results.aws.AWS_BATCH_JOB_ID }}"
+                       target="_blank"
+                       class="btn btn-outline-success btn-sm"
+                       title="View AWS Batch Job">
+                        <i class="bi bi-gear-wide-connected"></i> AWS Job
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
+    </details>
 
-        <!-- AWS User Provided Command -->
-        {% if metadata and metadata.results and metadata.results.aws and metadata.results.aws.AWS_USER_PROVIDED_COMMAND %}
-        <div class="storage-item">
-            <div class="storage-label">
-                <i class="bi bi-cloud"></i> AWS Command:
-            </div>
-            <div class="storage-content">
-                <code class="folder-path">aws/run_job.py -- {{ metadata.results.aws.AWS_USER_PROVIDED_COMMAND }}</code>
-                <button class="btn btn-outline-primary btn-sm copy-aws-command-btn" title="Copy AWS command">
-                    <i class="bi bi-clipboard"></i> Copy command
-                </button>
-            </div>
+    <!-- Scores Per Round Chart -->
+    {% if sim_wins_data and sim_wins_data.players and sim_wins_data.rounds %}
+        <div class="chart-container">
+            <canvas id="overview-scores-chart" width="800" height="400"></canvas>
         </div>
-        {% endif %}
-
-        <!-- External Links -->
-        <div class="storage-item">
-            <div class="storage-label">
-                <i class="bi bi-link-45deg"></i> External Links:
-            </div>
-            <div class="storage-content">
-                <!-- S3 Bucket Link -->
-                {% set s3_path = selected_folder.replace('\\', '/') if selected_folder else '' %}
-                <a href="https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/s3/buckets/codeclash?region=us-east-1&bucketType=general&prefix=logs%2F{{ s3_path | urlencode }}%2F&showversions=false"
-                   target="_blank"
-                   class="btn btn-outline-info btn-sm"
-                   title="View in S3 Bucket">
-                    <i class="bi bi-bucket"></i> S3
-                </a>
-
-                <!-- AWS Job Link (only if AWS metadata exists) -->
-                {% if metadata.results.aws and metadata.results.aws.AWS_BATCH_JOB_ID %}
-                <a href="https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/batch/home?region=us-east-1#jobs/ec2/detail/{{ metadata.results.aws.AWS_BATCH_JOB_ID }}"
-                   target="_blank"
-                   class="btn btn-outline-success btn-sm"
-                   title="View AWS Batch Job">
-                    <i class="bi bi-gear-wide-connected"></i> AWS Job
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+        <script type="application/json" id="overview-scores-data">{{ sim_wins_data | tojson }}</script>
+    {% endif %}
 </section>

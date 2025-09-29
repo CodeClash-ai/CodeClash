@@ -63,6 +63,13 @@ function handleRowClick(event, gameName) {
   const checkbox = event.target.closest('input[type="checkbox"]');
   const checkboxCell = event.target.closest(".checkbox-cell");
 
+  // Check if click is on name column content (session name)
+  const sessionNameCell = event.target.closest(".session-name-cell");
+  const sessionNameContent = event.target.closest(".game-name");
+
+  // Check if click is on action buttons (these have their own handlers)
+  const actionButton = event.target.closest(".action-cell button");
+
   if (checkbox || checkboxCell) {
     // Click is on checkbox or in checkbox area - handle selection
     event.stopPropagation();
@@ -74,8 +81,8 @@ function handleRowClick(event, gameName) {
       // Click in checkbox area but not on checkbox - toggle selection
       toggleGameSelection(gameName);
     }
-  } else {
-    // Click is elsewhere - open game (original behavior)
+  } else if (sessionNameCell && sessionNameContent) {
+    // Click is on the session name content - open game
     if (event.button === 1 || event.ctrlKey || event.metaKey) {
       // Middle click, Ctrl+click, or Cmd+click - open in new tab
       event.preventDefault();
@@ -84,6 +91,12 @@ function handleRowClick(event, gameName) {
       // Left click - open in same tab
       openGame(gameName);
     }
+  } else if (actionButton) {
+    // Click is on action button - let the button handle it (don't interfere)
+    return;
+  } else {
+    // Click is elsewhere - do nothing (changed behavior)
+    return;
   }
 }
 
@@ -151,8 +164,12 @@ function toggleFolder(folderPath) {
         // Check if this is a direct child (not a grandchild)
         const relativePath = rowPath.substring(folderPath.length + 1);
         if (!relativePath.includes("/")) {
-          // This is a direct child, show it
-          row.style.display = "";
+          // This is a direct child, show it only if it passes current filters
+          if (shouldRowBeVisible(row)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
 
           // If this is a folder, restore its individual state
           if (row.classList.contains("intermediate-folder")) {
@@ -179,35 +196,30 @@ function toggleFolder(folderPath) {
 }
 
 function hideChildrenOfFolder(folderPath) {
-  // Hide all descendant rows of a folder, but respect their individual states
+  // Hide all descendant rows of a folder
   const allRows = document.querySelectorAll(".game-row");
   allRows.forEach((row) => {
     const rowPath = row.getAttribute("data-path");
     if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      // Check if this is a direct child or a descendant
-      const relativePath = rowPath.substring(folderPath.length + 1);
+      row.style.display = "none";
 
-      if (!relativePath.includes("/")) {
-        // This is a direct child - hide it
-        row.style.display = "none";
-      } else {
-        // This is a grandchild or deeper - check if its parent is visible
-        const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
-        const parentRow = document.querySelector(`[data-path="${parentPath}"]`);
+      // If this is also a folder, mark it as collapsed
+      if (row.classList.contains("intermediate-folder")) {
+        folderStates.set(rowPath, "collapsed");
+        row.classList.add("collapsed");
 
-        if (parentRow && parentRow.style.display === "none") {
-          // Parent is hidden, so hide this child too
-          row.style.display = "none";
+        // Update the collapse icon
+        const collapseIcon = row.querySelector(".collapse-icon");
+        if (collapseIcon) {
+          collapseIcon.textContent = "";
         }
-        // If parent is visible, don't change this child's visibility
-        // (it will be handled by its own parent's state)
       }
     }
   });
 }
 
 function showChildrenOfFolder(folderPath) {
-  // Show all descendant rows of a folder, respecting their individual states
+  // Show all descendant rows of a folder, respecting their individual states and current filters
   const allRows = document.querySelectorAll(".game-row");
   allRows.forEach((row) => {
     const rowPath = row.getAttribute("data-path");
@@ -216,8 +228,10 @@ function showChildrenOfFolder(folderPath) {
       const relativePath = rowPath.substring(folderPath.length + 1);
 
       if (!relativePath.includes("/")) {
-        // This is a direct child - show it
-        row.style.display = "";
+        // This is a direct child - show it only if it passes current filters
+        if (shouldRowBeVisible(row)) {
+          row.style.display = "";
+        }
       } else {
         // This is a grandchild or deeper - check if its parent is visible and expanded
         const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
@@ -227,8 +241,10 @@ function showChildrenOfFolder(folderPath) {
           // Parent is visible, check if it's expanded
           const parentState = folderStates.get(parentPath) || "collapsed";
           if (parentState === "expanded") {
-            // Parent is expanded, so show this child
-            row.style.display = "";
+            // Parent is expanded, so show this child only if it passes current filters
+            if (shouldRowBeVisible(row)) {
+              row.style.display = "";
+            }
           } else {
             // Parent is collapsed, so hide this child
             row.style.display = "none";
@@ -609,6 +625,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize keyboard navigation
   initializeKeyboardNavigation();
+
+  // Initialize filters
+  initializeFilters();
 });
 
 // Track individual folder states
@@ -829,4 +848,186 @@ function activateSelectedRow() {
       openGame(folderPath);
     }
   }
+}
+
+// Filtering functionality
+let allGameRows = [];
+let uniqueGames = new Set();
+let uniqueModels = new Set();
+
+function shouldRowBeVisible(row) {
+  const gameFilter =
+    document.getElementById("game-filter")?.value.toLowerCase() || "";
+  const modelFilter =
+    document.getElementById("model-filter")?.value.toLowerCase() || "";
+
+  if (row.classList.contains("game-folder")) {
+    // Check game name filter
+    if (gameFilter) {
+      const gameNameElement = row.querySelector(".game-name-text");
+      const gameName = gameNameElement
+        ? gameNameElement.textContent.toLowerCase()
+        : "";
+      if (!gameName.includes(gameFilter)) {
+        return false;
+      }
+    }
+
+    // Check model filter
+    if (modelFilter) {
+      const modelTags = row.querySelectorAll(".model-tag");
+      const hasMatchingModel = Array.from(modelTags).some((tag) =>
+        tag.textContent.toLowerCase().includes(modelFilter),
+      );
+      if (!hasMatchingModel) {
+        return false;
+      }
+    }
+
+    return true;
+  } else {
+    // For intermediate folders, check if any child game folders should be visible
+    const folderPath = row.getAttribute("data-path");
+    const childGameRows = document.querySelectorAll(
+      `.game-row.game-folder[data-path^="${folderPath}/"]`,
+    );
+    return Array.from(childGameRows).some((childRow) =>
+      shouldRowBeVisible(childRow),
+    );
+  }
+}
+
+function initializeFilters() {
+  // Collect all game rows and extract unique values
+  allGameRows = Array.from(document.querySelectorAll(".game-row.game-folder"));
+
+  allGameRows.forEach((row) => {
+    // Extract game name
+    const gameNameElement = row.querySelector(".game-name-text");
+    if (gameNameElement && gameNameElement.textContent.trim()) {
+      uniqueGames.add(gameNameElement.textContent.trim());
+    }
+
+    // Extract model names
+    const modelTags = row.querySelectorAll(".model-tag");
+    modelTags.forEach((tag) => {
+      if (tag.textContent.trim()) {
+        uniqueModels.add(tag.textContent.trim());
+      }
+    });
+  });
+
+  // Populate filter dropdowns
+  populateGameFilter();
+  populateModelFilter();
+}
+
+function populateGameFilter() {
+  const gameFilter = document.getElementById("game-filter");
+  if (!gameFilter) return;
+
+  // Clear existing options except "All Games"
+  gameFilter.innerHTML = '<option value="">All Games</option>';
+
+  // Add unique games
+  Array.from(uniqueGames)
+    .sort()
+    .forEach((game) => {
+      const option = document.createElement("option");
+      option.value = game;
+      option.textContent = game;
+      gameFilter.appendChild(option);
+    });
+}
+
+function populateModelFilter() {
+  const modelFilter = document.getElementById("model-filter");
+  if (!modelFilter) return;
+
+  // Clear existing options except "All Models"
+  modelFilter.innerHTML = '<option value="">All Models</option>';
+
+  // Add unique models
+  Array.from(uniqueModels)
+    .sort()
+    .forEach((model) => {
+      const option = document.createElement("option");
+      option.value = model;
+      option.textContent = model;
+      modelFilter.appendChild(option);
+    });
+}
+
+function applyFilters() {
+  // Get all game rows (both game folders and intermediate folders)
+  const allRows = document.querySelectorAll(".game-row");
+
+  allRows.forEach((row) => {
+    if (shouldRowBeVisible(row)) {
+      // Check if this row should be visible based on parent folder states
+      const rowPath = row.getAttribute("data-path");
+      let shouldShowBasedOnParents = true;
+
+      if (rowPath && rowPath.includes("/")) {
+        let currentPath = rowPath;
+
+        // Walk up the parent hierarchy
+        while (currentPath.includes("/")) {
+          const parentPath = currentPath.substring(
+            0,
+            currentPath.lastIndexOf("/"),
+          );
+          const parentState = folderStates.get(parentPath) || "collapsed";
+
+          if (parentState === "collapsed") {
+            shouldShowBasedOnParents = false;
+            break;
+          }
+
+          currentPath = parentPath;
+        }
+      }
+
+      row.style.display = shouldShowBasedOnParents ? "" : "none";
+    } else {
+      row.style.display = "none";
+    }
+  });
+
+  // Update keyboard navigation after filtering
+  updateNavigableRows();
+}
+
+function clearFilters() {
+  document.getElementById("game-filter").value = "";
+  document.getElementById("model-filter").value = "";
+
+  // Reapply the current folder states without any filters
+  applyFilters();
+}
+
+function setGameFilter(gameName) {
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) {
+    gameFilter.value = gameName;
+    applyFilters();
+  }
+}
+
+function setModelFilter(modelName) {
+  const modelFilter = document.getElementById("model-filter");
+  if (modelFilter) {
+    modelFilter.value = modelName;
+    applyFilters();
+  }
+}
+
+function handleGameNameClick(event, gameName) {
+  event.stopPropagation();
+  setGameFilter(gameName);
+}
+
+function handleModelTagClick(event, modelName) {
+  event.stopPropagation();
+  setModelFilter(modelName);
 }

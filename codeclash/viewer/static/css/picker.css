@@ -34,6 +34,66 @@
   font-size: 1.1rem;
 }
 
+.filter-controls {
+  display: flex;
+  align-items: center;
+}
+
+#clear-filters {
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#clear-filters:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--accent-color);
+}
+
+#clear-filters:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.header-filter-only {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.header-filter-only:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.header-filter-only:hover {
+  border-color: var(--accent-color);
+}
+
 .games-table {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -49,6 +109,13 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .selection-controls {
@@ -59,6 +126,34 @@
 
 .selection-controls input[type="checkbox"] {
   margin: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.selection-controls input[type="checkbox"]:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.selection-controls input[type="checkbox"]:checked {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.selection-controls input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .selection-controls label {
@@ -100,7 +195,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -108,7 +203,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 60px 2.5fr 3fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -138,7 +233,7 @@
 }
 
 .game-folder {
-  cursor: pointer;
+  /* Removed cursor: pointer to prevent hand cursor on entire row */
 }
 
 .intermediate-folder {
@@ -186,16 +281,67 @@
 }
 
 .game-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
-  accent-color: var(--accent-color);
-  transform: scale(1.5);
+  appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background-color: transparent;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .game-checkbox:hover {
-  transform: scale(1.6);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.game-checkbox:checked {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.game-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.session-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.game-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+.game-name-text {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Dark mode contrast fix for game name tags */
+.game-name-text {
+  color: #000000;
+  font-weight: 700;
+}
+
+.game-name-empty {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .game-checkbox:focus {
@@ -284,6 +430,7 @@
   flex: 1;
   min-width: 0;
   margin-left: 0.5rem;
+  cursor: pointer;
 }
 
 .rounds-cell {
@@ -347,6 +494,30 @@
   color: var(--text-muted);
   font-size: 0.8rem;
   font-style: italic;
+}
+
+/* Clickable filter styles */
+.clickable-filter {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.clickable-filter:hover {
+  background-color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.game-name-text.clickable-filter:hover {
+  filter: brightness(1.2);
+  background-color: var(--accent-hover);
+}
+
+.model-tag.clickable-filter:hover {
+  filter: brightness(1.2);
+  background-color: var(--accent-color);
 }
 
 .action-cell {

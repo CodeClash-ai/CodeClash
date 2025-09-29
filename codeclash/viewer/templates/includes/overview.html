@@ -2,14 +2,6 @@
 <section class="overview-section">
     <h2><i class="bi bi-bar-chart"></i> Overview</h2>
 
-    <!-- Scores Per Round Chart -->
-    {% if sim_wins_data and sim_wins_data.players and sim_wins_data.rounds %}
-        <div class="chart-container">
-            <canvas id="overview-scores-chart" width="800" height="400"></canvas>
-        </div>
-        <script type="application/json" id="overview-scores-data">{{ sim_wins_data | tojson }}</script>
-    {% endif %}
-
     <div class="overview-summary">
         <table class="table table-striped table-hover results-table">
             <thead>

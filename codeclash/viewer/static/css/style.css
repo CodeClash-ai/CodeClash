@@ -1162,17 +1162,27 @@ summary:focus {
 /* Storage Section */
 .storage-section {
   margin-bottom: 2rem;
-  padding: 1rem;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
 }
 
-.storage-container h3 {
-  margin: 0 0 1rem 0;
+.storage-container {
+  padding: 1rem;
+}
+
+.storage-path-summary {
+  background: var(--code-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
   color: #ffffff;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+/* Readme spacing when in setup section */
+.readme-in-setup {
+  margin: 1.5rem 0;
 }
 
 .storage-item {
