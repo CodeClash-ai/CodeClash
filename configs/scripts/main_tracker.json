@@ -73,9 +73,9 @@
       "glm-4.5.o3": "0 (0 rounds)",
       "gpt-5.gpt-5-mini": "10 (141 rounds)",
       "gpt-5.qwen-3-coder": "0 (0 rounds)",
-      "gpt-5.o3": "6 (84 rounds)",
+      "gpt-5.o3": "7 (97 rounds)",
       "gpt-5-mini.qwen-3-coder": "0 (0 rounds)",
-      "gpt-5-mini.o3": "7 (105 rounds)",
+      "gpt-5-mini.o3": "8 (121 rounds)",
       "o3.qwen-3-coder": "0 (0 rounds)"
     }
   },
