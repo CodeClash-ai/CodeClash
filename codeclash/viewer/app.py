@@ -421,53 +421,52 @@ class LogParser:
         if not player_dir.exists():
             return None
 
-        # Try both .json and .log extensions
-        for ext in [".json", ".log"]:
-            traj_file = player_dir / f"{player_name}_r{round_num}.traj{ext}"
-            if traj_file.exists():
+        traj_file = player_dir / f"{player_name}_r{round_num}.traj.json"
+        if not traj_file.exists():
+            return None
+        try:
+            data = json.loads(traj_file.read_text())
+            info = data.get("info", {})
+            model_stats = info.get("model_stats", {})
+
+            # Get diff data from changes file
+            diff = incremental_diff = modified_files = None
+            changes_file = player_dir / f"changes_r{round_num}.json"
+            if changes_file.exists():
                 try:
-                    data = json.loads(traj_file.read_text())
-                    info = data.get("info", {})
-                    model_stats = info.get("model_stats", {})
+                    changes_data = json.loads(changes_file.read_text())
+                    diff = changes_data.get("full_diff", "")
+                    incremental_diff = changes_data.get("incremental_diff", "")
+                    modified_files = changes_data.get("modified_files", {})
+                except (json.JSONDecodeError, KeyError):
+                    pass
 
-                    # Get diff data from changes file
-                    diff = incremental_diff = modified_files = None
-                    changes_file = player_dir / f"changes_r{round_num}.json"
-                    if changes_file.exists():
-                        try:
-                            changes_data = json.loads(changes_file.read_text())
-                            diff = changes_data.get("full_diff", "")
-                            incremental_diff = changes_data.get("incremental_diff", "")
-                            modified_files = changes_data.get("modified_files", {})
-                        except (json.JSONDecodeError, KeyError):
-                            pass
+            # Filter and split diffs by files
+            filtered_diff = filter_git_diff(diff) if diff else ""
+            filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+            diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+            incremental_diff_by_files = (
+                split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+            )
 
-                    # Filter and split diffs by files
-                    filtered_diff = filter_git_diff(diff) if diff else ""
-                    filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
-                    diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
-                    incremental_diff_by_files = (
-                        split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
-                    )
-
-                    return TrajectoryInfo(
-                        player_id=player_name,
-                        round_num=round_num,
-                        api_calls=model_stats.get("api_calls", 0),
-                        cost=model_stats.get("instance_cost", 0.0),
-                        exit_status=info.get("exit_status"),
-                        submission=info.get("submission"),
-                        memory=info.get("memory"),
-                        messages=data.get("messages", []),
-                        diff=diff,
-                        incremental_diff=incremental_diff,
-                        modified_files=modified_files,
-                        trajectory_file_path=str(traj_file),
-                        diff_by_files=diff_by_files,
-                        incremental_diff_by_files=incremental_diff_by_files,
-                    )
-                except (json.JSONDecodeError, KeyError) as e:
-                    logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
+            return TrajectoryInfo(
+                player_id=player_name,
+                round_num=round_num,
+                api_calls=model_stats.get("api_calls", 0),
+                cost=model_stats.get("instance_cost", 0.0),
+                exit_status=info.get("exit_status"),
+                submission=info.get("submission"),
+                memory=info.get("memory"),
+                messages=data.get("messages", []),
+                diff=diff,
+                incremental_diff=incremental_diff,
+                modified_files=modified_files,
+                trajectory_file_path=str(traj_file),
+                diff_by_files=diff_by_files,
+                incremental_diff_by_files=incremental_diff_by_files,
+            )
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
 
         return None
 
