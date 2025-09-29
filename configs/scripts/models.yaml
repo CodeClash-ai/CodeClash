@@ -1,9 +1,12 @@
 - model_name: "anthropic/claude-sonnet-4-20250514"
   model_kwargs:
     temperature: 0.0
-- model_name: "anthropic/claude-opus-4-1-20250805"
+- model_name: "anthropic/claude-sonnet-4-5-20250929"
   model_kwargs:
     temperature: 0.0
+# - model_name: "anthropic/claude-opus-4-1-20250805"
+#   model_kwargs:
+#     temperature: 0.0
 - model_name: "@x-ai/grok-code-fast-1"
   model_class: portkey
   litellm_model_name_override: "xai/grok-code-fast-1"
