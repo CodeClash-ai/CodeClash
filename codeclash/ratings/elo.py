@@ -20,9 +20,49 @@ def expected_score(rating_a, rating_b):
     return 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
 
 
-def main(log_dir: Path, k_factor: int, starting_elo: int):
-    print(f"Calculating ELO ratings from logs in {log_dir} ...")
+def calculate_round_weight_linear(round_num, total_rounds):
+    """Calculate linear weight for a round, with average weight = 1.0 across all rounds
+
+    Args:
+        round_num: Current round number (1-indexed)
+        total_rounds: Total number of rounds in the game
+
+    Returns:
+        Weight value where early rounds have weight ~0.5 and late rounds have weight ~1.5
+    """
+    # Linear: weight = 0.5 + (round_num / total_rounds)
+    # This gives range [0.5, 1.5] with average = 1.0
+    return 0.5 + (round_num / total_rounds)
+
+
+def calculate_round_weight_exponential(round_num, total_rounds, alpha=2.0):
+    """Calculate exponential weight for a round, with average weight = 1.0 across all rounds
+
+    Args:
+        round_num: Current round number (1-indexed)
+        total_rounds: Total number of rounds in the game
+        alpha: Exponential factor (default 2.0 for quadratic weighting)
+
+    Returns:
+        Weight value with exponential progression favoring later rounds
+    """
+    # Raw weight (exponential)
+    raw_weight = (round_num / total_rounds) ** alpha
+
+    # Normalization factor so average = 1.0
+    # For α=2: average of x² from 0 to 1 is 1/3, so multiply by 3
+    norm_factor = alpha + 1  # This makes average = 1.0
+
+    return raw_weight * norm_factor
+
+
+def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: str, alpha: float):
+    print(f"Calculating weighted ELO ratings from logs in {log_dir} ...")
     print(f"Using K_FACTOR={k_factor}, STARTING_ELO={starting_elo}")
+    print(
+        f"Weighting function: {weighting_function}"
+        + (f" (alpha={alpha})" if weighting_function == "exponential" else "")
+    )
     player_profiles = {}
     for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
         arena = game_log_folder.name.split(".")[1]
@@ -40,12 +80,25 @@ def main(log_dir: Path, k_factor: int, starting_elo: int):
                 player_profiles[key] = ModelEloProfile(model=model, arena=arena, rating=starting_elo)
 
         sims = metadata["game"]["config"]["sims_per_round"]
+
+        # Determine total rounds for weighting calculation
+        total_rounds = len([k for k in metadata["round_stats"].keys() if k != "0"])
+
         if len(p2m) == 2:
             # Only process if there are exactly 2 players
             for idx, stats in metadata["round_stats"].items():
                 if idx == "0":
                     # Skip initial round
                     continue
+
+                # Calculate round weight
+                current_round = int(idx)
+                if weighting_function == "linear":
+                    round_weight = calculate_round_weight_linear(current_round, total_rounds)
+                elif weighting_function == "exponential":
+                    round_weight = calculate_round_weight_exponential(current_round, total_rounds, alpha)
+                else:  # none
+                    round_weight = 1.0
 
                 prof_and_score = []
                 valid_submits = sum(
@@ -80,11 +133,14 @@ def main(log_dir: Path, k_factor: int, starting_elo: int):
                         p1_score = p2_score = 0.5
 
                     expected_p1 = expected_score(p1_prof.rating, p2_prof.rating)
-                    rating_change = k_factor * (p1_score - expected_p1)
+
+                    # Apply round weighting to K-factor
+                    weighted_k_factor = k_factor * round_weight
+                    rating_change = weighted_k_factor * (p1_score - expected_p1)
 
                     expected_p2 = expected_score(p2_prof.rating, p1_prof.rating)
-                    check = k_factor * (p2_score - expected_p2)
-                    assert abs(check + rating_change) < 1e-6, "ELO rating changes do not sum to zero!"
+                    check = weighted_k_factor * (p2_score - expected_p2)
+                    assert abs(check + rating_change) < 1e-6, "Weighted ELO rating changes do not sum to zero!"
 
                     p1_prof.rating += rating_change
                     p2_prof.rating -= rating_change  # Zero-sum property
@@ -116,11 +172,25 @@ def main(log_dir: Path, k_factor: int, starting_elo: int):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Calculate weighted ELO ratings with configurable weighting functions")
     parser.add_argument("-d", "--log_dir", type=Path, help="Path to game logs (Default: logs/)", default=LOCAL_LOG_DIR)
     parser.add_argument("-k", "--k_factor", type=int, help="K-Factor for ELO calculation (Default: 32)", default=32)
     parser.add_argument(
         "-s", "--starting_elo", type=int, help="Starting ELO for new players (Default: 1200)", default=1200
+    )
+    parser.add_argument(
+        "-w",
+        "--weighting_function",
+        choices=["none", "linear", "exponential"],
+        default="none",
+        help="Weighting function for rounds: 'linear' for gradual increase, 'exponential' for accelerating importance (Default: none)",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        type=float,
+        default=2.0,
+        help="Alpha parameter for exponential weighting (Default: 2.0, ignored for linear weighting)",
     )
     args = parser.parse_args()
     main(**vars(args))
