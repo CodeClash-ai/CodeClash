@@ -2,6 +2,7 @@
 """Push AWS resources defined in JSON files to AWS."""
 
 import argparse
+import base64
 import json
 import logging
 from pathlib import Path
@@ -194,20 +195,37 @@ def push_job_definition(job_data: dict, batch_client) -> None:
     logger.info(f"✅ Successfully pushed job definition: {job_name}:{revision}")
 
 
+def _add_user_data_to_launch_template(template_data: dict, user_data_path: Path) -> None:
+    """Add user data from the specified path to the template data."""
+    if user_data_path.exists():
+        logger.info(f"Adding user data from {user_data_path.name}")
+        user_data_script = user_data_path.read_text()
+        encoded_user_data = base64.b64encode(user_data_script.encode()).decode()
+        template_data["LaunchTemplateData"]["UserData"] = encoded_user_data
+    else:
+        logger.warning(f"User data file not found: {user_data_path}")
+
+
 def _update_launch_template(template_data: dict, existing_template: dict, ec2_client) -> None:
-    """Update existing launch template by creating a new version."""
+    """Update existing launch template by creating a new version and setting it as default."""
     template_name = template_data["LaunchTemplateName"]
+    template_id = existing_template["LaunchTemplateId"]
     logger.info(f"Launch template {template_name} already exists, creating new version")
 
     create_params = {
-        "LaunchTemplateId": existing_template["LaunchTemplateId"],
+        "LaunchTemplateId": template_id,
         "LaunchTemplateData": template_data["LaunchTemplateData"],
     }
 
     response = ec2_client.create_launch_template_version(**create_params)
     version = response["LaunchTemplateVersion"]["VersionNumber"]
 
-    logger.info(f"✅ Successfully created new version {version} for launch template: {template_name}")
+    # Set the new version as the default
+    ec2_client.modify_launch_template(LaunchTemplateId=template_id, DefaultVersion=str(version))
+
+    logger.info(
+        f"✅ Successfully created new version {version} for launch template: {template_name} and set as default"
+    )
 
 
 def _create_launch_template(template_data: dict, ec2_client) -> None:
@@ -227,9 +245,12 @@ def _create_launch_template(template_data: dict, ec2_client) -> None:
     logger.info(f"✅ Successfully created launch template: {template_name}")
 
 
-def push_launch_template(template_data: dict, ec2_client) -> None:
+def push_launch_template(template_data: dict, ec2_client, *, user_data_path: Path | None = None) -> None:
     """Push EC2 launch template to AWS."""
     template_name = template_data["LaunchTemplateName"]
+
+    if user_data_path is not None:
+        _add_user_data_to_launch_template(template_data, user_data_path)
 
     try:
         response = ec2_client.describe_launch_templates(LaunchTemplateNames=[template_name])
@@ -257,7 +278,8 @@ def push_file(json_path: Path, region: str) -> None:
         case "job_definition.json":
             push_job_definition(data, boto3.client("batch", region_name=region))
         case "launch_template.json":
-            push_launch_template(data, boto3.client("ec2", region_name=region))
+            user_data_path = json_path.parent / "launch_template_user_data.sh"
+            push_launch_template(data, boto3.client("ec2", region_name=region), user_data_path=user_data_path)
         case _:
             logger.error(f"Unknown filename: {filename}")
             raise ValueError(f"Unknown filename: {filename}")
