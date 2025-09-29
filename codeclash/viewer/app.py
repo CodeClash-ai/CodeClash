@@ -70,13 +70,12 @@ def load_metadata(log_dir: Path) -> dict[str, Any] | None:
         return None
 
 
-def get_round_count_from_metadata(log_dir: Path) -> tuple[int, int] | None:
-    """Extract round count from metadata.json
+def get_round_count_from_metadata(metadata: dict[str, Any] | None) -> tuple[int, int] | None:
+    """Extract round count from metadata
 
     Returns:
         tuple[int, int] | None: (completed_rounds, total_rounds) or None if not available
     """
-    metadata = load_metadata(log_dir)
     if not metadata:
         return None
 
@@ -91,9 +90,8 @@ def get_round_count_from_metadata(log_dir: Path) -> tuple[int, int] | None:
     return None
 
 
-def get_models_from_metadata(log_dir: Path) -> list[str]:
-    """Extract model names from metadata.json if it exists"""
-    metadata = load_metadata(log_dir)
+def get_models_from_metadata(metadata: dict[str, Any] | None) -> list[str]:
+    """Extract model names from metadata"""
     if not metadata:
         return []
 
@@ -107,9 +105,8 @@ def get_models_from_metadata(log_dir: Path) -> list[str]:
     return models
 
 
-def get_game_name_from_metadata(log_dir: Path) -> str:
-    """Extract game name from metadata.json if it exists"""
-    metadata = load_metadata(log_dir)
+def get_game_name_from_metadata(metadata: dict[str, Any] | None) -> str:
+    """Extract game name from metadata"""
     if not metadata:
         return ""
 
@@ -124,26 +121,6 @@ def get_game_name_from_metadata(log_dir: Path) -> str:
         return game_name
 
     return ""
-
-
-def get_readme_first_line(log_dir: Path) -> str:
-    """Extract the first line from readme.txt if it exists"""
-    readme_file = log_dir / "readme.txt"
-    if not readme_file.exists():
-        return ""
-
-    try:
-        content = readme_file.read_text().strip()
-        if not content:
-            return ""
-        # Get the first non-empty line
-        for line in content.split("\n"):
-            line = line.strip()
-            if line:
-                return line
-        return ""
-    except (OSError, UnicodeDecodeError):
-        return ""
 
 
 def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
@@ -184,10 +161,11 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
 
                     # Check if this directory is a game folder
                     if is_game_folder(item):
-                        round_info = get_round_count_from_metadata(item)
-                        models = get_models_from_metadata(item)
-                        readme_first_line = get_readme_first_line(item)
-                        game_name = get_game_name_from_metadata(item)
+                        # Load metadata once and pass to all functions
+                        metadata = load_metadata(item)
+                        round_info = get_round_count_from_metadata(metadata)
+                        models = get_models_from_metadata(metadata)
+                        game_name = get_game_name_from_metadata(metadata)
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
@@ -195,7 +173,6 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_info": round_info,  # Now stores (completed, total) tuple or None
                                 "models": models,
-                                "readme_first_line": readme_first_line,
                                 "game_name": game_name,
                                 "is_game": True,
                                 "depth": depth,
@@ -210,7 +187,6 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_info": None,
                                 "models": [],
-                                "readme_first_line": "",
                                 "game_name": "",
                                 "is_game": False,
                                 "depth": depth,
@@ -335,11 +311,18 @@ class LogParser:
 
     def __init__(self, log_dir: Path):
         self.log_dir = Path(log_dir)
+        self._cached_metadata: dict[str, Any] | None = None
+
+    def _get_metadata(self) -> dict[str, Any] | None:
+        """Get cached metadata or load it if not cached"""
+        if self._cached_metadata is None:
+            self._cached_metadata = load_metadata(self.log_dir)
+        return self._cached_metadata
 
     def parse_game_metadata(self) -> GameMetadata:
         """Parse overall game metadata"""
         # Load metadata.json
-        results = load_metadata(self.log_dir)
+        results = self._get_metadata()
         if not results:
             results = {"status": "No metadata file found"}
             metadata_file_path = ""
@@ -354,12 +337,12 @@ class LogParser:
         # Parse all available logs
         all_logs = self._parse_all_logs()
 
+        # Extract agent information once
+        agent_info = get_agent_info_from_metadata(results)
+
         # Parse round data from metadata.json round_stats
         rounds = []
         if "round_stats" in results:
-            # Get agent info for processing round results
-            agent_info = get_agent_info_from_metadata(results)
-
             # Process each round from round_stats
             for round_key, round_data in results["round_stats"].items():
                 round_num = int(round_key)
@@ -368,9 +351,6 @@ class LogParser:
 
         # Sort rounds by round number to ensure consistent ordering
         rounds.sort(key=lambda x: x["round_num"])
-
-        # Extract agent information
-        agent_info = get_agent_info_from_metadata(results)
 
         return GameMetadata(
             results=results,
@@ -520,7 +500,7 @@ class LogParser:
     def analyze_sim_wins_per_round(self) -> dict[str, Any]:
         """Analyze scores per round for each competitor from round_stats in metadata.json.
         Scores are calculated as wins + 0.5*ties, same as in the table."""
-        metadata = load_metadata(self.log_dir)
+        metadata = self._get_metadata()
         if not metadata:
             return {"players": [], "rounds": [], "scores_by_player": {}}
 
