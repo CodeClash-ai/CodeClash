@@ -19,6 +19,109 @@ from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_dif
 
 logger = logging.getLogger(__name__)
 
+
+class Metadata:
+    """A wrapper around metadata dictionary with convenient access methods"""
+
+    def __init__(self, data: dict[str, Any] | None = None):
+        self._data = data or {}
+
+    def get_path(self, path: str, default: Any = None) -> Any:
+        """Get value from nested dictionary using dot notation path
+
+        Args:
+            path: Dot-separated path like "config.tournament.rounds"
+            default: Default value if path doesn't exist
+
+        Returns:
+            Value at path or default
+        """
+        current = self._data
+        for key in path.split("."):
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        return current
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if metadata was loaded successfully"""
+        return bool(self._data)
+
+    @property
+    def total_rounds(self) -> int | None:
+        """Get total number of rounds from config"""
+        return self.get_path("config.tournament.rounds")
+
+    @property
+    def completed_rounds(self) -> int:
+        """Get number of completed rounds (excluding round 0 warmup)"""
+        round_stats = self.get_path("round_stats", {})
+        return sum(1 for round_key in round_stats.keys() if int(round_key) > 0)
+
+    @property
+    def round_count_info(self) -> tuple[int, int] | None:
+        """Get (completed_rounds, total_rounds) tuple"""
+        total = self.total_rounds
+        if total is not None:
+            return (self.completed_rounds, total)
+        return None
+
+    @property
+    def models(self) -> list[str]:
+        """Get list of unique model names from players config"""
+        players_config = self.get_path("config.players", [])
+        models = []
+        for player_config in players_config:
+            if isinstance(player_config, dict):
+                model_name = self.get_path_from_dict(player_config, "config.model.model_name")
+                if model_name and model_name not in models:
+                    models.append(model_name)
+        return models
+
+    @property
+    def game_name(self) -> str:
+        """Get game name from config"""
+        # Try config.game.name first
+        game_name = self.get_path("config.game.name")
+        if game_name:
+            return game_name
+
+        # Fallback to game.name
+        game_name = self.get_path("game.name")
+        if game_name:
+            return game_name
+
+        return ""
+
+    @property
+    def players_config(self) -> list[dict[str, Any]]:
+        """Get players configuration"""
+        return self.get_path("config.players", [])
+
+    @property
+    def round_stats(self) -> dict[str, Any]:
+        """Get round statistics"""
+        return self.get_path("round_stats", {})
+
+    @property
+    def raw_data(self) -> dict[str, Any]:
+        """Get the raw metadata dictionary"""
+        return self._data
+
+    @staticmethod
+    def get_path_from_dict(data: dict[str, Any], path: str, default: Any = None) -> Any:
+        """Static method to get value from any dictionary using dot notation"""
+        current = data
+        for key in path.split("."):
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        return current
+
+
 # Global variable to store the directory to search for logs
 LOG_BASE_DIR = Path.cwd() / "logs"
 
@@ -58,98 +161,23 @@ def is_game_folder(log_dir: Path) -> bool:
     return metadata_file.exists()
 
 
-def load_metadata(log_dir: Path) -> dict[str, Any] | None:
-    """Load metadata.json from log directory"""
+def load_metadata(log_dir: Path) -> Metadata:
+    """Load metadata.json from log directory and return Metadata object"""
     metadata_file = log_dir / "metadata.json"
     if not metadata_file.exists():
-        return None
+        return Metadata()
 
     try:
-        return json.loads(metadata_file.read_text())
+        data = json.loads(metadata_file.read_text())
+        return Metadata(data)
     except (json.JSONDecodeError, OSError):
-        return None
+        return Metadata()
 
 
-def get_round_count_from_metadata(log_dir: Path) -> tuple[int, int] | None:
-    """Extract round count from metadata.json
-
-    Returns:
-        tuple[int, int] | None: (completed_rounds, total_rounds) or None if not available
-    """
-    metadata = load_metadata(log_dir)
-    if not metadata:
-        return None
-
-    total_rounds = metadata.get("config", {}).get("tournament", {}).get("rounds")
-
-    # Count completed rounds from round_stats (excluding round 0 which is warmup)
-    round_stats = metadata.get("round_stats", {})
-    completed_rounds = sum(1 for round_key in round_stats.keys() if int(round_key) > 0)
-
-    if total_rounds is not None:
-        return (completed_rounds, total_rounds)
-    return None
-
-
-def get_models_from_metadata(log_dir: Path) -> list[str]:
-    """Extract model names from metadata.json if it exists"""
-    metadata = load_metadata(log_dir)
-    if not metadata:
-        return []
-
-    players_config = metadata.get("config", {}).get("players", [])
-    models = []
-    for player_config in players_config:
-        if isinstance(player_config, dict):
-            model_name = player_config.get("config", {}).get("model", {}).get("model_name")
-            if model_name and model_name not in models:
-                models.append(model_name)
-    return models
-
-
-def get_game_name_from_metadata(log_dir: Path) -> str:
-    """Extract game name from metadata.json if it exists"""
-    metadata = load_metadata(log_dir)
-    if not metadata:
-        return ""
-
-    # Try to get game name from different possible locations in metadata
-    game_name = metadata.get("config", {}).get("game", {}).get("name")
-    if game_name:
-        return game_name
-
-    # Fallback to game.name if config.game.name doesn't exist
-    game_name = metadata.get("game", {}).get("name")
-    if game_name:
-        return game_name
-
-    return ""
-
-
-def get_readme_first_line(log_dir: Path) -> str:
-    """Extract the first line from readme.txt if it exists"""
-    readme_file = log_dir / "readme.txt"
-    if not readme_file.exists():
-        return ""
-
-    try:
-        content = readme_file.read_text().strip()
-        if not content:
-            return ""
-        # Get the first non-empty line
-        for line in content.split("\n"):
-            line = line.strip()
-            if line:
-                return line
-        return ""
-    except (OSError, UnicodeDecodeError):
-        return ""
-
-
-def get_agent_info_from_metadata(metadata: dict[str, Any]) -> list[AgentInfo]:
+def get_agent_info_from_metadata(metadata: Metadata) -> list[AgentInfo]:
     """Extract detailed agent information from metadata"""
     agents = []
-    players_config = metadata.get("config", {}).get("players", [])
+    players_config = metadata.players_config
 
     for player_config in players_config:
         if isinstance(player_config, dict):
@@ -184,10 +212,11 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
 
                     # Check if this directory is a game folder
                     if is_game_folder(item):
-                        round_info = get_round_count_from_metadata(item)
-                        models = get_models_from_metadata(item)
-                        readme_first_line = get_readme_first_line(item)
-                        game_name = get_game_name_from_metadata(item)
+                        # Load metadata once
+                        metadata = load_metadata(item)
+                        round_info = metadata.round_count_info
+                        models = metadata.models
+                        game_name = metadata.game_name
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
@@ -195,7 +224,6 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_info": round_info,  # Now stores (completed, total) tuple or None
                                 "models": models,
-                                "readme_first_line": readme_first_line,
                                 "game_name": game_name,
                                 "is_game": True,
                                 "depth": depth,
@@ -210,7 +238,6 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "full_path": str(item),
                                 "round_info": None,
                                 "models": [],
-                                "readme_first_line": "",
                                 "game_name": "",
                                 "is_game": False,
                                 "depth": depth,
@@ -335,15 +362,23 @@ class LogParser:
 
     def __init__(self, log_dir: Path):
         self.log_dir = Path(log_dir)
+        self._cached_metadata: Metadata | None = None
+
+    def _get_metadata(self) -> Metadata:
+        """Get cached metadata or load it if not cached"""
+        if self._cached_metadata is None:
+            self._cached_metadata = load_metadata(self.log_dir)
+        return self._cached_metadata
 
     def parse_game_metadata(self) -> GameMetadata:
         """Parse overall game metadata"""
         # Load metadata.json
-        results = load_metadata(self.log_dir)
-        if not results:
+        metadata = self._get_metadata()
+        if not metadata.is_valid:
             results = {"status": "No metadata file found"}
             metadata_file_path = ""
         else:
+            results = metadata.raw_data
             metadata_file_path = str(self.log_dir / "metadata.json")
 
         # Parse tournament.log if it exists
@@ -354,23 +389,21 @@ class LogParser:
         # Parse all available logs
         all_logs = self._parse_all_logs()
 
+        # Extract agent information once
+        agent_info = get_agent_info_from_metadata(metadata)
+
         # Parse round data from metadata.json round_stats
         rounds = []
-        if "round_stats" in results:
-            # Get agent info for processing round results
-            agent_info = get_agent_info_from_metadata(results)
-
+        round_stats = metadata.round_stats
+        if round_stats:
             # Process each round from round_stats
-            for round_key, round_data in results["round_stats"].items():
+            for round_key, round_data in round_stats.items():
                 round_num = int(round_key)
                 round_results = process_round_results(round_data, agent_info)
                 rounds.append({"round_num": round_num, "sim_logs": [], "results": round_results})
 
         # Sort rounds by round number to ensure consistent ordering
         rounds.sort(key=lambda x: x["round_num"])
-
-        # Extract agent information
-        agent_info = get_agent_info_from_metadata(results)
 
         return GameMetadata(
             results=results,
@@ -388,53 +421,52 @@ class LogParser:
         if not player_dir.exists():
             return None
 
-        # Try both .json and .log extensions
-        for ext in [".json", ".log"]:
-            traj_file = player_dir / f"{player_name}_r{round_num}.traj{ext}"
-            if traj_file.exists():
+        traj_file = player_dir / f"{player_name}_r{round_num}.traj.json"
+        if not traj_file.exists():
+            return None
+        try:
+            data = json.loads(traj_file.read_text())
+            info = data.get("info", {})
+            model_stats = info.get("model_stats", {})
+
+            # Get diff data from changes file
+            diff = incremental_diff = modified_files = None
+            changes_file = player_dir / f"changes_r{round_num}.json"
+            if changes_file.exists():
                 try:
-                    data = json.loads(traj_file.read_text())
-                    info = data.get("info", {})
-                    model_stats = info.get("model_stats", {})
+                    changes_data = json.loads(changes_file.read_text())
+                    diff = changes_data.get("full_diff", "")
+                    incremental_diff = changes_data.get("incremental_diff", "")
+                    modified_files = changes_data.get("modified_files", {})
+                except (json.JSONDecodeError, KeyError):
+                    pass
 
-                    # Get diff data from changes file
-                    diff = incremental_diff = modified_files = None
-                    changes_file = player_dir / f"changes_r{round_num}.json"
-                    if changes_file.exists():
-                        try:
-                            changes_data = json.loads(changes_file.read_text())
-                            diff = changes_data.get("full_diff", "")
-                            incremental_diff = changes_data.get("incremental_diff", "")
-                            modified_files = changes_data.get("modified_files", {})
-                        except (json.JSONDecodeError, KeyError):
-                            pass
+            # Filter and split diffs by files
+            filtered_diff = filter_git_diff(diff) if diff else ""
+            filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+            diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+            incremental_diff_by_files = (
+                split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+            )
 
-                    # Filter and split diffs by files
-                    filtered_diff = filter_git_diff(diff) if diff else ""
-                    filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
-                    diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
-                    incremental_diff_by_files = (
-                        split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
-                    )
-
-                    return TrajectoryInfo(
-                        player_id=player_name,
-                        round_num=round_num,
-                        api_calls=model_stats.get("api_calls", 0),
-                        cost=model_stats.get("instance_cost", 0.0),
-                        exit_status=info.get("exit_status"),
-                        submission=info.get("submission"),
-                        memory=info.get("memory"),
-                        messages=data.get("messages", []),
-                        diff=diff,
-                        incremental_diff=incremental_diff,
-                        modified_files=modified_files,
-                        trajectory_file_path=str(traj_file),
-                        diff_by_files=diff_by_files,
-                        incremental_diff_by_files=incremental_diff_by_files,
-                    )
-                except (json.JSONDecodeError, KeyError) as e:
-                    logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
+            return TrajectoryInfo(
+                player_id=player_name,
+                round_num=round_num,
+                api_calls=model_stats.get("api_calls", 0),
+                cost=model_stats.get("instance_cost", 0.0),
+                exit_status=info.get("exit_status"),
+                submission=info.get("submission"),
+                memory=info.get("memory"),
+                messages=data.get("messages", []),
+                diff=diff,
+                incremental_diff=incremental_diff,
+                modified_files=modified_files,
+                trajectory_file_path=str(traj_file),
+                diff_by_files=diff_by_files,
+                incremental_diff_by_files=incremental_diff_by_files,
+            )
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
 
         return None
 
@@ -520,11 +552,11 @@ class LogParser:
     def analyze_sim_wins_per_round(self) -> dict[str, Any]:
         """Analyze scores per round for each competitor from round_stats in metadata.json.
         Scores are calculated as wins + 0.5*ties, same as in the table."""
-        metadata = load_metadata(self.log_dir)
-        if not metadata:
+        metadata = self._get_metadata()
+        if not metadata.is_valid:
             return {"players": [], "rounds": [], "scores_by_player": {}}
 
-        round_stats = metadata.get("round_stats", {})
+        round_stats = metadata.round_stats
         # Collect all player names from all rounds
         player_names = set()
         for round_data in round_stats.values():

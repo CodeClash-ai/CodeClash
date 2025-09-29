@@ -196,11 +196,26 @@ def push_job_definition(job_data: dict, batch_client) -> None:
 
 
 def _add_user_data_to_launch_template(template_data: dict, user_data_path: Path) -> None:
-    """Add user data from the specified path to the template data."""
+    """Add user data from the specified path to the template data in MIME multipart format."""
     if user_data_path.exists():
         logger.info(f"Adding user data from {user_data_path.name}")
         user_data_script = user_data_path.read_text()
-        encoded_user_data = base64.b64encode(user_data_script.encode()).decode()
+
+        # Format as MIME multipart for cloud-init
+        mime_data = f"""Content-Type: multipart/mixed; boundary="===============BOUNDARY=="
+MIME-Version: 1.0
+
+--===============BOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="userdata.sh"
+
+{user_data_script}
+--===============BOUNDARY==--
+"""
+
+        encoded_user_data = base64.b64encode(mime_data.encode()).decode()
         template_data["LaunchTemplateData"]["UserData"] = encoded_user_data
     else:
         logger.warning(f"User data file not found: {user_data_path}")
