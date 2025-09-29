@@ -457,6 +457,10 @@
   font-weight: 700;
 }
 
+.rounds-count-warning {
+  background-color: var(--warning-color);
+}
+
 .rounds-unknown {
   color: var(--text-muted);
   font-size: 0.8rem;
