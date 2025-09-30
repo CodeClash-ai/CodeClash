@@ -194,7 +194,7 @@ class CodeGame(ABC):
                 "PIP_PROGRESS_BAR": "off",
                 "TQDM_DISABLE": "1",
             },
-            container_timeout="3h",
+            container_timeout="10h",
             logger=self.logger,
             run_args=run_args,
         )
