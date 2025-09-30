@@ -20,6 +20,7 @@ players:
     model:
       model_name: '@fireworks/accounts/fireworks/models/glm-4-5'
       model_class: portkey
+      litellm_model_name_override: deepinfra/zai-org/GLM-4.5
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called BattleCode.

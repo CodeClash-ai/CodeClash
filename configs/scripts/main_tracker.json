@@ -73,7 +73,7 @@
       "glm-4-5.o3": "0 (0 rounds)",
       "gpt-5.gpt-5-mini": "10 (141 rounds)",
       "gpt-5.qwen3-coder-480b-a35b-instruct": "0 (0 rounds)",
-      "gpt-5.o3": "10 (159 rounds)",
+      "gpt-5.o3": "10 (160 rounds)",
       "gpt-5-mini.qwen3-coder-480b-a35b-instruct": "0 (0 rounds)",
       "gpt-5-mini.o3": "10 (160 rounds)",
       "o3.qwen3-coder-480b-a35b-instruct": "0 (0 rounds)"
