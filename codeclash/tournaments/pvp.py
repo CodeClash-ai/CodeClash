@@ -136,7 +136,6 @@ class PvpTournament(AbstractTournament):
             s3_log_sync(self.local_output_dir, logger=self.logger)
 
     def _compress_round_logs(self) -> None:
-        self.logger.info("Compressing round logs, this might take a while...")
         rounds_dir = self.game.log_local / "rounds"
         if not rounds_dir.exists():
             return
@@ -149,6 +148,7 @@ class PvpTournament(AbstractTournament):
             str(self.game.log_local),
             "rounds",
         ]
+        self.logger.info(f"Compressing round logs, this might take a while... ({' '.join(cmd)})")
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(f"Command failed with exit code {result.returncode}:\n{result.stderr}")

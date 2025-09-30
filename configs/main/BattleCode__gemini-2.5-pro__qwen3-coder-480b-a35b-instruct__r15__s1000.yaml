@@ -20,6 +20,7 @@ players:
     model:
       model_name: '@fireworks/accounts/fireworks/models/qwen3-coder-480b-a35b-instruct'
       model_class: portkey
+      litellm_model_name_override: deepinfra/Qwen/Qwen3-Coder-480B-A35B-Instruct
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called BattleCode.
