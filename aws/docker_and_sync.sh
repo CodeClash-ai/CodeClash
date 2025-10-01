@@ -28,6 +28,9 @@ cleanup() {
     docker system prune -af
     echo "Docker space usage:"
     docker system df
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+    echo "✅ Wrapper script docker_and_sync.sh finished, exit code: $exit_code"
+    echo "═══════════════════════════════════════════════════════════════════════════════"
     exit $exit_code
 }
 
@@ -82,9 +85,8 @@ mkdir -p logs
 # Set ulimit for number of open files, relevant for matrix
 ulimit -n 65536
 
+echo "═══════════════════════════════════════════════════════════════════════════════"
+echo "✅ Wrapper script docker_and_sync.sh pologue finished, executing user command: $*"
+echo "═══════════════════════════════════════════════════════════════════════════════"
 # Execute the command passed to container
 "$@"
-
-echo "═══════════════════════════════════════════════════════════════════════════════"
-echo "✅ Wrapper script docker_and_sync.sh finished"
-echo "═══════════════════════════════════════════════════════════════════════════════"
