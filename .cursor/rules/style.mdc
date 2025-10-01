@@ -23,6 +23,7 @@ alwaysApply: true
 15. Command line arguments should be parsed with `argparse`.
 16. Generally prefer to use keyword arguments over positional arguments. If there are somewhat specific optional arguments, mark them as keyword-only.
 17. Use logger instead of print statements.
+18. Avoid long indented blocks in functions if they are only for else: return None. Instead you can just test for this early.
 
 ## Test style
 

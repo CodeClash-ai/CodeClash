@@ -21,7 +21,7 @@
         "type": "VCPU"
       },
       {
-        "value": "8192",
+        "value": "7500",
         "type": "MEMORY"
       }
     ],
