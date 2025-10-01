@@ -15,15 +15,26 @@ echo "📅 Container built at: $BUILD_TIMESTAMP"
 
 # Function to sync logs on exit
 cleanup() {
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+    echo "Cleanup stage of docker_and_sync.sh"
+    echo "═══════════════════════════════════════════════════════════════════════════════"
     local exit_code=$?
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
-        echo "Syncing logs to S3..."
+        echo "Syncing codeclash logs to S3..."
         aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
     else
-        echo "No logs to sync"
+        echo "No codeclashlogs to sync"
     fi
+    echo "docker ps:"
+    docker ps
+    echo "docker stats:"
+    docker stats --no-stream
     echo "Docker space usage:"
     docker system df
+    echo "--------------------------------"
+    echo "Last 100 lines of Docker logs"
+    docker ps -aq | xargs -I {} sh -c 'logs=$(docker logs --tail 100 {} 2>&1); [ -n "$logs" ] && echo "=== {} ===" && echo "$logs"'Retry
+    echo "--------------------------------"
     echo "Docker cleanup"
     docker system prune -af
     echo "Docker space usage:"
