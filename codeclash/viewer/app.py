@@ -14,7 +14,7 @@ from typing import Any
 
 from flask import Flask, jsonify, redirect, render_template, request, send_file, url_for
 
-from codeclash.ratings.significance import calculate_p_value
+from codeclash.analysis.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
 
 logger = logging.getLogger(__name__)
