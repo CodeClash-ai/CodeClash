@@ -1,11 +1,12 @@
 import json
+import re
 
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = "cdf_steps_per_round.png"
+OUTPUT_FILE = "cdf_thought_length_per_round.png"
 
 
 def main():
@@ -28,25 +29,31 @@ def main():
             for traj_file in traj_files:
                 with open(traj_file) as f:
                     traj = json.load(f)
-                num_steps = sum([1 for _ in traj["messages"] if _["role"] == "assistant"])
-                model_to_steps[p2m[name]].append(num_steps)
+                for message in traj["messages"]:
+                    if message["role"] != "assistant":
+                        continue
+                    content = message.get("content", "")
 
-    for model, steps in model_to_steps.items():
-        step_limit_exceeded = sum(1 for s in steps if s == 30) / len(steps) * 100
-        print(
-            f"- {model}: {len(steps)} rounds; avg {sum(steps) / len(steps):.2f} steps/round; 30-step limit exceeded: {step_limit_exceeded:.2f}%"
-        )
+                    # Extract THOUGHT section
+                    thought_match = re.search(r"THOUGHT:(.+?)```bash", content, re.DOTALL | re.IGNORECASE)
+                    if not thought_match:
+                        continue
+
+                    thought = thought_match.group(1).strip()
+                    thought_length = len(thought.split())
+                    model_to_steps[p2m[name]].append(thought_length)
 
     # Plot CDF
     plt.figure(figsize=(10, 6))
-    for model, steps in model_to_steps.items():
-        sorted_steps = sorted(steps)
+    for model, thought_length in model_to_steps.items():
+        sorted_steps = sorted(thought_length)
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]
         plt.step(sorted_steps, yvals, label=model, where="post")
 
-    plt.xlabel("Steps per Round")
+    plt.xlim(0, 500)
+    plt.xlabel("Thought Length (in Words) per Round")
     plt.ylabel("Cumulative Probability")
-    plt.title("CDF of Steps per Round by Model")
+    plt.title("CDF of Thought Length (in Words) per Round by Model")
     plt.legend()
     plt.grid(True)
     plt.savefig(OUTPUT_FILE)
