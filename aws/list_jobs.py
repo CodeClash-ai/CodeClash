@@ -22,8 +22,8 @@ logger = get_logger("list_jobs", emoji="📋")
 
 
 class AWSBatchJobLister:
-    def __init__(self, job_queue: str = "codeclash-queue"):
-        self.batch_client = boto3.client("batch")
+    def __init__(self, job_queue: str = "codeclash-queue", region: str = "us-east-1"):
+        self.batch_client = boto3.client("batch", region_name=region)
         self.job_queue = job_queue
 
     def list_jobs(self, *, status: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
@@ -127,11 +127,12 @@ def main():
         help="Filter jobs by status (default: show all statuses)",
     )
     parser.add_argument("--queue", default="codeclash-queue", help="Job queue name (default: codeclash-queue)")
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
     parser.add_argument("--limit", type=int, help="Maximum number of jobs to display")
 
     args = parser.parse_args()
 
-    lister = AWSBatchJobLister(job_queue=args.queue)
+    lister = AWSBatchJobLister(job_queue=args.queue, region=args.region)
 
     # List jobs
     logger.info(f"Listing jobs from queue: {args.queue}")

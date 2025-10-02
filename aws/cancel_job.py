@@ -21,8 +21,8 @@ logger = get_logger("cancel")
 
 
 class AWSBatchJobCanceller:
-    def __init__(self):
-        self.batch_client = boto3.client("batch")
+    def __init__(self, region: str = "us-east-1"):
+        self.batch_client = boto3.client("batch", region_name=region)
 
     def find_job_by_name(self, job_name: str) -> list[dict[str, Any]]:
         """Find jobs by name. Returns list of job info dictionaries."""
@@ -105,10 +105,11 @@ def main():
     parser.add_argument(
         "--reason", default="Cancelled by user", help="Reason for cancellation (default: 'Cancelled by user')"
     )
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
 
     args = parser.parse_args()
 
-    canceller = AWSBatchJobCanceller()
+    canceller = AWSBatchJobCanceller(region=args.region)
 
     # Cancel jobs
     logger.info(f"Cancelling {len(args.jobs)} job(s)...")

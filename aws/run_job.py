@@ -36,9 +36,14 @@ def check_git_status_and_confirm() -> None:
 
 
 class AWSBatchJobLauncher:
-    def __init__(self, job_definition_name: str = "codeclash-default-job", job_queue: str = "codeclash-queue"):
-        self.batch_client = boto3.client("batch")
-        self.logs_client = boto3.client("logs")
+    def __init__(
+        self,
+        job_definition_name: str = "codeclash-default-job",
+        job_queue: str = "codeclash-queue",
+        region: str = "us-east-1",
+    ):
+        self.batch_client = boto3.client("batch", region_name=region)
+        self.logs_client = boto3.client("logs", region_name=region)
         self.job_definition_name = job_definition_name
         self.job_queue = job_queue
 
@@ -159,6 +164,7 @@ def main():
         "--job-definition", default="codeclash-default-job", help="Job definition name (default: codeclash-default-job)"
     )
     parser.add_argument("--job-queue", default="codeclash-queue", help="Job queue name (default: codeclash-queue)")
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
     parser.add_argument("--wait", action="store_true", help="Wait for the job to complete before exiting")
     parser.add_argument("--show-logs", action="store_true", help="Show job logs after completion (implies --wait)")
     parser.add_argument("-y", action="store_true", help="Skip git dirty prompt and continue automatically")
@@ -175,7 +181,9 @@ def main():
     if not args.y:
         check_git_status_and_confirm()
 
-    launcher = AWSBatchJobLauncher(job_definition_name=args.job_definition, job_queue=args.job_queue)
+    launcher = AWSBatchJobLauncher(
+        job_definition_name=args.job_definition, job_queue=args.job_queue, region=args.region
+    )
 
     # Submit the job
     job_id = launcher.submit_job(command, args.job_name)

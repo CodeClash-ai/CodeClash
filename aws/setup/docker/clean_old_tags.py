@@ -5,8 +5,10 @@
 import boto3
 
 
-def clean_untagged_images(repository_prefix: str = "codeclash/", *, dry_run: bool = False) -> None:
-    ecr_client = boto3.client("ecr")
+def clean_untagged_images(
+    repository_prefix: str = "codeclash/", *, dry_run: bool = False, region: str = "us-east-1"
+) -> None:
+    ecr_client = boto3.client("ecr", region_name=region)
 
     response = ecr_client.describe_repositories()
     repositories = response["repositories"]
@@ -40,7 +42,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--prefix", default="codeclash")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
 
     args = parser.parse_args()
 
-    clean_untagged_images(args.prefix, dry_run=args.dry_run)
+    clean_untagged_images(args.prefix, dry_run=args.dry_run, region=args.region)

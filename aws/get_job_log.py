@@ -20,9 +20,9 @@ logger = get_logger("get_log", emoji="📋")
 
 
 class AWSBatchLogRetriever:
-    def __init__(self):
-        self.batch_client = boto3.client("batch")
-        self.logs_client = boto3.client("logs")
+    def __init__(self, region: str = "us-east-1"):
+        self.batch_client = boto3.client("batch", region_name=region)
+        self.logs_client = boto3.client("logs", region_name=region)
 
     def get_job_status(self, job_id: str) -> dict:
         """Get the current status of a job."""
@@ -66,11 +66,12 @@ def main():
     )
 
     parser.add_argument("job_id", help="Job ID to retrieve logs for")
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
 
     args = parser.parse_args()
 
     # Create log retriever
-    retriever = AWSBatchLogRetriever()
+    retriever = AWSBatchLogRetriever(region=args.region)
 
     # Get job status first
     job_info = retriever.get_job_status(args.job_id)
