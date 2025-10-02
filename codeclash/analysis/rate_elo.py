@@ -56,6 +56,40 @@ def calculate_round_weight_exponential(round_num, total_rounds, alpha=2.0):
     return raw_weight * norm_factor
 
 
+def update_profiles(prof_and_score, round_weight, k_factor):
+    """Update ELO profiles for two players based on their scores and round weight
+
+    Args:
+        prof_and_score: List of tuples [(ModelEloProfile, score), ...] for two players
+        round_weight: Weight for the current round (affects K-factor)
+        k_factor: Base K-factor for ELO calculation
+    """
+    p1_prof, p1_raw_score = prof_and_score[0]
+    p2_prof, p2_raw_score = prof_and_score[1]
+
+    # Normalize scores so they sum to 1.0 (required for proper ELO)
+    total_score = p1_raw_score + p2_raw_score
+    if total_score > 0:
+        p1_score = p1_raw_score / total_score
+        p2_score = p2_raw_score / total_score
+    else:
+        # If both players scored 0, treat as a tie
+        p1_score = p2_score = 0.5
+
+    expected_p1 = expected_score(p1_prof.rating, p2_prof.rating)
+
+    # Apply round weighting to K-factor
+    weighted_k_factor = k_factor * round_weight
+    rating_change = weighted_k_factor * (p1_score - expected_p1)
+
+    expected_p2 = expected_score(p2_prof.rating, p1_prof.rating)
+    check = weighted_k_factor * (p2_score - expected_p2)
+    assert abs(check + rating_change) < 1e-6, "Weighted ELO rating changes do not sum to zero!"
+
+    p1_prof.rating += rating_change
+    p2_prof.rating -= rating_change  # Zero-sum property
+
+
 def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: str, alpha: float):
     print(f"Calculating weighted ELO ratings from logs in {log_dir} ...")
     print(f"Using K_FACTOR={k_factor}, STARTING_ELO={starting_elo}")
@@ -84,66 +118,46 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
         # Determine total rounds for weighting calculation
         total_rounds = len([k for k in metadata["round_stats"].keys() if k != "0"])
 
-        if len(p2m) == 2:
+        if len(p2m) != 2:
             # Only process if there are exactly 2 players
-            for idx, stats in metadata["round_stats"].items():
-                if idx == "0":
-                    # Skip initial round
-                    continue
+            continue
 
-                # Calculate round weight
-                current_round = int(idx)
-                if weighting_function == "linear":
-                    round_weight = calculate_round_weight_linear(current_round, total_rounds)
-                elif weighting_function == "exponential":
-                    round_weight = calculate_round_weight_exponential(current_round, total_rounds, alpha)
-                else:  # none
-                    round_weight = 1.0
+        for idx, stats in metadata["round_stats"].items():
+            if idx == "0":
+                # Skip initial round
+                continue
 
-                prof_and_score = []
-                valid_submits = sum(
-                    [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
-                )
+            # Calculate round weight
+            current_round = int(idx)
+            if weighting_function == "linear":
+                round_weight = calculate_round_weight_linear(current_round, total_rounds)
+            elif weighting_function == "exponential":
+                round_weight = calculate_round_weight_exponential(current_round, total_rounds, alpha)
+            else:  # none
+                round_weight = 1.0
 
-                for k, v in stats["player_stats"].items():
-                    if k != RESULT_TIE:
-                        if v["score"] is None:
-                            # Not sure why this happens, but just skip it
-                            continue
-                        s = v["score"] * 1.0 / sims
-                        if valid_submits == 1 and v["valid_submit"]:
-                            # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
-                            s = 1.0
-                        prof = player_profiles[f"{arena}.{p2m[k]}"]
-                        prof.rounds_played += 1
-                        prof_and_score.append((prof, s))
+            prof_and_score = []
+            valid_submits = sum(
+                [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
+            )
 
-                # Update ELO ratings - should only happen once per match
-                if len(prof_and_score) == 2:
-                    p1_prof, p1_raw_score = prof_and_score[0]
-                    p2_prof, p2_raw_score = prof_and_score[1]
+            for k, v in stats["player_stats"].items():
+                if k != RESULT_TIE:
+                    if v["score"] is None:
+                        # Not sure why this happens, but just skip it
+                        continue
+                    s = v["score"] * 1.0 / sims
+                    if valid_submits == 1 and v["valid_submit"]:
+                        # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
+                        s = 1.0
+                    prof = player_profiles[f"{arena}.{p2m[k]}"]
+                    prof.rounds_played += 1
+                    prof_and_score.append((prof, s))
 
-                    # Normalize scores so they sum to 1.0 (required for proper ELO)
-                    total_score = p1_raw_score + p2_raw_score
-                    if total_score > 0:
-                        p1_score = p1_raw_score / total_score
-                        p2_score = p2_raw_score / total_score
-                    else:
-                        # If both players scored 0, treat as a tie
-                        p1_score = p2_score = 0.5
-
-                    expected_p1 = expected_score(p1_prof.rating, p2_prof.rating)
-
-                    # Apply round weighting to K-factor
-                    weighted_k_factor = k_factor * round_weight
-                    rating_change = weighted_k_factor * (p1_score - expected_p1)
-
-                    expected_p2 = expected_score(p2_prof.rating, p1_prof.rating)
-                    check = weighted_k_factor * (p2_score - expected_p2)
-                    assert abs(check + rating_change) < 1e-6, "Weighted ELO rating changes do not sum to zero!"
-
-                    p1_prof.rating += rating_change
-                    p2_prof.rating -= rating_change  # Zero-sum property
+            # Update ELO ratings - should only happen once per match
+            if len(prof_and_score) != 2:
+                continue
+            update_profiles(prof_and_score, round_weight, k_factor)
 
     print("=" * 50)
     print("Player ELO profiles:")
@@ -162,7 +176,7 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
         total_games[mid] = total_games.get(mid, 0) + profile.rounds_played
 
     print("\nWeighted average ELO per player (across all games):")
-    calc_avg_elo = lambda total_elo, games: total_elo / games if games > 0 else 0.0
+    calc_avg_elo = lambda total_elo, games: total_elo / games
     lines = [
         f" - {pid}: Weighted Avg ELO {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Games: {total_games[pid]})"
         for pid in weighted_elo
