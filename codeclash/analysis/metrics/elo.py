@@ -100,7 +100,8 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
     player_profiles = {}
     for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
         arena = game_log_folder.name.split(".")[1]
-        metadata = json.load(open(game_log_folder / "metadata.json"))
+        with open(game_log_folder / "metadata.json") as f:
+            metadata = json.load(f)
         try:
             p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
         except KeyError:
