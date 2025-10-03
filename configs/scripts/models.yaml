@@ -27,8 +27,8 @@
   #   drop_params: true
   #   reasoning_effort: "high"
   #   verbosity: "medium"
-- model_name: "@fireworks/accounts/fireworks/models/qwen3-coder-480b-a35b-instruct"
-  model_class: portkey
+- model_name: "qwen3-coder-plus-2025-09-23"
+  model_class: dashscope
   litellm_model_name_override: "deepinfra/Qwen/Qwen3-Coder-480B-A35B-Instruct"
 - model_name: "@openai/o3"
   model_class: portkey
