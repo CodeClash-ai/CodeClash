@@ -152,6 +152,9 @@ function toggleFolder(folderPath) {
   const newState = currentState === "collapsed" ? "expanded" : "collapsed";
   folderStates.set(folderPath, newState);
 
+  // Save the updated state to localStorage
+  saveFolderStates();
+
   if (newState === "expanded") {
     // Expand folder - show only direct children
     folderRow.classList.remove("collapsed");
@@ -202,18 +205,6 @@ function hideChildrenOfFolder(folderPath) {
     const rowPath = row.getAttribute("data-path");
     if (rowPath && rowPath.startsWith(folderPath + "/")) {
       row.style.display = "none";
-
-      // If this is also a folder, mark it as collapsed
-      if (row.classList.contains("intermediate-folder")) {
-        folderStates.set(rowPath, "collapsed");
-        row.classList.add("collapsed");
-
-        // Update the collapse icon
-        const collapseIcon = row.querySelector(".collapse-icon");
-        if (collapseIcon) {
-          collapseIcon.textContent = "";
-        }
-      }
     }
   });
 }
@@ -588,12 +579,16 @@ if (typeof window.confirmMove === "undefined") {
   };
 }
 
-// Close dialog on Escape key
+// Close dialog and dropdowns on Escape key
 document.addEventListener("keydown", function (event) {
   if (event.key === "Escape") {
     const dialog = document.getElementById("move-dialog");
+    const modelDropdown = document.getElementById("model-filter-options");
+
     if (dialog.style.display === "flex") {
       cancelMove();
+    } else if (modelDropdown && modelDropdown.style.display === "block") {
+      modelDropdown.style.display = "none";
     }
   }
 });
@@ -620,18 +615,72 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("  Arrow keys / hjkl: Navigate");
   console.log("  Enter: Open selected game");
 
-  // Collapse all folders by default
-  collapseAllFolders();
+  // Load saved folder states or collapse all by default
+  const hasSavedStates = loadFolderStates();
+  if (hasSavedStates) {
+    applyFolderStates();
+  } else {
+    collapseAllFolders();
+  }
 
   // Initialize keyboard navigation
   initializeKeyboardNavigation();
 
   // Initialize filters
   initializeFilters();
+
+  // Add listener to game filter to save changes
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) {
+    gameFilter.addEventListener("change", saveFilters);
+  }
+
+  // Close model dropdown when clicking outside
+  document.addEventListener("click", (event) => {
+    const dropdown = document.getElementById("model-filter-dropdown");
+    const options = document.getElementById("model-filter-options");
+    if (
+      dropdown &&
+      !dropdown.contains(event.target) &&
+      options.style.display === "block"
+    ) {
+      options.style.display = "none";
+    }
+  });
 });
 
 // Track individual folder states
 const folderStates = new Map();
+
+// LocalStorage key for persisting folder states
+const FOLDER_STATES_KEY = "picker_folder_states";
+
+function saveFolderStates() {
+  // Convert Map to object for storage
+  const statesObj = Object.fromEntries(folderStates);
+  try {
+    localStorage.setItem(FOLDER_STATES_KEY, JSON.stringify(statesObj));
+  } catch (e) {
+    console.error("Failed to save folder states:", e);
+  }
+}
+
+function loadFolderStates() {
+  try {
+    const stored = localStorage.getItem(FOLDER_STATES_KEY);
+    if (stored) {
+      const statesObj = JSON.parse(stored);
+      // Convert object back to Map
+      Object.entries(statesObj).forEach(([key, value]) => {
+        folderStates.set(key, value);
+      });
+      return true;
+    }
+  } catch (e) {
+    console.error("Failed to load folder states:", e);
+  }
+  return false;
+}
 
 function collapseAllFolders() {
   // Find all intermediate folder rows and collapse them
@@ -651,6 +700,27 @@ function collapseAllFolders() {
   });
 
   console.log(`Collapsed ${folderRows.length} folders on startup`);
+}
+
+function applyFolderStates() {
+  // Apply loaded folder states to the UI
+  const folderRows = document.querySelectorAll(".intermediate-folder");
+  folderRows.forEach((folderRow) => {
+    const folderPath = folderRow.getAttribute("data-path");
+    if (folderPath) {
+      const state = folderStates.get(folderPath) || "collapsed";
+
+      if (state === "expanded") {
+        folderRow.classList.remove("collapsed");
+        showChildrenOfFolder(folderPath);
+      } else {
+        folderRow.classList.add("collapsed");
+        hideChildrenOfFolder(folderPath);
+      }
+    }
+  });
+
+  console.log(`Applied folder states from localStorage`);
 }
 
 // Keyboard Navigation Functions
@@ -703,8 +773,10 @@ function setSelectedRow(index) {
 
 function handleKeyboardNavigation(event) {
   // Don't handle keyboard navigation if a dialog is open or input is focused
+  const modelDropdown = document.getElementById("model-filter-options");
   if (
     document.getElementById("move-dialog").style.display === "flex" ||
+    (modelDropdown && modelDropdown.style.display === "block") ||
     document.activeElement.tagName === "INPUT" ||
     document.activeElement.tagName === "SELECT"
   ) {
@@ -854,12 +926,12 @@ function activateSelectedRow() {
 let allGameRows = [];
 let uniqueGames = new Set();
 let uniqueModels = new Set();
+let selectedModels = new Set();
+let selectedDate = null;
 
 function shouldRowBeVisible(row) {
   const gameFilter =
     document.getElementById("game-filter")?.value.toLowerCase() || "";
-  const modelFilter =
-    document.getElementById("model-filter")?.value.toLowerCase() || "";
 
   if (row.classList.contains("game-folder")) {
     // Check game name filter
@@ -873,13 +945,32 @@ function shouldRowBeVisible(row) {
       }
     }
 
-    // Check model filter
-    if (modelFilter) {
+    // Check model filter - if models are selected, row must have ALL of them (intersection)
+    if (selectedModels.size > 0) {
       const modelTags = row.querySelectorAll(".model-tag");
-      const hasMatchingModel = Array.from(modelTags).some((tag) =>
-        tag.textContent.toLowerCase().includes(modelFilter),
+      const rowModels = new Set(
+        Array.from(modelTags).map((tag) => tag.textContent.trim()),
       );
-      if (!hasMatchingModel) {
+      const hasAllModels = Array.from(selectedModels).every((model) =>
+        rowModels.has(model),
+      );
+      if (!hasAllModels) {
+        return false;
+      }
+    }
+
+    // Check date filter - if a date is selected, row must match that date
+    if (selectedDate) {
+      const dateElement = row.querySelector(".date-text");
+      if (dateElement) {
+        const dateText = dateElement.textContent.trim();
+        // Extract just the YYYY-MM-DD part
+        const rowDate = dateText.split(" ")[0];
+        if (rowDate !== selectedDate) {
+          return false;
+        }
+      } else {
+        // Row has no date, so it doesn't match
         return false;
       }
     }
@@ -920,6 +1011,13 @@ function initializeFilters() {
   // Populate filter dropdowns
   populateGameFilter();
   populateModelFilter();
+
+  // Load saved filters from localStorage
+  const hasFilters = loadFilters();
+  if (hasFilters) {
+    // Apply the loaded filters
+    applyFilters();
+  }
 }
 
 function populateGameFilter() {
@@ -941,20 +1039,21 @@ function populateGameFilter() {
 }
 
 function populateModelFilter() {
-  const modelFilter = document.getElementById("model-filter");
-  if (!modelFilter) return;
+  const modelFilterList = document.getElementById("model-filter-list");
+  if (!modelFilterList) return;
 
-  // Clear existing options except "All Models"
-  modelFilter.innerHTML = '<option value="">All Models</option>';
+  // Clear existing options
+  modelFilterList.innerHTML = "";
 
-  // Add unique models
+  // Add unique models as clickable options
   Array.from(uniqueModels)
     .sort()
     .forEach((model) => {
-      const option = document.createElement("option");
-      option.value = model;
+      const option = document.createElement("div");
+      option.className = "model-filter-option";
       option.textContent = model;
-      modelFilter.appendChild(option);
+      option.onclick = (e) => toggleModelSelection(e, model);
+      modelFilterList.appendChild(option);
     });
 }
 
@@ -1000,7 +1099,11 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById("game-filter").value = "";
-  document.getElementById("model-filter").value = "";
+  selectedModels.clear();
+  selectedDate = null;
+  updateModelFilterDisplay();
+  updateDateFilterDisplay();
+  saveFilters();
 
   // Reapply the current folder states without any filters
   applyFilters();
@@ -1010,15 +1113,70 @@ function setGameFilter(gameName) {
   const gameFilter = document.getElementById("game-filter");
   if (gameFilter) {
     gameFilter.value = gameName;
+    saveFilters();
     applyFilters();
   }
 }
 
-function setModelFilter(modelName) {
-  const modelFilter = document.getElementById("model-filter");
-  if (modelFilter) {
-    modelFilter.value = modelName;
-    applyFilters();
+function toggleModelSelection(event, modelName) {
+  event.stopPropagation();
+
+  if (selectedModels.has(modelName)) {
+    selectedModels.delete(modelName);
+  } else {
+    selectedModels.add(modelName);
+  }
+
+  updateModelFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+function clearModelSelection(event) {
+  event.stopPropagation();
+  selectedModels.clear();
+  updateModelFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+function updateModelFilterDisplay() {
+  const displayElement = document.getElementById("model-filter-display");
+  const options = document.querySelectorAll(".model-filter-option");
+
+  if (selectedModels.size === 0) {
+    displayElement.textContent = "All Models";
+  } else if (selectedModels.size === 1) {
+    displayElement.textContent = Array.from(selectedModels)[0];
+  } else {
+    displayElement.textContent = `${selectedModels.size} models selected`;
+  }
+
+  // Update visual state of options
+  options.forEach((option) => {
+    if (selectedModels.has(option.textContent)) {
+      option.classList.add("selected");
+    } else {
+      option.classList.remove("selected");
+    }
+  });
+}
+
+function toggleModelDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById("model-filter-options");
+  const button = document.getElementById("model-filter-button");
+  const isVisible = dropdown.style.display !== "none";
+
+  if (isVisible) {
+    dropdown.style.display = "none";
+  } else {
+    // Calculate position based on button location
+    const buttonRect = button.getBoundingClientRect();
+    dropdown.style.left = buttonRect.left + "px";
+    dropdown.style.top = buttonRect.bottom + 4 + "px";
+    dropdown.style.width = buttonRect.width + "px";
+    dropdown.style.display = "block";
   }
 }
 
@@ -1029,5 +1187,215 @@ function handleGameNameClick(event, gameName) {
 
 function handleModelTagClick(event, modelName) {
   event.stopPropagation();
-  setModelFilter(modelName);
+  toggleModelSelection(event, modelName);
+}
+
+function handleDateClick(event, dateText) {
+  event.stopPropagation();
+  // Extract just the YYYY-MM-DD part
+  const date = dateText.trim().split(" ")[0];
+
+  // Toggle date filter - if already selected, clear it
+  if (selectedDate === date) {
+    selectedDate = null;
+  } else {
+    selectedDate = date;
+  }
+
+  updateDateFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+function updateDateFilterDisplay() {
+  // Find all date cells and update their styling
+  const dateCells = document.querySelectorAll(".date-text");
+  dateCells.forEach((cell) => {
+    const cellDate = cell.textContent.trim().split(" ")[0];
+    if (selectedDate && cellDate === selectedDate) {
+      cell.classList.add("date-selected");
+    } else {
+      cell.classList.remove("date-selected");
+    }
+  });
+
+  // Update the filter badge
+  const badge = document.getElementById("date-filter-badge");
+  const badgeText = document.getElementById("date-filter-text");
+  const container = document.getElementById("active-filters-container");
+
+  if (selectedDate) {
+    if (badgeText) badgeText.textContent = selectedDate;
+    if (badge) badge.style.display = "inline-flex";
+    if (container) container.style.display = "flex";
+  } else {
+    if (badge) badge.style.display = "none";
+    // Hide container if no filters are active
+    if (container && !hasActiveFilters()) {
+      container.style.display = "none";
+    }
+  }
+}
+
+function hasActiveFilters() {
+  return (
+    selectedDate !== null ||
+    selectedModels.size > 0 ||
+    (document.getElementById("game-filter")?.value || "") !== ""
+  );
+}
+
+function clearDateFilter(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  selectedDate = null;
+  updateDateFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+// Filter persistence
+const FILTERS_KEY = "picker_filters";
+
+function saveFilters() {
+  const filters = {
+    game: document.getElementById("game-filter")?.value || "",
+    models: Array.from(selectedModels),
+    date: selectedDate,
+  };
+  try {
+    localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+  } catch (e) {
+    console.error("Failed to save filters:", e);
+  }
+}
+
+function loadFilters() {
+  try {
+    const stored = localStorage.getItem(FILTERS_KEY);
+    if (stored) {
+      const filters = JSON.parse(stored);
+
+      // Restore game filter
+      const gameFilter = document.getElementById("game-filter");
+      if (gameFilter && filters.game) {
+        gameFilter.value = filters.game;
+      }
+
+      // Restore model filter
+      if (filters.models && Array.isArray(filters.models)) {
+        filters.models.forEach((model) => selectedModels.add(model));
+        updateModelFilterDisplay();
+      }
+
+      // Restore date filter
+      if (filters.date) {
+        selectedDate = filters.date;
+        updateDateFilterDisplay();
+      }
+
+      return true;
+    }
+  } catch (e) {
+    console.error("Failed to load filters:", e);
+  }
+  return false;
+}
+
+// Sorting functionality
+let currentSort = { column: null, ascending: true };
+
+function sortTable(column) {
+  // Toggle sort order if clicking the same column
+  if (currentSort.column === column) {
+    currentSort.ascending = !currentSort.ascending;
+  } else {
+    currentSort.column = column;
+    currentSort.ascending = true;
+  }
+
+  const rows = Array.from(document.querySelectorAll(".game-row"));
+
+  // Build a tree structure to maintain hierarchy
+  const rowsByPath = new Map();
+  rows.forEach((row) => {
+    rowsByPath.set(row.dataset.path, row);
+  });
+
+  // Group rows by their parent
+  const childrenByParent = new Map();
+  rows.forEach((row) => {
+    const parent = row.dataset.parent || "";
+    if (!childrenByParent.has(parent)) {
+      childrenByParent.set(parent, []);
+    }
+    childrenByParent.get(parent).push(row);
+  });
+
+  // Comparison function based on selected column
+  function compareRows(a, b) {
+    let aValue, bValue;
+
+    if (column === "name") {
+      // For name sorting, use just the folder name (not full path)
+      aValue = a.dataset.path.split("/").pop() || "";
+      bValue = b.dataset.path.split("/").pop() || "";
+      return currentSort.ascending
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    } else if (column === "date") {
+      // Get timestamps, treat empty/missing as 0 (will sort to the end when ascending)
+      aValue = parseInt(a.dataset.timestamp) || 0;
+      bValue = parseInt(b.dataset.timestamp) || 0;
+
+      // Put entries without timestamps at the end
+      if (aValue === 0 && bValue === 0) return 0;
+      if (aValue === 0) return 1;
+      if (bValue === 0) return -1;
+
+      return currentSort.ascending ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  }
+
+  // Sort children at each level
+  childrenByParent.forEach((children) => {
+    children.sort(compareRows);
+  });
+
+  // Recursively build the sorted list maintaining hierarchy
+  function buildSortedList(parent) {
+    const result = [];
+    const children = childrenByParent.get(parent) || [];
+
+    for (const child of children) {
+      result.push(child);
+      // Add all descendants of this child
+      result.push(...buildSortedList(child.dataset.path));
+    }
+
+    return result;
+  }
+
+  // Build the final sorted list starting from root (empty parent)
+  const sortedRows = buildSortedList("");
+
+  // Get the table header element
+  const tableHeader = document.querySelector(".table-header");
+
+  // Remove all existing rows
+  rows.forEach((row) => row.remove());
+
+  // Re-insert rows in sorted order
+  let previousElement = tableHeader;
+  sortedRows.forEach((row) => {
+    previousElement.after(row);
+    previousElement = row;
+  });
+
+  // Re-apply filters to maintain visibility state
+  applyFilters();
 }

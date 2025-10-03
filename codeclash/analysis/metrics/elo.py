@@ -168,7 +168,7 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
     ]
     print("\n".join(sorted(lines)))
 
-    # Weighted average ELO per player across all games
+    # ELO per player across all games
     weighted_elo = {}
     total_games = {}
     for profile in player_profiles.values():
@@ -176,14 +176,19 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
         weighted_elo[mid] = weighted_elo.get(mid, 0) + profile.rating * profile.rounds_played
         total_games[mid] = total_games.get(mid, 0) + profile.rounds_played
 
-    print("\nWeighted average ELO per player (across all games):")
+    print("\nELO per player (across all games):")
     calc_avg_elo = lambda total_elo, games: total_elo / games
-    lines = [
-        f" - {pid}: Weighted Avg ELO {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Games: {total_games[pid]})"
-        for pid in weighted_elo
-        if total_games[pid] > 0
-    ]
-    print("\n".join(sorted(lines)))
+    lines = sorted(
+        [
+            f"{pid}: {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Games: {total_games[pid]})"
+            for pid in weighted_elo
+            if total_games[pid] > 0
+        ],
+        key=lambda x: float(x.split(":")[1].split("(")[0]),
+        reverse=True,
+    )
+    for i, line in enumerate(lines, 1):
+        print(f"{i}. {line}")
 
 
 if __name__ == "__main__":
