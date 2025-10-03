@@ -18,6 +18,12 @@
             <span class="stat-value status-{{ trajectory.exit_status.lower() }}">{{ trajectory.exit_status }}</span>
         </div>
         {% endif %}
+        {% if trajectory.valid_submission is not none %}
+        <div class="stat-item">
+            <span class="stat-label">Valid Submission?</span>
+            <span class="stat-value valid-{{ 'yes' if trajectory.valid_submission else 'no' }}">{{ trajectory.valid_submission }}</span>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Messages Foldout inside the same container -->
