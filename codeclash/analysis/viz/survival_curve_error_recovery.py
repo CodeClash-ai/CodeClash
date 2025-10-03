@@ -171,8 +171,8 @@ def main():
     """
     model_to_recovery_times = defaultdict(list)
 
-    # Find all tournament directories by looking for game.log files
-    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("game.log")]
+    # Find all tournament directories by looking for metadata.json files
+    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
     for game_log_folder in tqdm(tournaments):
         # Load tournament metadata to get player-to-model mapping
         with open(game_log_folder / "metadata.json") as f:

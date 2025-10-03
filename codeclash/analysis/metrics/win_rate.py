@@ -29,7 +29,7 @@ def main(log_dir: Path):
     # - game.log
     # - metadata.json
     model_profiles = {}
-    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
+    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("metadata.json")]):
         game_id = game_log_folder.name.split(".")[1]
         player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
         metadata = json.load(open(game_log_folder / "metadata.json"))

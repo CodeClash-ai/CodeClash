@@ -102,7 +102,7 @@ class TrajectoryAnalyzer:
 
 def main(log_dir: str):
     profiles = {}
-    tournaments = [x.parent for x in log_dir.rglob("game.log")]
+    tournaments = [x.parent for x in log_dir.rglob("metadata.json")]
     for game_log_folder in tqdm(tournaments):
         with open(game_log_folder / "metadata.json") as f:
             metadata = json.load(f)

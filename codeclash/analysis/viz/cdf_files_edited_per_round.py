@@ -12,7 +12,7 @@ OUTPUT_FILE = "cdf_files_edited_per_round.png"
 def main():
     model_to_num_files = {}
 
-    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("game.log")]
+    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
     for game_log_folder in tqdm(tournaments):
         with open(game_log_folder / "metadata.json") as f:
             metadata = json.load(f)

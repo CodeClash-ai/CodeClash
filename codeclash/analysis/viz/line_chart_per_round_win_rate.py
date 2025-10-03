@@ -28,7 +28,7 @@ def main(log_dir: Path):
 
     player_round_profiles = {}
 
-    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
+    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("metadata.json")]):
         arena = game_log_folder.name.split(".")[1]
         metadata = json.load(open(game_log_folder / "metadata.json"))
 

@@ -100,7 +100,7 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
         + (f" (alpha={alpha})" if weighting_function == "exponential" else "")
     )
     player_profiles = {}
-    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("game.log")]):
+    for game_log_folder in tqdm([x.parent for x in log_dir.rglob("metadata.json")]):
         arena = game_log_folder.name.split(".")[1]
         with open(game_log_folder / "metadata.json") as f:
             metadata = json.load(f)
