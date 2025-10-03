@@ -152,6 +152,9 @@ function toggleFolder(folderPath) {
   const newState = currentState === "collapsed" ? "expanded" : "collapsed";
   folderStates.set(folderPath, newState);
 
+  // Save the updated state to localStorage
+  saveFolderStates();
+
   if (newState === "expanded") {
     // Expand folder - show only direct children
     folderRow.classList.remove("collapsed");
@@ -202,18 +205,6 @@ function hideChildrenOfFolder(folderPath) {
     const rowPath = row.getAttribute("data-path");
     if (rowPath && rowPath.startsWith(folderPath + "/")) {
       row.style.display = "none";
-
-      // If this is also a folder, mark it as collapsed
-      if (row.classList.contains("intermediate-folder")) {
-        folderStates.set(rowPath, "collapsed");
-        row.classList.add("collapsed");
-
-        // Update the collapse icon
-        const collapseIcon = row.querySelector(".collapse-icon");
-        if (collapseIcon) {
-          collapseIcon.textContent = "";
-        }
-      }
     }
   });
 }
@@ -624,8 +615,13 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("  Arrow keys / hjkl: Navigate");
   console.log("  Enter: Open selected game");
 
-  // Collapse all folders by default
-  collapseAllFolders();
+  // Load saved folder states or collapse all by default
+  const hasSavedStates = loadFolderStates();
+  if (hasSavedStates) {
+    applyFolderStates();
+  } else {
+    collapseAllFolders();
+  }
 
   // Initialize keyboard navigation
   initializeKeyboardNavigation();
@@ -650,6 +646,36 @@ document.addEventListener("DOMContentLoaded", function () {
 // Track individual folder states
 const folderStates = new Map();
 
+// LocalStorage key for persisting folder states
+const FOLDER_STATES_KEY = "picker_folder_states";
+
+function saveFolderStates() {
+  // Convert Map to object for storage
+  const statesObj = Object.fromEntries(folderStates);
+  try {
+    localStorage.setItem(FOLDER_STATES_KEY, JSON.stringify(statesObj));
+  } catch (e) {
+    console.error("Failed to save folder states:", e);
+  }
+}
+
+function loadFolderStates() {
+  try {
+    const stored = localStorage.getItem(FOLDER_STATES_KEY);
+    if (stored) {
+      const statesObj = JSON.parse(stored);
+      // Convert object back to Map
+      Object.entries(statesObj).forEach(([key, value]) => {
+        folderStates.set(key, value);
+      });
+      return true;
+    }
+  } catch (e) {
+    console.error("Failed to load folder states:", e);
+  }
+  return false;
+}
+
 function collapseAllFolders() {
   // Find all intermediate folder rows and collapse them
   const folderRows = document.querySelectorAll(".intermediate-folder");
@@ -668,6 +694,27 @@ function collapseAllFolders() {
   });
 
   console.log(`Collapsed ${folderRows.length} folders on startup`);
+}
+
+function applyFolderStates() {
+  // Apply loaded folder states to the UI
+  const folderRows = document.querySelectorAll(".intermediate-folder");
+  folderRows.forEach((folderRow) => {
+    const folderPath = folderRow.getAttribute("data-path");
+    if (folderPath) {
+      const state = folderStates.get(folderPath) || "collapsed";
+
+      if (state === "expanded") {
+        folderRow.classList.remove("collapsed");
+        showChildrenOfFolder(folderPath);
+      } else {
+        folderRow.classList.add("collapsed");
+        hideChildrenOfFolder(folderPath);
+      }
+    }
+  });
+
+  console.log(`Applied folder states from localStorage`);
 }
 
 // Keyboard Navigation Functions
