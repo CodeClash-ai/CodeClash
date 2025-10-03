@@ -748,6 +748,14 @@ details summary {
   color: var(--success-color);
 }
 
+.status-yes, .valid-yes {
+  color: var(--success-color);
+}
+
+.status-no, .valid-no {
+  color: var(--neon-red);
+}
+
 /* All non-submitted statuses should be neon red */
 .stat-value[class*="status-"]:not(.status-submitted),
 .exit-status-small[class*="status-"]:not(.status-submitted) {

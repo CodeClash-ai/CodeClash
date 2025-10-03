@@ -355,6 +355,7 @@ class TrajectoryInfo:
     trajectory_file_path: str | None = None
     diff_by_files: dict[str, str] | None = None
     incremental_diff_by_files: dict[str, str] | None = None
+    valid_submission: bool | None = None
 
 
 class LogParser:
@@ -464,6 +465,7 @@ class LogParser:
                 trajectory_file_path=str(traj_file),
                 diff_by_files=diff_by_files,
                 incremental_diff_by_files=incremental_diff_by_files,
+                valid_submission=self._get_metadata().round_stats[str(round_num)]['player_stats'][player_name]['valid_submit']
             )
         except (json.JSONDecodeError, KeyError) as e:
             logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
