@@ -629,6 +629,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize filters
   initializeFilters();
 
+  // Add listener to game filter to save changes
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) {
+    gameFilter.addEventListener("change", saveFilters);
+  }
+
   // Close model dropdown when clicking outside
   document.addEventListener("click", (event) => {
     const dropdown = document.getElementById("model-filter-dropdown");
@@ -921,6 +927,7 @@ let allGameRows = [];
 let uniqueGames = new Set();
 let uniqueModels = new Set();
 let selectedModels = new Set();
+let selectedDate = null;
 
 function shouldRowBeVisible(row) {
   const gameFilter =
@@ -948,6 +955,22 @@ function shouldRowBeVisible(row) {
         rowModels.has(model),
       );
       if (!hasAllModels) {
+        return false;
+      }
+    }
+
+    // Check date filter - if a date is selected, row must match that date
+    if (selectedDate) {
+      const dateElement = row.querySelector(".date-text");
+      if (dateElement) {
+        const dateText = dateElement.textContent.trim();
+        // Extract just the YYYY-MM-DD part
+        const rowDate = dateText.split(" ")[0];
+        if (rowDate !== selectedDate) {
+          return false;
+        }
+      } else {
+        // Row has no date, so it doesn't match
         return false;
       }
     }
@@ -988,6 +1011,13 @@ function initializeFilters() {
   // Populate filter dropdowns
   populateGameFilter();
   populateModelFilter();
+
+  // Load saved filters from localStorage
+  const hasFilters = loadFilters();
+  if (hasFilters) {
+    // Apply the loaded filters
+    applyFilters();
+  }
 }
 
 function populateGameFilter() {
@@ -1070,7 +1100,10 @@ function applyFilters() {
 function clearFilters() {
   document.getElementById("game-filter").value = "";
   selectedModels.clear();
+  selectedDate = null;
   updateModelFilterDisplay();
+  updateDateFilterDisplay();
+  saveFilters();
 
   // Reapply the current folder states without any filters
   applyFilters();
@@ -1080,6 +1113,7 @@ function setGameFilter(gameName) {
   const gameFilter = document.getElementById("game-filter");
   if (gameFilter) {
     gameFilter.value = gameName;
+    saveFilters();
     applyFilters();
   }
 }
@@ -1094,6 +1128,7 @@ function toggleModelSelection(event, modelName) {
   }
 
   updateModelFilterDisplay();
+  saveFilters();
   applyFilters();
 }
 
@@ -1101,6 +1136,7 @@ function clearModelSelection(event) {
   event.stopPropagation();
   selectedModels.clear();
   updateModelFilterDisplay();
+  saveFilters();
   applyFilters();
 }
 
@@ -1152,6 +1188,120 @@ function handleGameNameClick(event, gameName) {
 function handleModelTagClick(event, modelName) {
   event.stopPropagation();
   toggleModelSelection(event, modelName);
+}
+
+function handleDateClick(event, dateText) {
+  event.stopPropagation();
+  // Extract just the YYYY-MM-DD part
+  const date = dateText.trim().split(" ")[0];
+
+  // Toggle date filter - if already selected, clear it
+  if (selectedDate === date) {
+    selectedDate = null;
+  } else {
+    selectedDate = date;
+  }
+
+  updateDateFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+function updateDateFilterDisplay() {
+  // Find all date cells and update their styling
+  const dateCells = document.querySelectorAll(".date-text");
+  dateCells.forEach((cell) => {
+    const cellDate = cell.textContent.trim().split(" ")[0];
+    if (selectedDate && cellDate === selectedDate) {
+      cell.classList.add("date-selected");
+    } else {
+      cell.classList.remove("date-selected");
+    }
+  });
+
+  // Update the filter badge
+  const badge = document.getElementById("date-filter-badge");
+  const badgeText = document.getElementById("date-filter-text");
+  const container = document.getElementById("active-filters-container");
+
+  if (selectedDate) {
+    if (badgeText) badgeText.textContent = selectedDate;
+    if (badge) badge.style.display = "inline-flex";
+    if (container) container.style.display = "flex";
+  } else {
+    if (badge) badge.style.display = "none";
+    // Hide container if no filters are active
+    if (container && !hasActiveFilters()) {
+      container.style.display = "none";
+    }
+  }
+}
+
+function hasActiveFilters() {
+  return (
+    selectedDate !== null ||
+    selectedModels.size > 0 ||
+    (document.getElementById("game-filter")?.value || "") !== ""
+  );
+}
+
+function clearDateFilter(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  selectedDate = null;
+  updateDateFilterDisplay();
+  saveFilters();
+  applyFilters();
+}
+
+// Filter persistence
+const FILTERS_KEY = "picker_filters";
+
+function saveFilters() {
+  const filters = {
+    game: document.getElementById("game-filter")?.value || "",
+    models: Array.from(selectedModels),
+    date: selectedDate,
+  };
+  try {
+    localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+  } catch (e) {
+    console.error("Failed to save filters:", e);
+  }
+}
+
+function loadFilters() {
+  try {
+    const stored = localStorage.getItem(FILTERS_KEY);
+    if (stored) {
+      const filters = JSON.parse(stored);
+
+      // Restore game filter
+      const gameFilter = document.getElementById("game-filter");
+      if (gameFilter && filters.game) {
+        gameFilter.value = filters.game;
+      }
+
+      // Restore model filter
+      if (filters.models && Array.isArray(filters.models)) {
+        filters.models.forEach((model) => selectedModels.add(model));
+        updateModelFilterDisplay();
+      }
+
+      // Restore date filter
+      if (filters.date) {
+        selectedDate = filters.date;
+        updateDateFilterDisplay();
+      }
+
+      return true;
+    }
+  } catch (e) {
+    console.error("Failed to load filters:", e);
+  }
+  return false;
 }
 
 // Sorting functionality
