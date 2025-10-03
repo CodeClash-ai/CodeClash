@@ -3,14 +3,14 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from codeclash.analysis.rate_elo import (
+from matplotlib import pyplot as plt
+from tqdm import tqdm
+
+from codeclash.analysis.metrics.elo import (
     calculate_round_weight_exponential,
     calculate_round_weight_linear,
     update_profiles,
 )
-from matplotlib import pyplot as plt
-from tqdm import tqdm
-
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 
 
