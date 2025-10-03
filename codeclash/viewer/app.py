@@ -761,6 +761,16 @@ def format_timestamp(timestamp):
         return ""
 
 
+def strip_model_prefix(model_name):
+    """Strip provider prefix from model name (e.g., 'openai/gpt-5' -> 'gpt-5')"""
+    if not model_name:
+        return ""
+    # Strip everything up to and including the last slash
+    if "/" in model_name:
+        return model_name.split("/")[-1]
+    return model_name
+
+
 def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     """Get previous and next game folders for navigation"""
     # Get all game folders
@@ -827,6 +837,7 @@ app.jinja_env.filters["unescape_content"] = unescape_content
 app.jinja_env.filters["get_folder_name"] = get_folder_name
 app.jinja_env.filters["get_parent_folder"] = get_parent_folder
 app.jinja_env.filters["format_timestamp"] = format_timestamp
+app.jinja_env.filters["strip_model_prefix"] = strip_model_prefix
 
 
 @app.route("/")
