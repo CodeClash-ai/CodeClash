@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 
 from matplotlib import pyplot as plt

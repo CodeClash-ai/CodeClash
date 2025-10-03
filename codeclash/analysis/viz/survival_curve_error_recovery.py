@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Error Recovery Time Analysis via Survival Curve Visualization
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import json
 from dataclasses import dataclass
@@ -82,6 +83,7 @@ def update_profiles(prof_and_score, round_weight, k_factor):
     weighted_k_factor = k_factor * round_weight
     rating_change = weighted_k_factor * (p1_score - expected_p1)
 
+    # Consistency:
     expected_p2 = expected_score(p2_prof.rating, p1_prof.rating)
     check = weighted_k_factor * (p2_score - expected_p2)
     assert abs(check + rating_change) < 1e-6, "Weighted ELO rating changes do not sum to zero!"
