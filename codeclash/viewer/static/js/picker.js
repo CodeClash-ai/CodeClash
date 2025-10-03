@@ -588,12 +588,16 @@ if (typeof window.confirmMove === "undefined") {
   };
 }
 
-// Close dialog on Escape key
+// Close dialog and dropdowns on Escape key
 document.addEventListener("keydown", function (event) {
   if (event.key === "Escape") {
     const dialog = document.getElementById("move-dialog");
+    const modelDropdown = document.getElementById("model-filter-options");
+
     if (dialog.style.display === "flex") {
       cancelMove();
+    } else if (modelDropdown && modelDropdown.style.display === "block") {
+      modelDropdown.style.display = "none";
     }
   }
 });
@@ -628,6 +632,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize filters
   initializeFilters();
+
+  // Close model dropdown when clicking outside
+  document.addEventListener("click", (event) => {
+    const dropdown = document.getElementById("model-filter-dropdown");
+    const options = document.getElementById("model-filter-options");
+    if (
+      dropdown &&
+      !dropdown.contains(event.target) &&
+      options.style.display === "block"
+    ) {
+      options.style.display = "none";
+    }
+  });
 });
 
 // Track individual folder states
@@ -703,8 +720,10 @@ function setSelectedRow(index) {
 
 function handleKeyboardNavigation(event) {
   // Don't handle keyboard navigation if a dialog is open or input is focused
+  const modelDropdown = document.getElementById("model-filter-options");
   if (
     document.getElementById("move-dialog").style.display === "flex" ||
+    (modelDropdown && modelDropdown.style.display === "block") ||
     document.activeElement.tagName === "INPUT" ||
     document.activeElement.tagName === "SELECT"
   ) {
@@ -854,12 +873,11 @@ function activateSelectedRow() {
 let allGameRows = [];
 let uniqueGames = new Set();
 let uniqueModels = new Set();
+let selectedModels = new Set();
 
 function shouldRowBeVisible(row) {
   const gameFilter =
     document.getElementById("game-filter")?.value.toLowerCase() || "";
-  const modelFilter =
-    document.getElementById("model-filter")?.value.toLowerCase() || "";
 
   if (row.classList.contains("game-folder")) {
     // Check game name filter
@@ -873,13 +891,16 @@ function shouldRowBeVisible(row) {
       }
     }
 
-    // Check model filter
-    if (modelFilter) {
+    // Check model filter - if models are selected, row must have ALL of them (intersection)
+    if (selectedModels.size > 0) {
       const modelTags = row.querySelectorAll(".model-tag");
-      const hasMatchingModel = Array.from(modelTags).some((tag) =>
-        tag.textContent.toLowerCase().includes(modelFilter),
+      const rowModels = new Set(
+        Array.from(modelTags).map((tag) => tag.textContent.trim()),
       );
-      if (!hasMatchingModel) {
+      const hasAllModels = Array.from(selectedModels).every((model) =>
+        rowModels.has(model),
+      );
+      if (!hasAllModels) {
         return false;
       }
     }
@@ -941,20 +962,21 @@ function populateGameFilter() {
 }
 
 function populateModelFilter() {
-  const modelFilter = document.getElementById("model-filter");
-  if (!modelFilter) return;
+  const modelFilterList = document.getElementById("model-filter-list");
+  if (!modelFilterList) return;
 
-  // Clear existing options except "All Models"
-  modelFilter.innerHTML = '<option value="">All Models</option>';
+  // Clear existing options
+  modelFilterList.innerHTML = "";
 
-  // Add unique models
+  // Add unique models as clickable options
   Array.from(uniqueModels)
     .sort()
     .forEach((model) => {
-      const option = document.createElement("option");
-      option.value = model;
+      const option = document.createElement("div");
+      option.className = "model-filter-option";
       option.textContent = model;
-      modelFilter.appendChild(option);
+      option.onclick = (e) => toggleModelSelection(e, model);
+      modelFilterList.appendChild(option);
     });
 }
 
@@ -1000,7 +1022,8 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById("game-filter").value = "";
-  document.getElementById("model-filter").value = "";
+  selectedModels.clear();
+  updateModelFilterDisplay();
 
   // Reapply the current folder states without any filters
   applyFilters();
@@ -1014,11 +1037,63 @@ function setGameFilter(gameName) {
   }
 }
 
-function setModelFilter(modelName) {
-  const modelFilter = document.getElementById("model-filter");
-  if (modelFilter) {
-    modelFilter.value = modelName;
-    applyFilters();
+function toggleModelSelection(event, modelName) {
+  event.stopPropagation();
+
+  if (selectedModels.has(modelName)) {
+    selectedModels.delete(modelName);
+  } else {
+    selectedModels.add(modelName);
+  }
+
+  updateModelFilterDisplay();
+  applyFilters();
+}
+
+function clearModelSelection(event) {
+  event.stopPropagation();
+  selectedModels.clear();
+  updateModelFilterDisplay();
+  applyFilters();
+}
+
+function updateModelFilterDisplay() {
+  const displayElement = document.getElementById("model-filter-display");
+  const options = document.querySelectorAll(".model-filter-option");
+
+  if (selectedModels.size === 0) {
+    displayElement.textContent = "All Models";
+  } else if (selectedModels.size === 1) {
+    displayElement.textContent = Array.from(selectedModels)[0];
+  } else {
+    displayElement.textContent = `${selectedModels.size} models selected`;
+  }
+
+  // Update visual state of options
+  options.forEach((option) => {
+    if (selectedModels.has(option.textContent)) {
+      option.classList.add("selected");
+    } else {
+      option.classList.remove("selected");
+    }
+  });
+}
+
+function toggleModelDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById("model-filter-options");
+  const button = document.getElementById("model-filter-button");
+  const isVisible = dropdown.style.display !== "none";
+
+  if (isVisible) {
+    dropdown.style.display = "none";
+  } else {
+    // Calculate position based on button location
+    const buttonRect = button.getBoundingClientRect();
+    dropdown.style.left = buttonRect.left + "px";
+    dropdown.style.top = buttonRect.bottom + 4 + "px";
+    dropdown.style.width = buttonRect.width + "px";
+    dropdown.style.display = "block";
   }
 }
 
@@ -1029,5 +1104,5 @@ function handleGameNameClick(event, gameName) {
 
 function handleModelTagClick(event, modelName) {
   event.stopPropagation();
-  setModelFilter(modelName);
+  toggleModelSelection(event, modelName);
 }
