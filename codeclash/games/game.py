@@ -36,7 +36,7 @@ class RoundStats:
         self.winner = None
         self.round_num = round_num
         # Map of player to game metric (e.g. # of wins, assets accumulated)
-        self.scores: dict[str, float] = {}
+        self.scores: dict[str, float] = {a.name: 0.0 for a in agents}
         self.player_stats: dict[str, PlayerStats] = {agent.name: PlayerStats(name=agent.name) for agent in agents}
         self.details: list[str] = []
 
@@ -254,16 +254,17 @@ class CodeGame(ABC):
         random.shuffle(agents)  # Shuffle to ensure fairness in case of positional advantages
         stats = RoundStats(round_num, agents)
         validated: list[Player] = []
-        for agent in agents:
-            is_valid, error = self.validate_code(agent)
+        for a in agents:
+            is_valid, error = self.validate_code(a)
             if not is_valid:
-                self.logger.warning(f"Agent {agent.name} failed submission validation: {error}")
-                stats.player_stats[agent.name].invalid_reason = error
+                self.logger.warning(f"Agent {a.name} failed submission validation: {error}")
+                stats.player_stats[a.name].invalid_reason = error
                 continue
-            self.logger.info(f"Agent {agent.name} passed submission validation")
-            stats.player_stats[agent.name].valid_submit = True
-            validated.append(agent)
+            self.logger.info(f"Agent {a.name} passed submission validation")
+            stats.player_stats[a.name].valid_submit = True
+            validated.append(a)
 
+        sims = self.config["game"]["sims_per_round"]
         if len(validated) > 1:
             self._pre_round_setup(validated)
             self.execute_round(validated)
@@ -273,9 +274,16 @@ class CodeGame(ABC):
         elif len(validated) == 1:
             self.logger.info(f"Only one valid agent ({validated[0].name}), automatic win")
             stats.winner = validated[0].name
+            stats.scores[validated[0].name] = sims
+            stats.player_stats[validated[0].name].score = sims
         else:
             self.logger.info("No valid agents, no winner this round (Default tie)")
             stats.winner = RESULT_TIE
+            # Split points evenly
+            points = sims * 1.0 / len(agents)
+            for a in agents:
+                stats.scores[a.name] = points
+                stats.player_stats[a.name].score = points
         return stats
 
     @abstractmethod
