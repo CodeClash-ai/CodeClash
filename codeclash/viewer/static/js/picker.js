@@ -1106,3 +1106,99 @@ function handleModelTagClick(event, modelName) {
   event.stopPropagation();
   toggleModelSelection(event, modelName);
 }
+
+// Sorting functionality
+let currentSort = { column: null, ascending: true };
+
+function sortTable(column) {
+  // Toggle sort order if clicking the same column
+  if (currentSort.column === column) {
+    currentSort.ascending = !currentSort.ascending;
+  } else {
+    currentSort.column = column;
+    currentSort.ascending = true;
+  }
+
+  const rows = Array.from(document.querySelectorAll(".game-row"));
+
+  // Build a tree structure to maintain hierarchy
+  const rowsByPath = new Map();
+  rows.forEach((row) => {
+    rowsByPath.set(row.dataset.path, row);
+  });
+
+  // Group rows by their parent
+  const childrenByParent = new Map();
+  rows.forEach((row) => {
+    const parent = row.dataset.parent || "";
+    if (!childrenByParent.has(parent)) {
+      childrenByParent.set(parent, []);
+    }
+    childrenByParent.get(parent).push(row);
+  });
+
+  // Comparison function based on selected column
+  function compareRows(a, b) {
+    let aValue, bValue;
+
+    if (column === "name") {
+      // For name sorting, use just the folder name (not full path)
+      aValue = a.dataset.path.split("/").pop() || "";
+      bValue = b.dataset.path.split("/").pop() || "";
+      return currentSort.ascending
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    } else if (column === "date") {
+      // Get timestamps, treat empty/missing as 0 (will sort to the end when ascending)
+      aValue = parseInt(a.dataset.timestamp) || 0;
+      bValue = parseInt(b.dataset.timestamp) || 0;
+
+      // Put entries without timestamps at the end
+      if (aValue === 0 && bValue === 0) return 0;
+      if (aValue === 0) return 1;
+      if (bValue === 0) return -1;
+
+      return currentSort.ascending ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  }
+
+  // Sort children at each level
+  childrenByParent.forEach((children) => {
+    children.sort(compareRows);
+  });
+
+  // Recursively build the sorted list maintaining hierarchy
+  function buildSortedList(parent) {
+    const result = [];
+    const children = childrenByParent.get(parent) || [];
+
+    for (const child of children) {
+      result.push(child);
+      // Add all descendants of this child
+      result.push(...buildSortedList(child.dataset.path));
+    }
+
+    return result;
+  }
+
+  // Build the final sorted list starting from root (empty parent)
+  const sortedRows = buildSortedList("");
+
+  // Get the table header element
+  const tableHeader = document.querySelector(".table-header");
+
+  // Remove all existing rows
+  rows.forEach((row) => row.remove());
+
+  // Re-insert rows in sorted order
+  let previousElement = tableHeader;
+  sortedRows.forEach((row) => {
+    previousElement.after(row);
+    previousElement = row;
+  });
+
+  // Re-apply filters to maintain visibility state
+  applyFilters();
+}

@@ -61,7 +61,12 @@
         </div>
         <div class="table-header">
             <div><i class="bi bi-check-square"></i></div>
-            <div>Name</div>
+            <div class="sortable-header" onclick="sortTable('name')">
+                Name <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div class="sortable-header" onclick="sortTable('date')">
+                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
+            </div>
             <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
                 <option value="">All Games</option>
             </select>
@@ -88,6 +93,7 @@
             <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
                  data-path="{{ game.name }}"
                  data-parent="{{ game.parent or '' }}"
+                 data-timestamp="{{ game.created_timestamp or '' }}"
                  {% if game.is_game %}onclick="handleRowClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
 
                 <div class="checkbox-cell">
@@ -107,6 +113,14 @@
                     </span>
                     <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
+                </div>
+
+                <div class="date-cell">
+                    {% if game.is_game and game.created_timestamp %}
+                    <span class="date-text">{{ game.created_timestamp|format_timestamp }}</span>
+                    {% else %}
+                    <span class="date-unknown">-</span>
+                    {% endif %}
                 </div>
 
                 <div class="game-name-cell">

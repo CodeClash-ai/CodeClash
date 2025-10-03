@@ -383,12 +383,21 @@ The game picker includes a multi-select dropdown filter for models in the Models
 
 ### Layout
 
-* Full-width table structure with six columns: Select, Game Session, Note, Rounds, Models, Action
+* Full-width table structure with seven columns: Select, Name, Date, Game, Rounds, Models, Action
+* **Name column**: Sortable column showing the folder name with hierarchy indentation
+* **Date column**: Sortable column showing creation date in YYYY-MM-DD HH:MM format (from `metadata["created_timestamp"]`)
 * **Action column includes**: Open, Open in new tab (↗), and Move/rename (📁) buttons for each game folder
-* Responsive design that adapts to mobile screens (hides some columns on mobile)
+* Responsive design that adapts to mobile screens (hides some columns on mobile, including Date)
 * Hover effects and visual feedback
 * Base directory path display at the top
 * Control bar with selection controls and action dropdown
+
+### Sorting
+
+* **Name column**: Click to sort alphabetically by folder path (ascending/descending toggle)
+* **Date column**: Click to sort chronologically by creation timestamp (ascending/descending toggle)
+* Sorting preserves intermediate folder hierarchy
+* Sort indicators appear in column headers with hover effects
 
 ## Trajectory Viewer Design (`/`)
 

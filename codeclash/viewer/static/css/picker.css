@@ -195,7 +195,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 140px 2fr 100px 3fr 180px;
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -203,7 +203,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 60px 2.5fr 2fr 100px 3fr 180px;
+  grid-template-columns: 60px 2.5fr 140px 2fr 100px 3fr 180px;
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -499,6 +499,46 @@
   color: var(--text-muted);
   font-size: 0.8rem;
   font-style: italic;
+}
+
+.date-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.date-text {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.date-unknown {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sortable-header:hover {
+  color: var(--accent-color);
+}
+
+.sortable-header i {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.sortable-header:hover i {
+  opacity: 1;
 }
 
 /* Clickable filter styles */
@@ -839,6 +879,10 @@
   .game-row {
     grid-template-columns: 40px 1fr 80px;
     gap: 0.5rem;
+  }
+
+  .date-cell {
+    display: none; /* Hide on mobile to save space */
   }
 
   .checkbox-cell {

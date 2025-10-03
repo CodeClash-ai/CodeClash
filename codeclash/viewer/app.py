@@ -217,6 +217,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                         round_info = metadata.round_count_info
                         models = metadata.models
                         game_name = metadata.game_name
+                        created_timestamp = metadata.get_path("created_timestamp")
                         game_folders.add(current_relative)
                         all_folders.append(
                             {
@@ -225,6 +226,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "round_info": round_info,  # Now stores (completed, total) tuple or None
                                 "models": models,
                                 "game_name": game_name,
+                                "created_timestamp": created_timestamp,
                                 "is_game": True,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -239,6 +241,7 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
                                 "round_info": None,
                                 "models": [],
                                 "game_name": "",
+                                "created_timestamp": None,
                                 "is_game": False,
                                 "depth": depth,
                                 "parent": relative_path if relative_path else None,
@@ -745,6 +748,19 @@ def get_parent_folder(path):
     return parent.name
 
 
+def format_timestamp(timestamp):
+    """Format Unix timestamp as YYYY-MM-DD HH:MM"""
+    if timestamp is None:
+        return ""
+    from datetime import datetime
+
+    try:
+        dt = datetime.fromtimestamp(timestamp)
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except (ValueError, OSError):
+        return ""
+
+
 def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     """Get previous and next game folders for navigation"""
     # Get all game folders
@@ -810,6 +826,7 @@ app.jinja_env.filters["nl2br"] = nl2br
 app.jinja_env.filters["unescape_content"] = unescape_content
 app.jinja_env.filters["get_folder_name"] = get_folder_name
 app.jinja_env.filters["get_parent_folder"] = get_parent_folder
+app.jinja_env.filters["format_timestamp"] = format_timestamp
 
 
 @app.route("/")
