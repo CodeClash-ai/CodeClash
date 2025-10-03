@@ -146,7 +146,7 @@
                 <div class="models-cell">
                     {% if game.is_game and game.models %}
                         {% for model in game.models %}
-                        <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model }}')" title="Click to filter by this model">{{ model }}</span>
+                        <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model|strip_model_prefix }}')" title="Click to filter by this model">{{ model|strip_model_prefix }}</span>
                         {% endfor %}
                     {% else %}
                         <span class="models-unknown">-</span>
