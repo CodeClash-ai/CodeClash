@@ -106,8 +106,8 @@ def main(log_dir: Path):
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("win_rate_progression_per_round.png", dpi=300, bbox_inches="tight")
-    print("Win rate progression chart saved to win_rate_progression_per_round.png")
+    plt.savefig("line_chart_per_round_win_rate.png", dpi=300, bbox_inches="tight")
+    print("Win rate progression chart saved to line_chart_per_round_win_rate.png")
 
     # Print summary statistics
     print("\n" + "=" * 50)

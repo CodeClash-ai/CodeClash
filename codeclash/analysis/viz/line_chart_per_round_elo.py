@@ -124,8 +124,8 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("elo_progression_per_round.png")
-    print("ELO progression chart saved to elo_progression_per_round.png")
+    plt.savefig("line_chart_per_round_elo.png")
+    print("ELO progression chart saved to line_chart_per_round_elo.png")
 
 
 if __name__ == "__main__":
