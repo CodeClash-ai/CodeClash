@@ -98,7 +98,7 @@
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .table-controls {
@@ -234,6 +234,7 @@
 
 .game-folder {
   /* Removed cursor: pointer to prevent hand cursor on entire row */
+  position: relative;
 }
 
 .intermediate-folder {
@@ -569,7 +570,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  title: "Open in new tab";
 }
 
 .open-new-tab-button:hover {
@@ -719,6 +719,107 @@
 
 .move-dialog-buttons button:last-child:hover {
   background-color: var(--bg-tertiary);
+}
+
+/* Model Multi-Select Filter Styles */
+.model-filter-container {
+  position: relative;
+  width: 100%;
+}
+
+.model-filter-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.model-filter-button {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.model-filter-button:hover {
+  border-color: var(--accent-color);
+}
+
+.model-filter-button:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.model-filter-button i {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.model-filter-options {
+  position: fixed;
+  margin-top: 0.25rem;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
+.model-filter-clear {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.model-filter-clear button {
+  width: 100%;
+  padding: 0.375rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.model-filter-clear button:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.model-filter-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.model-filter-option:hover {
+  background-color: var(--bg-secondary);
+}
+
+.model-filter-option.selected {
+  background-color: var(--accent-color);
+  color: #000000;
+  font-weight: 700;
+}
+
+.model-filter-option.selected:hover {
+  background-color: var(--accent-hover);
 }
 
 /* Mobile responsiveness */
