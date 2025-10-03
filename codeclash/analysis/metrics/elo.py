@@ -17,36 +17,42 @@ class ModelEloProfile:
     rounds_played: int = 0
 
 
-def expected_score(rating_a, rating_b):
+def expected_score(rating_a: float, rating_b: float) -> float:
     return 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
 
 
-def calculate_round_weight_linear(round_num, total_rounds):
+def calculate_round_weight_linear(round_num: int, total_rounds: int) -> float:
     """Calculate linear weight for a round, with average weight = 1.0 across all rounds
 
     Args:
-        round_num: Current round number (1-indexed)
+        round_num: Current round number (1-indexed. the first round that we show in the viewer
+            is 0, but it's not a real round, so not included here)
         total_rounds: Total number of rounds in the game
 
     Returns:
         Weight value where early rounds have weight ~0.5 and late rounds have weight ~1.5
     """
+    assert round_num >= 1
+    assert round_num <= total_rounds
     # Linear: weight = 0.5 + (round_num / total_rounds)
     # This gives range [0.5, 1.5] with average = 1.0
     return 0.5 + (round_num / total_rounds)
 
 
-def calculate_round_weight_exponential(round_num, total_rounds, alpha=2.0):
+def calculate_round_weight_exponential(round_num: int, total_rounds: int, alpha: float = 2.0) -> float:
     """Calculate exponential weight for a round, with average weight = 1.0 across all rounds
 
     Args:
-        round_num: Current round number (1-indexed)
+        round_num: Current round number (1-indexed. the first round that we show in the viewer
+            is 0, but it's not a real round, so not included here)
         total_rounds: Total number of rounds in the game
         alpha: Exponential factor (default 2.0 for quadratic weighting)
 
     Returns:
         Weight value with exponential progression favoring later rounds
     """
+    assert round_num >= 1
+    assert round_num <= total_rounds
     # Raw weight (exponential)
     raw_weight = (round_num / total_rounds) ** alpha
 
@@ -57,7 +63,7 @@ def calculate_round_weight_exponential(round_num, total_rounds, alpha=2.0):
     return raw_weight * norm_factor
 
 
-def update_profiles(prof_and_score, round_weight, k_factor):
+def update_profiles(prof_and_score: list[tuple[ModelEloProfile, float]], round_weight: float, k_factor: float) -> None:
     """Update ELO profiles for two players based on their scores and round weight
 
     Args:
@@ -92,7 +98,7 @@ def update_profiles(prof_and_score, round_weight, k_factor):
     p2_prof.rating -= rating_change  # Zero-sum property
 
 
-def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: str, alpha: float):
+def main(log_dir: Path, k_factor: float, starting_elo: float, weighting_function: str, alpha: float) -> None:
     print(f"Calculating weighted ELO ratings from logs in {log_dir} ...")
     print(f"Using K_FACTOR={k_factor}, STARTING_ELO={starting_elo}")
     print(
@@ -196,9 +202,9 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculate weighted ELO ratings with configurable weighting functions")
     parser.add_argument("-d", "--log_dir", type=Path, help="Path to game logs (Default: logs/)", default=LOCAL_LOG_DIR)
-    parser.add_argument("-k", "--k_factor", type=int, help="K-Factor for ELO calculation (Default: 32)", default=32)
+    parser.add_argument("-k", "--k_factor", type=float, help="K-Factor for ELO calculation (Default: 32)", default=32)
     parser.add_argument(
-        "-s", "--starting_elo", type=int, help="Starting ELO for new players (Default: 1200)", default=1200
+        "-s", "--starting_elo", type=float, help="Starting ELO for new players (Default: 1200)", default=1200
     )
     parser.add_argument(
         "-w",
