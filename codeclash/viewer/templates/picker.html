@@ -26,6 +26,16 @@
             </div>
             <div class="right-controls">
                 <div class="filter-controls">
+                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
+                        <span class="filter-label">Active filters:</span>
+                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
+                            <i class="bi bi-calendar"></i>
+                            <span id="date-filter-text"></span>
+                            <button class="filter-badge-close" onclick="clearDateFilter(event)" title="Clear date filter">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </span>
+                    </div>
                     <button id="clear-filters" onclick="clearFilters()" title="Clear all filters">
                         <i class="bi bi-x-circle"></i> Clear Filters
                     </button>
@@ -47,6 +57,13 @@
             </div>
             <div class="right-controls">
                 <div class="filter-controls">
+                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
+                        <span class="filter-label">Active filters:</span>
+                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
+                            <i class="bi bi-calendar"></i>
+                            <span id="date-filter-text"></span>
+                        </span>
+                    </div>
                     <button id="clear-filters" disabled title="Not available in static mode">
                         <i class="bi bi-x-circle"></i> Clear Filters
                     </button>
@@ -61,14 +78,30 @@
         </div>
         <div class="table-header">
             <div><i class="bi bi-check-square"></i></div>
-            <div>Name</div>
+            <div class="sortable-header" onclick="sortTable('name')">
+                Name <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div class="sortable-header" onclick="sortTable('date')">
+                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
+            </div>
             <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
                 <option value="">All Games</option>
             </select>
             <div><i class="bi bi-target"></i> Rounds</div>
-            <select id="model-filter" onchange="applyFilters()" class="header-filter-only">
-                <option value="">All Models</option>
-            </select>
+            <div class="model-filter-container">
+                <div class="model-filter-dropdown" id="model-filter-dropdown">
+                    <button class="model-filter-button" id="model-filter-button" onclick="toggleModelDropdown(event)">
+                        <span id="model-filter-display">All Models</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="model-filter-options" id="model-filter-options" style="display: none;">
+                        <div class="model-filter-clear">
+                            <button onclick="clearModelSelection(event)">Clear selection</button>
+                        </div>
+                        <div id="model-filter-list"></div>
+                    </div>
+                </div>
+            </div>
             <div>Action</div>
         </div>
             {% for game in game_folders %}
@@ -77,6 +110,7 @@
             <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
                  data-path="{{ game.name }}"
                  data-parent="{{ game.parent or '' }}"
+                 data-timestamp="{{ game.created_timestamp or '' }}"
                  {% if game.is_game %}onclick="handleRowClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
 
                 <div class="checkbox-cell">
@@ -96,6 +130,14 @@
                     </span>
                     <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
+                </div>
+
+                <div class="date-cell">
+                    {% if game.is_game and game.created_timestamp %}
+                    <span class="date-text clickable-filter" onclick="handleDateClick(event, '{{ game.created_timestamp|format_timestamp }}')" title="Click to filter by this date">{{ game.created_timestamp|format_timestamp }}</span>
+                    {% else %}
+                    <span class="date-unknown">-</span>
+                    {% endif %}
                 </div>
 
                 <div class="game-name-cell">
@@ -121,7 +163,7 @@
                 <div class="models-cell">
                     {% if game.is_game and game.models %}
                         {% for model in game.models %}
-                        <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model }}')" title="Click to filter by this model">{{ model }}</span>
+                        <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model|strip_model_prefix }}')" title="Click to filter by this model">{{ model|strip_model_prefix }}</span>
                         {% endfor %}
                     {% else %}
                         <span class="models-unknown">-</span>

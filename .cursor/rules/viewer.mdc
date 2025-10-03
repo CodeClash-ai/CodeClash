@@ -357,14 +357,47 @@ Both the viewer and picker pages include a help modal accessible via the `?` but
   - **Copy foldernames**: Copies only folder names (not full paths) as space-separated string to clipboard
   - **Move to subfolder**: Prompts user for subfolder name and moves all selected folders into it (creates subfolder if needed)
 
+### Model Multi-Select Filter
+
+The game picker includes a multi-select dropdown filter for models in the Models column header:
+
+#### Functionality
+* **Multi-Select Dropdown**: Click the "All Models" dropdown to open a list of all available models
+* **Add/Remove Selection**: Click on a model name to add it to the selection; click again to remove it
+* **Visual Indication**: Selected models are highlighted with accent color and bold text
+* **Display Text**:
+  - Shows "All Models" when no models are selected (displays all games)
+  - Shows single model name when only one is selected
+  - Shows "N models selected" when multiple models are selected
+* **Clear Selection Button**: Integrated button in the dropdown that says "Clear selection" to reset the filter
+* **Click Model Tags**: Clicking on model tags in the Models column also toggles that model in the filter selection
+* **Intersection Filtering**: When multiple models are selected, only shows games that have ALL selected models (intersection, not union)
+* **Empty Selection**: If no model is selected, it behaves the same as if all models were selected (shows all games)
+
+#### Implementation Details
+* **Dropdown Position**: Uses fixed positioning to avoid being cut off by table boundaries
+* **Dynamic Positioning**: JavaScript calculates dropdown position based on button location
+* **Close Behavior**: Dropdown closes when clicking outside or pressing Escape key
+* **Keyboard Support**: Escape key closes the dropdown; navigation disabled while dropdown is open
+* **CSS Styling**: Consistent with other filter controls, using accent colors and hover effects
+
 ### Layout
 
-* Full-width table structure with six columns: Select, Game Session, Note, Rounds, Models, Action
+* Full-width table structure with seven columns: Select, Name, Date, Game, Rounds, Models, Action
+* **Name column**: Sortable column showing the folder name with hierarchy indentation
+* **Date column**: Sortable column showing creation date in YYYY-MM-DD HH:MM format (from `metadata["created_timestamp"]`)
 * **Action column includes**: Open, Open in new tab (↗), and Move/rename (📁) buttons for each game folder
-* Responsive design that adapts to mobile screens (hides some columns on mobile)
+* Responsive design that adapts to mobile screens (hides some columns on mobile, including Date)
 * Hover effects and visual feedback
 * Base directory path display at the top
 * Control bar with selection controls and action dropdown
+
+### Sorting
+
+* **Name column**: Click to sort alphabetically by folder path (ascending/descending toggle)
+* **Date column**: Click to sort chronologically by creation timestamp (ascending/descending toggle)
+* Sorting preserves intermediate folder hierarchy
+* Sort indicators appear in column headers with hover effects
 
 ## Trajectory Viewer Design (`/`)
 

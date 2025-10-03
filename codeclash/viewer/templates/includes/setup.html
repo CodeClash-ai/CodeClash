@@ -10,7 +10,7 @@
                     <div class="agent-card">
                         <div class="agent-name">{{ agent.name }}</div>
                         {% if agent.model_name %}
-                            <div class="agent-model">Model: {{ agent.model_name }}</div>
+                            <div class="agent-model">Model: {{ agent.model_name|strip_model_prefix }}</div>
                         {% endif %}
                         {% if agent.agent_class %}
                             <div class="agent-class">Class: {{ agent.agent_class }}</div>
