@@ -5,14 +5,13 @@ from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
 
 COREWAR_LOG = "sim.log"
-COREWAR_FILE = "warriors/warrior.red"
 
 
 class CoreWarGame(CodeGame):
     name: str = "CoreWar"
     description: str = """CoreWar is a programming battle where you write "warriors" in an assembly-like language called Redcode to compete within a virtual machine (MARS), aiming to eliminate your rivals by making their code self-terminate.
 Victory comes from crafting clever tactics—replicators, scanners, bombers—that exploit memory layout and instruction timing to control the core."""
-    submission: str = COREWAR_FILE
+    submission: str = "warrior.red"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
@@ -25,7 +24,7 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
                 self.run_cmd_round += f" -{arg} {val}"
 
     def execute_round(self, agents: list[Player]):
-        args = [f"/{agent.name}/{COREWAR_FILE}" for agent in agents]
+        args = [f"/{agent.name}/{self.submission}" for agent in agents]
         cmd = (
             f"{self.run_cmd_round} {shlex.join(args)} "
             f"-r {self.game_config['sims_per_round']} "
@@ -69,6 +68,11 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if "warrior.red" not in agent.environment.execute("ls warriors")["output"]:
-            return False, f"There should be a `{COREWAR_FILE}` file"
+        if self.submission not in agent.environment.execute("ls")["output"]:
+            return False, f"There should be a `{self.submission}` file"
+        # Play game against a simple default bot to ensure it runs
+        test_run_cmd = f"{self.run_cmd_round} {self.submission} /home/dwarf.red"
+        test_run = agent.environment.execute(test_run_cmd)["output"]
+        if any([l.startswith("Error:") for l in test_run.split("\n")]):
+            return False, f"The `{self.submission}` file is malformed (Ran `{test_run_cmd}`):\n{test_run}"
         return True, None
