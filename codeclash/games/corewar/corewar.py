@@ -73,6 +73,6 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
         # Play game against a simple default bot to ensure it runs
         test_run_cmd = f"{self.run_cmd_round} {self.submission} /home/dwarf.red"
         test_run = agent.environment.execute(test_run_cmd)["output"]
-        if any([l.startswith("Error:") for l in test_run.split("\n")]):
+        if any([l.startswith("Error") for l in test_run.split("\n")]):
             return False, f"The `{self.submission}` file is malformed (Ran `{test_run_cmd}`):\n{test_run}"
         return True, None
