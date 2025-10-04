@@ -14,3 +14,6 @@ RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/CoreWar.git /workspace
 WORKDIR /workspace
 
 RUN cd src/ && make CFLAGS="-O -DEXT94 -DPERMUTATE -DRWLIMIT" LIB=""
+
+# Copy dwarf example to home directory for validation purposes
+RUN cp /workspace/doc/examples/dwarf.red /home/dwarf.red
