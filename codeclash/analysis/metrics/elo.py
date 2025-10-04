@@ -70,17 +70,10 @@ def update_profiles(prof_and_score: list[tuple[ModelEloProfile, float]], k_facto
         prof_and_score: List of tuples [(ModelEloProfile, score), ...] for two players
         k_factor: Base K-factor for ELO calculation
     """
-    p1_prof, p1_raw_score = prof_and_score[0]
-    p2_prof, p2_raw_score = prof_and_score[1]
+    p1_prof, p1_score = prof_and_score[0]
+    p2_prof, p2_score = prof_and_score[1]
 
-    # Normalize scores so they sum to 1.0 (required for proper ELO)
-    total_score = p1_raw_score + p2_raw_score
-    if total_score > 0:
-        p1_score = p1_raw_score / total_score
-        p2_score = p2_raw_score / total_score
-    else:
-        # If both players scored 0, treat as a tie
-        p1_score = p2_score = 0.5
+    assert p1_score + p2_score == 1.0, p1_score + p2_score
 
     expected_p1 = expected_score(p1_prof.rating, p2_prof.rating)
 
@@ -108,7 +101,7 @@ class ELOCalculator:
         self._alpha = alpha
         self._player_profiles = {}
 
-    def _analyze_round(self, stats: dict, player2profile: dict, *, total_rounds: int, sims: int) -> None:
+    def _analyze_round(self, stats: dict, player2profile: dict, *, total_rounds: int) -> None:
         """Update all profiles based on the results of one round"""
         # Calculate round weight
         current_round = stats["round_num"]
@@ -124,16 +117,26 @@ class ELOCalculator:
             [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
         )
 
+        # game repetitions
+        ties = stats["scores"].get(RESULT_TIE, 0)
+        # total games
+        sims = sum(stats["scores"].values())
+        assert sims >= ties
         for k, v in stats["player_stats"].items():
             if k != RESULT_TIE:
                 if v["score"] is None:
                     # Not sure why this happens, but just skip it
                     # Kilian: This is probably when we skip a round (might have fixed this, but probably in old logs)
                     continue
-                _score = v["score"] * 1.0 / sims
-                if valid_submits == 1 and v["valid_submit"]:
+                if valid_submits == 1:
                     # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
-                    _score = 1.0
+                    if v["valid_submit"]:
+                        _score = 1.0
+                    else:
+                        _score = 0.0
+                else:
+                    assert sims > 0, (stats["scores"], valid_submits)
+                    _score = (v["score"] + 0.5 * ties) * 1.0 / sims
                 prof = player2profile[k]
                 prof.rounds_played += 1
                 prof_and_score.append((prof, _score))
@@ -172,8 +175,6 @@ class ELOCalculator:
                 self._player_profiles[key] = ModelEloProfile(model=model, arena=arena, rating=self._starting_elo)
             player2profile[player_name] = self._player_profiles[key]
 
-        sims = metadata["game"]["config"]["sims_per_round"]
-
         # Determine total rounds for weighting calculation
         total_rounds = len([k for k in metadata["round_stats"].keys() if k != "0"])
 
@@ -185,7 +186,7 @@ class ELOCalculator:
 
             assert idx == stats["round_num"], (idx, stats["round_num"])
 
-            self._analyze_round(stats, player2profile, total_rounds=total_rounds, sims=sims)
+            self._analyze_round(stats, player2profile, total_rounds=total_rounds)
 
     def analyze(self, log_dir: Path) -> None:
         print(f"Calculating weighted ELO ratings from logs in {log_dir} ...")
