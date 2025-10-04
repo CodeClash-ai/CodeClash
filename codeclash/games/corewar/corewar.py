@@ -5,14 +5,14 @@ from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
 
 COREWAR_LOG = "sim.log"
-COREWAR_FILE = "warrior.red"
+COREWAR_FILE = "warriors/warrior.red"
 
 
 class CoreWarGame(CodeGame):
     name: str = "CoreWar"
     description: str = """CoreWar is a programming battle where you write "warriors" in an assembly-like language called Redcode to compete within a virtual machine (MARS), aiming to eliminate your rivals by making their code self-terminate.
 Victory comes from crafting clever tactics—replicators, scanners, bombers—that exploit memory layout and instruction timing to control the core."""
-    submission: str = f"warriors/{COREWAR_FILE}"
+    submission: str = COREWAR_FILE
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
@@ -25,7 +25,7 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
                 self.run_cmd_round += f" -{arg} {val}"
 
     def execute_round(self, agents: list[Player]):
-        args = [f"/{agent.name}/warriors/{COREWAR_FILE}" for agent in agents]
+        args = [f"/{agent.name}/{COREWAR_FILE}" for agent in agents]
         cmd = (
             f"{self.run_cmd_round} {shlex.join(args)} "
             f"-r {self.game_config['sims_per_round']} "
@@ -69,6 +69,6 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
             stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if COREWAR_FILE not in agent.environment.execute("ls warriors")["output"]:
-            return False, f"There should be a `warriors/{COREWAR_FILE}` file"
+        if "warrior.red" not in agent.environment.execute("ls warriors")["output"]:
+            return False, f"There should be a `{COREWAR_FILE}` file"
         return True, None
