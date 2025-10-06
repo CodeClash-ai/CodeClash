@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 tracker = json.load(open("configs/scripts/main_tracker.json"))
-arena_logs = [p.parent for p in Path("logs").rglob("game.log")]
+arena_logs = [p.parent for p in Path("logs/completed").rglob("game.log")]
 
 # Set all tracker values to 0
 for arena in tracker:
