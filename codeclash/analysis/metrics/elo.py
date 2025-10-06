@@ -206,7 +206,7 @@ class ELOCalculator:
         print("=" * 50)
         print("Player ELO profiles:")
         lines = [
-            f" - {profile.model} (Arena: {profile.arena}) - ELO: {profile.rating:.1f} (Games: {profile.rounds_played})"
+            f" - {profile.model} ({profile.arena}) - ELO: {profile.rating:.1f} (Rounds: {profile.rounds_played})"
             for profile in self._player_profiles.values()
         ]
         print("\n".join(sorted(lines)))
@@ -223,7 +223,7 @@ class ELOCalculator:
         calc_avg_elo = lambda total_elo, games: total_elo / games
         lines = sorted(
             [
-                f"{pid}: {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Games: {total_games[pid]})"
+                f"{pid}: {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Rounds: {total_games[pid]})"
                 for pid in weighted_elo
                 if total_games[pid] > 0
             ],
