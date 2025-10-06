@@ -7,21 +7,20 @@ from codeclash.games.huskybench.huskybench import HuskyBenchGame
 from codeclash.games.robocode.robocode import RoboCodeGame
 from codeclash.games.robotrumble.robotrumble import RobotRumbleGame
 
+ARENAS = [
+    BattleCodeGame,
+    BattleSnakeGame,
+    CoreWarGame,
+    DummyGame,
+    HuskyBenchGame,
+    RoboCodeGame,
+    RobotRumbleGame,
+]
+
 
 # might consider postponing imports to avoid loading things we don't need
 def get_game(config: dict, **kwargs) -> CodeGame:
-    game = {
-        x.name: x
-        for x in [
-            BattleCodeGame,
-            BattleSnakeGame,
-            CoreWarGame,
-            DummyGame,
-            HuskyBenchGame,
-            RoboCodeGame,
-            RobotRumbleGame,
-        ]
-    }.get(config["game"]["name"])
+    game = {x.name: x for x in ARENAS}.get(config["game"]["name"])
     if game is None:
         raise ValueError(f"Unknown game: {config['game']['name']}")
     return game(config, **kwargs)
