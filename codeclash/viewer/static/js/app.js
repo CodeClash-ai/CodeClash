@@ -342,6 +342,40 @@ function closeTocMenu() {
   }
 }
 
+// Log loading functionality
+function loadLogContent(logPath, container) {
+  const placeholder = container.querySelector(".log-load-placeholder");
+  const spinner = container.querySelector(".log-loading-spinner");
+  const contentPre = container.querySelector(".log-content-scrollable");
+  const contentCode = container.querySelector(".log-content");
+
+  // Hide placeholder, show spinner
+  placeholder.style.display = "none";
+  spinner.style.display = "block";
+
+  // Fetch log content from server
+  fetch(`/load-log?path=${encodeURIComponent(logPath)}`)
+    .then((response) => response.json())
+    .then((data) => {
+      spinner.style.display = "none";
+
+      if (data.success) {
+        // Display the content
+        contentCode.textContent = data.content;
+        contentPre.style.display = "block";
+      } else {
+        // Show error message
+        contentCode.textContent = `Error loading log: ${data.error}`;
+        contentPre.style.display = "block";
+      }
+    })
+    .catch((error) => {
+      spinner.style.display = "none";
+      contentCode.textContent = `Error loading log: ${error}`;
+      contentPre.style.display = "block";
+    });
+}
+
 // Setup button event listeners
 function setupButtonEventListeners() {
   // Pick game button
@@ -398,6 +432,17 @@ function setupButtonEventListeners() {
   document.querySelectorAll(".btn-collapse-messages").forEach((button) => {
     button.addEventListener("click", function () {
       collapseTrajectoryMessages(this);
+    });
+  });
+
+  // Log loading buttons
+  document.querySelectorAll(".load-log-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      const logPath = this.getAttribute("data-log-path");
+      const container = this.closest(".log-content-container");
+      if (logPath && container) {
+        loadLogContent(logPath, container);
+      }
     });
   });
 }

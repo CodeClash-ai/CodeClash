@@ -277,12 +277,11 @@ class GameMetadata:
     """Metadata about a game session"""
 
     results: dict[str, Any]
-    main_log: str
     main_log_path: str
     metadata_file_path: str
     rounds: list[dict[str, Any]]
     agent_info: list[AgentInfo] | None = None
-    all_logs: dict[str, dict[str, str]] | None = None  # {log_type: {"content": content, "path": path}}
+    all_logs: dict[str, dict[str, str]] | None = None  # {log_type: {"path": path}} - content loaded on demand
 
 
 def process_round_results(
@@ -385,12 +384,11 @@ class LogParser:
             results = metadata.raw_data
             metadata_file_path = str(self.log_dir / "metadata.json")
 
-        # Parse tournament.log if it exists
+        # Get path to main log but don't load content
         main_log_file = self.log_dir / "tournament.log"
-        main_log = main_log_file.read_text() if main_log_file.exists() else "No tournament log found"
         main_log_path = str(main_log_file) if main_log_file.exists() else ""
 
-        # Parse all available logs
+        # Parse all available logs (metadata only, no content)
         all_logs = self._parse_all_logs()
 
         # Extract agent information once
@@ -411,7 +409,6 @@ class LogParser:
 
         return GameMetadata(
             results=results,
-            main_log=main_log,
             main_log_path=main_log_path,
             metadata_file_path=metadata_file_path,
             rounds=rounds,
@@ -468,7 +465,9 @@ class LogParser:
                 trajectory_file_path=str(traj_file),
                 diff_by_files=diff_by_files,
                 incremental_diff_by_files=incremental_diff_by_files,
-                valid_submission=self._get_metadata().round_stats[str(round_num)]['player_stats'][player_name]['valid_submit']
+                valid_submission=self._get_metadata().round_stats[str(round_num)]["player_stats"][player_name][
+                    "valid_submit"
+                ],
             )
         except (json.JSONDecodeError, KeyError) as e:
             logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
@@ -670,7 +669,7 @@ class LogParser:
             return None
 
     def _parse_all_logs(self) -> dict[str, dict[str, str]]:
-        """Parse all available log files in the tournament directory"""
+        """Parse all available log files in the tournament directory (metadata only, no content)"""
         all_logs = {}
 
         # Define log files to look for
@@ -680,11 +679,7 @@ class LogParser:
         for log_file, display_name in log_files.items():
             log_path = self.log_dir / log_file
             if log_path.exists():
-                try:
-                    content = log_path.read_text()
-                    all_logs[display_name] = {"content": content, "path": str(log_path)}
-                except (OSError, UnicodeDecodeError) as e:
-                    all_logs[display_name] = {"content": f"Error reading log file: {e}", "path": str(log_path)}
+                all_logs[display_name] = {"path": str(log_path)}
 
         # Check for player logs
         players_dir = self.log_dir / "players"
@@ -697,13 +692,8 @@ class LogParser:
                 player_log = player_dir / "player.log"
 
                 if player_log.exists():
-                    try:
-                        content = player_log.read_text()
-                        display_name = f"Player {player_name} Log"
-                        all_logs[display_name] = {"content": content, "path": str(player_log)}
-                    except (OSError, UnicodeDecodeError) as e:
-                        display_name = f"Player {player_name} Log"
-                        all_logs[display_name] = {"content": f"Error reading log file: {e}", "path": str(player_log)}
+                    display_name = f"Player {player_name} Log"
+                    all_logs[display_name] = {"path": str(player_log)}
 
         return all_logs
 
@@ -1218,6 +1208,40 @@ def download_file():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/load-log")
+def load_log():
+    """Load log file content on demand"""
+    file_path = request.args.get("path")
+
+    if not file_path:
+        return jsonify({"success": False, "error": "No file path provided"}), 400
+
+    try:
+        # Convert to Path object
+        file_path_obj = Path(file_path)
+
+        # Security check: ensure the file exists
+        if not file_path_obj.exists():
+            return jsonify({"success": False, "error": "File does not exist"}), 404
+
+        # Security check: ensure the file is not a directory
+        if not file_path_obj.is_file():
+            return jsonify({"success": False, "error": "Path is not a file"}), 400
+
+        # Security check: ensure the path is within our expected logs directory
+        try:
+            file_path_obj.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid file path"}), 403
+
+        # Read and return the file content
+        content = file_path_obj.read_text()
+        return jsonify({"success": True, "content": content})
+
+    except (OSError, UnicodeDecodeError) as e:
+        return jsonify({"success": False, "error": f"Error reading file: {str(e)}"}), 500
 
 
 # Use run_viewer.py to launch the application

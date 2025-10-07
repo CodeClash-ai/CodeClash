@@ -75,28 +75,39 @@
     </div>
 
     <!-- Tournament Log -->
-    <details class="foldout">
+    {% if metadata.main_log_path %}
+    <details class="foldout log-foldout" data-log-path="{{ metadata.main_log_path }}">
         <summary>
             <i class="bi bi-journal"></i> Tournament Log
-            {% if metadata.main_log_path %}
             <button class="copy-path-btn-small" data-path="{{ metadata.main_log_path }}" title="Copy file path">
                 <i class="bi bi-clipboard"></i> Copy path
             </button>
             <button class="download-btn-small" data-path="{{ metadata.main_log_path }}" title="Download file">
                 <i class="bi bi-download"></i> Download
             </button>
-            {% endif %}
         </summary>
         <div class="log-content-container">
-            <pre class="log-content-scrollable"><code>{{ metadata.main_log }}</code></pre>
+            <div class="log-load-placeholder">
+                <button class="btn btn-primary load-log-btn" data-log-path="{{ metadata.main_log_path }}">
+                    <i class="bi bi-download"></i> Load Log Content
+                </button>
+            </div>
+            <div class="log-loading-spinner" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading log content...</span>
+            </div>
+            <pre class="log-content-scrollable" style="display: none;"><code class="log-content"></code></pre>
         </div>
     </details>
+    {% endif %}
 
     <!-- All Other Logs -->
     {% if metadata.all_logs %}
         {% for log_name, log_data in metadata.all_logs.items() %}
             {% if log_name != "Tournament Log" %}
-            <details class="foldout">
+            <details class="foldout log-foldout" data-log-path="{{ log_data.path }}">
                 <summary>
                     <i class="bi bi-journal"></i> {{ log_name }}
                     {% if log_data.path %}
@@ -109,7 +120,18 @@
                     {% endif %}
                 </summary>
                 <div class="log-content-container">
-                    <pre class="log-content-scrollable"><code>{{ log_data.content }}</code></pre>
+                    <div class="log-load-placeholder">
+                        <button class="btn btn-primary load-log-btn" data-log-path="{{ log_data.path }}">
+                            <i class="bi bi-download"></i> Load Log Content
+                        </button>
+                    </div>
+                    <div class="log-loading-spinner" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2">Loading log content...</span>
+                    </div>
+                    <pre class="log-content-scrollable" style="display: none;"><code class="log-content"></code></pre>
                 </div>
             </details>
             {% endif %}

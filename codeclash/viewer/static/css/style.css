@@ -748,11 +748,13 @@ details summary {
   color: var(--success-color);
 }
 
-.status-yes, .valid-yes {
+.status-yes,
+.valid-yes {
   color: var(--success-color);
 }
 
-.status-no, .valid-no {
+.status-no,
+.valid-no {
   color: var(--neon-red);
 }
 
@@ -2107,4 +2109,39 @@ summary:focus {
     padding: 0.3rem 0.15rem;
     font-size: 0.7rem;
   }
+}
+
+/* Log loading UI */
+.log-load-placeholder {
+  padding: 2rem;
+  text-align: center;
+}
+
+.load-log-btn {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.load-log-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 255, 136, 0.3);
+}
+
+.log-loading-spinner {
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.log-loading-spinner .spinner-border {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.25rem;
 }
