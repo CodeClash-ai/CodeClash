@@ -20,6 +20,33 @@ cleanup() {
     echo "═══════════════════════════════════════════════════════════════════════════════"
     local exit_code=$?
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
+        echo "Compressing rounds..."
+        # Tar.gz all subfolders of any 'rounds' directory if we haven't done so.
+        python3 - <<'PY' || true
+import subprocess
+from pathlib import Path
+
+logs_dir = Path('logs')
+if not logs_dir.exists():
+    raise SystemExit(0)
+
+for rounds_dir in logs_dir.rglob('rounds'):
+    if not rounds_dir.is_dir():
+        continue
+    for sub in rounds_dir.iterdir():
+        if not sub.is_dir():
+            continue
+        tar_path = Path(str(sub) + '.tar.gz')
+        if tar_path.exists():
+            continue
+        try:
+            subprocess.run(
+                ['tar', '-czf', str(tar_path), '-C', str(sub.parent), sub.name],
+                check=False,
+            )
+        except Exception:
+            pass
+PY
         echo "Syncing codeclash logs to S3..."
         aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
     else
