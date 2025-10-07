@@ -14,7 +14,8 @@ from codeclash.games.game import CodeGame, RoundStats
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
     description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
-Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match."""
+Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match.
+NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code that exceeds this run time will automatically forfeit the round."""
     default_args: dict = {"raw": True}
     submission: str = "robot.js"
 
@@ -135,7 +136,13 @@ Every decision is driven by your code, and victory comes from crafting logic tha
                 f"{self.submission} does not contain the required robot function. It should be defined as 'function robot(state, unit) {{ ... }}'.",
             )
         test_run_cmd = f"{self.run_cmd_round} {self.submission} {self.submission} -t 1"
-        test_run = agent.environment.execute(test_run_cmd)["output"]
+        try:
+            test_run = agent.environment.execute(test_run_cmd, timeout=60)["output"]
+        except subprocess.TimeoutExpired:
+            return (
+                False,
+                f"Running {self.submission} (with `{test_run_cmd}`) timed out (60 seconds). Please ensure your code runs efficiently.",
+            )
         if "Some errors occurred:" in test_run:
             return False, f"Running {self.submission} (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
         return True, None
