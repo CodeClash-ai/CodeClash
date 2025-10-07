@@ -17,7 +17,7 @@
     "ulimits": [],
     "resourceRequirements": [
       {
-        "value": "2",
+        "value": "4",
         "type": "VCPU"
       },
       {

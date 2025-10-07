@@ -5,6 +5,7 @@ import argparse
 import base64
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
@@ -143,12 +144,26 @@ def push_job_queue(queue_data: dict, batch_client) -> None:
 
     if response["jobQueues"]:
         logger.info(f"Job queue {queue_name} already exists, updating")
-        batch_client.update_job_queue(
-            jobQueue=queue_name,
-            state=queue_data.get("state", "ENABLED"),
-            priority=queue_data.get("priority", 1),
-            computeEnvironmentOrder=queue_data.get("computeEnvironmentOrder", []),
-        )
+        try:
+            batch_client.update_job_queue(
+                jobQueue=queue_name,
+                state=queue_data.get("state", "ENABLED"),
+                priority=queue_data.get("priority", 1),
+                computeEnvironmentOrder=queue_data.get("computeEnvironmentOrder", []),
+            )
+        except ClientError as e:
+            message = str(e)
+            if "is not valid" in message and "attaching" in message:
+                logger.info("Need to wait for environment to get validated. Waiting for 20s")
+                time.sleep(20)
+                batch_client.update_job_queue(
+                    jobQueue=queue_name,
+                    state=queue_data.get("state", "ENABLED"),
+                    priority=queue_data.get("priority", 1),
+                    computeEnvironmentOrder=queue_data.get("computeEnvironmentOrder", []),
+                )
+            else:
+                raise
         _update_batch_resource_tags("job-queue", queue_name, queue_data.get("tags"), batch_client)
     else:
         logger.info(f"Creating new job queue: {queue_name}")
