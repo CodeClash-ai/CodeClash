@@ -74,7 +74,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 cwd=f"{self.environment.config.cwd}/game",
                 timeout=120,  # this should rarely ever reach this timeout
             )
-        except subprocess.TimeoutError:
+        except subprocess.TimeoutExpired:
             self.logger.warning(f"Battlesnake simulation timed out: {cmd}")
             return ""
         if output["returncode"] != 0:
