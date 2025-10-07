@@ -16,7 +16,7 @@
     "maxvCpus": 32,
     "desiredvCpus": 0,
     "instanceTypes": [
-      "r5.large"
+      "m5.xlarge"
     ],
     "subnets": [
       "subnet-02f03254ff2613e05",
