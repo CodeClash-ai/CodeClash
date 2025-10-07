@@ -4,12 +4,14 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
+
+OUTPUT_FILE = ASSETS_DIR / "heatmap_win_rates.png"
 
 
 def main(log_dir: Path):
@@ -44,7 +46,7 @@ def main(log_dir: Path):
 
     # Build matrix
     models = sorted({m for pair in results.keys() for m in pair})
-    clean_names = [m.split("/")[-1] for m in models]
+    clean_names = [MODEL_TO_DISPLAY_NAME[m.split("/")[-1]] for m in models]
     n = len(models)
 
     matrix = np.full((n, n), np.nan)
@@ -54,29 +56,37 @@ def main(log_dir: Path):
                 matrix[i, j] = results[(m1, m2)][0] / results[(m1, m2)][1]
 
     # Plot
-    fig, ax = plt.subplots(figsize=(10, 8))
-    cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#3498db", "#ffffff", "#e74c3c"])
-
-    masked = np.ma.masked_where(np.isnan(matrix), matrix)
-    im = ax.imshow(masked, cmap=cmap, vmin=0, vmax=1)
+    FONT_BOLD.set_size(18)
+    _, ax = plt.subplots(figsize=(10, 8))
+    # cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#e74c3c", "#ffffff", "#3498db"])
+    # masked = np.ma.masked_where(np.isnan(matrix), matrix)
+    # im = ax.imshow(masked, cmap=cmap, vmin=0, vmax=1)
 
     # Add percentages
     for i in range(n):
         for j in range(n):
             if not np.isnan(matrix[i, j]):
                 color = "white" if abs(matrix[i, j] - 0.5) > 0.3 else "black"
-                ax.text(j, i, f"{matrix[i, j]:.0%}", ha="center", va="center", color=color, fontweight="bold")
+                ax.text(
+                    j,
+                    i,
+                    f"{matrix[i, j]:.0%}",
+                    ha="center",
+                    va="center",
+                    color=color,
+                    fontweight="bold",
+                    fontproperties=FONT_BOLD,
+                )
 
     ax.set_xticks(range(n))
     ax.set_yticks(range(n))
-    ax.set_xticklabels(clean_names, rotation=45, ha="right")
-    ax.set_yticklabels(clean_names)
-    ax.set_title("Model Win Rate Heatmap (Round Level)\n(Row beats Column)", fontsize=14, fontweight="bold")
+    ax.set_xticklabels(clean_names, rotation=45, ha="right", fontproperties=FONT_BOLD)
+    ax.set_yticklabels(clean_names, fontproperties=FONT_BOLD)
 
-    plt.colorbar(im, label="Win Rate")
+    # plt.colorbar(im, label="Win Rate")
     plt.tight_layout()
-    plt.savefig("heatmap_win_rates.png", dpi=300, bbox_inches="tight")
-    print("Heatmap saved to heatmap_win_rates.png")
+    plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
+    print(f"Heatmap saved to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

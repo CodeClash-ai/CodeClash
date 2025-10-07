@@ -39,7 +39,7 @@ Every decision is driven by your code, and victory comes from crafting logic tha
         # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
         try:
             output = self.environment.execute(cmd, timeout=120)
-        except subprocess.TimeoutError:
+        except subprocess.TimeoutExpired:
             self.logger.warning(f"RobotRumble simulation {idx} timed out: {cmd}")
             return ""
         if output["returncode"] != 0:

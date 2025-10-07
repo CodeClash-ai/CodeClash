@@ -7,6 +7,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 
 
@@ -94,20 +95,42 @@ def main(log_dir: Path):
         print(f" - {pid}: " + ", ".join([f"{wr:.2%}" for wr in lines[pid]]))
 
     # Create line chart of win rate progression per player
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(8, 8))
     for pid, win_rates in lines.items():
-        plt.plot(range(1, 16), win_rates, marker="o", label=pid, linewidth=2, markersize=6)
+        plt.plot(
+            range(1, 16),
+            win_rates,
+            marker="o",
+            label=MODEL_TO_DISPLAY_NAME[pid],
+            linewidth=1,
+            markersize=6,
+            color=MODEL_TO_COLOR[pid],
+        )
 
-    plt.title("Win Rate Progression per Round", fontsize=16, fontweight="bold")
-    plt.xlabel("Round", fontsize=12)
-    plt.ylabel("Win Rate", fontsize=12)
-    plt.xticks(range(1, 16))
-    plt.yticks([i / 10 for i in range(0, 11)], [f"{i * 10}%" for i in range(0, 11)])
-    plt.ylim(0, 1)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    # plt.title("Win Rate Progression per Round", fontsize=16, fontweight="bold")
+    plt.xlabel("Round", fontsize=20, fontproperties=FONT_BOLD)
+    plt.ylabel("Win Rate", fontsize=20, fontproperties=FONT_BOLD)
+    plt.xticks(range(1, 16), fontproperties=FONT_BOLD, fontsize=14)
+    plt.yticks(
+        [i / 10 for i in range(0, 11)],
+        [f"{i * 10}%" for i in range(0, 11)],
+        fontproperties=FONT_BOLD,
+        fontsize=14,
+    )
+    plt.ylim(0.1, 1)
+    FONT_BOLD.set_size(14)
+    plt.legend(
+        bbox_to_anchor=(1, 1),
+        loc="upper right",
+        ncol=2,
+        prop=FONT_BOLD,
+        handletextpad=0.3,
+        borderpad=0.3,
+        handlelength=0.5,
+    )
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("line_chart_per_round_win_rate.png", dpi=300, bbox_inches="tight")
+    plt.savefig(ASSETS_DIR / "line_chart_per_round_win_rate.png", dpi=300, bbox_inches="tight")
     print("Win rate progression chart saved to line_chart_per_round_win_rate.png")
 
     # Print summary statistics

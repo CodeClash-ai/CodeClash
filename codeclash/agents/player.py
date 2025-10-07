@@ -188,6 +188,15 @@ class Player(ABC):
 
         file_contents = {}
         for file_path in file_paths:
+            # Check whether the file exists in the container before attempting to cat it.
+            # We avoid try/except by inspecting the returncode returned by the execute call.
+            ls_result = self.environment.execute(f"ls -la '{file_path}'")
+            if ls_result.get("returncode", 0) != 0:
+                # File was removed or is not present in this tree. Per request, record empty string.
+                self.logger.warning(f"File '{file_path}' not found; recording empty content.")
+                file_contents[file_path] = ""
+                continue
+
             out = assert_zero_exit_code(
                 self.environment.execute(f"cat '{file_path}'"),
                 logger=self.logger,

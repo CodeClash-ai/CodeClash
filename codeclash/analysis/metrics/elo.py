@@ -6,7 +6,9 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
+from codeclash.games import ARENAS
 
 
 @dataclass
@@ -216,7 +218,7 @@ class ELOCalculator:
         print("=" * 50)
         print("Player ELO profiles:")
         lines = [
-            f" - {profile.model} (Arena: {profile.arena}) - ELO: {profile.rating:.1f} (Games: {profile.rounds_played})"
+            f" - {profile.model} ({profile.arena}) - ELO: {profile.rating:.1f} (Rounds: {profile.rounds_played})"
             for profile in self._player_profiles.values()
         ]
         print("\n".join(sorted(lines)))
@@ -231,17 +233,70 @@ class ELOCalculator:
 
         print("\nELO per player (across all games):")
         calc_avg_elo = lambda total_elo, games: total_elo / games
+        model_to_avg_elo = {mid: calc_avg_elo(weighted_elo[mid], total_games[mid]) for mid in weighted_elo}
         lines = sorted(
-            [
-                f"{pid}: {calc_avg_elo(weighted_elo[pid], total_games[pid]):.1f} (Games: {total_games[pid]})"
-                for pid in weighted_elo
-                if total_games[pid] > 0
-            ],
+            [f"{pid}: {model_to_avg_elo[pid]:.1f} (Rounds: {total_games[pid]})" for pid in model_to_avg_elo.keys()],
             key=lambda x: float(x.split(":")[1].split("(")[0]),
             reverse=True,
         )
         for i, line in enumerate(lines, 1):
             print(f"{i}. {line}")
+
+        # Print latex formatted table for results, formatted as
+        # Model & ELO & & & \\
+        # & BattleCode & BattleSnake & ... \\
+        # \midrule
+        # Claude 4 Sonnet & ... & & & \\
+        # ...
+        print("\nLaTeX formatted table:")
+        arenas = [x.name for x in ARENAS]
+        lines = []
+        arenas_small = [f"\\scriptsize{{{arena}}}" for arena in arenas]
+        line = "& " + " & ".join(arenas_small) + " & All" + r" \\"
+        line = line.replace("HuskyBench", "Poker")
+        lines.append(line)
+        lines.append(r"\midrule")
+        per_model_lines = {}
+        arena_rankings = {}
+
+        # Create a mapping of model -> arena -> elo and also arena -> list of (model, elo) for ranking
+        for profile in self._player_profiles.values():
+            if profile.model not in per_model_lines:
+                per_model_lines[profile.model] = {}
+            if profile.arena not in arena_rankings:
+                arena_rankings[profile.arena] = []
+            per_model_lines[profile.model][profile.arena] = round(profile.rating, 1)
+            arena_rankings[profile.arena].append((profile.model, profile.rating))
+
+        # Sort each arena ranking by ELO descending
+        for arena in arena_rankings:
+            arena_rankings[arena].sort(key=lambda x: x[1], reverse=True)
+            for rank, (model, _) in enumerate(arena_rankings[arena], 1):
+                per_model_lines[model][arena] = (
+                    f"{per_model_lines[model][arena]}" + f"\\textsuperscript{{\\textcolor{{gray}}{{{rank}}}}}"
+                )
+                if rank == 1:
+                    # Make it bold
+                    per_model_lines[model][arena] = f"\\textbf{{{per_model_lines[model][arena]}}}"
+
+        # Now print the table
+        overall_ranks = sorted(model_to_avg_elo.items(), key=lambda x: x[1], reverse=True)
+        model_rank = {model: rank + 1 for rank, (model, _) in enumerate(overall_ranks)}
+        for model in sorted(per_model_lines.keys()):
+            m = model.split("/", 1)[-1]
+            rank = f"\\textsuperscript{{\\textcolor{{gray}}{{{model_rank[model]}}}}}"
+            overall_elo = f"{model_to_avg_elo[model]:.1f}{rank}"
+            if model_rank[model] == 1:
+                overall_elo = f"\\textbf{{{overall_elo}}}"
+            line = (
+                f"\\small{{{MODEL_TO_DISPLAY_NAME[m]}}} & "
+                + " & ".join(str(per_model_lines[model].get(arena, "-")) for arena in arenas)
+                + " & "
+                + overall_elo
+                + " \\\\"
+            )
+            lines.append(line)
+        print("\n".join(lines))
 
 
 if __name__ == "__main__":

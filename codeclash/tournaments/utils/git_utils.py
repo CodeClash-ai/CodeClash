@@ -87,6 +87,7 @@ def extract_modified_code_file_paths_from_diff(diff: str) -> list[str]:
         ".md",
         ".txt",
         ".sh",
+        ".red",
     ]
 
     file_paths = []

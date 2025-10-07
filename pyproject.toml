@@ -30,6 +30,7 @@ dependencies = [
     "jinja2",
     "markupsafe",
     "scipy",
+    "unidiff",
 ]
 
 [project.optional-dependencies]
