@@ -5,6 +5,11 @@
 *.traj.json
 logs/**
 
+# Kilian's specific ignores
+batch_submit.sh
+round_scores.json
+
+
 # -------------
 
 # Byte-compiled / optimized / DLL files
