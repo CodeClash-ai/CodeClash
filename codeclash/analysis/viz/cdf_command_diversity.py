@@ -41,9 +41,11 @@ from collections import Counter
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = "cdf_command_diversity.png"
+OUTPUT_FILE = ASSETS_DIR / "cdf_command_diversity.png"
+DATA_CACHE = ASSETS_DIR / "cdf_command_diversity.json"
 
 
 def shannon_entropy(command_list):
@@ -123,42 +125,49 @@ def main():
     """
     model_to_diversity = {}
 
-    # Find all tournament directories by looking for metadata.json files
-    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
-    for game_log_folder in tqdm(tournaments):
-        # Load tournament metadata to get player-to-model mapping
-        with open(game_log_folder / "metadata.json") as f:
-            metadata = json.load(f)
-        try:
-            # Extract mapping from player name to model name
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
-            # Initialize diversity list for each model we encounter
-            for model in p2m.values():
-                if model not in model_to_diversity:
-                    model_to_diversity[model] = []
-        except KeyError:
-            # Skip tournaments with malformed metadata
-            continue
+    if not DATA_CACHE.exists():
+        # Find all tournament directories by looking for metadata.json files
+        tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
+        for game_log_folder in tqdm(tournaments):
+            # Load tournament metadata to get player-to-model mapping
+            with open(game_log_folder / "metadata.json") as f:
+                metadata = json.load(f)
+            try:
+                # Extract mapping from player name to model name
+                p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+                # Initialize diversity list for each model we encounter
+                for model in p2m.values():
+                    if model not in model_to_diversity:
+                        model_to_diversity[model] = []
+            except KeyError:
+                # Skip tournaments with malformed metadata
+                continue
 
-        # Process each player's trajectory files
-        for name in p2m.keys():
-            traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
-            for traj_file in traj_files:
-                try:
-                    with open(traj_file) as f:
-                        traj = json.load(f)
+            # Process each player's trajectory files
+            for name in p2m.keys():
+                traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
+                for traj_file in traj_files:
+                    try:
+                        with open(traj_file) as f:
+                            traj = json.load(f)
 
-                    # Extract commands and calculate diversity for this session
-                    commands = extract_commands_from_trajectory(traj)
-                    if commands:  # Only calculate entropy if there are commands
-                        diversity = shannon_entropy(commands)
-                        model_to_diversity[p2m[name]].append(diversity)
-                except (json.JSONDecodeError, KeyError):
-                    # Skip malformed trajectory files
-                    continue
+                        # Extract commands and calculate diversity for this session
+                        commands = extract_commands_from_trajectory(traj)
+                        if commands:  # Only calculate entropy if there are commands
+                            diversity = shannon_entropy(commands)
+                            model_to_diversity[p2m[name]].append(diversity)
+                    except (json.JSONDecodeError, KeyError):
+                        # Skip malformed trajectory files
+                        continue
 
-    # Remove models with no valid data
-    model_to_diversity = {k: v for k, v in model_to_diversity.items() if v}
+        # Remove models with no valid data
+        model_to_diversity = {k: v for k, v in model_to_diversity.items() if v}
+
+        with open(DATA_CACHE, "w") as f:
+            json.dump(model_to_diversity, f, indent=2)
+
+    with open(DATA_CACHE) as f:
+        model_to_diversity = json.load(f)
 
     # Print summary statistics for each model
     print("Command Diversity Summary:")
@@ -170,18 +179,19 @@ def main():
         )
 
     # Generate CDF plot comparing all models
-    plt.figure(figsize=(12, 8))
-    colors = plt.cm.tab10(range(len(model_to_diversity)))
+    plt.figure(figsize=(8, 8))
 
     for i, (model, diversities) in enumerate(model_to_diversity.items()):
         # Sort diversity values and create cumulative probability values
         sorted_diversities = sorted(diversities)
         yvals = [i / len(sorted_diversities) for i in range(len(sorted_diversities))]
         # Plot as step function (standard for CDFs)
-        plt.step(sorted_diversities, yvals, label=model, where="post", color=colors[i])
+        plt.step(
+            sorted_diversities, yvals, label=MODEL_TO_DISPLAY_NAME[model], where="post", color=MODEL_TO_COLOR[model]
+        )
 
     plt.xlabel("Command Diversity (Shannon Entropy)")
-    plt.ylabel("Cumulative Probability")
+    # plt.ylabel("Cumulative Probability")
     plt.title("CDF of Command Diversity by Model\n(Higher entropy = more diverse command usage)")
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")  # Legend outside plot area
     plt.grid(True, alpha=0.3)

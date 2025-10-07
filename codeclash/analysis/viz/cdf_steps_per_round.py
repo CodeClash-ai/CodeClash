@@ -4,33 +4,42 @@ import json
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, FONT_REG, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = "cdf_steps_per_round.png"
+OUTPUT_FILE = ASSETS_DIR / "cdf_steps_per_round.png"
+DATA_CACHE = ASSETS_DIR / "cdf_steps_per_round.json"
 
 
 def main():
     model_to_steps = {}
 
-    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
-    for game_log_folder in tqdm(tournaments):
-        with open(game_log_folder / "metadata.json") as f:
-            metadata = json.load(f)
-        try:
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
-            for model in p2m.values():
-                if model not in model_to_steps:
-                    model_to_steps[model] = []
-        except KeyError:
-            continue
+    if not DATA_CACHE.exists():
+        tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
+        for game_log_folder in tqdm(tournaments):
+            with open(game_log_folder / "metadata.json") as f:
+                metadata = json.load(f)
+            try:
+                p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+                for model in p2m.values():
+                    if model not in model_to_steps:
+                        model_to_steps[model] = []
+            except KeyError:
+                continue
 
-        for name in p2m.keys():
-            traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
-            for traj_file in traj_files:
-                with open(traj_file) as f:
-                    traj = json.load(f)
-                num_steps = sum([1 for _ in traj["messages"] if _["role"] == "assistant"])
-                model_to_steps[p2m[name]].append(num_steps)
+            for name in p2m.keys():
+                traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
+                for traj_file in traj_files:
+                    with open(traj_file) as f:
+                        traj = json.load(f)
+                    num_steps = sum([1 for _ in traj["messages"] if _["role"] == "assistant"])
+                    model_to_steps[p2m[name]].append(num_steps)
+
+        with open(DATA_CACHE, "w") as f:
+            json.dump(model_to_steps, f, indent=2)
+
+    with open(DATA_CACHE) as f:
+        model_to_steps = json.load(f)
 
     for model, steps in model_to_steps.items():
         step_limit_exceeded = sum(1 for s in steps if s == 30) / len(steps) * 100
@@ -39,18 +48,21 @@ def main():
         )
 
     # Plot CDF
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(8, 8))
     for model, steps in model_to_steps.items():
         sorted_steps = sorted(steps)
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]
-        plt.step(sorted_steps, yvals, label=model, where="post")
+        plt.step(sorted_steps, yvals, label=MODEL_TO_DISPLAY_NAME[model], where="post", color=MODEL_TO_COLOR[model])
 
-    plt.xlabel("Steps per Round")
-    plt.ylabel("Cumulative Probability")
-    plt.title("CDF of Steps per Round by Model")
-    plt.legend()
+    plt.xticks(range(0, 31, 5), fontsize=12, fontproperties=FONT_REG)
+    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=12, fontproperties=FONT_REG)
+    plt.xlabel("Steps per Round", fontproperties=FONT_BOLD, fontsize=18)
+    # plt.ylabel("Cumulative Probability")
+    # plt.title("CDF of Steps per Round by Model")
+    FONT_BOLD.set_size(14)
+    plt.legend(prop=FONT_BOLD)
     plt.grid(True)
-    plt.savefig(OUTPUT_FILE)
+    plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
     print(f"Saved CDF plot to {OUTPUT_FILE}")
 
 

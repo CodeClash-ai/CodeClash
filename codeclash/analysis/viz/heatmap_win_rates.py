@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
+
+OUTPUT_FILE = ASSETS_DIR / "heatmap_win_rates.png"
 
 
 def main(log_dir: Path):
@@ -83,8 +85,8 @@ def main(log_dir: Path):
 
     # plt.colorbar(im, label="Win Rate")
     plt.tight_layout()
-    plt.savefig("heatmap_win_rates.png", dpi=300, bbox_inches="tight")
-    print("Heatmap saved to heatmap_win_rates.png")
+    plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
+    print(f"Heatmap saved to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
