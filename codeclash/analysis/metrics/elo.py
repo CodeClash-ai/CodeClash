@@ -65,6 +65,35 @@ def calculate_round_weight_exponential(round_num: int, total_rounds: int, alpha:
     return raw_weight * norm_factor
 
 
+def get_scores(stats: dict) -> dict[str, float]:
+    valid_submits = sum(
+        [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
+    )
+
+    ties = stats["scores"].get(RESULT_TIE, 0)
+    sims = sum(stats["scores"].values())
+    assert sims >= ties
+
+    player2score = {}
+    for k, v in stats["player_stats"].items():
+        if k != RESULT_TIE:
+            if v["score"] is None:
+                # Not sure why this happens, but just skip it
+                # Kilian: This is probably when we skip a round (might have fixed this, but probably in old logs)
+                continue
+            if valid_submits == 1:
+                # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
+                if v["valid_submit"]:
+                    _score = 1.0
+                else:
+                    _score = 0.0
+            else:
+                assert sims > 0, (stats["scores"], valid_submits)
+                _score = (v["score"] + 0.5 * ties) * 1.0 / sims
+            player2score[k] = _score
+    return player2score
+
+
 def update_profiles(prof_and_score: list[tuple[ModelEloProfile, float]], k_factor: float) -> None:
     """Update ELO profiles for two players based on their scores
 
@@ -103,9 +132,12 @@ class ELOCalculator:
         self._alpha = alpha
         self._player_profiles = {}
 
+    @property
+    def player_profiles(self) -> dict[str, ModelEloProfile]:
+        return self._player_profiles
+
     def _analyze_round(self, stats: dict, player2profile: dict, *, total_rounds: int) -> None:
         """Update all profiles based on the results of one round"""
-        # Calculate round weight
         current_round = stats["round_num"]
         if self._weighting_function == "linear":
             round_weight = calculate_round_weight_linear(current_round, total_rounds)
@@ -114,36 +146,14 @@ class ELOCalculator:
         else:  # none
             round_weight = 1.0
 
-        prof_and_score: list[tuple[ModelEloProfile, float]] = []
-        valid_submits = sum(
-            [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
-        )
+        player2score = get_scores(stats)
 
-        # game repetitions
-        ties = stats["scores"].get(RESULT_TIE, 0)
-        # total games
-        sims = sum(stats["scores"].values())
-        assert sims >= ties
-        for k, v in stats["player_stats"].items():
-            if k != RESULT_TIE:
-                if v["score"] is None:
-                    # Not sure why this happens, but just skip it
-                    # Kilian: This is probably when we skip a round (might have fixed this, but probably in old logs)
-                    continue
-                if valid_submits == 1:
-                    # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
-                    if v["valid_submit"]:
-                        _score = 1.0
-                    else:
-                        _score = 0.0
-                else:
-                    assert sims > 0, (stats["scores"], valid_submits)
-                    _score = (v["score"] + 0.5 * ties) * 1.0 / sims
-                prof = player2profile[k]
-                prof.rounds_played += 1
-                prof_and_score.append((prof, _score))
+        prof_and_score = []
+        for player, score in player2score.items():
+            prof = player2profile[player]
+            prof.rounds_played += 1
+            prof_and_score.append((prof, score))
 
-        # Update ELO ratings - should only happen once per match
         if len(prof_and_score) != 2:
             print(f"Skipping round {current_round} (wrong number of players)")
             raise SkipTournamentException
