@@ -75,10 +75,13 @@ class PvpTournament(AbstractTournament):
     def run(self) -> None:
         """Main execution function that runs all rounds."""
         try:
-            self.run_competition_phase(0)  # Warm up (doesn't count)
+            self.run_competition_phase(0)  # Initial round with identical codebases
             for round_num in range(1, self.rounds + 1):
                 self.run_edit_phase(round_num)
                 self.run_competition_phase(round_num)
+            # Need to separately compress the last round, because
+            # in run_edit_phase we always only compress the previous round
+            self._compress_round_folder(self.rounds)
         finally:
             self.end()
 
@@ -108,6 +111,7 @@ class PvpTournament(AbstractTournament):
                 self.game.log_local / "rounds" / str(round_num - 1),
                 DIR_LOGS / "rounds" / str(round_num - 1),
             )
+        self._compress_round_folder(round_num - 1)
 
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.run_agent, agent, round_num) for agent in self.agents]
@@ -156,8 +160,31 @@ class PvpTournament(AbstractTournament):
         shutil.rmtree(self.game.log_local / "rounds")
         self.logger.info("Round logs compressed successfully")
 
+    def _compress_round_folder(self, round_num_zero_indexed: int) -> None:
+        round_dir = self.game.log_local / "rounds" / str(round_num_zero_indexed)
+        if not round_dir.exists():
+            return
+
+        archive = self.game.log_local / "rounds" / f"round_{round_num_zero_indexed}.tar.gz"
+        cmd = [
+            "tar",
+            "-zcf",
+            str(archive),
+            "-C",
+            str(round_dir.parent),
+            str(round_num_zero_indexed),
+        ]
+        self.logger.info(
+            f"Compressing round {round_num_zero_indexed} logs, this might take a while... ({' '.join(cmd)})"
+        )
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Command failed with exit code {result.returncode}:\n{result.stderr}")
+        self.logger.debug("Removing %s", round_dir)
+        shutil.rmtree(round_dir)
+        self.logger.info(f"Round {round_num_zero_indexed} logs compressed successfully")
+
     def end(self) -> None:
         """Save output files, clean up game resources and push agents if requested."""
         self._save()
         self.game.end(self.cleanup_on_end)
-        self._compress_round_logs()

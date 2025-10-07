@@ -22,6 +22,8 @@ cleanup() {
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
         echo "Compressing rounds..."
         # Tar.gz all subfolders of any 'rounds' directory if we haven't done so.
+        # This python in bash is not pretty, but it's still more readable than a bash script.
+        # Also we do `|| true` to ignore failures, because we still want to sync the logs to s3 anyway.
         python3 - <<'PY' || true
 import subprocess
 from pathlib import Path
@@ -50,7 +52,7 @@ PY
         echo "Syncing codeclash logs to S3..."
         aws s3 sync logs/ s3://codeclash/logs/ || echo "Warning: Failed to sync logs to S3"
     else
-        echo "No codeclashlogs to sync"
+        echo "No codeclash logs to sync"
     fi
     echo "docker ps:"
     docker ps
@@ -60,7 +62,7 @@ PY
     docker system df
     echo "--------------------------------"
     echo "Last 100 lines of Docker logs"
-    docker ps -aq | xargs -I {} sh -c 'logs=$(docker logs --tail 100 {} 2>&1); [ -n "$logs" ] && echo "=== {} ===" && echo "$logs"'Retry
+    docker ps -aq | xargs -I {} sh -c 'logs=$(docker logs --tail 100 {} 2>&1); [ -n "$logs" ] && echo "=== {} ===" && echo "$logs"'
     echo "--------------------------------"
     echo "Docker cleanup"
     docker system prune -af
