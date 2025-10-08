@@ -1,0 +1,287 @@
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --accent: #646cff;
+  --accent-hover: #535bf2;
+  --border: #404040;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Buttons */
+button {
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+  background-color: var(--border);
+}
+
+button.danger {
+  background-color: var(--error);
+}
+
+button.danger:hover {
+  background-color: #d32f2f;
+}
+
+/* Container */
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* Error */
+.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--error);
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  color: var(--error);
+}
+
+/* Card */
+.card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  font-size: 1.3rem;
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* Details/Foldout */
+details {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+details summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+details summary:hover {
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+details[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+details .content {
+  padding: 1rem;
+}
+
+/* Code blocks */
+pre {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+code {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background-color: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: rgba(100, 108, 255, 0.05);
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Utility classes */
+.text-muted {
+  color: var(--text-secondary);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+.mt-2 {
+  margin-top: 1rem;
+}
+.mt-3 {
+  margin-top: 1.5rem;
+}
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+.mb-2 {
+  margin-bottom: 1rem;
+}
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.gap-1 {
+  gap: 0.5rem;
+}
+.gap-2 {
+  gap: 1rem;
+}
+.gap-3 {
+  gap: 1.5rem;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}

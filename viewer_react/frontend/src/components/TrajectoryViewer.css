@@ -1,0 +1,130 @@
+.trajectory-viewer {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.trajectory-header {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.trajectory-header:hover {
+  background-color: rgba(100, 108, 255, 0.05);
+}
+
+.trajectory-header h5 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.trajectory-content {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.trajectory-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  background-color: var(--bg-primary);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.message-block {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.message-header {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+
+.message-role {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+}
+
+.message-role.user {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: var(--success);
+}
+
+.message-role.assistant {
+  background-color: rgba(100, 108, 255, 0.2);
+  color: var(--accent);
+}
+
+.message-role.system {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: var(--warning);
+}
+
+.message-content {
+  padding: 0.75rem;
+}
+
+.message-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.85rem;
+}
+
+.file-diff {
+  margin-bottom: 0.5rem;
+}
+
+.file-diff summary {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.loading-small {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-small {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--error);
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: var(--error);
+}
+
+button.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}

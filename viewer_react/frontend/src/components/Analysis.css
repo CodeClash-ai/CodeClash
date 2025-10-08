@@ -1,0 +1,46 @@
+.analysis-content {
+  margin-top: 1rem;
+}
+
+.scores-table-container {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.scores-table-container table {
+  min-width: 100%;
+}
+
+.ascii-chart {
+  background-color: var(--bg-primary);
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+}
+
+.loading-small {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-small {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--error);
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: var(--error);
+  margin: 1rem 0;
+}
+
+button.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}

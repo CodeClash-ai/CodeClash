@@ -1,0 +1,23 @@
+.game-viewer {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.game-header {
+  margin-bottom: 2rem;
+}
+
+.game-header h2 {
+  margin: 1rem 0;
+  color: var(--accent);
+}
+
+.back-button {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+}
+
+.back-button:hover {
+  background-color: var(--border);
+}

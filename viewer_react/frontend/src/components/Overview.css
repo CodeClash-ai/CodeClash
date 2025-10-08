@@ -1,0 +1,23 @@
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.overview-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.overview-value {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
