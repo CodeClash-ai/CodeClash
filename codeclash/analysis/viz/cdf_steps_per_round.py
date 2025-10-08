@@ -4,7 +4,7 @@ import json
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 
-from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, FONT_REG, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
 OUTPUT_FILE = ASSETS_DIR / "cdf_steps_per_round.png"
@@ -54,12 +54,12 @@ def main():
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]
         plt.step(sorted_steps, yvals, label=MODEL_TO_DISPLAY_NAME[model], where="post", color=MODEL_TO_COLOR[model])
 
-    plt.xticks(range(0, 31, 5), fontsize=12, fontproperties=FONT_REG)
-    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=12, fontproperties=FONT_REG)
+    plt.xticks(range(0, 31, 5), fontsize=18, fontproperties=FONT_BOLD)
+    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=18, fontproperties=FONT_BOLD)
     plt.xlabel("Steps per Round", fontproperties=FONT_BOLD, fontsize=18)
     # plt.ylabel("Cumulative Probability")
     # plt.title("CDF of Steps per Round by Model")
-    FONT_BOLD.set_size(14)
+    FONT_BOLD.set_size(18)
     plt.legend(prop=FONT_BOLD)
     plt.grid(True)
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
