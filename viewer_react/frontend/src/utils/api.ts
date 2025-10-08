@@ -64,4 +64,9 @@ export const api = {
       throw new Error(response.data.error || 'Failed to save readme');
     }
   },
+
+  downloadFile(folderPath: string, relativePath: string): void {
+    const url = `${API_BASE}/download?folder=${encodeURIComponent(folderPath)}&path=${encodeURIComponent(relativePath)}`;
+    window.open(url, '_blank');
+  },
 };

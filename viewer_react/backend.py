@@ -625,6 +625,34 @@ def api_readme():
         return jsonify({"success": True, "message": "Readme saved successfully"})
 
 
+@app.route("/api/download")
+def api_download():
+    """Download a file from a game folder"""
+    from flask import send_file
+
+    folder_path = request.args.get("folder")
+    relative_path = request.args.get("path")
+
+    if not folder_path or not relative_path:
+        return jsonify({"success": False, "error": "Missing folder or path parameter"}), 400
+
+    folder = LOG_BASE_DIR / folder_path
+    if not folder.exists() or not folder.is_dir():
+        return jsonify({"success": False, "error": "Invalid folder"}), 404
+
+    file_path = folder / relative_path
+    if not file_path.exists() or not file_path.is_file():
+        return jsonify({"success": False, "error": "File not found"}), 404
+
+    # Security check: ensure file is within the game folder
+    try:
+        file_path.resolve().relative_to(folder.resolve())
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid file path"}), 403
+
+    return send_file(file_path, as_attachment=True, download_name=file_path.name)
+
+
 # Catch-all route for React Router (must be last)
 @app.errorhandler(404)
 def not_found(e):

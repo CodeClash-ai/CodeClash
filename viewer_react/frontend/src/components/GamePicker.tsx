@@ -116,7 +116,7 @@ export function GamePicker() {
     });
   };
 
-  const toggleSelection = (folderName: string, shiftKey = false) => {
+  const toggleSelection = useCallback((folderName: string, shiftKey = false) => {
     setFolderStates(prev => {
       const newStates = new Map(prev);
 
@@ -141,10 +141,10 @@ export function GamePicker() {
         newStates.set(folderName, { ...state, selected: !state.selected });
       }
 
-      setLastClickedCheckbox(folderName);
       return newStates;
     });
-  };
+    setLastClickedCheckbox(folderName);
+  }, [folders, lastClickedCheckbox]);
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
@@ -393,14 +393,11 @@ export function GamePicker() {
                     <input
                       type="checkbox"
                       checked={state?.selected || false}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        toggleSelection(folder.name, false);
-                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleSelection(folder.name, e.shiftKey);
                       }}
+                      onChange={() => {}}
                     />
                   ) : (
                     <span className="checkbox-placeholder" />

@@ -316,6 +316,39 @@
   font-weight: 600;
 }
 
+/* Download button in summary */
+summary .download-btn-small {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  transition: all 0.2s;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+summary .download-btn-small:hover {
+  background: var(--accent-color);
+  color: #000000;
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* Metadata viewer */
+.metadata-viewer {
+  margin-top: 1rem;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-height: 600px;
+  overflow: auto;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .agents-grid {

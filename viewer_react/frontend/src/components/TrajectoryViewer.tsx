@@ -57,11 +57,26 @@ export function TrajectoryViewer({ folderPath, playerName, roundNum }: Trajector
     return content.substring(0, maxLength) + '...';
   };
 
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const trajectoryPath = `trajectories/${playerName}_round_${roundNum}.json`;
+    api.downloadFile(folderPath, trajectoryPath);
+  };
+
   return (
     <div className="trajectory-viewer">
       <div className="trajectory-header" onClick={() => setIsExpanded(!isExpanded)}>
-        <h5>{playerName}</h5>
-        <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
+        <h5><i className="bi bi-robot"></i> {playerName}</h5>
+        <div className="trajectory-actions">
+          <button
+            className="download-btn-small"
+            onClick={handleDownload}
+            title="Download trajectory file"
+          >
+            <i className="bi bi-download"></i> Download
+          </button>
+          <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
+        </div>
       </div>
 
       {isExpanded && (

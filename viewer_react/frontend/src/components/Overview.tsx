@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { JsonViewer } from '@textea/json-viewer';
 import type { GameData } from '../types';
+import { api } from '../utils/api';
 import './Overview.css';
 
 interface OverviewProps {
@@ -7,7 +9,7 @@ interface OverviewProps {
   folderPath: string;
 }
 
-export function Overview({ gameData }: OverviewProps) {
+export function Overview({ gameData, folderPath }: OverviewProps) {
   const [showRawMetadata, setShowRawMetadata] = useState(false);
 
   const scrollToRound = (roundNum: number) => {
@@ -117,13 +119,26 @@ export function Overview({ gameData }: OverviewProps) {
 
       <details className="mt-3">
         <summary onClick={() => setShowRawMetadata(!showRawMetadata)}>
-          📋 Configuration & Metadata
+          <i className="bi bi-clipboard"></i> Configuration & Metadata
+          <button
+            className="download-btn-small"
+            onClick={(e) => {
+              e.stopPropagation();
+              api.downloadFile(folderPath, 'metadata.json');
+            }}
+            title="Download metadata file"
+          >
+            <i className="bi bi-download"></i> Download
+          </button>
         </summary>
         <div className="content">
           <div className="metadata-viewer">
-            <pre>
-              <code>{JSON.stringify(gameData.metadata, null, 2)}</code>
-            </pre>
+            <JsonViewer
+              value={gameData.metadata}
+              theme="dark"
+              defaultInspectDepth={1}
+              enableClipboard={true}
+            />
           </div>
         </div>
       </details>
