@@ -14,8 +14,14 @@ function initializeAnalysis() {
     return; // No analysis data available
   }
 
+  // Check if the element has any content before parsing
+  const textContent = analysisDataElement.textContent.trim();
+  if (!textContent) {
+    return; // No data loaded yet (will be loaded on demand)
+  }
+
   try {
-    analysisData = JSON.parse(analysisDataElement.textContent);
+    analysisData = JSON.parse(textContent);
 
     if (
       analysisData &&
@@ -279,6 +285,29 @@ function createOverviewScoresChart() {
     },
   });
 }
+
+/**
+ * Render line count chart with dynamically loaded data
+ * This is called by app.js after loading analysis data
+ */
+window.renderLineCountChart = function (data) {
+  analysisData = data;
+  if (
+    analysisData &&
+    analysisData.all_files &&
+    analysisData.all_files.length > 0
+  ) {
+    setupFileDropdown();
+    createLineCountChart(analysisData.all_files[0]); // Start with first file
+  }
+};
+
+// Listen for dynamically loaded analysis data
+document.addEventListener("analysisDataLoaded", function (event) {
+  if (event.detail) {
+    window.renderLineCountChart(event.detail);
+  }
+});
 
 // Initialize all analyses when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {

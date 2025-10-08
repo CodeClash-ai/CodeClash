@@ -2145,3 +2145,45 @@ summary:focus {
   height: 2rem;
   border-width: 0.25rem;
 }
+
+/* Diff loading UI */
+.diff-load-placeholder,
+.incremental-diff-load-placeholder,
+.modified-files-load-placeholder,
+.analysis-load-placeholder {
+  padding: 2rem;
+  text-align: center;
+}
+
+.load-diffs-btn,
+.load-analysis-btn {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.load-diffs-btn:hover,
+.load-analysis-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 255, 136, 0.3);
+}
+
+.diff-loading-spinner,
+.analysis-loading-spinner {
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.diff-loading-spinner .spinner-border,
+.analysis-loading-spinner .spinner-border {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.25rem;
+}

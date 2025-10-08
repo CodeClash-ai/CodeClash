@@ -416,8 +416,14 @@ class LogParser:
             all_logs=all_logs,
         )
 
-    def parse_trajectory(self, player_name: str, round_num: int) -> TrajectoryInfo | None:
-        """Parse a specific trajectory file"""
+    def parse_trajectory(self, player_name: str, round_num: int, *, load_diffs: bool = False) -> TrajectoryInfo | None:
+        """Parse a specific trajectory file
+
+        Args:
+            player_name: Name of the player
+            round_num: Round number
+            load_diffs: If True, load diff data. If False (default), skip loading diffs for performance
+        """
         player_dir = self.log_dir / "players" / player_name
         if not player_dir.exists():
             return None
@@ -430,25 +436,28 @@ class LogParser:
             info = data.get("info", {})
             model_stats = info.get("model_stats", {})
 
-            # Get diff data from changes file
+            # Get diff data from changes file only if requested
             diff = incremental_diff = modified_files = None
-            changes_file = player_dir / f"changes_r{round_num}.json"
-            if changes_file.exists():
-                try:
-                    changes_data = json.loads(changes_file.read_text())
-                    diff = changes_data.get("full_diff", "")
-                    incremental_diff = changes_data.get("incremental_diff", "")
-                    modified_files = changes_data.get("modified_files", {})
-                except (json.JSONDecodeError, KeyError):
-                    pass
+            diff_by_files = incremental_diff_by_files = None
 
-            # Filter and split diffs by files
-            filtered_diff = filter_git_diff(diff) if diff else ""
-            filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
-            diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
-            incremental_diff_by_files = (
-                split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
-            )
+            if load_diffs:
+                changes_file = player_dir / f"changes_r{round_num}.json"
+                if changes_file.exists():
+                    try:
+                        changes_data = json.loads(changes_file.read_text())
+                        diff = changes_data.get("full_diff", "")
+                        incremental_diff = changes_data.get("incremental_diff", "")
+                        modified_files = changes_data.get("modified_files", {})
+
+                        # Filter and split diffs by files
+                        filtered_diff = filter_git_diff(diff) if diff else ""
+                        filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+                        diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+                        incremental_diff_by_files = (
+                            split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+                        )
+                    except (json.JSONDecodeError, KeyError):
+                        pass
 
             return TrajectoryInfo(
                 player_id=player_name,
@@ -792,17 +801,16 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
     parser = LogParser(folder_path)
     metadata = parser.parse_game_metadata()
 
-    # Group trajectories by round
+    # Group trajectories by round (without loading diffs)
     trajectories_by_round = {}
     for player_name, round_num in parser.get_available_trajectories():
         if round_num not in trajectories_by_round:
             trajectories_by_round[round_num] = []
-        trajectory = parser.parse_trajectory(player_name, round_num)
+        trajectory = parser.parse_trajectory(player_name, round_num, load_diffs=False)
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
 
-    # Get analysis data
-    analysis_data = parser.analyze_line_counts()
+    # Get analysis data (skip line counting - will be loaded on demand)
     sim_wins_data = parser.analyze_sim_wins_per_round()
     matrix_data = parser.load_matrix_analysis()
 
@@ -815,7 +823,6 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
         selected_folder_path=str(folder_path),
         metadata=metadata,
         trajectories_by_round=trajectories_by_round,
-        analysis_data=analysis_data,
         sim_wins_data=sim_wins_data,
         matrix_data=matrix_data,
         navigation=navigation_info,
@@ -1242,6 +1249,50 @@ def load_log():
 
     except (OSError, UnicodeDecodeError) as e:
         return jsonify({"success": False, "error": f"Error reading file: {str(e)}"}), 500
+
+
+@app.route("/load-trajectory-diffs")
+def load_trajectory_diffs():
+    """Load trajectory diff data on demand"""
+    selected_folder = request.args.get("folder")
+    player_name = request.args.get("player")
+    round_num = request.args.get("round")
+
+    if not all([selected_folder, player_name, round_num]):
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+
+    try:
+        round_num = int(round_num)
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid round number"}), 400
+
+    try:
+        # Validate the selected folder exists and is a game folder
+        folder_path = LOG_BASE_DIR / selected_folder
+        if not folder_path.exists() or not is_game_folder(folder_path):
+            return jsonify({"success": False, "error": "Invalid game folder"}), 404
+
+        # Parse trajectory with diffs loaded
+        parser = LogParser(folder_path)
+        trajectory = parser.parse_trajectory(player_name, round_num, load_diffs=True)
+
+        if not trajectory:
+            return jsonify({"success": False, "error": "Trajectory not found"}), 404
+
+        return jsonify(
+            {
+                "success": True,
+                "diff": trajectory.diff,
+                "incremental_diff": trajectory.incremental_diff,
+                "modified_files": trajectory.modified_files,
+                "diff_by_files": trajectory.diff_by_files,
+                "incremental_diff_by_files": trajectory.incremental_diff_by_files,
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error loading trajectory diffs: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # Use run_viewer.py to launch the application

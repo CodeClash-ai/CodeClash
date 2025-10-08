@@ -163,80 +163,69 @@
         </div>
     </details>
 
-    <!-- Diff Foldout inside the same container -->
-    {% if trajectory.diff_by_files and trajectory.diff_by_files %}
-    <details class="trajectory-messages-foldout">
-        <summary><i class="bi bi-file-diff"></i> Diff (Full) ({{ trajectory.diff_by_files|length }} files)</summary>
-        <div class="trajectory-content">
-            <div class="log-content">
-                {% for file_path, file_diff in trajectory.diff_by_files.items() %}
-                <details class="foldout">
-                    <summary>{{ file_path }}</summary>
-                    <div class="log-content">
-                        <pre><code>{{ file_diff }}</code></pre>
-                    </div>
-                </details>
-                {% endfor %}
-            </div>
-        </div>
-    </details>
-    {% elif trajectory.diff and trajectory.diff.strip() %}
-    <details class="trajectory-messages-foldout">
+    <!-- Diff Foldout inside the same container (lazy loaded) -->
+    <details class="trajectory-messages-foldout trajectory-diffs-foldout"
+             data-player="{{ trajectory.player_id }}"
+             data-round="{{ trajectory.round_num }}">
         <summary><i class="bi bi-file-diff"></i> Diff (Full)</summary>
         <div class="trajectory-content">
-            <div class="log-content">
-                <pre><code>{{ trajectory.diff }}</code></pre>
+            <div class="diff-load-placeholder">
+                <button class="btn btn-primary load-diffs-btn"
+                        data-player="{{ trajectory.player_id }}"
+                        data-round="{{ trajectory.round_num }}">
+                    <i class="bi bi-download"></i> Load Diff Data
+                </button>
+            </div>
+            <div class="diff-loading-spinner" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading diff data...</span>
+            </div>
+            <div class="diff-content" style="display: none;">
+                <!-- Content will be loaded dynamically -->
             </div>
         </div>
     </details>
-    {% endif %}
 
-    <!-- Incremental Diff Foldout inside the same container -->
-    {% if trajectory.incremental_diff_by_files and trajectory.incremental_diff_by_files %}
-    <details class="trajectory-messages-foldout">
-        <summary><i class="bi bi-arrow-repeat"></i> Incremental Diff ({{ trajectory.incremental_diff_by_files|length }} files)</summary>
-        <div class="trajectory-content">
-            <div class="log-content">
-                {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
-                <details class="foldout">
-                    <summary>{{ file_path }}</summary>
-                    <div class="log-content">
-                        <pre><code>{{ file_diff }}</code></pre>
-                    </div>
-                </details>
-                {% endfor %}
-            </div>
-        </div>
-    </details>
-    {% elif trajectory.incremental_diff and trajectory.incremental_diff.strip() %}
-    <details class="trajectory-messages-foldout">
+    <!-- Incremental Diff Foldout inside the same container (lazy loaded) -->
+    <details class="trajectory-messages-foldout trajectory-incremental-diffs-foldout"
+             data-player="{{ trajectory.player_id }}"
+             data-round="{{ trajectory.round_num }}">
         <summary><i class="bi bi-arrow-repeat"></i> Incremental Diff</summary>
         <div class="trajectory-content">
-            <div class="log-content">
-                <pre><code>{{ trajectory.incremental_diff }}</code></pre>
+            <div class="incremental-diff-load-placeholder">
+                <button class="btn btn-primary load-diffs-btn"
+                        data-player="{{ trajectory.player_id }}"
+                        data-round="{{ trajectory.round_num }}">
+                    <i class="bi bi-download"></i> Load Diff Data
+                </button>
+            </div>
+            <div class="incremental-diff-content" style="display: none;">
+                <!-- Content will be loaded dynamically -->
             </div>
         </div>
     </details>
-    {% endif %}
 
-    <!-- Modified Files Foldout inside the same container -->
-    {% if trajectory.modified_files and trajectory.modified_files %}
-    <details class="trajectory-messages-foldout">
-        <summary><i class="bi bi-folder-fill"></i> Changed Files ({{ trajectory.modified_files|length }} files)</summary>
+    <!-- Modified Files Foldout inside the same container (lazy loaded) -->
+    <details class="trajectory-messages-foldout trajectory-modified-files-foldout"
+             data-player="{{ trajectory.player_id }}"
+             data-round="{{ trajectory.round_num }}">
+        <summary><i class="bi bi-file-text"></i> Modified Files</summary>
         <div class="trajectory-content">
-            <div class="log-content">
-                {% for file_path, file_content in trajectory.modified_files.items() %}
-                <details class="foldout">
-                    <summary>{{ file_path }}</summary>
-                    <div class="log-content">
-                        <pre><code>{{ file_content }}</code></pre>
-                    </div>
-                </details>
-                {% endfor %}
+            <div class="modified-files-load-placeholder">
+                <button class="btn btn-primary load-diffs-btn"
+                        data-player="{{ trajectory.player_id }}"
+                        data-round="{{ trajectory.round_num }}">
+                    <i class="bi bi-download"></i> Load Diff Data
+                </button>
+            </div>
+            <div class="modified-files-content" style="display: none;">
+                <!-- Content will be loaded dynamically -->
             </div>
         </div>
     </details>
-    {% endif %}
+
 
 </div>
 

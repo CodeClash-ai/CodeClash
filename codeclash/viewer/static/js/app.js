@@ -376,6 +376,261 @@ function loadLogContent(logPath, container) {
     });
 }
 
+// Trajectory diffs loading functionality
+function loadTrajectoryDiffs(playerName, roundNum, button) {
+  const container = button.closest(".trajectory-content");
+
+  // Find the specific placeholder that contains this button
+  const placeholder = button.closest(
+    ".diff-load-placeholder, .incremental-diff-load-placeholder, .modified-files-load-placeholder",
+  );
+
+  // Try to find trajectory header
+  let trajectoryHeader = button.closest(".trajectory-header");
+
+  // If not found, try looking up from container
+  if (!trajectoryHeader && container) {
+    trajectoryHeader = container.closest(".trajectory-header");
+  }
+
+  // If still not found, look for parent details element and then its parent
+  if (!trajectoryHeader) {
+    const detailsElement = button.closest("details");
+    if (detailsElement) {
+      trajectoryHeader = detailsElement.parentElement;
+    }
+  }
+
+  // Get selected folder from page
+  const selectedFolder =
+    document.body.getAttribute("data-folder") ||
+    new URLSearchParams(window.location.search).get("folder");
+
+  if (!selectedFolder) {
+    alert("Error: Could not determine selected folder");
+    return;
+  }
+
+  // Hide placeholder and show loading
+  if (placeholder) {
+    placeholder.style.display = "none";
+  }
+
+  if (container) {
+    container.innerHTML =
+      '<div style="padding: 2rem; text-align: center;">Loading...</div>';
+  }
+
+  // Store trajectoryHeader in the outer scope to use in the fetch handler
+  const finalTrajectoryHeader = trajectoryHeader;
+
+  // Fetch diff data from server
+  fetch(
+    `/load-trajectory-diffs?folder=${encodeURIComponent(selectedFolder)}&player=${encodeURIComponent(playerName)}&round=${roundNum}`,
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        if (finalTrajectoryHeader) {
+          // 1. Populate main diff section
+          const diffContainer = finalTrajectoryHeader.querySelector(
+            ".trajectory-diffs-foldout .trajectory-content",
+          );
+          if (diffContainer) {
+            let html = "";
+            if (
+              data.diff_by_files &&
+              Object.keys(data.diff_by_files).length > 0
+            ) {
+              html += `<div class="log-content">`;
+              for (const [filePath, fileDiff] of Object.entries(
+                data.diff_by_files,
+              )) {
+                html += `
+                  <details class="foldout">
+                    <summary>${escapeHtml(filePath)}</summary>
+                    <div class="log-content">
+                      <pre><code>${escapeHtml(fileDiff)}</code></pre>
+                    </div>
+                  </details>
+                `;
+              }
+              html += `</div>`;
+            } else if (data.diff && data.diff.trim()) {
+              html += `<div class="log-content"><pre><code>${escapeHtml(data.diff)}</code></pre></div>`;
+            } else {
+              html += `<p>No diff data available</p>`;
+            }
+            diffContainer.innerHTML = html;
+          }
+
+          // 2. Populate incremental diff section
+          const incrementalDiffContainer = finalTrajectoryHeader.querySelector(
+            ".trajectory-incremental-diffs-foldout .trajectory-content",
+          );
+          if (incrementalDiffContainer) {
+            let html = "";
+            if (
+              data.incremental_diff_by_files &&
+              Object.keys(data.incremental_diff_by_files).length > 0
+            ) {
+              html += `<div class="log-content">`;
+              for (const [filePath, fileDiff] of Object.entries(
+                data.incremental_diff_by_files,
+              )) {
+                html += `
+                  <details class="foldout">
+                    <summary>${escapeHtml(filePath)}</summary>
+                    <div class="log-content">
+                      <pre><code>${escapeHtml(fileDiff)}</code></pre>
+                    </div>
+                  </details>
+                `;
+              }
+              html += `</div>`;
+            } else if (data.incremental_diff && data.incremental_diff.trim()) {
+              html += `<div class="log-content"><pre><code>${escapeHtml(data.incremental_diff)}</code></pre></div>`;
+            } else {
+              html += `<p>No incremental diff data available</p>`;
+            }
+            incrementalDiffContainer.innerHTML = html;
+          }
+
+          // 3. Populate modified files section
+          const modifiedFilesContainer = finalTrajectoryHeader.querySelector(
+            ".trajectory-modified-files-foldout .trajectory-content",
+          );
+          if (modifiedFilesContainer) {
+            let html = "";
+            if (
+              data.modified_files &&
+              Object.keys(data.modified_files).length > 0
+            ) {
+              html += `<div class="log-content">`;
+              for (const [filePath, fileContent] of Object.entries(
+                data.modified_files,
+              )) {
+                html += `
+                  <details class="foldout">
+                    <summary>${escapeHtml(filePath)}</summary>
+                    <div class="log-content">
+                      <pre><code>${escapeHtml(fileContent)}</code></pre>
+                    </div>
+                  </details>
+                `;
+              }
+              html += `</div>`;
+            } else {
+              html += `<p>No modified files data available</p>`;
+            }
+            modifiedFilesContainer.innerHTML = html;
+          }
+        } else {
+          container.innerHTML = `<p>Error: Could not find trajectory header</p>`;
+        }
+      } else {
+        container.innerHTML = `<p>Error loading diffs: ${data.error}</p>`;
+      }
+    })
+    .catch((error) => {
+      if (container) {
+        container.innerHTML = `<p>Error loading diffs: ${error}</p>`;
+      }
+    });
+}
+
+// Line counting analysis loading functionality
+function loadLineCountingAnalysis(button) {
+  const container = button.closest(".log-content-container");
+
+  if (!container) {
+    alert("Error: Could not find container");
+    return;
+  }
+
+  const placeholder = container.querySelector(".analysis-load-placeholder");
+  const spinner = container.querySelector(".analysis-loading-spinner");
+  const analysisContent = container.querySelector(".analysis-content");
+
+  // Get selected folder from page
+  const selectedFolder =
+    document.body.getAttribute("data-folder") ||
+    new URLSearchParams(window.location.search).get("folder");
+
+  if (!selectedFolder) {
+    alert("Error: Could not determine selected folder");
+    return;
+  }
+
+  if (!placeholder || !spinner || !analysisContent) {
+    alert("Error: Missing UI elements for analysis loading");
+    return;
+  }
+
+  // Hide placeholder, show spinner
+  placeholder.style.display = "none";
+  spinner.style.display = "block";
+
+  // Fetch analysis data from server
+  fetch(`/analysis/line-counts?folder=${encodeURIComponent(selectedFolder)}`)
+    .then((response) => response.json())
+    .then((result) => {
+      spinner.style.display = "none";
+
+      if (result.success && result.data) {
+        const data = result.data;
+
+        // Populate file dropdown
+        const fileDropdown = analysisContent.querySelector("#file-dropdown");
+        if (fileDropdown && data.all_files) {
+          fileDropdown.innerHTML = "";
+          data.all_files.forEach((filePath) => {
+            const option = document.createElement("option");
+            option.value = filePath;
+            option.textContent = filePath;
+            fileDropdown.appendChild(option);
+          });
+        }
+
+        // Store data in the script tag for the analysis.js to use
+        const analysisDataScript =
+          analysisContent.querySelector("#analysis-data");
+        if (analysisDataScript) {
+          analysisDataScript.textContent = JSON.stringify(data);
+        }
+
+        // Show the analysis content
+        analysisContent.style.display = "block";
+
+        // Trigger the chart rendering (analysis.js should listen for this)
+        if (typeof window.renderLineCountChart === "function") {
+          window.renderLineCountChart(data);
+        } else {
+          // If analysis.js hasn't loaded the function yet, dispatch an event
+          const event = new CustomEvent("analysisDataLoaded", {
+            detail: data,
+          });
+          document.dispatchEvent(event);
+        }
+      } else {
+        analysisContent.innerHTML = `<p>Error loading analysis: ${result.error || "Unknown error"}</p>`;
+        analysisContent.style.display = "block";
+      }
+    })
+    .catch((error) => {
+      spinner.style.display = "none";
+      analysisContent.innerHTML = `<p>Error loading analysis: ${error}</p>`;
+      analysisContent.style.display = "block";
+    });
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // Setup button event listeners
 function setupButtonEventListeners() {
   // Pick game button
@@ -443,6 +698,24 @@ function setupButtonEventListeners() {
       if (logPath && container) {
         loadLogContent(logPath, container);
       }
+    });
+  });
+
+  // Trajectory diff loading buttons
+  document.querySelectorAll(".load-diffs-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      const playerName = this.getAttribute("data-player");
+      const roundNum = this.getAttribute("data-round");
+      if (playerName && roundNum) {
+        loadTrajectoryDiffs(playerName, roundNum, this);
+      }
+    });
+  });
+
+  // Analysis loading button
+  document.querySelectorAll(".load-analysis-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      loadLineCountingAnalysis(this);
     });
   });
 }

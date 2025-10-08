@@ -2,19 +2,28 @@
 <section class="analysis-section">
     <h2><i class="bi bi-graph-up"></i> Analysis</h2>
 
-    <!-- Line Counting Analysis -->
-    <details class="foldout">
+    <!-- Line Counting Analysis (lazy loaded) -->
+    <details class="foldout line-analysis-foldout">
         <summary><i class="bi bi-graph-up-arrow"></i> Line Counting Analysis</summary>
         <div class="log-content-container">
-            {% if analysis_data and analysis_data.all_files %}
+            <div class="analysis-load-placeholder">
+                <button class="btn btn-primary load-analysis-btn">
+                    <i class="bi bi-download"></i> Load Line Counting Analysis
+                </button>
+            </div>
+            <div class="analysis-loading-spinner" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading analysis data...</span>
+            </div>
+            <div class="analysis-content" style="display: none;">
                 <div class="line-analysis-container">
                     <!-- File Dropdown -->
                     <div class="file-selector">
                         <label for="file-dropdown">Select File:</label>
                         <select id="file-dropdown" class="file-dropdown">
-                            {% for file_path in analysis_data.all_files %}
-                                <option value="{{ file_path }}">{{ file_path }}</option>
-                            {% endfor %}
+                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
 
@@ -24,11 +33,9 @@
                     </div>
 
                     <!-- Data for JavaScript -->
-                    <script type="application/json" id="analysis-data">{{ analysis_data | tojson }}</script>
+                    <script type="application/json" id="analysis-data"></script>
                 </div>
-            {% else %}
-                <p>No line count data available. This analysis requires games with changed files data.</p>
-            {% endif %}
+            </div>
         </div>
     </details>
 
