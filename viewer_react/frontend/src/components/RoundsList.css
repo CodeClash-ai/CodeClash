@@ -1,0 +1,82 @@
+.rounds-list {
+  margin-top: 2rem;
+}
+
+.rounds-list > h2 {
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.round-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.round-header {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.round-header:hover {
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.round-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.toggle-icon {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.round-content {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.round-results {
+  background-color: var(--bg-tertiary);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.round-results h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.round-results h5 {
+  margin-bottom: 0.5rem;
+}
+
+.result-item {
+  margin: 0.5rem 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.result-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.result-value {
+  color: var(--text-primary);
+}
+
+.trajectories-section {
+  margin-top: 1.5rem;
+}
+
+.trajectories-section h4 {
+  margin-bottom: 1rem;
+}
