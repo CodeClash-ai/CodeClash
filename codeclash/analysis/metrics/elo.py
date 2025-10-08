@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -125,11 +126,12 @@ class SkipTournamentException(Exception):
 
 
 class ELOCalculator:
-    def __init__(self, *, k_factor: float, starting_elo: float, weighting_function: str, alpha: float):
+    def __init__(self, *, k_factor: float, starting_elo: float, weighting_function: str, alpha: float, unit: str):
         self._k_factor = k_factor
         self._starting_elo = starting_elo
         self._weighting_function = weighting_function
         self._alpha = alpha
+        self._unit = unit
         self._player_profiles = {}
 
     @property
@@ -161,6 +163,49 @@ class ELOCalculator:
         weighted_k_factor = self._k_factor * round_weight
         update_profiles(prof_and_score, weighted_k_factor)
 
+    def _score_per_round(self, metadata: dict, player2profile: dict, total_rounds: int) -> None:
+        for idx, stats in metadata["round_stats"].items():
+            idx = int(idx)
+            if idx == 0:
+                # Skip initial round
+                continue
+            assert idx == stats["round_num"], (idx, stats["round_num"])
+            self._analyze_round(stats, player2profile, total_rounds=total_rounds)
+
+    def _score_per_tournament(self, metadata: dict, player2profile: dict, total_rounds: int) -> None:
+        # Update score = number of rounds won per tournament (ties count as 0.5 each)
+        round_stats = metadata["round_stats"]
+        winners = []
+        ties = 0
+        for k, v in round_stats.items():
+            try:
+                if int(k) == 0:
+                    continue
+            except Exception:
+                pass
+            w = v.get("winner")
+            if w == RESULT_TIE:
+                ties += 1
+            elif w is not None:
+                winners.append(w)
+
+        win_counts = Counter(winners)
+
+        # Ensure both players are considered (even if they have zero wins)
+        players = list(player2profile.keys())
+        for p in players:
+            player2profile[p].rounds_played += 1  # Each player played all rounds
+        wins_per_player = {p: win_counts.get(p, 0) + 0.5 * ties for p in players}
+
+        wins_total = sum(wins_per_player.values())
+        if wins_total == 0:
+            raise SkipTournamentException
+
+        prof_and_score = [(player2profile[p], wins_per_player[p] / wins_total) for p in players]
+
+        weighted_k_factor = self._k_factor * (1 / total_rounds) if total_rounds > 0 else self._k_factor
+        update_profiles(prof_and_score, weighted_k_factor)
+
     def _analyze_tournament(self, tournament_log_folder: Path) -> None:
         """Update all profiles based on the results of one tournament"""
         with open(tournament_log_folder / "metadata.json") as f:
@@ -190,15 +235,10 @@ class ELOCalculator:
         # Determine total rounds for weighting calculation
         total_rounds = len([k for k in metadata["round_stats"].keys() if k != "0"])
 
-        for idx, stats in metadata["round_stats"].items():
-            idx = int(idx)
-            if idx == 0:
-                # Skip initial round
-                continue
-
-            assert idx == stats["round_num"], (idx, stats["round_num"])
-
-            self._analyze_round(stats, player2profile, total_rounds=total_rounds)
+        if self._unit == "round":
+            self._score_per_round(metadata, player2profile, total_rounds=total_rounds)
+        elif self._unit == "tournament":
+            self._score_per_tournament(metadata, player2profile, total_rounds=total_rounds)
 
     def analyze(self, log_dir: Path) -> None:
         print(f"Calculating weighted ELO ratings from logs in {log_dir} ...")
@@ -320,12 +360,20 @@ if __name__ == "__main__":
         default=2.0,
         help="Alpha parameter for exponential weighting (Default: 2.0, ignored for linear weighting)",
     )
+    parser.add_argument(
+        "-u",
+        "--unit",
+        choices=["round", "tournament"],
+        default="round",
+        help="Calculate Elo ratings on a per-round or per-tournament basis (Default: round)",
+    )
     args = parser.parse_args()
     calculator = ELOCalculator(
         k_factor=args.k_factor,
         starting_elo=args.starting_elo,
         weighting_function=args.weighting_function,
         alpha=args.alpha,
+        unit=args.unit,
     )
     calculator.analyze(args.log_dir)
     calculator.print_results()
