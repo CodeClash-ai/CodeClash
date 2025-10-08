@@ -1,100 +1,78 @@
+/* Readme Section Styles */
+
 .readme-section {
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
-.readme-summary {
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
+.readme-in-setup {
+  margin: 1.5rem 0;
+}
+
+.readme-container {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
   padding: 1rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.readme-summary:hover {
-  background: rgba(102, 126, 234, 0.15);
-}
-
-.save-indicator {
-  font-size: 0.85rem;
-  font-weight: normal;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.save-indicator.saving {
-  color: #ffc107;
-  background: rgba(255, 193, 7, 0.1);
-}
-
-.save-indicator.saved {
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.readme-content {
-  padding: 1rem;
-}
-
-.error-banner {
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  border-radius: 6px;
-  color: #f44336;
-  font-size: 0.9rem;
+  box-shadow: var(--shadow);
 }
 
 .readme-textarea {
   width: 100%;
-  min-height: 150px;
-  padding: 1rem;
-  background: #2a2a2a;
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: #e0e0e0;
+  min-height: 120px;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.5;
   resize: vertical;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease;
 }
 
 .readme-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
 }
 
 .readme-textarea::placeholder {
-  color: #666;
+  color: var(--text-muted);
 }
 
-.readme-help {
-  margin-top: 0.75rem;
-  font-size: 0.85rem;
-  color: #888;
-  font-style: italic;
+.readme-textarea:disabled {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
 }
 
-/* Responsive */
+.readme-status {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: right;
+  transition: color 0.2s ease;
+}
+
+.readme-status.saving {
+  color: var(--warning-color);
+}
+
+.readme-status.saved {
+  color: var(--success-color);
+}
+
+.readme-status.error {
+  color: var(--neon-red);
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
-  .readme-summary {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .save-indicator {
-    align-self: flex-end;
+  .readme-textarea {
+    font-size: 0.85rem;
   }
 }

@@ -92,7 +92,7 @@ export function FloatingToc({ gameData }: FloatingTocProps) {
             📝 Notes
           </button>
 
-          <button className="toc-item" onClick={() => scrollToSection('.overview-section, .card')}>
+          <button className="toc-item" onClick={() => scrollToSection('#overview')}>
             📊 Overview
           </button>
 

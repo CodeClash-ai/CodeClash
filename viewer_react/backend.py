@@ -282,10 +282,24 @@ def api_game(folder_path):
         for round_key, round_data in round_stats.items():
             round_num = int(round_key)
             processed_results = process_round_results(round_data, agent_names)
+
+            # Add player stats for each agent
+            player_stats = round_data.get("player_stats", {})
+            player_stats_formatted = {}
+            for agent_name in agent_names:
+                stats = player_stats.get(agent_name, {})
+                player_stats_formatted[agent_name] = {
+                    "api_calls": stats.get("api_calls", 0),
+                    "cost": stats.get("instance_cost", 0.0),
+                    "exit_status": stats.get("exit_status"),
+                    "valid_submit": stats.get("valid_submit"),
+                }
+
             rounds.append(
                 {
                     "round_num": round_num,
                     "results": processed_results,
+                    "player_stats": player_stats_formatted,
                 }
             )
 

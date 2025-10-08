@@ -1,3 +1,70 @@
+/* Overview Section Styles */
+
+.overview-section {
+  margin-bottom: 3rem;
+}
+
+.overview-section h2 {
+  color: var(--accent-color);
+  margin-bottom: 1.5rem;
+}
+
+.overview-summary {
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+/* Agent Information */
+.agent-info {
+  margin-bottom: 2rem;
+}
+
+.agent-info h3 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.agent-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.agent-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.agent-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.agent-model,
+.agent-class {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.agent-model {
+  font-weight: 500;
+}
+
+/* Overview Grid */
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -12,22 +79,176 @@
 }
 
 .overview-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
+  text-transform: uppercase;
   font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
 .overview-value {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--text-primary);
+}
+
+/* Results Table */
+.results-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: var(--bg-secondary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.results-table th,
+.results-table td {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.results-table th {
+  background-color: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.results-table tbody tr {
+  background-color: var(--bg-secondary);
+  transition: background-color 0.2s ease;
+}
+
+.results-table tbody tr:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Winner badge */
+.winner-badge {
+  display: inline-block;
+  background-color: var(--success-color);
+  color: #000000;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Score breakdown */
+.score-breakdown,
+.winner-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.score-item {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.steps-count {
+  font-weight: 500;
+  color: var(--accent-color);
+}
+
+.cost-steps {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.steps-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.exit-status-small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.exit-status-small.status-submitted {
+  color: var(--success-color);
+}
+
+.exit-status-small.status-error {
+  color: var(--danger-color);
+}
+
+.exit-status-small.status-timeout {
+  color: var(--warning-color);
+}
+
+.overview-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .overview-cell-content {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+.no-result {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Metadata display */
+.metadata-display {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.metadata-display pre {
+  margin: 0;
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .metadata-viewer {
   max-height: 600px;
   overflow: auto;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
   padding: 1rem;
 }
 
@@ -38,6 +259,81 @@
 }
 
 .metadata-viewer code {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: "Courier New", monospace;
+}
+
+/* Navigation buttons in overview table */
+.nav-to-round-btn {
+  background: var(--accent-color);
+  color: #000000;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  font-weight: 600;
+}
+
+.nav-to-round-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
+  transform: translateY(1px);
+}
+
+.nav-to-round-btn:active {
+  transform: translateY(2px);
+}
+
+.nav-arrow {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.results-table tbody tr:hover .nav-to-round-btn {
+  transform: scale(1.1);
+}
+
+/* Scores per round container */
+.scores-per-round-container {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+}
+
+.scores-per-round-container h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .agents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-table {
+    font-size: 0.8rem;
+  }
+
+  .results-table th,
+  .results-table td {
+    padding: 0.5rem;
+  }
+
+  .score-breakdown,
+  .winner-breakdown {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }

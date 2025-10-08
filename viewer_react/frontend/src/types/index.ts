@@ -21,12 +21,19 @@ export interface RoundResults {
   sorted_scores?: [string, number][];
   winner_percentage?: number | null;
   p_value?: number | null;
-  player_stats?: Record<string, any>;
+}
+
+export interface PlayerStats {
+  api_calls: number;
+  cost: number;
+  exit_status: string | null;
+  valid_submit: boolean | null;
 }
 
 export interface Round {
   round_num: number;
   results: RoundResults;
+  player_stats?: Record<string, PlayerStats>;
 }
 
 export interface Message {
