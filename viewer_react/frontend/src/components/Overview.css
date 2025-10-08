@@ -21,3 +21,23 @@
   font-size: 1.1rem;
   color: var(--text-primary);
 }
+
+.metadata-viewer {
+  max-height: 600px;
+  overflow: auto;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.metadata-viewer pre {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.metadata-viewer code {
+  color: #e0e0e0;
+  font-family: "Courier New", monospace;
+}

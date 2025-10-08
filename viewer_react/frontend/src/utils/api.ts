@@ -41,4 +41,27 @@ export const api = {
   async deleteFolder(folderPath: string): Promise<void> {
     await axios.post(`${API_BASE}/delete-folder`, { folder_path: folderPath });
   },
+
+  async moveFolder(oldPath: string, newPath: string): Promise<{ new_path: string }> {
+    const response = await axios.post(`${API_BASE}/move-folder`, { old_path: oldPath, new_path: newPath });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to move folder');
+    }
+    return response.data;
+  },
+
+  async getReadme(folderPath: string): Promise<string> {
+    const response = await axios.get(`${API_BASE}/readme`, { params: { folder: folderPath } });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to fetch readme');
+    }
+    return response.data.content;
+  },
+
+  async saveReadme(folderPath: string, content: string): Promise<void> {
+    const response = await axios.post(`${API_BASE}/readme`, { folder: folderPath, content });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to save readme');
+    }
+  },
 };

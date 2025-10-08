@@ -7,12 +7,6 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <header className="header">
-          <div className="header-content">
-            <h1>🎮 CodeClash Trajectory Viewer</h1>
-          </div>
-        </header>
-
         <Routes>
           <Route path="/" element={<GamePicker />} />
           <Route path="/game/*" element={<GameViewer />} />

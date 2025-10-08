@@ -28,7 +28,7 @@ export function RoundsList({ gameData, folderPath }: RoundsListProps) {
       <h2>Rounds</h2>
 
       {gameData.rounds.map((round) => (
-        <div key={round.round_num} className="round-card">
+        <div key={round.round_num} className="round-card" data-round={round.round_num}>
           <div className="round-header" onClick={() => toggleRound(round.round_num)}>
             <h3>Round {round.round_num}</h3>
             <span className="toggle-icon">{expandedRounds.has(round.round_num) ? '▼' : '▶'}</span>

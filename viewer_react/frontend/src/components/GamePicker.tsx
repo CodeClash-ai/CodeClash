@@ -382,7 +382,7 @@ export function GamePicker() {
               <div
                 key={folder.name}
                 className={`game-row depth-${depth} ${folder.is_game ? 'game-folder' : 'intermediate-folder'} ${state?.collapsed ? 'collapsed' : ''}`}
-                onClick={(e) => {
+                onClick={() => {
                   if (!folder.is_game) {
                     toggleFolder(folder.name);
                   }
@@ -395,9 +395,12 @@ export function GamePicker() {
                       checked={state?.selected || false}
                       onChange={(e) => {
                         e.stopPropagation();
+                        toggleSelection(folder.name, false);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         toggleSelection(folder.name, e.shiftKey);
                       }}
-                      onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
                     <span className="checkbox-placeholder" />

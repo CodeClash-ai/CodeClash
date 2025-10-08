@@ -52,10 +52,16 @@ export interface Trajectory {
   valid_submission: boolean | null;
 }
 
+export interface Navigation {
+  previous: string | null;
+  next: string | null;
+}
+
 export interface GameData {
   metadata: any;
   agents: Agent[];
   rounds: Round[];
+  navigation?: Navigation;
 }
 
 export interface LineCountData {

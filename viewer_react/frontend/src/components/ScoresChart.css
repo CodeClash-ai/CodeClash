@@ -1,0 +1,31 @@
+.scores-chart-container {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+
+.chart-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-wrapper {
+    height: 300px;
+  }
+
+  .scores-chart-container {
+    padding: 1rem;
+  }
+}

@@ -33,7 +33,7 @@ export function Analysis({ folderPath }: AnalysisProps) {
   };
 
   return (
-    <div className="card">
+    <div className="card analysis-section">
       <div className="card-header" onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: 'pointer' }}>
         <h2>
           Analysis
@@ -110,15 +110,10 @@ export function Analysis({ folderPath }: AnalysisProps) {
 }
 
 function generateAsciiChart(data: SimWinsData): string {
-  const width = 60;
-  const height = 20;
   let chart = '';
 
   chart += 'Win Rate (%) vs Round\n';
   chart += '100% ┤\n';
-
-  const maxRound = Math.max(...data.rounds);
-  const minRound = Math.min(...data.rounds);
 
   // Generate chart lines
   for (let y = 90; y >= 10; y -= 10) {

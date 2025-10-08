@@ -228,6 +228,23 @@ def api_folders():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def get_navigation_info(selected_folder: str) -> dict:
+    """Get previous and next game folders for navigation"""
+    game_folders = find_all_game_folders()
+    game_names = [folder["name"] for folder in game_folders if folder["is_game"]]
+    game_names.sort()
+
+    try:
+        current_index = game_names.index(selected_folder)
+    except ValueError:
+        return {"previous": None, "next": None}
+
+    previous_game = game_names[current_index - 1] if current_index > 0 else None
+    next_game = game_names[current_index + 1] if current_index < len(game_names) - 1 else None
+
+    return {"previous": previous_game, "next": next_game}
+
+
 @app.route("/api/game/<path:folder_path>")
 def api_game(folder_path):
     """Get game metadata and overview"""
@@ -274,12 +291,16 @@ def api_game(folder_path):
 
         rounds.sort(key=lambda x: x["round_num"])
 
+        # Get navigation info
+        navigation = get_navigation_info(folder_path)
+
         return jsonify(
             {
                 "success": True,
                 "metadata": metadata,
                 "agents": agents,
                 "rounds": rounds,
+                "navigation": navigation,
             }
         )
 
@@ -525,6 +546,69 @@ def api_delete_folder():
     except Exception as e:
         logger.error(f"Error deleting folder: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/move-folder", methods=["POST"])
+def api_move_folder():
+    """Move/rename a folder"""
+    try:
+        data = request.get_json()
+        old_path = data.get("old_path", "")
+        new_path = data.get("new_path", "")
+
+        if not old_path or not new_path:
+            return jsonify({"success": False, "error": "Both old_path and new_path are required"}), 400
+
+        old_full_path = LOG_BASE_DIR / old_path
+        new_full_path = LOG_BASE_DIR / new_path
+
+        if not old_full_path.exists():
+            return jsonify({"success": False, "error": "Source folder does not exist"}), 404
+
+        if new_full_path.exists():
+            return jsonify({"success": False, "error": "Target path already exists"}), 400
+
+        # Security checks
+        try:
+            old_full_path.relative_to(LOG_BASE_DIR)
+            new_full_path.relative_to(LOG_BASE_DIR)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid path"}), 403
+
+        # Create parent directory if needed
+        new_full_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Perform the move
+        old_full_path.rename(new_full_path)
+
+        return jsonify({"success": True, "message": "Folder moved successfully", "new_path": new_path})
+
+    except Exception as e:
+        logger.error(f"Error moving folder: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/readme", methods=["GET", "POST"])
+def api_readme():
+    """Get or save readme content"""
+    folder_path = request.args.get("folder") if request.method == "GET" else request.get_json().get("folder")
+
+    if not folder_path:
+        return jsonify({"success": False, "error": "No folder specified"}), 400
+
+    folder = LOG_BASE_DIR / folder_path
+    if not folder.exists() or not folder.is_dir():
+        return jsonify({"success": False, "error": "Invalid folder"}), 404
+
+    readme_file = folder / "readme.txt"
+
+    if request.method == "GET":
+        content = readme_file.read_text() if readme_file.exists() else ""
+        return jsonify({"success": True, "content": content})
+    else:
+        content = request.get_json().get("content", "")
+        readme_file.write_text(content)
+        return jsonify({"success": True, "message": "Readme saved successfully"})
 
 
 # Catch-all route for React Router (must be last)

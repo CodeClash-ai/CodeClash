@@ -19,7 +19,7 @@ export function Overview({ gameData }: OverviewProps) {
   const finalScores = finalRound?.results?.scores || {};
 
   return (
-    <div className="card">
+    <div className="card overview-section">
       <h2>Overview</h2>
 
       <div className="overview-grid">
@@ -87,12 +87,14 @@ export function Overview({ gameData }: OverviewProps) {
 
       <details className="mt-3">
         <summary onClick={() => setShowRawMetadata(!showRawMetadata)}>
-          Raw Metadata
+          📋 Configuration & Metadata
         </summary>
         <div className="content">
-          <pre>
-            <code>{JSON.stringify(gameData.metadata, null, 2)}</code>
-          </pre>
+          <div className="metadata-viewer">
+            <pre>
+              <code>{JSON.stringify(gameData.metadata, null, 2)}</code>
+            </pre>
+          </div>
         </div>
       </details>
     </div>

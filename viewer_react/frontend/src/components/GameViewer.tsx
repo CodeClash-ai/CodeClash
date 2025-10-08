@@ -2,9 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import type { GameData } from '../types';
+import { Header, HelpModal } from './Header';
+import { Storage } from './Storage';
+import { ScoresChart } from './ScoresChart';
+import { Readme } from './Readme';
 import { Overview } from './Overview';
 import { Analysis } from './Analysis';
 import { RoundsList } from './RoundsList';
+import { FloatingToc } from './FloatingToc';
 import './GameViewer.css';
 
 export function GameViewer() {
@@ -13,6 +18,7 @@ export function GameViewer() {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Extract folder path from wildcard route parameter
   const folderPath = params['*'] || '';
@@ -42,49 +48,83 @@ export function GameViewer() {
     }
   };
 
-  const handleBackToPicker = () => {
+  const handleMoveFolder = (newPath: string) => {
+    navigate(`/game/${newPath}`);
+  };
+
+  const handleDeleteFolder = () => {
     navigate('/');
   };
 
   if (loading) {
-    return <div className="loading">Loading game data...</div>;
+    return (
+      <>
+        <Header onShowHelp={() => setShowHelp(true)} />
+        <div className="container">
+          <div className="loading">Loading game data...</div>
+        </div>
+      </>
+    );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="error">
-          <p>Error: {error}</p>
-          <button onClick={loadGame}>Retry</button>
-          <button onClick={handleBackToPicker} className="secondary">Back to Picker</button>
+      <>
+        <Header onShowHelp={() => setShowHelp(true)} />
+        <div className="container">
+          <div className="error">
+            <p>Error: {error}</p>
+            <button onClick={loadGame}>Retry</button>
+            <button onClick={() => navigate('/')} className="secondary">Back to Picker</button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!gameData) {
     return (
-      <div className="container">
-        <div className="error">
-          <p>No game data available</p>
-          <button onClick={handleBackToPicker}>Back to Picker</button>
+      <>
+        <Header onShowHelp={() => setShowHelp(true)} />
+        <div className="container">
+          <div className="error">
+            <p>No game data available</p>
+            <button onClick={() => navigate('/')}>Back to Picker</button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="game-viewer">
-      <div className="game-header">
-        <button onClick={handleBackToPicker} className="back-button">
-          ← Back to Games
-        </button>
-        <h2>{folderPath}</h2>
+    <>
+      <Header
+        navigation={gameData.navigation}
+        currentFolder={folderPath}
+        onShowHelp={() => setShowHelp(true)}
+      />
+
+      <div className="container game-viewer">
+        <Storage
+          gameData={gameData}
+          folderPath={folderPath}
+          onMoveFolder={handleMoveFolder}
+          onDeleteFolder={handleDeleteFolder}
+        />
+
+        <ScoresChart folderPath={folderPath} />
+
+        <Readme folderPath={folderPath} />
+
+        <Overview gameData={gameData} folderPath={folderPath} />
+
+        <Analysis folderPath={folderPath} />
+
+        <RoundsList gameData={gameData} folderPath={folderPath} />
       </div>
 
-      <Overview gameData={gameData} folderPath={folderPath} />
-      <Analysis folderPath={folderPath} />
-      <RoundsList gameData={gameData} folderPath={folderPath} />
-    </div>
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      <FloatingToc gameData={gameData} />
+    </>
   );
 }
