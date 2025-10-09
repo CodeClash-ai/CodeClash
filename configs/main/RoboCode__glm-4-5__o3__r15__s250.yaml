@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: glm-4-5
+  name: glm45
   config:
     agent: !include mini/default.yaml
     model:

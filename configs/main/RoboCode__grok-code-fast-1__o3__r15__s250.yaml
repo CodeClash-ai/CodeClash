@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: grok-code-fast-1
+  name: grokcodefast1
   config:
     agent: !include mini/default.yaml
     model:

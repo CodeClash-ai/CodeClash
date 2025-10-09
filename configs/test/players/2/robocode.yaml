@@ -4,7 +4,7 @@ game:
   name: RoboCode
   sims_per_round: 250
   record_ratio: 0.2
-  battle:
+  battle_config:
     battle:
       gunCoolingRate: 0.1
       rules:

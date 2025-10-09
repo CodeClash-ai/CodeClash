@@ -67,6 +67,12 @@ def get_name(p):
     return p["model_name"].split("/")[-1]
 
 
+def robocode_adjustments(config: dict, record_ratio: float):
+    config["game"]["record_ratio"] = record_ratio
+    for idx in range(len(config["players"])):
+        config["players"][idx]["name"] = config["players"][idx]["name"].replace("-", "").replace(".", "")
+
+
 def main(models, arenas, rounds: int, simulations: int, record_ratio: float, output: Path):
     # Get all unique pairs of models
     models = yaml.safe_load(open(models))
@@ -104,8 +110,10 @@ def main(models, arenas, rounds: int, simulations: int, record_ratio: float, out
                 ],
                 "prompts": {"game_description": prompt_game_desc(arena, rounds)},
             }
+
             if arena == RoboCodeGame:
-                config["game"]["record_ratio"] = record_ratio
+                robocode_adjustments(config, record_ratio)
+
             pair_names = "__".join(sorted([get_name(pair[0]), get_name(pair[1])]))
             config_name = f"{arena.name}__{pair_names}__r{rounds}__s{simulations}.yaml"
             with open(output / config_name, "w") as f:

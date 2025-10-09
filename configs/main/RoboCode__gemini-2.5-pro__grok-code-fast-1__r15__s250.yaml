@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: grok-code-fast-1
+  name: grokcodefast1
   config:
     agent: !include mini/default.yaml
     model:
@@ -17,7 +17,7 @@ players:
       model_class: portkey
       litellm_model_name_override: xai/grok-code-fast-1
 - agent: mini
-  name: gemini-2.5-pro
+  name: gemini25pro
   config:
     agent: !include mini/default.yaml
     model:

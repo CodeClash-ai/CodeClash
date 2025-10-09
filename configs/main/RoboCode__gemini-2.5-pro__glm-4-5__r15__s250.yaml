@@ -9,14 +9,14 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: gemini-2.5-pro
+  name: gemini25pro
   config:
     agent: !include mini/default.yaml
     model:
       model_name: '@google/gemini-2.5-pro'
       model_class: portkey
 - agent: mini
-  name: glm-4-5
+  name: glm45
   config:
     agent: !include mini/default.yaml
     model:

@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: gpt-5
+  name: gpt5
   config:
     agent: !include mini/default.yaml
     model:

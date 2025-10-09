@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: gemini-2.5-pro
+  name: gemini25pro
   config:
     agent: !include mini/default.yaml
     model:

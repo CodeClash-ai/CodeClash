@@ -9,7 +9,7 @@ game:
   record_ratio: 0.2
 players:
 - agent: mini
-  name: claude-sonnet-4-20250514
+  name: claudesonnet420250514
   config:
     agent: !include mini/default.yaml
     model:
