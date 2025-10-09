@@ -67,7 +67,7 @@ def get_name(p):
     return p["model_name"].split("/")[-1]
 
 
-def main(models, rounds, simulations, output: Path):
+def main(models, arenas, rounds: int, simulations: int, record_ratio: float, output: Path):
     # Get all unique pairs of models
     models = yaml.safe_load(open(models))
     output.mkdir(parents=True, exist_ok=True)
@@ -77,7 +77,12 @@ def main(models, rounds, simulations, output: Path):
             pairs.append((models[i], models[j]))
 
     tracking_dict = {}
-    for arena in ARENAS:
+    arenas_list = ARENAS if arenas == "all" else [a for a in ARENAS if a.name in arenas.split(",")]
+    if not arenas_list:
+        print(f"No valid arenas found from {arenas}. Choose from {[a.name for a in ARENAS]}.")
+        return  # Stop execution if no valid arenas are found
+    for arena in arenas_list:
+        print(f"Generating {len(pairs)} configs for arena: {arena.name}")
         tracking_dict[arena.name] = {}
         for pair in pairs:
             config = {
@@ -99,6 +104,8 @@ def main(models, rounds, simulations, output: Path):
                 ],
                 "prompts": {"game_description": prompt_game_desc(arena, rounds)},
             }
+            if arena == RoboCodeGame:
+                config["game"]["record_ratio"] = record_ratio
             pair_names = "__".join(sorted([get_name(pair[0]), get_name(pair[1])]))
             config_name = f"{arena.name}__{pair_names}__r{rounds}__s{simulations}.yaml"
             with open(output / config_name, "w") as f:
@@ -129,11 +136,17 @@ def main(models, rounds, simulations, output: Path):
                 tracking_dict[arena.name][tracking_key] = {}
             tracking_dict[arena.name][tracking_key][pvp] = 0
 
-    with open("configs/scripts/main_tracker.json", "w") as f:
-        json.dump(tracking_dict, f, indent=2)
-    print("Wrote tracking file to 'configs/scripts/main_tracker.json'.")
+    tracking_path = "configs/scripts/main_tracker.json"
+    if Path(tracking_path).exists():
+        with open(tracking_path) as f:
+            tracking_dict_current = json.load(f)
+        tracking_dict.update(tracking_dict_current)
 
-    print(f"Generated {len(pairs) * len(ARENAS)} configuration files in '{output}'.")
+    with open(tracking_path, "w") as f:
+        json.dump(tracking_dict, f, indent=2)
+    print(f"Wrote tracking file to '{tracking_path}'.")
+
+    print(f"Generated {len(pairs) * len(arenas)} configuration files in '{output}'.")
     print(f"- # Models: {len(models)}")
     print(f"- # Arenas: {len(ARENAS)}")
     print(f"- r (rounds) {rounds}")
@@ -156,6 +169,13 @@ if __name__ == "__main__":
         help="Path to model configurations.",
     )
     parser.add_argument(
+        "-a",
+        "--arenas",
+        type=str,
+        default="all",
+        help="Comma separated list of arenas to generate configs for (default: all).",
+    )
+    parser.add_argument(
         "-r",
         "--rounds",
         type=int,
@@ -168,6 +188,12 @@ if __name__ == "__main__":
         type=int,
         default=1000,
         help="Number of simulations to run per round (default: 1000).",
+    )
+    parser.add_argument(
+        "--record_ratio",
+        type=float,
+        default=1,
+        help="Fraction of simulations to record (default: 1 = all).",
     )
     parser.add_argument(
         "-o",
