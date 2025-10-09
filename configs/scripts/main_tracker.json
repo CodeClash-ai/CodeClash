@@ -1,6 +1,6 @@
 {
   "RoboCode": {
-    "r15.s1000.p2": {
+    "r15.s250.p2": {
       "claude-sonnet-4-20250514.claude-sonnet-4-5-20250929": "0 (0 rounds)",
       "claude-sonnet-4-20250514.grok-code-fast-1": "0 (0 rounds)",
       "claude-sonnet-4-20250514.gemini-2.5-pro": "0 (0 rounds)",
@@ -19,7 +19,7 @@
       "gemini-2.5-pro.grok-code-fast-1": "0 (0 rounds)",
       "glm-4-5.grok-code-fast-1": "0 (0 rounds)",
       "gpt-5.grok-code-fast-1": "0 (0 rounds)",
-      "gpt-5-mini.grok-code-fast-1": "0 (0 rounds)",
+      "gpt-5-mini.grok-code-fast-1": "1 (16 rounds)",
       "grok-code-fast-1.qwen3-coder-plus-2025-09-23": "0 (0 rounds)",
       "grok-code-fast-1.o3": "0 (0 rounds)",
       "gemini-2.5-pro.glm-4-5": "0 (0 rounds)",
