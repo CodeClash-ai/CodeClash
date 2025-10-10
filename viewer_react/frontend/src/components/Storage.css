@@ -1,0 +1,243 @@
+/* Storage Section Styles */
+
+.storage-section {
+  margin-bottom: 2rem;
+}
+
+.storage-container {
+  padding: 1rem;
+}
+
+.storage-path-summary {
+  background: var(--code-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  color: #ffffff;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.storage-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.storage-item:last-child {
+  margin-bottom: 0;
+}
+
+.storage-label {
+  flex-shrink: 0;
+  min-width: 120px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.storage-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Path display */
+.path-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.folder-path {
+  background: var(--code-bg);
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Action buttons */
+.btn-action {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #000000;
+}
+
+.copy-path-btn,
+.download-btn {
+  background: var(--accent-color);
+  color: #000000;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+}
+
+.copy-path-btn:hover,
+.download-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
+}
+
+.delete-experiment-btn,
+.move-rename-btn {
+  background: var(--success-color);
+  color: #000000;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+}
+
+.delete-experiment-btn:hover,
+.move-rename-btn:hover {
+  background: var(--accent-hover);
+  color: #000000;
+}
+
+/* Small button variants */
+.copy-path-btn-small,
+.download-btn-small {
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.copy-path-btn-small:hover,
+.download-btn-small:hover {
+  background: var(--accent-color);
+  color: #000000;
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* Move/Rename Dialog */
+.move-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.move-dialog-content {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.move-dialog-content h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+}
+
+.move-dialog-content p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+.move-path-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.move-path-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.move-dialog-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.move-dialog-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-dialog-buttons button:first-child {
+  background-color: var(--success-color);
+  color: #000000;
+  font-weight: 700;
+}
+
+.move-dialog-buttons button:first-child:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
+.move-dialog-buttons button:last-child {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.move-dialog-buttons button:last-child:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .storage-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .storage-label {
+    min-width: auto;
+  }
+
+  .path-display {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .copy-path-btn,
+  .download-btn {
+    align-self: flex-start;
+  }
+}

@@ -1,0 +1,891 @@
+/* Game Picker Styles */
+
+.picker-container {
+  max-width: none;
+  width: 100%;
+  margin: 2rem 0;
+  padding: 0 1rem;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.picker-title-section {
+  text-align: left;
+}
+
+.picker-header h1 {
+  color: var(--accent-color);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.picker-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.picker-controls {
+  display: flex;
+  align-items: center;
+}
+
+/* Filter controls */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.clear-filters-btn {
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-filters-btn:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--accent-color);
+}
+
+.clear-filters-btn:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.header-filter-only {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.header-filter-only:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+}
+
+.header-filter-only:hover {
+  border-color: var(--accent-color);
+}
+
+/* Active filters badge */
+.active-filters-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: var(--accent-color);
+  color: #000000;
+  padding: 0.375rem 0.625rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.filter-badge-close {
+  background: none;
+  border: none;
+  color: #000000;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.filter-badge-close:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* Table container */
+.games-table {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: visible;
+  margin-top: 2rem;
+}
+
+.table-controls {
+  background-color: var(--bg-tertiary);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Selection controls */
+.selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selection-controls input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.selection-controls input[type="checkbox"]:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.selection-controls input[type="checkbox"]:checked {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.selection-controls input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.selection-controls label {
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Action controls */
+.action-controls select {
+  padding: 0.5rem 1rem 0.5rem 0.8rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--bg-secondary);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  appearance: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.action-controls select:hover {
+  border-color: var(--accent-color);
+  background-color: var(--bg-primary);
+}
+
+.action-controls select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+/* Table structure */
+.table-header {
+  background-color: var(--bg-tertiary);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: 60px 2.5fr 140px 2fr 100px 3fr 180px;
+  gap: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.table-header select {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+}
+
+.table-header select:hover {
+  border-color: var(--accent-color);
+}
+
+/* Game rows */
+.game-row {
+  display: grid;
+  grid-template-columns: 60px 2.5fr 140px 2fr 100px 3fr 180px;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  align-items: center;
+}
+
+.game-row:last-child {
+  border-bottom: none;
+}
+
+.game-row:hover {
+  background-color: var(--bg-primary);
+  border-left: 3px solid var(--accent-color);
+}
+
+.game-row.keyboard-selected {
+  background-color: var(--bg-primary);
+  border-left: 4px solid var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+}
+
+.game-row.keyboard-selected:hover {
+  background-color: var(--bg-primary);
+  border-left: 4px solid var(--accent-hover);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.3);
+}
+
+/* Folder styles */
+.game-folder {
+  position: relative;
+}
+
+.intermediate-folder {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.intermediate-folder:hover {
+  background-color: var(--bg-secondary);
+  border-left: 3px solid var(--text-muted);
+}
+
+.intermediate-folder.collapsed {
+  border-left: 3px solid var(--accent-color);
+}
+
+.intermediate-folder.collapsed:hover {
+  background-color: var(--bg-primary);
+  border-left: 3px solid var(--accent-hover);
+}
+
+.folder-indicator {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Checkbox cell */
+.checkbox-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  user-select: none;
+  padding: 8px;
+}
+
+.checkbox-cell:hover {
+  background-color: var(--bg-primary);
+  border-radius: 0.25rem;
+}
+
+.checkbox-placeholder {
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-cell input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.checkbox-cell input[type="checkbox"]:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.checkbox-cell input[type="checkbox"]:checked {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.checkbox-cell input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.checkbox-cell input[type="checkbox"]:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Session name cell */
+.session-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.folder-indent {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-family: monospace;
+  white-space: pre;
+}
+
+.folder-icon {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.collapse-icon {
+  color: var(--accent-color);
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+  min-width: 12px;
+  text-align: center;
+  margin-right: 0.25rem;
+}
+
+.collapse-icon:hover {
+  color: var(--accent-hover);
+  transform: scale(1.1);
+}
+
+.game-name {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  font-weight: 500;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+.game-name:hover {
+  text-decoration: underline;
+}
+
+/* Date cell */
+.date-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.date-text {
+  color: var(--text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.date-text:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+  font-weight: 600;
+  transform: scale(1.05);
+}
+
+.date-text.date-selected {
+  background-color: var(--accent-color);
+  color: #000000;
+  font-weight: 700;
+  padding: 0.2rem 0.4rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.date-unknown {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Game name cell */
+.game-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.game-name-tag {
+  background-color: var(--accent-color);
+  color: #000000;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.game-name-tag:hover {
+  background-color: var(--accent-hover);
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.game-name-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Rounds cell */
+.rounds-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+}
+
+.rounds-count {
+  background-color: var(--accent-color);
+  color: #000000;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.rounds-count-warning {
+  background-color: var(--warning-color);
+}
+
+.rounds-unknown {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Models cell */
+.models-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  padding: 0.25rem;
+  min-width: 0;
+}
+
+.model-tag {
+  background-color: var(--success-color);
+  color: #000000;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.model-tag:hover {
+  background-color: var(--accent-color);
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.models-unknown {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Readme cell */
+.readme-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0.25rem;
+}
+
+.readme-text {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+}
+
+.readme-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Action cell */
+.action-cell {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 180px;
+}
+
+.open-button {
+  background-color: var(--success-color);
+  color: #000000;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.open-button:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
+.open-new-tab-button {
+  background-color: var(--accent-color);
+  color: #000000;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.open-new-tab-button:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
+.move-button {
+  background-color: var(--accent-color);
+  color: #000000;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-button:hover {
+  background-color: var(--accent-hover);
+  color: #000000;
+}
+
+/* Sortable headers */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sortable-header:hover {
+  color: var(--accent-color);
+}
+
+.sortable-header i {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.sortable-header:hover i {
+  opacity: 1;
+}
+
+/* Clickable filter styles */
+.clickable-filter {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.clickable-filter:hover {
+  background-color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* No games message */
+.no-games-message {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.no-games-message h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+/* Loading and error states */
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+}
+
+.error {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--danger-color);
+}
+
+.error button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-color);
+  color: #000000;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.error button:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Model filter dropdown */
+.model-filter-container {
+  position: relative;
+  width: 100%;
+}
+
+.model-filter-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.model-filter-button {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.model-filter-button:hover {
+  border-color: var(--accent-color);
+}
+
+.model-filter-button:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+}
+
+.model-filter-options {
+  position: fixed;
+  margin-top: 0.25rem;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
+.model-filter-clear {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.model-filter-clear button {
+  width: 100%;
+  padding: 0.375rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.model-filter-clear button:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.model-filter-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.model-filter-option:hover {
+  background-color: var(--bg-secondary);
+}
+
+.model-filter-option.selected {
+  background-color: var(--accent-color);
+  color: #000000;
+  font-weight: 700;
+}
+
+.model-filter-option.selected:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .picker-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+
+  .picker-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .picker-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .table-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .table-header,
+  .game-row {
+    grid-template-columns: 40px 1fr 80px;
+    gap: 0.5rem;
+  }
+
+  .date-cell,
+  .readme-cell,
+  .models-cell,
+  .action-cell {
+    display: none;
+  }
+
+  .checkbox-cell {
+    width: 40px;
+  }
+
+  .rounds-cell {
+    width: 80px;
+  }
+
+  .game-name {
+    font-size: 0.85rem;
+  }
+}
