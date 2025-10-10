@@ -1,19 +1,26 @@
+import random
 import re
+import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
 from codeclash.games.game import CodeGame, RoundStats
-from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
+from codeclash.utils.environment import create_file_in_container
 
-RC_LOG = "scoreboard.txt"
 RC_FILE = Path("MyTank.java")
+SIMS_PER_RUN = 10
 
 
 class RoboCodeGame(CodeGame):
     name: str = "RoboCode"
-    description: str = """Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
-Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots."""
+    description: str = f"""Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
+Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots.
+Your bot logic must be written in Java and located in the `robots/custom/` directory.
+Keep the main bot class named `{str(RC_FILE)}`, but you can include additional Java files if you'd like."""
     default_args: dict = {
         "nodisplay": True,
         "nosound": True,
@@ -33,7 +40,7 @@ Your program decides how to move, aim, and fire in a deterministic, turn-based a
     def _get_battle_config(self) -> str:
         default_battle_config = {
             "battle": {
-                "numRounds": self.game_config.get("sims_per_round", 100),
+                "numRounds": SIMS_PER_RUN,
                 "gunCoolingRate": 0.1,
                 "rules": {"inactivityTime": 450, "hideEnemyNames": True},
             },
@@ -63,6 +70,24 @@ Your program decides how to move, aim, and fire in a deterministic, turn-based a
         dict_to_lines(default_battle_config)
         return "\n".join(battle_lines)
 
+    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str) -> str:
+        rc_results = self.log_env / f"results_{idx}.txt"
+        rc_record = self.log_env / f"record_{idx}.xml"
+        cmd = f"{cmd} -results {rc_results}"
+        if random.random() < self.game_config.get("record_ratio", 1):
+            # Only record a fraction of simulations to save space
+            cmd = f"{cmd} -recordXML {rc_record}"
+        try:
+            output = self.environment.execute(cmd, timeout=120)
+        except subprocess.TimeoutExpired:
+            self.logger.warning(f"RoboCode simulation {idx} timed out: {cmd}")
+            return ""
+        if output["returncode"] != 0:
+            self.logger.warning(
+                f"RoboCode simulation {idx} failed with exit code {output['returncode']}:\n{output['output']}"
+            )
+        return output["output"]
+
     def execute_round(self, agents: list[Player]):
         for agent in agents:
             # Copy the agent codebase into the game codebase and compile it
@@ -85,30 +110,38 @@ robocode.battle.selectedRobots={selected_robots}
         create_file_in_container(self.environment, content=battle_content, dest_path=f"battles/{battle_file}")
 
         # Run battle with results output to file
-        cmd = f"{self.run_cmd_round} -battle {battle_file} -results {self.log_env / RC_LOG}"
-        self.logger.info(f"Running game: {cmd}")
-        assert_zero_exit_code(self.environment.execute(cmd))
+        cmd = f"{self.run_cmd_round} -battle {battle_file}"
+        with ThreadPoolExecutor(5) as executor:
+            # Submit all simulations to the thread pool
+            futures = [
+                executor.submit(self._run_single_simulation, agents, idx, cmd)
+                for idx in range(self.game_config.get("sims_per_round", 100) // SIMS_PER_RUN)
+            ]
+
+            # Collect results as they complete
+            for future in tqdm(as_completed(futures), total=len(futures)):
+                future.result()
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
-        with open(self.log_round(round_num) / RC_LOG) as f:
-            result_output = f.read()
-        print(result_output)
-        lines = result_output.strip().split("\n")
+        for idx in range(self.game_config.get("sims_per_round", 100) // SIMS_PER_RUN):
+            with open(self.log_round(round_num) / f"results_{idx}.txt") as f:
+                result_output = f.read()
+            lines = result_output.strip().split("\n")
 
-        scores = {}
-        for line in lines:
-            line = line.strip()
-            if not re.match(r"^\d", line):
-                continue
-            match = re.search(r"(\d+)\S+\:\s(\S+)\s+(\d+)", line)
-            if match:
-                player = match.group(2).rsplit(".", 1)[0]
-                score = int(match.group(3))
-                scores[player] = score
-                if int(match.group(1)) == 1:
-                    winner = player
+            scores = {}
+            for line in lines:
+                line = line.strip()
+                if not re.match(r"^\d", line):
+                    continue
+                match = re.search(r"(\d+)\S+\:\s(\S+)\s+(\d+)", line)
+                if match:
+                    player = match.group(2).rsplit(".", 1)[0]
+                    score = int(match.group(3))
+                    if player not in scores:
+                        scores[player] = 0
+                    scores[player] += score
 
-        stats.winner = winner
+        stats.winner = max(scores, key=scores.get)
         stats.scores = scores
         for player, score in scores.items():
             stats.player_stats[player].score = score
