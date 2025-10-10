@@ -83,3 +83,8 @@ class MiniSWEAgent(Player):
                 traj_path,
                 self.game_context.log_env / "edits" / traj_path.name,
             )
+            self._metadata["agent_stats"][self.game_context.round] = {
+                "exit_status": exit_status,
+                "cost": self.agent.model.cost,
+                "api_calls": self.agent.model.n_calls,
+            }
