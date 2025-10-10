@@ -44,6 +44,7 @@ class Player(ABC):
             "initial_commit_hash": self._get_commit_hash(),
             "branch_name": self._branch_name,
             "round_tags": {},  # mapping round -> tag
+            "agent_stats": {},  # mapping round -> agent stats
         }
 
         if self.push:
