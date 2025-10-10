@@ -53,12 +53,12 @@ def main():
 
     LIM = 20
     plt.xlim(0, LIM)  # Limit x-axis to 40 for better visibility
-    plt.xticks(range(0, LIM + 1, 5), fontsize=12, fontproperties=FONT_REG)
-    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=12, fontproperties=FONT_REG)
+    plt.xticks(range(0, LIM + 1, 5), fontsize=18, fontproperties=FONT_REG)
+    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=18, fontproperties=FONT_REG)
     plt.xlabel("Files Edited per Round", fontproperties=FONT_BOLD, fontsize=18)
     # plt.ylabel("Cumulative Probability", fontproperties=FONT_BOLD, fontsize=18)
     # plt.title("CDF of Files Edited per Round by Model")
-    FONT_BOLD.set_size(14)
+    FONT_BOLD.set_size(20)
     plt.legend(prop=FONT_BOLD)
     plt.grid(True)
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")

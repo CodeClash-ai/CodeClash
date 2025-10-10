@@ -54,7 +54,7 @@ def main():
         model_to_steps = json.load(f)
 
     # Plot CDF
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(8, 8))
     for model, thought_length in model_to_steps.items():
         sorted_steps = sorted(thought_length)
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]
@@ -62,8 +62,8 @@ def main():
 
     LIM = 200
     plt.xlim(0, LIM)
-    plt.xticks(range(0, LIM + 1, 20), fontsize=12, fontproperties=FONT_REG)
-    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=12, fontproperties=FONT_REG)
+    plt.xticks(range(0, LIM + 1, 20), fontsize=18, fontproperties=FONT_REG)
+    plt.yticks([i / 10 for i in range(11)], [f"{i * 10}%" for i in range(11)], fontsize=18, fontproperties=FONT_REG)
     plt.xlabel("Thought length (in words) per action", fontproperties=FONT_BOLD, fontsize=18)
     # plt.ylabel("Cumulative Probability")
     # plt.title("CDF of Thought Length (in Words) per Round by Model")
