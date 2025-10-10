@@ -11,9 +11,11 @@ players:
   config:
     agent: !include mini/default.yaml
     model:
-      model_name: anthropic/claude-sonnet-4-5-20250929
+      model_name: '@anthropic/claude-sonnet-4-5-20250929'
+      model_class: portkey
       model_kwargs:
         temperature: 0.0
+        max_tokens: 4096
 - agent: mini
   name: qwen3-coder-plus-2025-09-23
   config:
@@ -27,6 +29,7 @@ prompts:
     You are a software developer ({{player_id}}) competing in a coding game called RobotRumble.
     RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
     Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match.
+    NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code that exceeds this run time will automatically forfeit the round.
 
     The game is played in 15 rounds. For every round, you (and your competitors) edit program code that controls your bot. This is round {{round}}.
     After you and your competitor finish editing your codebases, the game is run automatically.

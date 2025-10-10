@@ -13,17 +13,21 @@ players:
   config:
     agent: !include mini/default.yaml
     model:
-      model_name: anthropic/claude-sonnet-4-20250514
+      model_name: '@anthropic/claude-sonnet-4-20250514'
+      model_class: portkey
       model_kwargs:
         temperature: 0.0
+        max_tokens: 4096
 - agent: mini
   name: claudesonnet4520250929
   config:
     agent: !include mini/default.yaml
     model:
-      model_name: anthropic/claude-sonnet-4-5-20250929
+      model_name: '@anthropic/claude-sonnet-4-5-20250929'
+      model_class: portkey
       model_kwargs:
         temperature: 0.0
+        max_tokens: 4096
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called RoboCode.

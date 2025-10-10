@@ -1,9 +1,13 @@
-- model_name: "anthropic/claude-sonnet-4-20250514"
+- model_name: "@anthropic/claude-sonnet-4-20250514"
+  model_class: portkey
   model_kwargs:
     temperature: 0.0
-- model_name: "anthropic/claude-sonnet-4-5-20250929"
+    max_tokens: 4096
+- model_name: "@anthropic/claude-sonnet-4-5-20250929"
+  model_class: portkey
   model_kwargs:
     temperature: 0.0
+    max_tokens: 4096
 # - model_name: "anthropic/claude-opus-4-1-20250805"
 #   model_kwargs:
 #     temperature: 0.0

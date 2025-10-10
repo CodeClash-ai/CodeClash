@@ -13,9 +13,11 @@ players:
   config:
     agent: !include mini/default.yaml
     model:
-      model_name: anthropic/claude-sonnet-4-20250514
+      model_name: '@anthropic/claude-sonnet-4-20250514'
+      model_class: portkey
       model_kwargs:
         temperature: 0.0
+        max_tokens: 4096
 - agent: mini
   name: grok-code-fast-1
   config:

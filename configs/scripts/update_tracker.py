@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 tracker = json.load(open("configs/scripts/main_tracker.json"))
-arena_logs = [p.parent for p in Path("logs/completed").rglob("metadata.json")]
+arena_logs = [p.parent for p in Path("logs").rglob("metadata.json")]
 
 # Set all tracker values to 0
 for arena in tracker:
@@ -22,19 +22,17 @@ for arena_log in arena_logs:
                 sorted([p["config"]["model"]["model_name"].split("/")[-1] for p in metadata["config"]["players"]])
             )
 
-    if arena == "RoboCode":
-        print(f"Updating {arena}.{setting}.{pvp}")
-
     if arena in tracker and setting in tracker[arena] and pvp in tracker[arena][setting]:
         tracker[arena][setting][pvp][0] += 1
         rounds_played = len(json.load(open(arena_log / "metadata.json"))["round_stats"])
         tracker[arena][setting][pvp][1] += rounds_played
 
-for arena in tracker:
+for arena in sorted(tracker.keys()):
     print(arena)
-    for setting in tracker[arena]:
+    for setting in sorted(tracker[arena].keys()):
         print(f"  * {setting}")
-        for pvp, v in tracker[arena][setting].items():
+        for pvp in sorted(tracker[arena][setting].keys()):
+            v = tracker[arena][setting][pvp]
             v_str = f"{v[0]} ({v[1]} rounds)"
             if v[1] > 0:
                 print(f"    - {arena}.{setting}.{pvp}: {v_str}")
