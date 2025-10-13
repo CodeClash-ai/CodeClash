@@ -1,6 +1,7 @@
 import fcntl
-from dataclasses import dataclass
 from pathlib import Path
+
+from pydantic import BaseModel
 
 
 class FileLock:
@@ -20,8 +21,7 @@ class FileLock:
         return False
 
 
-@dataclass
-class Instance:
+class Instance(BaseModel):
     player_name: str
     round_number: int
     tournament_name: str
@@ -29,7 +29,7 @@ class Instance:
 
     @property
     def instance_id(self) -> str:
-        return f"{self.tournament_name}.{self.player_name}.{self.round_number}"
+        return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
 
 
 def find_tournament_folders(input_dir: Path) -> list[Path]:
