@@ -3,6 +3,7 @@ import argparse
 import json
 import random
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Literal
 
@@ -110,11 +111,11 @@ class BigQuestions:
         response_data = BigQuestionsModelResponseSchema.model_validate_json(response["content"])
         response_data.pretty_print()
         response_data_json = {
-            "result": BigQuestionsModelResponseSchema.model_validate_json(response["content"]).model_dump_json(),
-            "instance": instance.model_dump_json(),
+            "result": BigQuestionsModelResponseSchema.model_validate_json(response["content"]).model_dump(mode="json"),
+            "instance": instance.model_dump(mode="json"),
         }
 
-        self._save_response(target_path, response_data_json)
+        self._save_response(target_path, response_data_json, instance)
         logger.info(f"Evaluated instance {instance.instance_id}. Saved to {target_path} with key {self.data_id}")
 
     def _format_traj_str(self, messages: list[dict[str, Any]]) -> str:
@@ -151,11 +152,11 @@ class BigQuestions:
         data = json.loads(content)
         if self.data_id not in data:
             return False
-        if data[self.data_id].get("instance_id") == instance.instance_id:
+        if instance.instance_id in data[self.data_id]:
             return True
         return False
 
-    def _save_response(self, target_path: Path, response_data: dict[str, Any]) -> None:
+    def _save_response(self, target_path: Path, response_data: dict[str, Any], instance: Instance) -> None:
         # atomic write with file lock in case other analyses are also writing
         with FileLock(target_path):
             # read again if changed in the meantime
@@ -167,16 +168,54 @@ class BigQuestions:
             data.setdefault(self.data_id, {})[instance.instance_id] = response_data
             target_path.write_text(json.dumps(data))
 
+    def evaluate_bulk(self, instances: list[Instance], *, n_workers: int = 1) -> None:
+        """Evaluate multiple instances with optional parallel processing.
+
+        Args:
+            instances: List of instances to evaluate
+            n_workers: Number of parallel workers (default: 1 for sequential)
+        """
+        total = len(instances)
+        logger.info(f"Starting bulk evaluation of {total} instances with {n_workers} workers")
+
+        if n_workers == 1:
+            for i, instance in enumerate(instances, 1):
+                logger.info(
+                    f"Processing instance {i}/{total}: {instance.instance_id} | Cost: ${GLOBAL_MODEL_STATS.cost:.2f}"
+                )
+                self.evaluate(instance)
+        else:
+            completed = 0
+            with ThreadPoolExecutor(max_workers=n_workers) as executor:
+                future_to_instance = {executor.submit(self.evaluate, instance): instance for instance in instances}
+
+                for future in as_completed(future_to_instance):
+                    instance = future_to_instance[future]
+                    completed += 1
+                    try:
+                        future.result()
+                        logger.info(
+                            f"Completed {completed}/{total}: {instance.instance_id} | Cost: ${GLOBAL_MODEL_STATS.cost:.2f}"
+                        )
+                    except Exception:
+                        logger.error(
+                            f"Failed {completed}/{total}: {instance.instance_id} | Cost: ${GLOBAL_MODEL_STATS.cost:.2f}",
+                            exc_info=True,
+                        )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dir", type=Path, help="Path to the input dir")
+    parser.add_argument("input_dir", type=Path, nargs="+", help="Path to the input dir(s)")
+    parser.add_argument("--shuffle", action="store_true", help="Shuffle instances before processing")
+    parser.add_argument("-n", "--n-workers", type=int, default=1, help="Number of parallel workers (default: 1)")
     args = parser.parse_args()
 
     config = BigQuestionsConfig.model_validate(yaml.safe_load(config_path.read_text()))
-    instances = get_instances(args.input_dir)
+    instances = []
+    for input_dir in args.input_dir:
+        instances.extend(get_instances(input_dir))
     big_questions = BigQuestions(config)
-    random.shuffle(instances)
-    for instance in instances:
-        big_questions.evaluate(instance)
-        print(GLOBAL_MODEL_STATS.cost)
+    if args.shuffle:
+        random.shuffle(instances)
+    big_questions.evaluate_bulk(instances, n_workers=args.n_workers)

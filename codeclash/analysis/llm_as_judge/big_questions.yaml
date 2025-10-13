@@ -1,5 +1,5 @@
 # Incrementing this version will cause previous submissions to be re-evaluated
-version: 6
+version: 7
 system_prompt: |
   ## Overall setting
 
@@ -7,20 +7,23 @@ system_prompt: |
   You are given a trajectory of actions of an LM agent that is playing a game.
   You are asked to answer a series of questions about the behavior of the agent.
 
-  In particular we are interested in
+  We are interested in:
 
-  1. what motivated edits
-  2. what steps were taken to validate the edits
+  1. What motivated the edits
+  2. What steps were taken to validate the edits
+
+  All questions that are marked as boolean need to be answered with a boolean value.
+  You cannot answer "unknown" or similar.
 
   ## Definitions
 
   **Main player file**:
 
-  You are investigating a LM agent that is playing a game.
+  You are investigating an LM agent that is playing a game.
   The main player file is the main file that constitutes the agent's submission, i.e.,
-  the file that governs the agent's behavior for the next round of the game that is being played.
+  the file that governs the agent's behavior and logic for the next round of the game that is being played.
   Commonly, this is the file called `main.py`, `player.py`, `robot.js`, `warrior.red`, or
-  the directory `robots/custom/`.
+  all relevant files in the directory `robots/custom/` (we still talk about the main player file even if there might be more than one in the case of `robots/custom`).
   Do not confuse the main player file with analysis files, or copies of previous versions of the main player file
   or other bots that the agent is creating for testing purposes.
 
@@ -29,58 +32,62 @@ system_prompt: |
   The final edits are the changes to a file after all actions.
   For example, an edit action that is reverted by another edit action is not part of the final edits.
 
-  ## Q1 (`edit_category`): Categorize the kind of final edits to the main player file
+  ## Q1 (`edit_category`, one of `none`, `tweak`, `fix`, `feature`, `change`): Categorize the kind of final edits to the main player file
 
   Categorize the **FINAL** (!) edits to the **MAIN PLAYER FILE (!)** into one of the following categories.
   Ignore comments or documentation.
   You can only select **ONE (!)** category. Choose the one that describes the changes best.
 
-  1. `tweak`: Logic is left unchanged, but we do change some parameters.
+  1. `none`: No change in behavior. Only comments, documentation, refactoring was performed.
+  2. `tweak`: Logic is left unchanged, but we do change some parameters.
   2. `fix`: Small, targeted change with the intent to fix broken behavior.
-  3. `feature`: Significant new behavior is added, mostly extending the existing code
-  4. `change`: We significantly change the behavior by rewriting significant logic of the code
-  5. `none`: No change in behavior. Only comments, documentation, refactoring was performed.
+  4. `feature`: Significant new behavior is added, mostly extending the existing code.
+  5. `change`: We significantly change the behavior by rewriting significant logic of the code.
 
   Notes:
 
   1. Only count the final edits to the main player file (any edits that are reverted are not counted).
   2. For this question, only the main player file is considered.
+  3. Precedence if multiple categories might fit: `none` < `tweak` < `fix` < `feature` or `change`. For feature or change, the order is not important, choose what better describes the changes.
+  4. Ignore comments, documentation, or refactorings that do not change behavior.
 
-  ## Q2 (`edits_motivated_by_logs`): Are the final edits to the main player file motivated by logs?
+  ## Q2 (`edits_motivated_by_logs`, boolean): Are the final edits to the main player file motivated by previous round's logs?
 
-  Are the **FINAL** (!) edits to the **MAIN PLAYER FILE (!)** of the player directly motivated by problems discovered by reading the logs?
+  Are the **FINAL** (!) edits to the **MAIN PLAYER FILE (!)** of the player directly motivated by problems discovered by reading the previous round'slogs?
 
   We want to check if the edits of the **MAIN PLAYER FILE (!)** are well motivated by the results of previous game logs.
 
+  In the absence of required evidence, answer False.
+
   Special case: If there are no edits to the main player file, answer `True`.
-
-  Reasons to answer `False` if there are edits to the main player file, but:
-
-  1. Player does not look at logs.
-  2. Player reads some lines of the logs, but no clear failure mode is inferable. For example, the lines only state some game state, but it is not clear what is going wrong, for example because only the first lines of the game log are shown without showing the conclusion. Or the logs only show which player won but without much of a reason.
-  3. Player runs an analysis script, but the analysis script does not return an actionable outcome or information that allows to infer it. For example, the analyais script only reports losses, but without clear attribution about what went wrong.
-  4. A clear failure mode is uncovered in some of the logs or analyses, but the edits do not seem to be correlated to this failure mode.
 
   Answer `True` if **ALL (!)** of the following is true:
 
-  1. A failure mode can be inferred with the help of reading the logs or analysis scripts evaluating the logs. Note that the failuire mode needs not be spelled out in any of the action outputs. It is enough that there is enough information to infer a failure mode based on basic reasoning.
+  1. A failure mode can be inferred with the help of reading the logs or analysis scripts evaluating the logs. Note that the failure mode need not be spelled out in any of the action outputs. It is enough that there is enough information to infer a failure mode based on basic reasoning.
   2. The edit is directly related to this failure mode. It is ok if some minor parts of the edit are unrelated.
 
-  The logs can be either from a game that the player simulates it self, or from the previous round, but it must be a meaningful game log.
+  The logs can be either from a game that the player simulates itself, or from the previous round, but it must be a meaningful game log.
 
-  Here are some example of real failure modes:
+  Here are some examples of real failure modes:
 
   - The snake that the player is controlling runs out of food (so we need to more aggressively search for food)
   - Our bot runs against a wall (so we change that)
-  - Our race car does not move for several turns (so we fix some movement related bug)
+  - Our race car does not move for several turns (so we fix a movement-related bug)
   - Our warrior's missiles do not hit the enemy (so we improve something about the aim)
   - Our code times out (so we improve efficiency)
 
-  Here are some example of not real failure modes:
+  Here are some examples of non-failure modes:
 
   - Player 1 won 99% of the rounds (why?)
   - Player 2 is better most of the time (why?)
   - Player 1 is the last bot standing and is therefore the winner (does not explain why player 2 lost)
+
+  Here are some more examples that should lead to a False answer unless other conditions are met for a True answer:
+
+  1. Player does not look at logs.
+  2. Player reads some lines of the logs, but no clear failure mode is inferable. For example, the lines only state some game state, but it is not clear what is going wrong, for example because only the first lines of the game log are shown without showing the conclusion. Or the logs only show which player won but without much of a reason.
+  3. Player runs a script that analyzes logs, but the analysis script does not return an actionable outcome or information that allows to infer it. For example, the analysis script only reports losses, without attribution of what went wrong.
+  4. A clear failure mode is uncovered in some of the logs or analyses, but the edits do not seem to be correlated to this failure mode.
 
   ## Q3 (`edits_motivated_by_insights`): Are the final edits to the main player file motivated by insights?
 
@@ -96,10 +103,10 @@ system_prompt: |
   However, if for 1. and 2. the test or analysis script gives a recommendation that's not
   corroborated by the actual code of the analysis or test file, or by its respective output,
   this does not count as motivation.
-  This for example applies to static messages in the analysis, test file, or documentation like `README_agent.md` or similar.
+  This applies to static messages in the analysis, test file, or documentation like `README_agent.md` or similar.
   If you do not see the output or the code of the analysis or test file, this also does not count as motivation.
 
-  You should answer False, if the edits seemed unrelated to any output of previous actions before the relevant
+  You should answer False if the edits seemed unrelated to any output of previous actions before the relevant
   edit actions, i.e., you did not see any evidence that the edits were motivated by the output of previous actions.
 
   Caveats:
@@ -114,10 +121,10 @@ system_prompt: |
   Answer `True`, if the **FINAL** (!) edits to the **MAIN PLAYER FILE (!)** were motivated by old static messages,
   i.e., messages that are
 
-  1. Old: Were not created during the trajectory
+  1. Old: Were not created during the trajectory, i.e., you do not see how they were created.
   2. Static: Are always shown and do not depend on any tests or analysis outcomes.
 
-  A common case are generic notes in `README_agent.md` or similar documentation proposing ways to improve the bot
+  A common case is generic notes in `README_agent.md` or similar documentation proposing ways to improve the bot
   in the next round.
 
   This question is independent of the previous questions (`edits_motivated_by_logs`, `edits_motivated_by_insights`): The final edits can be motivated by old static messages and still be additionally motivated by the output of previous actions, or the static messages can be the only motivation.
@@ -126,7 +133,7 @@ system_prompt: |
 
   ## Q5 (`edits_reverted_based_on_insights`): Were any edits on the main player file reverted based on tests or simulations?
 
-  Unlike the previous questions, this question is about the edits that were reverted during the trajectory., i.e., the player made an edit at a step, but reverted it at a later step.
+  Unlike the previous questions, this question is about the edits that were reverted during the trajectory, i.e., the player made an edit at a step, but reverted it at a later step.
 
   Answer `True` if any edits to the **MAIN PLAYER FILE (!)** were reverted based on one or more of the following:
 
@@ -151,7 +158,7 @@ system_prompt: |
   3. Unit tests do NOT (!) count as a simulated game.
   4. The validation by simulation does not have to take place at the very end, but it has to be played with the updated version of the main player file that includes the core implementation of the idea of the final edits. It is acceptable to have some minor edits performed after the simulation, as long as the core idea of the final edits is included.
 
-  Special case: If no final edits to the main player file have been made, answer `True`
+  Special case: If no final edits to the main player file have been made, answer `True`.
 
   ## Q7 (`edits_validated_with_unittests`): Are the final edits to the main player file validated with unittests?
 
@@ -163,11 +170,11 @@ system_prompt: |
 
   1. Running the game to get a win rate does not count as a unittest, because it does not specifically validate specific changes.
   2. Running unittests that are unrelated to the changes does not count either.
-  3. if the tests did not run, or showed that the new version was broken, answer False.
+  3. If the tests did not run, or showed that the new version was broken, answer False.
   4. You can also count tests that only print output (but do not have assert statements) as unit tests, if they essentially print the expected output of the new or modified behavior and can therefore be used to validate the new or modified behavior.
   5. The validation by unittests does not have to take place at the very end, but it has to be performed with the updated version of the main player file that includes the core implementation of the idea of the final edits. It is acceptable to have some minor edits performed after the unittests, as long as the core idea of the final edits is included.
 
-  Special case: If there are no significant changes that could be validated, answer True.
+  Special case: If there are no significant changes, answer True.
 
   ## Q8 (`improved_test_analysis_framework`): Was the test or analysis framework improved?
 
@@ -188,8 +195,8 @@ system_prompt: |
 
   Notes:
 
-  1. If a test or analysis is executed without being saved to disk, it does not count as an improvement (i.e., `python -c` calls etc.)
-  2. If a test or analysi script is removed after being executed, it does not count.
+  1. If a test or analysis is executed without being saved to disk, it does not count as an improvement (i.e., `python -c` calls, shell one-liners, etc.)
+  2. If a test or analysis script is removed after being executed, it does not count.
   3. This question is completely independent of the main player file and all other questions.
 
   ## Output format
