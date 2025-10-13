@@ -17,7 +17,7 @@ from rich.panel import Panel
 from rich.table import Table
 from typing_extensions import Any
 
-from codeclash.analysis.llm_as_judge.utils import FileLock, Instance, get_instances
+from codeclash.analysis.llm_as_judge.utils import FileLock, Instance, InstanceBatch, get_instances
 from codeclash.utils.log import get_logger
 
 logger = get_logger("BigQuestionsEvaluator", emoji="🤖")
@@ -204,17 +204,28 @@ class BigQuestions:
                         )
 
 
+def load_instances_from_path(path: Path) -> list[Instance]:
+    if path.is_file() and path.suffix == ".json":
+        logger.info(f"Loading instances from batch file: {path}")
+        batch = InstanceBatch.model_validate_json(path.read_text())
+        return batch.instances
+    logger.info(f"Loading instances from directory: {path}")
+    return get_instances(path)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dir", type=Path, nargs="+", help="Path to the input dir(s)")
+    parser.add_argument(
+        "input_dir", type=Path, nargs="+", help="Path to the input dir(s) or to instance batch json files"
+    )
     parser.add_argument("--shuffle", action="store_true", help="Shuffle instances before processing")
     parser.add_argument("-n", "--n-workers", type=int, default=1, help="Number of parallel workers (default: 1)")
     args = parser.parse_args()
 
     config = BigQuestionsConfig.model_validate(yaml.safe_load(config_path.read_text()))
     instances = []
-    for input_dir in args.input_dir:
-        instances.extend(get_instances(input_dir))
+    for input_path in args.input_dir:
+        instances.extend(load_instances_from_path(input_path))
     big_questions = BigQuestions(config)
     if args.shuffle:
         random.shuffle(instances)

@@ -1,4 +1,5 @@
 import fcntl
+import json
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -30,6 +31,15 @@ class Instance(BaseModel):
     @property
     def instance_id(self) -> str:
         return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
+
+    def get_lm_name(self) -> str:
+        metadata_path = self.trajectory_path.parent.parent.parent / "metadata.json"
+        metadata = json.loads(metadata_path.read_text())
+        return metadata["config"]["players"][self.player_name]["config"]["model"]["model_name"]
+
+
+class InstanceBatch(BaseModel):
+    instances: list[Instance]
 
 
 def find_tournament_folders(input_dir: Path) -> list[Path]:
