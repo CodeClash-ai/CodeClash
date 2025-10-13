@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -58,9 +59,9 @@ def main(log_dir: Path):
     # Plot
     FONT_BOLD.set_size(18)
     _, ax = plt.subplots(figsize=(10, 8))
-    # cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#e74c3c", "#ffffff", "#3498db"])
-    # masked = np.ma.masked_where(np.isnan(matrix), matrix)
-    # im = ax.imshow(masked, cmap=cmap, vmin=0, vmax=1)
+    cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#e74c3c", "#ffffff", "#3498db"])
+    masked = np.ma.masked_where(np.isnan(matrix), matrix)
+    ax.imshow(masked, cmap=cmap, vmin=0, vmax=1)
 
     # Add percentages
     for i in range(n):
