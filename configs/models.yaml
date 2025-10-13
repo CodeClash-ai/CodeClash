@@ -1,12 +1,12 @@
 - model_name: "@anthropic/claude-sonnet-4-20250514"
   model_class: portkey
   model_kwargs:
-    temperature: 0.0
+    temperature: 0.2
     max_tokens: 4096
 - model_name: "@anthropic/claude-sonnet-4-5-20250929"
   model_class: portkey
   model_kwargs:
-    temperature: 0.0
+    temperature: 0.2
     max_tokens: 4096
 # - model_name: "anthropic/claude-opus-4-1-20250805"
 #   model_kwargs:
@@ -14,8 +14,12 @@
 - model_name: "@x-ai/grok-code-fast-1"
   model_class: portkey
   litellm_model_name_override: "xai/grok-code-fast-1"
+  model_kwargs:
+    temperature: 0.2
 - model_name: "@google/gemini-2.5-pro"
   model_class: portkey
+  model_kwargs:
+    temperature: 0.2
 - model_name: "@fireworks/accounts/fireworks/models/glm-4-5"
   model_class: portkey
   litellm_model_name_override: "deepinfra/zai-org/GLM-4.5"
@@ -34,5 +38,7 @@
 - model_name: "qwen3-coder-plus-2025-09-23"
   model_class: dashscope
   litellm_model_name_override: "deepinfra/Qwen/Qwen3-Coder-480B-A35B-Instruct"
+  model_kwargs:
+    temperature: 0.2
 - model_name: "@openai/o3"
   model_class: portkey
