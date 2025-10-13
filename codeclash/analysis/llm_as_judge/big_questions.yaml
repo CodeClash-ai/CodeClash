@@ -3,7 +3,7 @@ version: 4
 system_prompt: |
   You need to answer three question
 
-  ## Are edits motivated by logs?
+  ## Q1 (`are_edits_motivated_by_logs`): Are edits motivated by logs?
 
   Are the edits of the main player file of the player directly motivated by problems discovered by reading the logs?
 
@@ -39,7 +39,7 @@ system_prompt: |
   - Player 2 is better most of the time (why?)
   - Player 1 is the last bot standing and is therefore the winner (does not explain why player 2 lost)
 
-  ## Are edits motivated
+  ## Q2 (`are_edits_motivated`): Are edits motivated
 
   Can the goal of the specific edits on the main player file be motivated by any output of previous actions?
   If you answered True to the previous question, answer True here as well.
@@ -63,7 +63,7 @@ system_prompt: |
   You should answer False, if the edits seemed unrelated to any output of previous actions before the relevant
   edit actions.
 
-  ## Are edits tested with simulations?
+  ## Q3 (`are_edits_tested_with_simulations`): Are edits tested with simulations?
 
   After edits to the main player file have been made, does the player simulate games by playing the game against previous versions of itself, or against example players, etc.
   Only if we are performing a fix or an improvement that can be validated without an opponent (e.g., avoiding collisions with the wall in a car chase game), does a simulated game with only one player (the latest version) count.
@@ -77,7 +77,7 @@ system_prompt: |
 
   1. If no edits to the main player file have been made, answer `True`
 
-  ## Are edits validated with unittests?
+  ## Q4 (`are_edits_validated_with_unittests`): Are edits validated with unittests?
 
   Are the final edits covered by specific unittests that test the new or modified behavior?
 
@@ -95,7 +95,7 @@ system_prompt: |
 
   Note: if the tests did not run, or showed that the new version was broken, answer False.
 
-  ## Categorize the kind of edits made
+  ## Q5 (`edit_category`): Categorize the kind of edits made
 
   Categorize the final edits to the main file into one of the following categories.
   Ignore comments or documentation.
@@ -109,7 +109,8 @@ system_prompt: |
 
   ## Output format
 
-  Answer in the json format specified. Reasoning corresponds to your explanation for your answer.
+  Answer in the json format specified.
+  The `reasoning` field should contain an explanation for your answer that explains your reasoning for each of the answers.
 instance_prompt: |
   Here is your input file:
 
