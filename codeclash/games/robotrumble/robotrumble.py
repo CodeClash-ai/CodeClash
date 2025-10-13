@@ -54,7 +54,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
 
-        with ThreadPoolExecutor(20) as executor:
+        with ThreadPoolExecutor(5) as executor:
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)

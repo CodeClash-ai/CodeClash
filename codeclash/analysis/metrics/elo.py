@@ -88,9 +88,10 @@ def get_scores(stats: dict) -> dict[str, float]:
                     _score = 1.0
                 else:
                     _score = 0.0
-            else:
-                assert sims > 0, (stats["scores"], valid_submits)
+            elif sims > 0:
                 _score = (v["score"] + 0.5 * ties) * 1.0 / sims
+            else:
+                continue
             player2score[k] = _score
     return player2score
 
@@ -122,7 +123,9 @@ def update_profiles(prof_and_score: list[tuple[ModelEloProfile, float]], k_facto
 
 
 class SkipTournamentException(Exception):
-    pass
+    def __init__(self, message: str = ""):
+        super().__init__(message)
+        self.message = message
 
 
 class ELOCalculator:
@@ -157,8 +160,7 @@ class ELOCalculator:
             prof_and_score.append((prof, score))
 
         if len(prof_and_score) != 2:
-            print(f"Skipping round {current_round} (wrong number of players)")
-            raise SkipTournamentException
+            raise SkipTournamentException(f"Skipping round {current_round} (wrong number of players)")
 
         weighted_k_factor = self._k_factor * round_weight
         update_profiles(prof_and_score, weighted_k_factor)
@@ -214,13 +216,11 @@ class ELOCalculator:
             players = metadata["config"]["players"]
             arena = metadata["config"]["game"]["name"]
         except KeyError:
-            print(f"Skipping {tournament_log_folder} (malformed metadata.json)")
-            raise SkipTournamentException
+            raise SkipTournamentException("Skipping (malformed metadata.json)")
 
         if len(players) != 2:
             # Only process if there are exactly 2 players
-            print(f"Skipping {tournament_log_folder} (wrong number of players)")
-            raise SkipTournamentException
+            raise SkipTournamentException("Skipping (not 2 players)")
 
         # Initialize profiles
         player2profile = {}
@@ -250,8 +250,8 @@ class ELOCalculator:
         for game_log_folder in tqdm([x.parent for x in log_dir.rglob("metadata.json")]):
             try:
                 self._analyze_tournament(game_log_folder)
-            except SkipTournamentException:
-                print(f"Skipping {game_log_folder}")
+            except SkipTournamentException as e:
+                print(f"[{game_log_folder.name}] {e.message}")
                 continue
 
     def print_results(self) -> None:
