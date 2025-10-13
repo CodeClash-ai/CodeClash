@@ -35,7 +35,7 @@ Victory comes from crafting clever strategies—bluffing, reading opponents, and
         if verbose:
             self.logger.debug(f"Starting game engine with command: {run_cmd_round}")
         script = [
-            "!/bin/bash",
+            "#!/bin/bash",
             "rm -rf /app/output/*",  # Remove previous outputs
             f"kill -9 $(lsof -ti :{HB_PORT})",  # Kill previous game if any
             run_cmd_round,  # Start engine
