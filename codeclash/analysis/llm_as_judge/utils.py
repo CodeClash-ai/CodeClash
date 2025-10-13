@@ -32,10 +32,13 @@ class Instance(BaseModel):
     def instance_id(self) -> str:
         return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
 
-    def get_lm_name(self) -> str:
+    def get_lm_name_self_opponent(self) -> tuple[str, str]:
         metadata_path = self.trajectory_path.parent.parent.parent / "metadata.json"
         metadata = json.loads(metadata_path.read_text())
-        return metadata["config"]["players"][self.player_name]["config"]["model"]["model_name"]
+        player_configs = metadata["config"]["players"]
+        player_config = [pc for pc in player_configs if pc["name"] == self.player_name][0]
+        other_player_config = [pc for pc in player_configs if pc["name"] != self.player_name][0]
+        return player_config["config"]["model"]["model_name"].removeprefix("@"), other_player_config["config"]["model"]["model_name"].removeprefix("@")
 
 
 class InstanceBatch(BaseModel):
@@ -47,10 +50,15 @@ def find_tournament_folders(input_dir: Path) -> list[Path]:
 
 
 def parse_trajectory_name(trajectory_path: Path) -> Instance:
+    try:
+        round_number = int(trajectory_path.name.removesuffix(".traj.json").split("_r")[1])
+    except:
+        print(trajectory_path)
+        raise
     return Instance(
         trajectory_path=trajectory_path,
         player_name=trajectory_path.parent.name,
-        round_number=int(trajectory_path.name.split(".")[0].split("_r")[1]),
+        round_number=round_number,
         tournament_name=trajectory_path.parent.parent.parent.name,
     )
 

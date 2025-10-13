@@ -66,6 +66,7 @@ class BigQuestionsModelResponseSchema(BaseModel):
 
 class ModelConfig(BaseModel):
     model_name: str
+    model_class: str | None = None
     model_kwargs: dict[str, Any]
 
 
@@ -90,7 +91,7 @@ def extract_triple_backticks(text: str) -> str:
 class BigQuestions:
     def __init__(self, config: BigQuestionsConfig):
         self.config = config
-        self.model = get_model(config.model.model_name, config={"model_kwargs": config.model.model_kwargs})
+        self.model = get_model(config.model.model_name, config={"model_kwargs": config.model.model_kwargs, "model_class": config.model.model_class})
 
     @property
     def data_id(self) -> str:
@@ -145,20 +146,24 @@ class BigQuestions:
 
     def _should_skip(self, target_path: Path, instance: Instance) -> bool:
         if not target_path.exists():
+            logger.debug(f"Not skipping: {target_path} does not exist")
             return False
         content = target_path.read_text()
         if not content.strip():
+            logger.debug(f"Not skipping: {target_path} is empty")
             return False
         data = json.loads(content)
         if self.data_id not in data:
+            logger.debug(f"Not skipping: {self.data_id} not in {target_path}")
             return False
-        if instance.instance_id in data[self.data_id]:
-            return True
-        return False
+        if instance.instance_id not in data[self.data_id]:
+            logger.debug(f"Not skipping: {instance.instance_id} not in {target_path} under key {self.data_id}")
+            return False
+        return True
 
     def _save_response(self, target_path: Path, response_data: dict[str, Any], instance: Instance) -> None:
         # atomic write with file lock in case other analyses are also writing
-        with FileLock(target_path):
+        with FileLock(target_path.with_suffix(".lock")):
             # read again if changed in the meantime
             data = {}
             if target_path.exists():
