@@ -8,6 +8,7 @@ logs/**
 # Kilian's specific ignores
 batch_submit.sh
 round_scores.json
+*.parquet
 
 
 # -------------
