@@ -17,8 +17,8 @@
   model_class: portkey
   model_kwargs:
     temperature: 0.2
-# - model_name: "@openai/gpt-5"
-#   model_class: portkey
+- model_name: "@openai/gpt-5"
+  model_class: portkey
 # - model_name: "@openai/gpt-5-mini"
 #   model_class: portkey
 - model_name: "qwen3-coder-plus-2025-09-23"

@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
-from codeclash.games import ARENAS
+from codeclash.games import ARENAS, DummyGame
 
 
 @dataclass
@@ -258,7 +258,7 @@ class ELOCalculator:
         print("=" * 50)
         print("Player ELO profiles:")
         lines = [
-            f" - {profile.model} ({profile.arena}) - ELO: {profile.rating:.1f} (Rounds: {profile.rounds_played})"
+            f" - {profile.model} ({profile.arena}) - ELO: {profile.rating:.0f} (Rounds: {profile.rounds_played})"
             for profile in self._player_profiles.values()
         ]
         print("\n".join(sorted(lines)))
@@ -289,10 +289,10 @@ class ELOCalculator:
         # Claude 4 Sonnet & ... & & & \\
         # ...
         print("\nLaTeX formatted table:")
-        arenas = [x.name for x in ARENAS]
+        arenas = [x.name for x in ARENAS if x != DummyGame]
         lines = []
         arenas_small = [f"\\scriptsize{{{arena}}}" for arena in arenas]
-        line = "& " + " & ".join(arenas_small) + " & All" + r" \\"
+        line = "& " + " & ".join(arenas_small) + " & \\textbf{All}" + r" \\"
         line = line.replace("HuskyBench", "Poker")
         lines.append(line)
         lines.append(r"\midrule")
@@ -305,7 +305,7 @@ class ELOCalculator:
                 per_model_lines[profile.model] = {}
             if profile.arena not in arena_rankings:
                 arena_rankings[profile.arena] = []
-            per_model_lines[profile.model][profile.arena] = round(profile.rating, 1)
+            per_model_lines[profile.model][profile.arena] = int(round(profile.rating, 0))
             arena_rankings[profile.arena].append((profile.model, profile.rating))
 
         # Sort each arena ranking by ELO descending
@@ -322,10 +322,10 @@ class ELOCalculator:
         # Now print the table
         overall_ranks = sorted(model_to_avg_elo.items(), key=lambda x: x[1], reverse=True)
         model_rank = {model: rank + 1 for rank, (model, _) in enumerate(overall_ranks)}
-        for model in sorted(per_model_lines.keys()):
+        for model, _ in overall_ranks:
             m = model.split("/", 1)[-1]
             rank = f"\\textsuperscript{{\\textcolor{{gray}}{{{model_rank[model]}}}}}"
-            overall_elo = f"{model_to_avg_elo[model]:.1f}{rank}"
+            overall_elo = f"{model_to_avg_elo[model]:.0f}{rank}"
             if model_rank[model] == 1:
                 overall_elo = f"\\textbf{{{overall_elo}}}"
             line = (
