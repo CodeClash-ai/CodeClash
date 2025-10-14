@@ -4,14 +4,18 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
+OUTPUT_FILE = ASSETS_DIR / "heatmap_win_streak_distribution.png"
 
-def main(log_dir: Path):
+
+def main(log_dir: Path, xlim: int = 15):
     win_streaks = defaultdict(list)
 
     for metadata_file in tqdm(list(log_dir.rglob("metadata.json")), desc="Processing tournaments"):
@@ -62,23 +66,24 @@ def main(log_dir: Path):
 
     # Create heatmap visualization
     models = sorted(win_streaks.keys())
-    clean_names = [m.split("/")[-1] for m in models]
 
     max_streaks = []
     for model in models:
         streaks = win_streaks[model]
         max_streaks.append(max(streaks) if streaks else 0)
 
-    max_streak_overall = max(max_streaks) if max_streaks else 1
-    # Limit display to reasonable maximum (tournament length)
-    max_streak_overall = min(max_streak_overall, 15)
-    streak_matrix = np.zeros((len(models), max_streak_overall))
+    # Use xlim as the display maximum
+    display_columns = xlim
+    streak_matrix = np.zeros((len(models), display_columns))
 
     for i, model in enumerate(models):
         streaks = win_streaks[model]
         for streak_len in streaks:
-            if streak_len <= max_streak_overall:
+            if streak_len < xlim:
                 streak_matrix[i, streak_len - 1] += 1
+            else:
+                # Aggregate all streaks >= xlim into the last column
+                streak_matrix[i, xlim - 1] += 1
 
     # Normalize by total streaks for each model
     for i in range(len(models)):
@@ -86,20 +91,24 @@ def main(log_dir: Path):
         if total > 0:
             streak_matrix[i, :] = streak_matrix[i, :] / total * 100
 
-    plt.figure(figsize=(15, 8))
-    im = plt.imshow(streak_matrix, cmap="Reds", aspect="auto")
+    plt.figure(figsize=(6, 6))
+    cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#ffffff", "#3498db"])
+    plt.imshow(streak_matrix, cmap=cmap, aspect="auto")
 
     # Keep track of absolute counts for labels
-    absolute_counts = np.zeros((len(models), max_streak_overall))
+    absolute_counts = np.zeros((len(models), display_columns))
     for i, model in enumerate(models):
         streaks = win_streaks[model]
         for streak_len in streaks:
-            if streak_len <= max_streak_overall:
+            if streak_len < xlim:
                 absolute_counts[i, streak_len - 1] += 1
+            else:
+                # Aggregate all streaks >= xlim into the last column
+                absolute_counts[i, xlim - 1] += 1
 
     # Add percentage and absolute count labels to ALL cells
     for i in range(len(models)):
-        for j in range(max_streak_overall):
+        for j in range(display_columns):
             percentage = streak_matrix[i, j]
             count = int(absolute_counts[i, j])
             text = f"{percentage:.1f}%\n({count})"
@@ -111,22 +120,25 @@ def main(log_dir: Path):
                 va="center",
                 color="white" if percentage > 40 else "black",
                 fontweight="bold",
-                fontsize=7,
+                fontsize=12,
+                fontproperties=FONT_BOLD,
             )
 
-    plt.xlabel("Win Streak Length")
-    plt.ylabel("Model")
-    plt.title("Win Streak Distribution (%)", fontweight="bold")
-    plt.xticks(range(max_streak_overall), range(1, max_streak_overall + 1))
-    plt.yticks(range(len(models)), clean_names)
-    plt.colorbar(im, label="Percentage of Streaks")
+    plt.xlabel("Win Streak Length", fontproperties=FONT_BOLD, fontsize=18)
+
+    # Create x-axis labels with the last one as "xlim+"
+    x_labels = [str(i) for i in range(1, xlim)] + [f"{xlim}+"]
+    plt.xticks(range(display_columns), x_labels, fontproperties=FONT_BOLD, fontsize=14)
+    plt.yticks(range(len(models)), [MODEL_TO_DISPLAY_NAME[m] for m in models], fontproperties=FONT_BOLD, fontsize=14)
+    # plt.colorbar(im, label="Percentage of Streaks")
     plt.tight_layout()
-    plt.savefig("heatmap_win_streak_distribution.png", dpi=300, bbox_inches="tight")
-    print("Win streak distribution heatmap saved to heatmap_win_streak_distribution.png")
+    plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
+    print(f"Win streak distribution heatmap saved to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze model win streak distributions")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR, help="Path to logs")
+    parser.add_argument("-x", "--xlim", type=int, default=15, help="Max win streak length to display")
     args = parser.parse_args()
-    main(args.log_dir)
+    main(**vars(args))

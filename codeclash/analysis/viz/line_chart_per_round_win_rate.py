@@ -95,7 +95,7 @@ def main(log_dir: Path):
         print(f" - {pid}: " + ", ".join([f"{wr:.2%}" for wr in lines[pid]]))
 
     # Create line chart of win rate progression per player
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
     for pid, win_rates in lines.items():
         plt.plot(
             range(1, 16),

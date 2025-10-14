@@ -1,34 +1,46 @@
 #!/usr/bin/env python3
 """
-Model Resiliency Analysis: Comeback Success Rate by Deficit Size
+Model Resiliency Analysis: Round-to-Round Recovery Rate by Deficit Size
 
-This script analyzes how well different AI models recover from score deficits during
-tournaments. It tracks models that are trailing in cumulative score at various points
-and calculates their success rate at making comebacks.
+This script analyzes how well different AI models recover in the immediate next round
+after losing by various margins. It measures direct bounce-back ability.
 
 Key Metrics:
-- Deficit Size: How far behind a model is in cumulative score
-- Comeback Success: Whether the trailing model ultimately wins the tournament
-- Success Rate: Percentage of successful comebacks for each deficit range
+- Deficit Size: Calculated per-round as (winner_score - loser_score) / (winner_score + loser_score) * 100
+  This represents the losing margin as a percentage of total round outcomes.
+- Recovery Success: Whether a model that lost round N wins round N+1
+- Success Rate: Percentage of successful immediate recoveries for each deficit range
 
 Visualization:
-- Line chart showing deficit size (x-axis) vs comeback success rate (y-axis)
+- Line chart showing deficit size (x-axis) vs next-round win rate (y-axis)
 - Separate line for each model to compare resilience patterns
-- Error bars to show confidence intervals where sample sizes permit
 
 Insights:
-- Identifies models with strong comeback ability vs those that struggle when behind
-- Shows the "point of no return" - deficit sizes from which comebacks become rare
-- Reveals model-specific patterns in tournament resilience and recovery
+- Identifies models with strong bounce-back ability vs those that struggle after losses
+- Shows deficit sizes from which models can typically recover vs those that cause continued struggle
+- Reveals model-specific patterns in immediate resilience and recovery
 """
 
 import argparse
 import glob
 import json
 from collections import defaultdict
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+
+DEFICIT_RANGES = [
+    (0, 10),  # 0-10% deficit
+    (10, 20),  # 10-20% deficit
+    (20, 30),  # 20-30% deficit
+    (30, 50),  # 30-50% deficit
+    (50, 100),  # 50%+ deficit
+]
+
+OUTPUT_FILE = ASSETS_DIR / "line_chart_model_resiliency.png"
 
 
 def load_tournament_metadata(metadata_path):
@@ -41,177 +53,94 @@ def load_tournament_metadata(metadata_path):
         return None
 
 
-def calculate_cumulative_scores(rounds_data, players):
+def identify_deficit_and_recovery_situations(rounds_data, players):
     """
-    Calculate cumulative scores for each player after each round.
+    Identify situations where a player lost a round and track if they won the next round.
+
+    Deficit is calculated per-round as: (winner_score - loser_score) / (winner_score + loser_score) * 100
+    This represents the losing margin as a percentage of total round outcomes.
 
     Args:
         rounds_data: Dictionary mapping round numbers to round data
-        players: List of player names
+        players: List of player names (should be exactly 2 for PvP)
 
     Returns:
-        Dictionary mapping round number to player cumulative scores
+        List of tuples: (round_num, losing_player, deficit_percentage, won_next_round)
     """
-    cumulative_scores = {}
+    recovery_situations = []
+    sorted_round_nums = sorted(int(k) for k in rounds_data.keys())
 
-    # Initialize cumulative scores
-    running_totals = {player: 0 for player in players}
-
-    # Process each round in order
-    for round_num in sorted(int(k) for k in rounds_data.keys()):
+    # Process each round and check the next round for recovery
+    for i, round_num in enumerate(sorted_round_nums):
         round_data = rounds_data[str(round_num)]
 
-        # Add this round's scores to running totals
-        for player in players:
-            if player in round_data["player_stats"]:
-                running_totals[player] += round_data["player_stats"][player]["score"]
+        # Get scores for both players in this round
+        if len(players) != 2:
+            continue  # Skip if not exactly 2 players
 
-        # Store cumulative scores after this round
-        cumulative_scores[round_num] = running_totals.copy()
+        player1, player2 = players
+        score1 = round_data["player_stats"].get(player1, {}).get("score", 0)
+        score2 = round_data["player_stats"].get(player2, {}).get("score", 0)
 
-    return cumulative_scores
+        total_score = score1 + score2
 
+        if total_score == 0:
+            continue  # Skip rounds with no scoring
 
-def identify_deficit_situations(cumulative_scores, players):
-    """
-    Identify situations where a player is trailing and by how much.
+        # Identify winner and loser of this round
+        if score1 > score2:
+            winner_score = score1
+            loser_score = score2
+            losing_player = player2
+            # winning_player = player1
+        elif score2 > score1:
+            winner_score = score2
+            loser_score = score1
+            losing_player = player1
+            # winning_player = player2
+        else:
+            continue  # Skip tied rounds
 
-    Args:
-        cumulative_scores: Dictionary of cumulative scores by round
-        players: List of player names
+        # Calculate deficit as losing margin percentage
+        deficit_percentage = ((winner_score - loser_score) / total_score) * 100
 
-    Returns:
-        List of tuples: (round_num, trailing_player, deficit_size)
-    """
-    deficit_situations = []
+        # Check if there's a next round
+        if i + 1 < len(sorted_round_nums):
+            next_round_num = sorted_round_nums[i + 1]
+            next_round_data = rounds_data[str(next_round_num)]
 
-    for round_num, scores in cumulative_scores.items():
-        if len(scores) < 2:  # Need at least 2 players for comparison
-            continue
+            # Check who won the next round
+            next_score1 = next_round_data["player_stats"].get(player1, {}).get("score", 0)
+            next_score2 = next_round_data["player_stats"].get(player2, {}).get("score", 0)
+            next_total = next_score1 + next_score2
 
-        # Sort players by score (highest first)
-        sorted_players = sorted(players, key=lambda p: scores.get(p, 0), reverse=True)
+            # Did the loser of this round win the next round?
+            won_next_round = False
+            if next_total > 0:  # Only if next round had scoring
+                if losing_player == player1 and next_score1 > next_score2:
+                    won_next_round = True
+                elif losing_player == player2 and next_score2 > next_score1:
+                    won_next_round = True
 
-        if len(sorted_players) >= 2:
-            leader = sorted_players[0]
-            leader_score = scores.get(leader, 0)
+            recovery_situations.append((round_num, losing_player, deficit_percentage, won_next_round))
 
-            # Check each trailing player
-            for trailing_player in sorted_players[1:]:
-                trailing_score = scores.get(trailing_player, 0)
-                deficit = leader_score - trailing_score
-
-                if deficit > 0:  # Only record if there's actually a deficit
-                    deficit_situations.append((round_num, trailing_player, deficit))
-
-    return deficit_situations
-
-
-def determine_tournament_winner(rounds_data, players):
-    """
-    Determine who won the tournament based on final cumulative scores.
-
-    Args:
-        rounds_data: Dictionary of round data
-        players: List of player names
-
-    Returns:
-        String name of winning player
-    """
-    # Get final cumulative scores
-    final_scores = {player: 0 for player in players}
-
-    for round_data in rounds_data.values():
-        for player in players:
-            if player in round_data["player_stats"]:
-                final_scores[player] += round_data["player_stats"][player]["score"]
-
-    # Return player with highest final score
-    return max(final_scores.keys(), key=lambda p: final_scores[p])
-
-
-def calculate_comeback_success_rates(deficit_situations, rounds_data, players):
-    """
-    Calculate comeback success rates for different deficit ranges.
-
-    Args:
-        deficit_situations: List of (round_num, player, deficit) tuples
-        rounds_data: Dictionary of round data for determining winners
-        players: List of player names
-
-    Returns:
-        Dictionary mapping deficit ranges to success rates by model
-    """
-    # Define deficit ranges (buckets)
-    deficit_ranges = [
-        (0, 50),  # Small deficit
-        (50, 100),  # Medium deficit
-        (100, 200),  # Large deficit
-        (200, 400),  # Very large deficit
-        (400, 800),  # Huge deficit
-        (800, float("inf")),  # Massive deficit
-    ]
-
-    # Track attempts and successes for each model and deficit range
-    comeback_data = defaultdict(lambda: defaultdict(lambda: {"attempts": 0, "successes": 0}))
-
-    # Group deficit situations by tournament
-    tournament_deficits = defaultdict(list)
-    for round_num, player, deficit in deficit_situations:
-        # We need to track which tournament this came from
-        # For now, assume all deficit situations are from the same tournament
-        tournament_deficits["current"].append((round_num, player, deficit))
-
-    # Process each tournament's deficit situations
-    for _tournament_key, deficits in tournament_deficits.items():
-        if not deficits:
-            continue
-
-        # Determine tournament winner
-        winner = determine_tournament_winner(rounds_data, players)
-
-        # Process each deficit situation in this tournament
-        for _round_num, trailing_player, deficit in deficits:
-            # Find which deficit range this belongs to
-            for min_deficit, max_deficit in deficit_ranges:
-                if min_deficit <= deficit < max_deficit:
-                    # Record attempt
-                    comeback_data[trailing_player][(min_deficit, max_deficit)]["attempts"] += 1
-
-                    # Record success if this player ultimately won
-                    if trailing_player == winner:
-                        comeback_data[trailing_player][(min_deficit, max_deficit)]["successes"] += 1
-                    break
-
-    # Calculate success rates
-    success_rates = defaultdict(dict)
-    for player, deficit_data in comeback_data.items():
-        for deficit_range, stats in deficit_data.items():
-            if stats["attempts"] > 0:
-                success_rate = stats["successes"] / stats["attempts"]
-                success_rates[player][deficit_range] = {
-                    "rate": success_rate,
-                    "attempts": stats["attempts"],
-                    "successes": stats["successes"],
-                }
-
-    return success_rates, deficit_ranges
+    return recovery_situations
 
 
 def analyze_tournament_directory(log_dir):
     """
-    Analyze all tournaments in a directory for comeback patterns.
+    Analyze all tournaments in a directory for round-to-round recovery patterns.
 
     Args:
         log_dir: Path to directory containing tournament logs
 
     Returns:
-        Aggregated comeback success rate data
+        Aggregated recovery success rate data (next-round win rate after losses)
     """
     metadata_files = glob.glob(str(log_dir / "**/metadata.json"), recursive=True)
 
     # Aggregate data across all tournaments
-    all_comeback_data = defaultdict(lambda: defaultdict(lambda: {"attempts": 0, "successes": 0}))
+    all_recovery_data = defaultdict(lambda: defaultdict(lambda: {"attempts": 0, "successes": 0}))
     processed_tournaments = 0
 
     print(f"Found {len(metadata_files)} metadata files")
@@ -233,32 +162,25 @@ def analyze_tournament_directory(log_dir):
             if len(player_names) != 2:
                 continue
 
-            # Calculate cumulative scores
-            cumulative_scores = calculate_cumulative_scores(rounds_data, player_names)
+            # Identify deficit and recovery situations (round-to-round)
+            recovery_situations = identify_deficit_and_recovery_situations(rounds_data, player_names)
 
-            # Identify deficit situations
-            deficit_situations = identify_deficit_situations(cumulative_scores, player_names)
-
-            if not deficit_situations:
+            if not recovery_situations:
                 continue
 
-            # Determine tournament winner
-            winner = determine_tournament_winner(rounds_data, player_names)  # Define deficit ranges
-            deficit_ranges = [(0, 50), (50, 100), (100, 200), (200, 400), (400, 800), (800, float("inf"))]
-
-            # Process deficit situations for this tournament
-            for _round_num, trailing_player, deficit in deficit_situations:
+            # Process recovery situations for this tournament
+            for _round_num, losing_player, deficit_percentage, won_next_round in recovery_situations:
                 # Map player name to model name
-                trailing_model = p2m.get(trailing_player, trailing_player)
+                losing_model = p2m.get(losing_player, losing_player)
 
-                for min_deficit, max_deficit in deficit_ranges:
-                    if min_deficit <= deficit < max_deficit:
-                        # Record attempt
-                        all_comeback_data[trailing_model][(min_deficit, max_deficit)]["attempts"] += 1
+                for min_deficit, max_deficit in DEFICIT_RANGES:
+                    if min_deficit <= deficit_percentage < max_deficit:
+                        # Record attempt (lost this round)
+                        all_recovery_data[losing_model][(min_deficit, max_deficit)]["attempts"] += 1
 
-                        # Record success if this player's model ultimately won
-                        if trailing_player == winner:
-                            all_comeback_data[trailing_model][(min_deficit, max_deficit)]["successes"] += 1
+                        # Record success if they won the next round
+                        if won_next_round:
+                            all_recovery_data[losing_model][(min_deficit, max_deficit)]["successes"] += 1
                         break
 
             processed_tournaments += 1
@@ -270,10 +192,9 @@ def analyze_tournament_directory(log_dir):
     print(f"Successfully processed {processed_tournaments} tournaments")
 
     # Calculate aggregated success rates
-    deficit_ranges = [(0, 50), (50, 100), (100, 200), (200, 400), (400, 800), (800, float("inf"))]
     success_rates = defaultdict(dict)
 
-    for model, deficit_data in all_comeback_data.items():
+    for model, deficit_data in all_recovery_data.items():
         for deficit_range, stats in deficit_data.items():
             if stats["attempts"] > 0:
                 success_rate = stats["successes"] / stats["attempts"]
@@ -283,35 +204,30 @@ def analyze_tournament_directory(log_dir):
                     "successes": stats["successes"],
                 }
 
-    return success_rates, deficit_ranges
+    return success_rates
 
 
-def create_comeback_visualization(success_rates, deficit_ranges, output_path):
+def create_comeback_visualization(success_rates, output_path):
     """
-    Create line chart visualization of comeback success rates.
+    Create line chart visualization of round-to-round recovery rates.
 
     Args:
-        success_rates: Dictionary of success rates by model and deficit range
-        deficit_ranges: List of deficit range tuples
+        success_rates: Dictionary of recovery rates by model and deficit range
         output_path: Path to save the visualization
     """
     # Set up the plot with clean styling
     plt.style.use("default")
-    fig, ax = plt.subplots(figsize=(12, 8))
+    _, ax = plt.subplots(figsize=(6, 6))
 
     # Define colors for different models
-    colors = ["#2E86C1", "#E74C3C", "#28B463", "#F39C12", "#8E44AD", "#17A2B8", "#DC7633"]
     markers = ["o", "s", "^", "D", "v", "P", "h"]
 
     # Create simple x-axis positions (evenly spaced)
-    x_positions = list(range(len(deficit_ranges)))
+    x_positions = list(range(len(DEFICIT_RANGES)))
     x_labels = []
 
-    for min_def, max_def in deficit_ranges:
-        if max_def == float("inf"):
-            x_labels.append(f"{min_def}+")
-        else:
-            x_labels.append(f"{min_def}-{max_def}")
+    for min_def, max_def in DEFICIT_RANGES:
+        x_labels.append(f"{min_def}-{max_def}")
 
     # Plot line for each model
     model_names = sorted(success_rates.keys())
@@ -323,7 +239,7 @@ def create_comeback_visualization(success_rates, deficit_ranges, output_path):
         y_values = []
         valid_x_positions = []
 
-        for j, deficit_range in enumerate(deficit_ranges):
+        for j, deficit_range in enumerate(DEFICIT_RANGES):
             if deficit_range in model_data:
                 stats = model_data[deficit_range]
                 y_values.append(stats["rate"] * 100)  # Convert to percentage
@@ -333,50 +249,48 @@ def create_comeback_visualization(success_rates, deficit_ranges, output_path):
             continue
 
         # Plot the line
-        color = colors[i % len(colors)]
         marker = markers[i % len(markers)]
-
-        # Clean model name for legend (remove provider prefix)
-        clean_model_name = model.split("/")[-1] if "/" in model else model
 
         ax.plot(
             valid_x_positions,
             y_values,
             marker=marker,
-            linewidth=3,
+            linewidth=2,
             markersize=8,
-            color=color,
-            label=clean_model_name,
+            color=MODEL_TO_COLOR[model],
+            label=MODEL_TO_DISPLAY_NAME[model],
             alpha=0.9,
         )
 
     # Customize the plot
-    ax.set_xlabel("Deficit Size Range", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Comeback Success Rate (%)", fontsize=14, fontweight="bold")
-    ax.set_title("Model Comeback Success Rate by Deficit Size", fontsize=16, fontweight="bold", pad=20)
+    ax.set_xlabel("Loss Margin (%)", fontsize=18, fontproperties=FONT_BOLD)
+    ax.set_ylabel("Next Round Win Rate (%)", fontsize=18, fontproperties=FONT_BOLD)
+    # ax.set_title("Model Recovery Rate by Loss Margin", fontsize=20, fontproperties=FONT_BOLD, pad=20)
 
     # Set axis limits and ticks
     ax.set_ylim(0, 100)
-    ax.set_xlim(-0.5, len(deficit_ranges) - 0.5)
+    ax.set_xlim(-0.5, len(DEFICIT_RANGES) - 0.5)
     ax.set_xticks(x_positions)
-    ax.set_xticklabels(x_labels)
+    ax.set_xticklabels(x_labels, fontproperties=FONT_BOLD, fontsize=14)
+    ax.set_yticklabels(range(0, 101, 20), fontproperties=FONT_BOLD, fontsize=14)
 
     # Add grid for better readability
     ax.grid(True, alpha=0.3, linestyle="--")
 
     # Add legend
-    ax.legend(loc="upper right", frameon=True, fancybox=True, shadow=True)
+    FONT_BOLD.set_size(14)
+    ax.legend(loc="upper right", frameon=True, fancybox=True, shadow=True, prop=FONT_BOLD, ncol=2)
 
     # Adjust layout
     plt.tight_layout()
 
     # Save the plot
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
-    print(f"Comeback success rate visualization saved to: {output_path}")
+    print(f"Recovery rate visualization saved to: {output_path}")
 
     # Display summary statistics
     print("\n" + "=" * 60)
-    print("COMEBACK ANALYSIS SUMMARY")
+    print("ROUND-TO-ROUND RECOVERY ANALYSIS SUMMARY")
     print("=" * 60)
 
     for model in model_names:
@@ -386,29 +300,27 @@ def create_comeback_visualization(success_rates, deficit_ranges, output_path):
         print(f"\n{model}:")
         model_data = success_rates[model]
 
-        # Calculate overall comeback rate across all deficits
+        # Calculate overall recovery rate across all loss margins
         total_attempts = sum(stats["attempts"] for stats in model_data.values())
         total_successes = sum(stats["successes"] for stats in model_data.values())
         overall_rate = total_successes / total_attempts if total_attempts > 0 else 0
 
-        print(f"  Overall comeback rate: {overall_rate:.1%} ({total_successes}/{total_attempts})")
+        print(f"  Overall next-round win rate after losses: {overall_rate:.1%} ({total_successes}/{total_attempts})")
 
-        # Show breakdown by deficit range
-        for deficit_range in deficit_ranges:
+        # Show breakdown by loss margin range
+        for deficit_range in DEFICIT_RANGES:
             if deficit_range in model_data:
                 stats = model_data[deficit_range]
                 min_def, max_def = deficit_range
-                range_label = f"{min_def}+" if max_def == float("inf") else f"{min_def}-{max_def}"
-                print(f"  {range_label}: {stats['rate']:.1%} ({stats['successes']}/{stats['attempts']})")
+                range_label = f"{min_def}%+" if max_def == float("inf") else f"{min_def}-{max_def}%"
+                print(f"  Loss margin {range_label}: {stats['rate']:.1%} ({stats['successes']}/{stats['attempts']})")
 
 
 def main():
-    """Main function to run comeback analysis."""
-    parser = argparse.ArgumentParser(description="Analyze comeback success rates by deficit size")
-    parser.add_argument("log_dir", help="Path to directory containing tournament logs")
-    parser.add_argument(
-        "--output", "-o", default="comeback_success_rates.png", help="Output path for the visualization"
-    )
+    """Main function to run round-to-round recovery analysis."""
+    parser = argparse.ArgumentParser(description="Analyze next-round win rates after losses by loss margin")
+    parser.add_argument("log_dir", help="Path to directory containing tournament logs", type=Path)
+    parser.add_argument("--output", "-o", default=OUTPUT_FILE, help="Output path for the visualization")
 
     args = parser.parse_args()
 
@@ -417,17 +329,17 @@ def main():
         print(f"Error: Directory '{args.log_dir}' does not exist")
         return
 
-    print(f"Analyzing comeback patterns in: {args.log_dir}")
+    print(f"Analyzing round-to-round recovery patterns in: {args.log_dir}")
 
-    # Analyze tournaments for comeback patterns
-    success_rates, deficit_ranges = analyze_tournament_directory(args.log_dir)
+    # Analyze tournaments for recovery patterns
+    success_rates = analyze_tournament_directory(args.log_dir)
 
     if not success_rates:
-        print("No comeback data found. Ensure the directory contains PvP tournament metadata files.")
+        print("No recovery data found. Ensure the directory contains PvP tournament metadata files.")
         return
 
     # Create visualization
-    create_comeback_visualization(success_rates, deficit_ranges, args.output)
+    create_comeback_visualization(success_rates, args.output)
 
 
 if __name__ == "__main__":
