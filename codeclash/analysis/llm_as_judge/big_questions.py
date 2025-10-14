@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import logging
 import random
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -9,12 +10,19 @@ from typing import Literal
 
 import jinja2
 import yaml
-from minisweagent.models import GLOBAL_MODEL_STATS, get_model
+from minisweagent.models import GLOBAL_MODEL_STATS
 from pydantic import BaseModel
 from rich.console import Console, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_not_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 from typing_extensions import Any
 
 from codeclash.analysis.llm_as_judge.utils import FileLock, Instance, InstanceBatch, get_instances
@@ -23,6 +31,24 @@ from codeclash.utils.log import get_logger
 logger = get_logger("BigQuestionsEvaluator", emoji="🤖")
 
 config_path = Path(__file__).parent / "big_questions.yaml"
+
+
+from minisweagent.models.portkey_model import PortkeyModel
+
+
+class PortkeyWithStructuredOutput(PortkeyModel):
+    @retry(
+        stop=stop_after_attempt(10),
+        wait=wait_exponential(multiplier=1, min=4, max=60),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        retry=retry_if_not_exception_type((KeyboardInterrupt, TypeError, ValueError)),
+    )
+    def _query(self, messages: list[dict[str, str]], **kwargs):
+        return self.client.beta.chat.completions.parse(
+            model=self.config.model_name,
+            messages=messages,
+            **(self.config.model_kwargs | kwargs),
+        )
 
 
 class BigQuestionsModelResponseSchema(BaseModel):
@@ -91,7 +117,10 @@ def extract_triple_backticks(text: str) -> str:
 class BigQuestions:
     def __init__(self, config: BigQuestionsConfig):
         self.config = config
-        self.model = get_model(config.model.model_name, config={"model_kwargs": config.model.model_kwargs, "model_class": config.model.model_class})
+        self.model = PortkeyWithStructuredOutput(
+            model_name=config.model.model_name,
+            model_kwargs=config.model.model_kwargs,
+        )
 
     @property
     def data_id(self) -> str:
