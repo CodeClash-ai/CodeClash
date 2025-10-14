@@ -69,8 +69,12 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
                 future.result()
 
     def _get_winner_txt(self, output_file: str, agents: list[Player]) -> str:
-        with open(output_file) as f:
-            lines = f.read().strip().split("\n")
+        try:
+            with open(output_file) as f:
+                lines = f.read().strip().split("\n")
+        except Exception as e:
+            self.logger.warning(f"Failed to read output from {output_file}: {e}")
+            return RESULT_TIE  # TODO: should this be a tie?
 
         # Get the last 2 lines which contain the game result (same as original)
         relevant_lines = lines[-2:] if len(lines) >= 2 else lines
@@ -85,8 +89,12 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         return RESULT_TIE
 
     def _get_winner_json(self, output_file: str, agents: list[Player]) -> str:
-        with open(output_file) as f:
-            data = json.load(f)
+        try:
+            with open(output_file) as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            self.logger.warning(f"Failed to parse JSON output from {output_file}")
+            return RESULT_TIE  # TODO: should this be a tie?
         if "winner" in data:
             if data["winner"] == "Blue":
                 return agents[0].name
