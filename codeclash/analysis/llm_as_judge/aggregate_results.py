@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 
+"""Aggregate results from multiple llm_as_judge.json files
+and save as a compressed parquet file for efficient storage and loading.
+"""
+
 import argparse
 import json
 from pathlib import Path
 from typing import Any
+
+import pandas as pd
 
 from codeclash.analysis.llm_as_judge.utils import Instance
 from codeclash.utils.log import get_logger
@@ -11,13 +17,13 @@ from codeclash.utils.log import get_logger
 logger = get_logger("AggregateResults", emoji="📊")
 
 
-def aggregate_results(input_dir: Path) -> dict[str, Any]:
-    """Aggregate all llm_as_judge.json results from the input directory.
+def aggregate_results_to_dataframe(input_dir: Path) -> pd.DataFrame:
+    """Aggregate all llm_as_judge.json results from the input directory into a DataFrame.
     
     Returns:
-        Dictionary with structure {data_id: {instance_id: result_data}}
+        DataFrame with flattened structure containing all evaluation data
     """
-    aggregated = {}
+    rows = []
     llm_judge_files = list(input_dir.rglob("llm_as_judge.json"))
     
     logger.info(f"Found {len(llm_judge_files)} llm_as_judge.json files")
@@ -33,41 +39,48 @@ def aggregate_results(input_dir: Path) -> dict[str, Any]:
                 
             file_data = json.loads(content)
             
-            # Merge each data_id from this file into the aggregated results
+            # Process each data_id and instance
             for data_id, instances in file_data.items():
-                if data_id not in aggregated:
-                    aggregated[data_id] = {}
-                
-                # Check for duplicate instance_ids
                 for instance_id, instance_data in instances.items():
-                    if instance_id in aggregated[data_id]:
-                        logger.warning(f"Duplicate instance_id '{instance_id}' found in {file_path}")
-                    
-                    # Add model info
+                    # Extract instance metadata
                     instance = Instance.model_validate(instance_data["instance"])
                     model_name, opponent_model_name = instance.get_lm_name_self_opponent()
-                    instance_data.setdefault("info", {})
-                    instance_data["info"]["model_name"] = model_name
-                    instance_data["info"]["opponent_model_name"] = opponent_model_name
                     
-                    aggregated[data_id][instance_id] = instance_data
+                    # Create a flat row with all information
+                    row = {
+                        "data_id": data_id,
+                        "instance_id": instance_id,
+                        "tournament_name": instance.tournament_name,
+                        "player_name": instance.player_name,
+                        "round_number": instance.round_number,
+                        "model_name": model_name,
+                        "opponent_model_name": opponent_model_name,
+                    }
+                    
+                    # Add all evaluation results
+                    if "result" in instance_data:
+                        result_data = instance_data["result"]
+                        for key, value in result_data.items():
+                            row[key] = value
+                    
+                    rows.append(row)
                     
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON in {file_path}: {e}")
         except Exception as e:
             logger.error(f"Error processing {file_path}: {e}", exc_info=True)
     
-    total_instances = sum(len(instances) for instances in aggregated.values())
-    logger.info(f"Aggregated {total_instances} instances across {len(aggregated)} data versions")
+    df = pd.DataFrame(rows)
+    logger.info(f"Created DataFrame with {len(df)} rows and {len(df.columns)} columns")
     
-    return aggregated
+    return df
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Aggregate LLM-as-judge evaluation results")
+    parser = argparse.ArgumentParser(description="Aggregate LLM-as-judge evaluation results to Parquet")
     parser.add_argument("input_dir", type=Path, help="Path to the input directory containing tournament results")
     parser.add_argument("-o", "--output-file", type=Path, 
-                       help="Path to the output file", default="aggregated_results.json")
+                       help="Path to the output Parquet file", default="aggregated_results.parquet")
     args = parser.parse_args()
     
     if not args.input_dir.exists():
@@ -75,9 +88,9 @@ def main() -> None:
         return
     
     logger.info(f"Aggregating results from {args.input_dir}")
-    aggregated = aggregate_results(args.input_dir)
+    df = aggregate_results_to_dataframe(args.input_dir)
     
-    args.output_file.write_text(json.dumps(aggregated, indent=2))
+    df.to_parquet(args.output_file, compression="snappy", index=False)
     logger.info(f"Wrote aggregated results to {args.output_file}")
 
 
