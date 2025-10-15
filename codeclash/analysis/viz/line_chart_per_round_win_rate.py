@@ -119,7 +119,14 @@ def main(log_dir: Path):
     )
     plt.ylim(0.1, 1)
     FONT_BOLD.set_size(14)
+    # Get handles and labels, then sort by label alphabetically
+    handles, labels = plt.gca().get_legend_handles_labels()
+    sorted_pairs = sorted(zip(handles, labels), key=lambda x: x[1])
+    sorted_handles, sorted_labels = zip(*sorted_pairs)
+
     plt.legend(
+        sorted_handles,
+        sorted_labels,
         bbox_to_anchor=(1, 1),
         loc="upper right",
         ncol=2,

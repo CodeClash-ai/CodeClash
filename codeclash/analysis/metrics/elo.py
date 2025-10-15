@@ -233,8 +233,6 @@ class ELOCalculator:
             player2profile[player_name] = self._player_profiles[key]
 
         # Determine total rounds for weighting calculation
-        if "round_stats" not in metadata:
-            raise SkipTournamentException("Skipping (no `round_stats` in metadata)")
         total_rounds = len([k for k in metadata["round_stats"].keys() if k != "0"])
 
         if self._unit == "round":
