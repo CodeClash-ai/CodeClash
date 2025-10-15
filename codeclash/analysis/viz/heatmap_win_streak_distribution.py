@@ -72,20 +72,24 @@ def main(log_dir: Path, xlim: int = 15):
         streaks = win_streaks[model]
         max_streaks.append(max(streaks) if streaks else 0)
 
-    # Use xlim as the display maximum
-    display_columns = xlim
+    # Use xlim as the display maximum, start from streak length 2
+    display_columns = xlim - 1  # Exclude length 1, so columns represent 2 through xlim
     streak_matrix = np.zeros((len(models), display_columns))
 
     for i, model in enumerate(models):
         streaks = win_streaks[model]
         for streak_len in streaks:
+            # Skip streaks of length 1
+            if streak_len == 1:
+                continue
+            # Map streak_len 2 to column 0, 3 to column 1, etc.
             if streak_len < xlim:
-                streak_matrix[i, streak_len - 1] += 1
+                streak_matrix[i, streak_len - 2] += 1
             else:
                 # Aggregate all streaks >= xlim into the last column
-                streak_matrix[i, xlim - 1] += 1
+                streak_matrix[i, display_columns - 1] += 1
 
-    # Normalize by total streaks for each model
+    # Normalize by total streaks for each model (excluding length 1)
     for i in range(len(models)):
         total = np.sum(streak_matrix[i, :])
         if total > 0:
@@ -100,11 +104,15 @@ def main(log_dir: Path, xlim: int = 15):
     for i, model in enumerate(models):
         streaks = win_streaks[model]
         for streak_len in streaks:
+            # Skip streaks of length 1
+            if streak_len == 1:
+                continue
+            # Map streak_len 2 to column 0, 3 to column 1, etc.
             if streak_len < xlim:
-                absolute_counts[i, streak_len - 1] += 1
+                absolute_counts[i, streak_len - 2] += 1
             else:
                 # Aggregate all streaks >= xlim into the last column
-                absolute_counts[i, xlim - 1] += 1
+                absolute_counts[i, display_columns - 1] += 1
 
     # Add percentage and absolute count labels to ALL cells
     for i in range(len(models)):
@@ -124,12 +132,20 @@ def main(log_dir: Path, xlim: int = 15):
                 fontproperties=FONT_BOLD,
             )
 
-    plt.xlabel("Win Streak Length", fontproperties=FONT_BOLD, fontsize=18)
+    plt.xlabel("Consecutive Rounds Won", fontproperties=FONT_BOLD, fontsize=18)
 
-    # Create x-axis labels with the last one as "xlim+"
-    x_labels = [str(i) for i in range(1, xlim)] + [f"{xlim}+"]
+    # Create x-axis labels starting from 2, with the last one as "xlim+"
+    x_labels = [str(i) for i in range(2, xlim)] + [f"{xlim}+"]
     plt.xticks(range(display_columns), x_labels, fontproperties=FONT_BOLD, fontsize=14)
-    plt.yticks(range(len(models)), [MODEL_TO_DISPLAY_NAME[m] for m in models], fontproperties=FONT_BOLD, fontsize=14)
+
+    # Create y-axis labels with total streak counts (excluding length 1)
+    y_labels = []
+    for model in models:
+        total_streaks = sum(1 for streak_len in win_streaks[model] if streak_len >= 2)
+        display_name = MODEL_TO_DISPLAY_NAME[model]
+        y_labels.append(f"{display_name}\n(n={total_streaks})")
+
+    plt.yticks(range(len(models)), y_labels, fontproperties=FONT_BOLD, fontsize=14)
     # plt.colorbar(im, label="Percentage of Streaks")
     plt.tight_layout()
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")

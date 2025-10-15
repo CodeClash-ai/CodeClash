@@ -33,7 +33,11 @@ def main():
                 for changes_file in changes_files:
                     with open(changes_file) as f:
                         changes = json.load(f)
-                    num_files = len(PatchSet(changes["incremental_diff"]))
+                    try:
+                        num_files = len(PatchSet(changes["incremental_diff"]))
+                    except Exception as e:
+                        print(f"Issue parsing diff in {changes_file}, skipping: {e}")
+                        continue
                     model_to_num_files[p2m[name]].append(num_files)
 
         with open(DATA_CACHE, "w") as f:
