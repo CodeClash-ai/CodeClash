@@ -37,7 +37,7 @@ _execute_subsubcategories = ["in_mem", "new", "old"]
 
 # Generate all category combinations
 _all_categories = (
-    ["search", "submit", "other"]
+    ["search", "navigate", "submit", "other"]
     + [f"read.{sub}.{subsub}" for sub in _read_subcategories for subsub in _read_subsubcategories]
     + [f"write.{sub}.{subsub}" for sub in _write_subcategories for subsub in _write_subsubcategories]
     + [f"execute.{sub}.{subsub}" for sub in _execute_subcategories for subsub in _execute_subsubcategories]

@@ -1,5 +1,5 @@
 # Incrementing this version will cause previous submissions to be re-evaluated
-version: 2
+version: 3
 system_prompt: |
   You are helping to analyze the actions of a LM agent (summarily referred to as "trajectory").
 
@@ -9,9 +9,10 @@ system_prompt: |
 
   ## Search operations
 
-  - `search`: Commonly find or grep commands.
+  - `search`: grep or similar commands that search through files.
+  - `navigate`: Commonly navigate through the file system and discover files. Includes commands like `ls`, `cd`, `pwd`, `find`, `tree`, etc.
 
-  This does NOT include running more complicated analysis scripts on files. Rule of thumb: If it's a bash command, it's a read operation, if a python script is executed, it probably belongs in the execution category.
+  This does NOT include running more complicated analysis search scripts on files. Rule of thumb: If it's a bash command, it belongs in this category, if a python script is executed, it probably belongs in the execution category.
 
   ## Read operations
 
