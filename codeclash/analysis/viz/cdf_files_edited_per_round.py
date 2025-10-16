@@ -47,7 +47,7 @@ def main():
         model_to_num_files = json.load(f)
 
     # Plot CDF
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
     for model, files_edited in model_to_num_files.items():
         sorted_files_edited = sorted(files_edited)
         yvals = [i / len(sorted_files_edited) for i in range(len(sorted_files_edited))]

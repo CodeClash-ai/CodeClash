@@ -54,7 +54,7 @@ def main():
         model_to_steps = json.load(f)
 
     # Plot CDF
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
     for model, thought_length in model_to_steps.items():
         sorted_steps = sorted(thought_length)
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]

@@ -42,9 +42,11 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = "survival_curve_error_recovery.png"
+OUTPUT_FILE = ASSETS_DIR / "survival_curve_error_recovery.png"
+DATA_CACHE = ASSETS_DIR / "survival_curve_error_recovery.json"
 
 
 def extract_command_results(traj):
@@ -169,42 +171,50 @@ def main():
     3. Group recovery times by model
     4. Generate survival curve visualization comparing models
     """
-    model_to_recovery_times = defaultdict(list)
+    if not DATA_CACHE.exists():
+        model_to_recovery_times = defaultdict(list)
 
-    # Find all tournament directories by looking for metadata.json files
-    tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
-    for game_log_folder in tqdm(tournaments):
-        # Load tournament metadata to get player-to-model mapping
-        with open(game_log_folder / "metadata.json") as f:
-            metadata = json.load(f)
-        try:
-            # Extract mapping from player name to model name
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
-        except KeyError:
-            # Skip tournaments with malformed metadata
-            continue
+        # Find all tournament directories by looking for metadata.json files
+        tournaments = [x.parent for x in LOCAL_LOG_DIR.rglob("metadata.json")]
+        for game_log_folder in tqdm(tournaments):
+            # Load tournament metadata to get player-to-model mapping
+            with open(game_log_folder / "metadata.json") as f:
+                metadata = json.load(f)
+            try:
+                # Extract mapping from player name to model name
+                p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+            except KeyError:
+                # Skip tournaments with malformed metadata
+                continue
 
-        # Process each player's trajectory files
-        for name in p2m.keys():
-            traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
-            for traj_file in traj_files:
-                try:
-                    with open(traj_file) as f:
-                        traj = json.load(f)
+            # Process each player's trajectory files
+            for name in p2m.keys():
+                traj_files = (game_log_folder / "players" / name).rglob("*.traj.json")
+                for traj_file in traj_files:
+                    try:
+                        with open(traj_file) as f:
+                            traj = json.load(f)
 
-                    # Extract command results and calculate recovery times
-                    command_results = extract_command_results(traj)
-                    recovery_times = calculate_recovery_times(command_results)
+                        # Extract command results and calculate recovery times
+                        command_results = extract_command_results(traj)
+                        recovery_times = calculate_recovery_times(command_results)
 
-                    # Add to model's collection (even if empty - shows model had sessions)
-                    model_to_recovery_times[p2m[name]].extend(recovery_times)
+                        # Add to model's collection (even if empty - shows model had sessions)
+                        model_to_recovery_times[p2m[name]].extend(recovery_times)
 
-                except (json.JSONDecodeError, KeyError, FileNotFoundError):
-                    # Skip malformed trajectory files
-                    continue
+                    except (json.JSONDecodeError, KeyError, FileNotFoundError):
+                        # Skip malformed trajectory files
+                        continue
 
-    # Remove models with no data
-    model_to_recovery_times = {k: v for k, v in model_to_recovery_times.items() if v}
+        # Remove models with no data
+        model_to_recovery_times = {k: v for k, v in model_to_recovery_times.items() if v}
+
+        # Cache the processed data
+        with open(DATA_CACHE, "w") as f:
+            json.dump(model_to_recovery_times, f, indent=2)
+
+    with open(DATA_CACHE) as f:
+        model_to_recovery_times = json.load(f)
 
     # Print summary statistics for each model
     print("Error Recovery Time Summary:")
@@ -224,27 +234,34 @@ def main():
         return
 
     # Generate survival curves comparing all models
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(6, 6))
 
-    # Color scheme for models
-    colors = plt.cm.tab10(range(len(model_to_recovery_times)))
-
-    for i, (model, recovery_times) in enumerate(model_to_recovery_times.items()):
+    for _, (model, recovery_times) in enumerate(model_to_recovery_times.items()):
         if recovery_times:  # Only plot if there's data
             x_values, survival_probs = calculate_survival_curve(recovery_times)
-            plt.plot(x_values, survival_probs, label=model, linewidth=2.5, color=colors[i], marker="o", markersize=4)
+            plt.plot(
+                x_values,
+                survival_probs,
+                label=MODEL_TO_DISPLAY_NAME[model],
+                linewidth=2.5,
+                color=MODEL_TO_COLOR[model],
+                marker="o",
+                markersize=4,
+            )
 
-    plt.xlabel("Recovery Time (Steps)")
-    plt.ylabel("P(Recovery takes > X steps)")
-    plt.title("Error Recovery Survival Curves by Model\n(Lower curves = faster recovery from command failures)")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.xlabel("Recovery Time (Steps)", fontproperties=FONT_BOLD, fontsize=18)
+    plt.ylabel("P(Recovery takes > X steps)", fontproperties=FONT_BOLD, fontsize=18)
+    # plt.title("Error Recovery Survival Curves by Model\n(Lower curves = faster recovery from command failures)")
+    FONT_BOLD.set_size(16)
+    plt.legend(loc="upper right", prop=FONT_BOLD)
     plt.grid(True, alpha=0.3)
-    plt.xlim(left=0)
+    plt.xticks([1, 2, 3, 4])
+    plt.xlim(left=0, right=4)
     plt.ylim(bottom=0, top=1)
 
     # Add some useful reference lines
-    plt.axhline(y=0.5, color="gray", linestyle="--", alpha=0.5, label="50% still recovering")
-    plt.axhline(y=0.1, color="gray", linestyle=":", alpha=0.5, label="10% still recovering")
+    # plt.axhline(y=0.5, color="gray", linestyle="--", alpha=0.5, label="50% still recovering")
+    # plt.axhline(y=0.1, color="gray", linestyle=":", alpha=0.5, label="10% still recovering")
 
     plt.tight_layout()
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")

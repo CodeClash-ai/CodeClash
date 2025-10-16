@@ -48,7 +48,7 @@ def main():
         )
 
     # Plot CDF
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
     for model, steps in model_to_steps.items():
         sorted_steps = sorted(steps)
         yvals = [i / len(sorted_steps) for i in range(len(sorted_steps))]

@@ -179,7 +179,7 @@ def main():
         )
 
     # Generate CDF plot comparing all models
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(6, 6))
 
     for i, (model, diversities) in enumerate(model_to_diversity.items()):
         # Sort diversity values and create cumulative probability values
