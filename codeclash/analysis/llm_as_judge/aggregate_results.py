@@ -45,6 +45,7 @@ def aggregate_results_to_dataframe(input_dir: Path) -> pd.DataFrame:
                     # Extract instance metadata
                     instance = Instance.model_validate(instance_data["instance"])
                     model_name, opponent_model_name = instance.get_lm_name_self_opponent()
+                    current_round_win_rate, next_round_win_rate = instance.get_current_next_round_win_rate()
                     
                     # Create a flat row with all information
                     row = {
@@ -55,6 +56,8 @@ def aggregate_results_to_dataframe(input_dir: Path) -> pd.DataFrame:
                         "round_number": instance.round_number,
                         "model_name": model_name,
                         "opponent_model_name": opponent_model_name,
+                        "current_round_win_rate": current_round_win_rate,
+                        "next_round_win_rate": next_round_win_rate,
                     }
                     
                     # Add all evaluation results

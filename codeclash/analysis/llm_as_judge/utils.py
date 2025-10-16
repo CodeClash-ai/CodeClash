@@ -2,6 +2,7 @@ import fcntl
 import json
 from pathlib import Path
 
+from codeclash.analysis.metrics.elo import get_scores
 from pydantic import BaseModel
 
 
@@ -31,14 +32,33 @@ class Instance(BaseModel):
     @property
     def instance_id(self) -> str:
         return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
+    
+    @property
+    def tournament_path(self) -> Path:
+        return self.trajectory_path.parent.parent.parent
+    
+    @property
+    def metadata_path(self) -> Path:
+        return self.tournament_path / "metadata.json"
 
     def get_lm_name_self_opponent(self) -> tuple[str, str]:
-        metadata_path = self.trajectory_path.parent.parent.parent / "metadata.json"
-        metadata = json.loads(metadata_path.read_text())
+        metadata = json.loads(self.metadata_path.read_text())
         player_configs = metadata["config"]["players"]
         player_config = [pc for pc in player_configs if pc["name"] == self.player_name][0]
         other_player_config = [pc for pc in player_configs if pc["name"] != self.player_name][0]
         return player_config["config"]["model"]["model_name"].removeprefix("@"), other_player_config["config"]["model"]["model_name"].removeprefix("@")
+    
+    def get_current_next_round_win_rate(self) -> tuple[float | None, float | None]:
+        metadata = json.loads(self.metadata_path.read_text())
+        current_round_stats = metadata["round_stats"].get(str(self.round_number))
+        next_round_stats = metadata["round_stats"].get(str(self.round_number + 1))
+        current_win_rate = None
+        next_win_rate = None
+        if current_round_stats is not None:
+            current_win_rate = get_scores(current_round_stats).get(self.player_name)
+        if next_round_stats is not None:
+            next_win_rate = get_scores(next_round_stats).get(self.player_name)
+        return current_win_rate, next_win_rate
 
 
 class InstanceBatch(BaseModel):

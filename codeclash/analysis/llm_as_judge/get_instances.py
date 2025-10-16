@@ -4,6 +4,8 @@
 
 import argparse
 from pathlib import Path
+from collections import defaultdict
+from pyexpat import model
 
 from codeclash.analysis.llm_as_judge.utils import InstanceBatch, get_instances
 
@@ -13,8 +15,9 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output-file", type=Path, help="Path to the output file", default="instances.json")
     args = parser.parse_args()
 
-    SELECTED_ROUNDS = [1, 2, 3, 5, 10, 15]
+    SELECTED_ROUNDS = [1, 2, 3, 5, 10, 12, 14, 15]
     SELECTED_GAME = "BattleSnake"
+    NUMBER_OF_INDEPENDENT_GAMES = 3
 
     # first get all instances, then filter
     instances = sorted(get_instances(args.input_dir), key=lambda x: x.instance_id)
@@ -24,17 +27,24 @@ if __name__ == "__main__":
     instances = [instance for instance in instances if instance.round_number in SELECTED_ROUNDS]
     print(f"Filtered to {len(instances)} instances because of round number")
 
-    # OK, now it gest more complicated, because we only want to keep one
-    # instance per combination of game, lm, and round
-    unique = {}
+    grouped = defaultdict(list)
     for instance in instances:
-        key = (*instance.get_lm_name_self_opponent(), instance.round_number)
-        if key not in unique:
-            unique[key] = instance
-    instances = list(unique.values())
+        model_name_player, model_name_opponent = instance.get_lm_name_self_opponent()
+        if model_name_player == model_name_opponent:
+            continue
+        key = (model_name_player, model_name_opponent, instance.round_number)
+        grouped[key].append(instance)
+    
+    selected_instances = []
+    for key, instance_list in grouped.items():
+        if len(instance_list) < NUMBER_OF_INDEPENDENT_GAMES:
+            print(f"Warning: Only found {len(instance_list)} instances for {key}, need {NUMBER_OF_INDEPENDENT_GAMES}")
+        selected_count = min(len(instance_list), NUMBER_OF_INDEPENDENT_GAMES)
+        selected_instances.extend(instance_list[:selected_count])
+    
+    instances = selected_instances
     unique_models = set([instance.get_lm_name_self_opponent()[0] for instance in instances])
-    print(unique_models)
-    print(f"Filtered to {len(instances)} instances after deduplication for game repetitions for {len(unique_models)} unique model matchups")
+    print(f"Filtered to {len(instances)} instances after keeping {NUMBER_OF_INDEPENDENT_GAMES} for game repetitions for {len(unique_models)} unique model matchups")
 
     batch = InstanceBatch(instances=instances)
     args.output_file.write_text(batch.model_dump_json())
