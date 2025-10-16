@@ -1,6 +1,8 @@
 ci:
   autoupdate_commit_msg: "chore: update pre-commit hooks"
 
+exclude: '\.ipynb\.py$'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
