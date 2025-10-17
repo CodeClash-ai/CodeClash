@@ -119,7 +119,9 @@ You can use {HB_SCRIPT} to check if your bot runs in time."""
             return (
                 False,
                 f"Your submission did not successfully complete a single round of poker within "
-                f"the {HB_BOT_TIMEOUT} second time limit. Please reduce your bot's computation time."
-                f"\n\nCommand run: ./{HB_SCRIPT}",
+                f"the {HB_BOT_TIMEOUT} second time limit.\n\n"
+                "Please reduce your bot's computation time. "
+                "It might also be possible that your code has compilation errors.\n\n"
+                f"Validation command run: `./{HB_SCRIPT}`",
             )
         return True, None
