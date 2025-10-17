@@ -23,23 +23,33 @@ logger = get_logger("HallucinationEvaluator", emoji="🔍")
 config_path = Path(__file__).parent / "hallucination.yaml"
 
 
-categories = [
-    "misinterpretation.log",
-    "misinterpretation.log.loss_reason",
-    "misinterpretation.sourcecode",
-    "misinterpretation.sourcecode.loss_reason",
-    "misinterpretation.execution_output.test",
-    "misinterpretation.execution_output.test.loss_reason",
-    "misinterpretation.execution_output.analysis",
-    "misinterpretation.execution_output.analysis.loss_reason",
-    "ungrounded_thought",
-    "ungrounded_thought.loss_reason",
+source_categories = [
+    "log",
+    "sourcecode",
+    "docs",
+    "execution_output.test",
+    "execution_output.analysis",
+    "none",
+]
+
+claim_categories = [
+    "loss_reason",
+    "win_reason",
+    "game_results",
+    "possible_improvement",
+    "player_code_behavior",
+    "performed_edits",
+    "tool_use_error",
+    "misc",
 ]
 
 
 class Incident(BaseModel):
     step_index: int
-    incident_category: Literal[*categories]
+    claim_category: Literal[*claim_categories]
+    claim: str
+    source_category: Literal[*source_categories]
+    source: str
     detailed_reasoning: str
 
 
@@ -49,11 +59,21 @@ class HallucinationResponseSchema(BaseModel):
     def pretty_print(self) -> None:
         console = Console()
         table = Table()
-        table.add_column("Step Index", style="cyan", width=10)
-        table.add_column("Incident Category", style="green", width=30)
-        table.add_column("Detailed Reasoning", style="yellow")
+        table.add_column("Step", style="cyan", width=6)
+        table.add_column("Claim Category", style="green", width=18)
+        table.add_column("Claim", style="yellow", width=30)
+        table.add_column("Source Category", style="magenta", width=18)
+        table.add_column("Source", style="blue", width=30)
+        table.add_column("Reasoning", style="white", width=40)
         for item in self.items:
-            table.add_row(str(item.step_index), item.incident_category, item.detailed_reasoning)
+            table.add_row(
+                str(item.step_index),
+                item.claim_category,
+                item.claim,
+                item.source_category,
+                item.source,
+                item.detailed_reasoning,
+            )
         console.print(table)
 
 
