@@ -156,12 +156,15 @@ class GroundingValidationPlotter:
             )
 
         ax.set_title(
-            "Are edits grounded in analysis?", fontsize=self.title_fontsize, fontweight="normal", pad=self.title_pad
+            "$\\bf{(a)\\ Groundedness\\ of\\ edits}$\nAre edits to the player file\ngrounded in analysis or test results?",
+            fontsize=self.title_fontsize,
+            fontweight="normal",
+            pad=self.title_pad,
         )
         ax.legend(loc="upper right", fontsize=self.legend_fontsize, frameon=False)
         ax.set_yticks(self.y_positions)
         ax.set_yticklabels(self.display_names, fontsize=self.ytick_label_fontsize)
-        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds (larger is better)", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
@@ -278,9 +281,14 @@ class GroundingValidationPlotter:
                 va="center",
             )
 
-        ax.set_title("Are edits validated?", fontsize=self.title_fontsize, fontweight="normal", pad=self.title_pad)
+        ax.set_title(
+            "$\\bf{(c)\\ Validation\\ of\\ edits}$\nAre the core changes validated\nby arena simulations or tests?",
+            fontsize=self.title_fontsize,
+            fontweight="normal",
+            pad=self.title_pad,
+        )
         ax.legend(loc="upper right", fontsize=self.legend_fontsize, frameon=False)
-        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds (larger is better)", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
@@ -355,8 +363,7 @@ class GroundingValidationPlotter:
                 )
 
         ax.set_title(
-            "Are there unsubstantiated loss causality claims?",
-            # "Hallucinated/Unproven Loss Causality Claims",
+            "$\\bf{(b)\\ Hallucinated\\ Loss\\ Causality}$\nAre there hallucinated or unsubstantiated\nclaims about why arenas were lost?",
             fontsize=self.title_fontsize,
             fontweight="normal",
             pad=self.title_pad,
@@ -368,7 +375,7 @@ class GroundingValidationPlotter:
             title="Hallucinated claims based on",
             title_fontsize=12,
         )
-        ax.set_xlabel("Percentage of rounds affected", fontsize=self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds (smaller is better)", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
