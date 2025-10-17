@@ -7,7 +7,8 @@ logs/**
 *.pdf
 
 # Kilian's specific ignores
-batch_submit.sh
+batch_submit*.json
+batch_submit*.txt
 round_scores.json
 *.parquet
 

@@ -62,7 +62,7 @@ class AWSBatchJobLauncher:
         return latest_job_def["jobDefinitionArn"]
 
     def submit_job(self, command: list[str], job_name: str | None = None) -> str:
-        """Submit a job to AWS Batch."""
+        """Submit a job to AWS Batch. Returns jobs ID."""
         if job_name is None:
             human_name = command[0]
             # If have config take that instead
