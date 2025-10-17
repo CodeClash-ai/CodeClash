@@ -20,9 +20,9 @@ class GroundingValidationPlotter:
     ytick_label_fontsize = 14
     xtick_label_fontsize = 12
     in_bar_number_fontsize = 12
-    in_bar_number_fontweight = "normal"
+    in_bar_number_fontweight = "bold"
     total_number_fontsize = 12
-    total_number_fontweight = "normal"
+    total_number_fontweight = "bold"
 
     # Spacing parameters
     bar_height = 0.8  # Height of each bar (higher = less space between bars)
@@ -78,7 +78,7 @@ class GroundingValidationPlotter:
 
         # Create figure with 3 subplots sharing y-axis
         fig_height = self.n_models * self.figure_height_per_model
-        self.fig, self.axes = plt.subplots(1, 3, figsize=(16, fig_height), sharey=True)
+        self.fig, self.axes = plt.subplots(1, 3, figsize=(13, fig_height), sharey=True)
         self.y_positions = np.arange(self.n_models)
 
     def _get_l_reason_breakdown(self, row) -> str:
@@ -175,7 +175,7 @@ class GroundingValidationPlotter:
             self.y_positions,
             motivated_by_logs,
             self.bar_height,
-            label="Analysis of previous round",
+            label="Analysis of prev. round",
             alpha=alpha_logs,
             color=color_logs,
         )
@@ -195,15 +195,15 @@ class GroundingValidationPlotter:
         self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
-            "$\\bf{(a)\\ Groundedness\\ of\\ edits}$\nAre edits to the player file\ngrounded in analysis or test results?",
+            "(a) Groundedness of edits",
             fontsize=self.title_fontsize,
-            fontweight="normal",
+            fontweight="bold",
             pad=self.title_pad,
         )
-        ax.legend(loc="upper right", fontsize=self.legend_fontsize, frameon=False)
+        ax.legend(loc="upper right", bbox_to_anchor=(1.2, 1), fontsize=self.legend_fontsize, frameon=False)
         ax.set_yticks(self.y_positions)
         ax.set_yticklabels(self.display_names, fontsize=self.ytick_label_fontsize)
-        ax.set_xlabel("Percentage of rounds (larger is better)", fontsize=self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
@@ -281,13 +281,13 @@ class GroundingValidationPlotter:
         self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
-            "$\\bf{(c)\\ Validation\\ of\\ edits}$\nAre the core changes validated\nby arena simulations or tests?",
+            "(c) Validation of edits",
             fontsize=self.title_fontsize,
-            fontweight="normal",
+            fontweight="bold",
             pad=self.title_pad,
         )
-        ax.legend(loc="upper right", fontsize=self.legend_fontsize, frameon=False)
-        ax.set_xlabel("Percentage of rounds (larger is better)", fontsize=self.label_fontsize)
+        ax.legend(loc="upper right", bbox_to_anchor=(1.15, 1), fontsize=self.legend_fontsize, frameon=False)
+        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
@@ -342,19 +342,20 @@ class GroundingValidationPlotter:
         self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
-            "$\\bf{(b)\\ Hallucinated\\ Loss\\ Causality}$\nAre there hallucinated or unsubstantiated\nclaims about why arenas were lost?",
+            "(b) Hallucinated Loss Causality",
             fontsize=self.title_fontsize,
-            fontweight="normal",
+            fontweight="bold",
             pad=self.title_pad,
         )
         ax.legend(
             loc="center right",
+            bbox_to_anchor=(1.15, 0.55),
             fontsize=self.legend_fontsize,
             frameon=False,
             title="Hallucinated claims based on",
             title_fontsize=12,
         )
-        ax.set_xlabel("Percentage of rounds (smaller is better)", fontsize=self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
