@@ -28,6 +28,27 @@ class GroundingValidationPlotter:
     bar_height = 0.8  # Height of each bar (higher = less space between bars)
     figure_height_per_model = 0.8  # Figure height scaling factor per model
 
+    # Color parameters - each as list of (color, alpha) tuples
+    # Plot 1: Grounding (logs, insights)
+    grounding_colors = [
+        ("steelblue", 1.0),  # Analysis of previous round
+        ("steelblue", 0.5),  # Other analysis/tests
+    ]
+
+    # Plot 2: Hallucination (logs/analysis, docs/tests/other, no source)
+    hallucination_colors = [
+        ("#8B0000", 0.8),  # Dark red
+        ("#DC143C", 0.8),  # Crimson
+        ("#FF6B6B", 0.8),  # Light red
+    ]
+
+    # Plot 3: Validation (both, unit only, sim only)
+    validation_colors = [
+        ("forestgreen", 1.0),  # Sim. + unittests
+        ("forestgreen", 0.6),  # Unittests only
+        ("forestgreen", 0.3),  # Simulations only
+    ]
+
     def __init__(self, df: pd.DataFrame):
         self.df = df
 
@@ -72,6 +93,54 @@ class GroundingValidationPlotter:
             return "no source"
         return ""
 
+    def _add_stacked_bar_labels(self, ax, stacked_values: list[list[float]], min_value_to_show: float = 5.0):
+        """Add percentage labels inside stacked bars.
+
+        Args:
+            ax: The matplotlib axis
+            stacked_values: List of lists, where each inner list contains values for one stack segment
+            min_value_to_show: Minimum value to display a label for
+        """
+        left = np.zeros(self.n_models)
+
+        for segment_idx, values in enumerate(stacked_values):
+            for i, val in enumerate(values):
+                if val >= min_value_to_show:
+                    x_pos = left[i] + val / 2
+                    # Determine text color based on segment index or value
+                    text_color = "white" if segment_idx < len(stacked_values) - 1 else "black"
+                    ax.text(
+                        x_pos,
+                        self.y_positions[i],
+                        f"{val:.0f}%",
+                        fontsize=self.in_bar_number_fontsize,
+                        fontweight=self.in_bar_number_fontweight,
+                        ha="center",
+                        va="center",
+                        color=text_color,
+                    )
+            left = left + np.array(values)
+
+    def _add_total_bar_labels(self, ax, totals: list[float], x_offset: float = 1):
+        """Add total value labels at the end of bars.
+
+        Args:
+            ax: The matplotlib axis
+            totals: List of total values for each bar
+            x_offset: Horizontal offset from the end of the bar
+        """
+        for i, total in enumerate(totals):
+            if total > 0:
+                ax.text(
+                    total + x_offset,
+                    self.y_positions[i],
+                    f"{total:.0f}%",
+                    fontsize=self.total_number_fontsize,
+                    fontweight=self.total_number_fontweight,
+                    ha="left",
+                    va="center",
+                )
+
     def plot_grounding_analysis(self):
         """Plot: Are edits grounded in analysis?"""
         ax = self.axes[0]
@@ -99,13 +168,16 @@ class GroundingValidationPlotter:
             motivated_by_insights_not_logs.append(insights_not_logs_pct)
 
         # Plot stacked bars
+        color_logs, alpha_logs = self.grounding_colors[0]
+        color_insights, alpha_insights = self.grounding_colors[1]
+
         ax.barh(
             self.y_positions,
             motivated_by_logs,
             self.bar_height,
             label="Analysis of previous round",
-            alpha=1.0,
-            color="steelblue",
+            alpha=alpha_logs,
+            color=color_logs,
         )
         ax.barh(
             self.y_positions,
@@ -113,47 +185,14 @@ class GroundingValidationPlotter:
             self.bar_height,
             left=motivated_by_logs,
             label="Other analysis/tests",
-            alpha=0.5,
-            color="steelblue",
+            alpha=alpha_insights,
+            color=color_insights,
         )
 
-        # Add percentage labels
-        for i, (logs, insights) in enumerate(zip(motivated_by_logs, motivated_by_insights_not_logs)):
-            if logs >= 5:
-                ax.text(
-                    logs / 2,
-                    i,
-                    f"{logs:.0f}%",
-                    ha="center",
-                    va="center",
-                    fontsize=self.in_bar_number_fontsize,
-                    fontweight=self.in_bar_number_fontweight,
-                    color="white",
-                )
-            if insights >= 5:
-                ax.text(
-                    logs + insights / 2,
-                    i,
-                    f"{insights:.0f}%",
-                    ha="center",
-                    va="center",
-                    fontsize=self.in_bar_number_fontsize,
-                    fontweight=self.in_bar_number_fontweight,
-                    color="black",
-                )
-
-        # Add total labels at the end of each bar
-        for i, (logs, insights) in enumerate(zip(motivated_by_logs, motivated_by_insights_not_logs)):
-            total = logs + insights
-            ax.text(
-                total + 1,
-                i,
-                f"{total:.0f}%",
-                fontsize=self.total_number_fontsize,
-                fontweight=self.total_number_fontweight,
-                ha="left",
-                va="center",
-            )
+        # Add labels
+        self._add_stacked_bar_labels(ax, [motivated_by_logs, motivated_by_insights_not_logs], min_value_to_show=12.0)
+        totals = [logs + insights for logs, insights in zip(motivated_by_logs, motivated_by_insights_not_logs)]
+        self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
             "$\\bf{(a)\\ Groundedness\\ of\\ edits}$\nAre edits to the player file\ngrounded in analysis or test results?",
@@ -205,13 +244,17 @@ class GroundingValidationPlotter:
             tested_unit_only.append(unit_pct)
 
         # Plot stacked bars
+        color_both, alpha_both = self.validation_colors[0]
+        color_unit, alpha_unit = self.validation_colors[1]
+        color_sim, alpha_sim = self.validation_colors[2]
+
         ax.barh(
             self.y_positions,
             tested_both,
             self.bar_height,
             label="Sim. + unittests",
-            alpha=1.0,
-            color="forestgreen",
+            alpha=alpha_both,
+            color=color_both,
         )
         ax.barh(
             self.y_positions,
@@ -219,8 +262,8 @@ class GroundingValidationPlotter:
             self.bar_height,
             left=tested_both,
             label="Unittests only",
-            alpha=0.6,
-            color="forestgreen",
+            alpha=alpha_unit,
+            color=color_unit,
         )
         ax.barh(
             self.y_positions,
@@ -228,58 +271,14 @@ class GroundingValidationPlotter:
             self.bar_height,
             left=np.array(tested_both) + np.array(tested_unit_only),
             label="Simulations only",
-            alpha=0.3,
-            color="forestgreen",
+            alpha=alpha_sim,
+            color=color_sim,
         )
 
-        # Add percentage labels
-        for i, (both, sim, unit) in enumerate(zip(tested_both, tested_sim_only, tested_unit_only)):
-            if both >= 5:
-                ax.text(
-                    both / 2,
-                    i,
-                    f"{both:.0f}%",
-                    ha="center",
-                    va="center",
-                    fontsize=self.in_bar_number_fontsize,
-                    fontweight=self.in_bar_number_fontweight,
-                    color="white",
-                )
-            if unit >= 5:
-                ax.text(
-                    both + unit / 2,
-                    i,
-                    f"{unit:.0f}%",
-                    ha="center",
-                    va="center",
-                    fontsize=self.in_bar_number_fontsize,
-                    fontweight=self.in_bar_number_fontweight,
-                    color="white",
-                )
-            if sim >= 5:
-                ax.text(
-                    both + unit + sim / 2,
-                    i,
-                    f"{sim:.0f}%",
-                    ha="center",
-                    va="center",
-                    fontsize=self.in_bar_number_fontsize,
-                    fontweight=self.in_bar_number_fontweight,
-                    color="black",
-                )
-
-        # Add total labels at the end of each bar
-        for i, (both, sim, unit) in enumerate(zip(tested_both, tested_sim_only, tested_unit_only)):
-            total = both + sim + unit
-            ax.text(
-                total + 1,
-                i,
-                f"{total:.0f}%",
-                fontsize=self.total_number_fontsize,
-                fontweight=self.total_number_fontweight,
-                ha="left",
-                va="center",
-            )
+        # Add labels
+        self._add_stacked_bar_labels(ax, [tested_both, tested_unit_only, tested_sim_only])
+        totals = [both + sim + unit for both, sim, unit in zip(tested_both, tested_sim_only, tested_unit_only)]
+        self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
             "$\\bf{(c)\\ Validation\\ of\\ edits}$\nAre the core changes validated\nby arena simulations or tests?",
@@ -300,7 +299,6 @@ class GroundingValidationPlotter:
         ax = self.axes[1]
 
         category_order = ["logs/analysis", "docs/tests/other", "no source"]
-        red_colors = ["#8B0000", "#DC143C", "#FF6B6B"]  # Dark red, crimson, light red
 
         # Collect data for each model
         model_data = []
@@ -321,46 +319,27 @@ class GroundingValidationPlotter:
 
         for cat_idx, category in enumerate(category_order):
             values = [model_data[model_idx][cat_idx] for model_idx in range(self.n_models)]
+            color, alpha = self.hallucination_colors[cat_idx]
+
             ax.barh(
                 self.y_positions,
                 values,
                 self.bar_height,
                 left=left,
                 label=category,
-                alpha=0.8,
-                color=red_colors[cat_idx],
+                alpha=alpha,
+                color=color,
             )
-
-            # Add value labels
-            for i, val in enumerate(values):
-                if val >= 3:
-                    x_pos = left[i] + val / 2
-                    ax.text(
-                        x_pos,
-                        self.y_positions[i],
-                        f"{val:.0f}%",
-                        fontsize=self.in_bar_number_fontsize,
-                        fontweight=self.in_bar_number_fontweight,
-                        ha="center",
-                        va="center",
-                        color="white",
-                    )
-
             left = left + np.array(values)
 
-        # Add total labels at the end of each bar
-        for i in range(self.n_models):
-            total_val = left[i]
-            if total_val > 0:
-                ax.text(
-                    total_val + 1,
-                    self.y_positions[i],
-                    f"{total_val:.0f}%",
-                    fontsize=self.total_number_fontsize,
-                    fontweight=self.total_number_fontweight,
-                    ha="left",
-                    va="center",
-                )
+        # Add labels
+        stacked_values = [
+            [model_data[model_idx][cat_idx] for model_idx in range(self.n_models)]
+            for cat_idx in range(len(category_order))
+        ]
+        self._add_stacked_bar_labels(ax, stacked_values, min_value_to_show=3.0)
+        totals = [sum(model_data[i]) for i in range(self.n_models)]
+        self._add_total_bar_labels(ax, totals)
 
         ax.set_title(
             "$\\bf{(b)\\ Hallucinated\\ Loss\\ Causality}$\nAre there hallucinated or unsubstantiated\nclaims about why arenas were lost?",
