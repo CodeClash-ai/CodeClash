@@ -80,9 +80,10 @@ You can use {HB_SCRIPT} to check if your bot runs in time."""
         for agent in agents:
             with open(self.log_round(round_num) / f"{agent.name}.log") as f:
                 for line in f:
-                    if line.startswith("My id:"):
+                    if "Connected with player ID: " in line:
                         agent_id = line.strip().split()[-1]
                         map_id_to_agent[agent_id] = agent.name
+                        break
         self.logger.info("Agent IDs: " + str(map_id_to_agent))
 
         with open(self.log_round(round_num) / HB_LOG_ENGINE) as f:
