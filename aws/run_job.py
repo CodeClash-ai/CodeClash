@@ -61,8 +61,8 @@ class AWSBatchJobLauncher:
         logger.debug(f"Latest job definition:\n{json.dumps(latest_job_def, indent=2, default=str)}")
         return latest_job_def["jobDefinitionArn"]
 
-    def submit_job(self, command: list[str], job_name: str | None = None) -> str:
-        """Submit a job to AWS Batch. Returns jobs ID."""
+    def submit_job(self, command: list[str], job_name: str | None = None) -> tuple[str, str]:
+        """Submit a job to AWS Batch. Returns (job_id, job_name)."""
         if job_name is None:
             human_name = command[0]
             # If have config take that instead
@@ -97,7 +97,7 @@ class AWSBatchJobLauncher:
         logger.info(f"Full Command (passed to container entrypoint/bootstrap.sh): {shlex.join(full_command)}")
         logger.info(f"To retrieve logs later, run: python get_job_log.py {job_id}")
 
-        return job_id
+        return job_id, job_name
 
     def get_job_status(self, job_id: str) -> dict[str, Any]:
         """Get the current status of a job."""
@@ -186,7 +186,7 @@ def main():
     )
 
     # Submit the job
-    job_id = launcher.submit_job(command, args.job_name)
+    job_id, job_name = launcher.submit_job(command, args.job_name)
 
     # Wait for completion if requested
     if args.wait or args.show_logs:

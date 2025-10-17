@@ -29,32 +29,32 @@ class BatchSubmitter:
         )
         self.monitor = JobMonitor(region=region)
 
-    def submit_configs(self, configs: list[str]) -> dict[str, str]:
-        """Submit jobs for a list of config files. Returns job_id -> config mapping."""
+    def submit_configs(self, configs: list[str]) -> dict[str, dict[str, str]]:
+        """Submit jobs for a list of config files. Returns job_id -> {job_name, config} mapping."""
         logger.info(f"Launching {len(configs)} configs")
-        job_id_to_config: dict[str, str] = {}
+        job_info: dict[str, dict[str, str]] = {}
 
         for config in configs:
             config_path = self.config_dir / config
             command = ["aws/docker_and_sync.sh", "python", "main.py", str(config_path)]
-            job_id = self.launcher.submit_job(command)
-            job_id_to_config[job_id] = config
+            job_id, job_name = self.launcher.submit_job(command)
+            job_info[job_id] = {"job_name": job_name, "config": config}
 
-        return job_id_to_config
+        return job_info
 
-    def save_job_ids(self, job_id_to_config: dict[str, str]) -> Path:
-        """Save job IDs to a timestamped JSON file."""
+    def save_job_ids(self, job_info: dict[str, dict[str, str]]) -> Path:
+        """Save job IDs and names to a timestamped JSON file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = Path(f"batch_submit_{timestamp}.json")
-        output_file.write_text(json.dumps(job_id_to_config, indent=2))
+        output_file.write_text(json.dumps(job_info, indent=2))
         logger.info(f"Job IDs saved to {output_file}")
         return output_file
 
     def run(self, configs: list[str]) -> None:
         """Submit jobs, save IDs, and monitor."""
-        job_id_to_config = self.submit_configs(configs)
-        self.save_job_ids(job_id_to_config)
-        self.monitor.monitor(job_id_to_config)
+        job_info = self.submit_configs(configs)
+        self.save_job_ids(job_info)
+        self.monitor.monitor(job_info)
 
 
 def main() -> None:

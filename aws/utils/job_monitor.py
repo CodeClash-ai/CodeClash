@@ -55,6 +55,7 @@ class JobMonitor:
         table.add_column("Status")
         table.add_column("Runtime", justify="right", style="magenta")
         table.add_column("Job ID", style="yellow")
+        table.add_column("Job Name", style="blue")
         table.add_column("Config", style="green")
 
         for job_id, info in jobs_info.items():
@@ -65,16 +66,22 @@ class JobMonitor:
             table.add_row(
                 status_colored,
                 info["runtime"],
-                job_id,
+                job_id[:13] + "...",
+                info["job_name"],
                 info["config"],
             )
 
         return table
 
-    def monitor(self, job_id_to_config: dict[str, str]) -> None:
-        """Monitor submitted jobs and display status in real-time"""
+    def monitor(self, job_info_dict: dict[str, dict[str, str]]) -> None:
+        """Monitor submitted jobs and display status in real-time.
+
+        Args:
+            job_info_dict: Dict mapping job_id -> {job_name, config}
+        """
         jobs_info: dict[str, dict] = {}
-        start_times: dict[str, float] = {job_id: time.time() for job_id in job_id_to_config}
+        start_times: dict[str, float] = {job_id: time.time() for job_id in job_info_dict}
+        completion_times: dict[str, float] = {}
 
         self.console.print("\n[bold green]Note:[/] You can ^C this script without your jobs dying\n")
 
@@ -82,26 +89,38 @@ class JobMonitor:
             with Live(self.create_status_table({}), refresh_per_second=1, console=self.console) as live:
                 while True:
                     all_done = True
-                    for job_id, config in job_id_to_config.items():
+                    for job_id, info in job_info_dict.items():
                         try:
                             job_status = self.get_job_status(job_id)
                             status = job_status["status"]
-                            elapsed = time.time() - start_times[job_id]
+
+                            # Freeze runtime when job reaches terminal state
+                            if status in ["SUCCEEDED", "FAILED"] and job_id not in completion_times:
+                                completion_times[job_id] = time.time()
+
+                            if job_id in completion_times:
+                                elapsed = completion_times[job_id] - start_times[job_id]
+                            else:
+                                elapsed = time.time() - start_times[job_id]
 
                             jobs_info[job_id] = {
                                 "status": status,
                                 "runtime": self.format_duration(elapsed),
-                                "config": config,
+                                "job_name": info["job_name"],
+                                "config": info["config"],
                             }
 
                             if status not in ["SUCCEEDED", "FAILED"]:
                                 all_done = False
                         except Exception as e:
                             logger.error(f"Error getting status for {job_id}: {e}", exc_info=True)
+                            if job_id not in completion_times:
+                                completion_times[job_id] = time.time()
                             jobs_info[job_id] = {
                                 "status": "ERROR",
-                                "runtime": self.format_duration(time.time() - start_times[job_id]),
-                                "config": config,
+                                "runtime": self.format_duration(completion_times[job_id] - start_times[job_id]),
+                                "job_name": info["job_name"],
+                                "config": info["config"],
                             }
 
                     live.update(self.create_status_table(jobs_info))
