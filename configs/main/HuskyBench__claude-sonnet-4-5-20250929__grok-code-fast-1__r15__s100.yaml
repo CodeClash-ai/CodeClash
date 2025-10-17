@@ -13,7 +13,7 @@ players:
       model_name: '@anthropic/claude-sonnet-4-5-20250929'
       model_class: portkey
       model_kwargs:
-        temperature: 0.0
+        temperature: 0.2
         max_tokens: 4096
 - agent: mini
   name: grok-code-fast-1
@@ -23,11 +23,15 @@ players:
       model_name: '@x-ai/grok-code-fast-1'
       model_class: portkey
       litellm_model_name_override: xai/grok-code-fast-1
+      model_kwargs:
+        temperature: 0.2
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called HuskyBench.
     In this game, you will write code to control a poker-playing bot, aiming to outsmart your opponents and win chips.
     Victory comes from crafting clever strategies—bluffing, reading opponents, and managing your chip stack effectively.
+    Be mindful of your bot's efficiency - your code should complete a simulation within 10 seconds to avoid forfeiting the round.
+    You can use run_game.sh to check if your bot runs in time.
 
     The game is played in 15 rounds. For every round, you (and your competitors) edit program code that controls your bot. This is round {{round}}.
     After you and your competitor finish editing your codebases, the game is run automatically.
