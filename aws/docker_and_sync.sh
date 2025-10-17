@@ -129,4 +129,8 @@ echo "════════════════════════�
 echo "✅ Wrapper script docker_and_sync.sh pologue finished, executing user command: $*"
 echo "═══════════════════════════════════════════════════════════════════════════════"
 # Execute the command passed to container
+# Temporarily disable set -e so we can capture the exit code
+set +e
 "$@"
+exit_code=$?
+exit $exit_code
