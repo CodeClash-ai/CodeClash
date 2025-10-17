@@ -4,6 +4,7 @@
 *.ipynb
 *.traj.json
 logs/**
+*.pdf
 
 # Kilian's specific ignores
 batch_submit.sh
