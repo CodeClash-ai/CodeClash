@@ -8,6 +8,7 @@ A Flask-based web application to visualize AI agent game trajectories
 import json
 import logging
 import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -194,10 +195,25 @@ def get_agent_info_from_metadata(metadata: Metadata) -> list[AgentInfo]:
     return agents
 
 
+def _load_game_metadata(folder_info: dict[str, Any]) -> dict[str, Any]:
+    """Helper function to load metadata for a single game folder in parallel"""
+    item = Path(folder_info["full_path"])
+    metadata = load_metadata(item)
+    folder_info["round_info"] = metadata.round_count_info
+    folder_info["models"] = metadata.models
+    folder_info["game_name"] = metadata.game_name
+    folder_info["created_timestamp"] = metadata.get_path("created_timestamp")
+    return folder_info
+
+
 def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
-    """Recursively find all folders and mark which ones contain metadata.json"""
+    """Recursively find all folders and mark which ones contain metadata.json
+
+    Uses parallel loading to speed up metadata.json reading for many game folders.
+    """
     all_folders = []
     game_folders = set()  # Track which folders are actual game folders
+    game_folder_infos = []  # Folders that need metadata loaded
 
     def scan_directory(directory: Path, relative_path: str = ""):
         if not directory.exists() or not directory.is_dir():
@@ -207,33 +223,23 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
             for item in directory.iterdir():
                 if item.is_dir():
                     current_relative = relative_path + "/" + item.name if relative_path else item.name
-
                     depth = current_relative.count("/")
 
                     # Check if this directory is a game folder
                     if is_game_folder(item):
-                        # Load metadata once
-                        metadata = load_metadata(item)
-                        round_info = metadata.round_count_info
-                        models = metadata.models
-                        game_name = metadata.game_name
-                        created_timestamp = metadata.get_path("created_timestamp")
                         game_folders.add(current_relative)
-                        all_folders.append(
-                            {
-                                "name": current_relative,
-                                "full_path": str(item),
-                                "round_info": round_info,  # Now stores (completed, total) tuple or None
-                                "models": models,
-                                "game_name": game_name,
-                                "created_timestamp": created_timestamp,
-                                "is_game": True,
-                                "depth": depth,
-                                "parent": relative_path if relative_path else None,
-                            }
-                        )
+                        # Store minimal info, will load metadata in parallel later
+                        folder_info = {
+                            "name": current_relative,
+                            "full_path": str(item),
+                            "is_game": True,
+                            "depth": depth,
+                            "parent": relative_path if relative_path else None,
+                        }
+                        all_folders.append(folder_info)
+                        game_folder_infos.append(folder_info)
                     else:
-                        # Add as intermediate folder if it has game folders in subdirectories
+                        # Add as intermediate folder
                         all_folders.append(
                             {
                                 "name": current_relative,
@@ -254,7 +260,26 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
             # Skip directories we can't access
             pass
 
+    # First pass: scan directory structure
     scan_directory(base_dir)
+
+    # Second pass: load metadata.json files in parallel
+    if game_folder_infos:
+        with ThreadPoolExecutor(max_workers=min(32, len(game_folder_infos))) as executor:
+            futures = {
+                executor.submit(_load_game_metadata, folder_info): folder_info for folder_info in game_folder_infos
+            }
+            for future in as_completed(futures):
+                try:
+                    future.result()  # Updates folder_info in place
+                except Exception as e:
+                    # If metadata loading fails, set default values
+                    folder_info = futures[future]
+                    folder_info["round_info"] = None
+                    folder_info["models"] = []
+                    folder_info["game_name"] = ""
+                    folder_info["created_timestamp"] = None
+                    logger.warning(f"Failed to load metadata for {folder_info['name']}: {e}")
 
     # Filter out intermediate folders that don't lead to any game folders
     filtered_folders = []
