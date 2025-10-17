@@ -39,7 +39,6 @@ claim_categories = [
     "possible_improvement",
     "player_code_behavior",
     "performed_edits",
-    "tool_use_error",
     "misc",
 ]
 
@@ -154,5 +153,6 @@ if __name__ == "__main__":
         instances.extend(load_instances_from_path(input_path))
     hallucination = Hallucination(config)
     if args.shuffle:
+        random.seed(42)
         random.shuffle(instances)
     hallucination.evaluate_bulk(instances, n_workers=args.n_workers)
