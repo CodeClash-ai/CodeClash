@@ -37,6 +37,7 @@ class AWSBatchMonitor:
         self.region = region
         self.logs_base_dir = logs_base_dir or Path("logs")
         self._job_id_to_folder: dict[str, str] | None = None
+        self._job_id_to_round_info: dict[str, tuple[int, int] | None] | None = None
 
     def list_jobs(self, *, limit: int | None = None) -> list[dict[str, Any]]:
         """List all jobs from AWS Batch in the last 24h"""
@@ -86,6 +87,7 @@ class AWSBatchMonitor:
         aws_link = self._generate_aws_console_link(job_id)
         emagedoc_link = self._generate_emagedoc_link(job_id)
         s3_link = self._generate_s3_link(job_id)
+        round_info = self._get_round_info(job_id)
 
         return {
             "job_id": job_id,
@@ -98,6 +100,7 @@ class AWSBatchMonitor:
             "aws_link": aws_link,
             "emagedoc_link": emagedoc_link,
             "s3_link": s3_link,
+            "round_info": round_info,
         }
 
     def _calculate_time_running(
@@ -140,14 +143,16 @@ class AWSBatchMonitor:
             return f"{hours}h {minutes}m", duration_seconds
 
     def _build_job_id_to_folder_mapping(self) -> dict[str, str]:
-        """Build mapping from AWS Batch job ID to log folder path"""
+        """Build mapping from AWS Batch job ID to log folder path and round info"""
         if self._job_id_to_folder is not None:
             return self._job_id_to_folder
 
         mapping = {}
+        round_info_mapping = {}
         if not self.logs_base_dir.exists():
             logger.warning(f"Logs directory does not exist: {self.logs_base_dir}")
             self._job_id_to_folder = mapping
+            self._job_id_to_round_info = round_info_mapping
             return mapping
 
         for metadata_file in self.logs_base_dir.rglob("metadata.json"):
@@ -157,12 +162,28 @@ class AWSBatchMonitor:
                 if job_id:
                     folder_path = metadata_file.parent.relative_to(self.logs_base_dir)
                     mapping[job_id] = str(folder_path)
-            except (json.JSONDecodeError, OSError, KeyError) as e:
+
+                    total_rounds = metadata.get("config", {}).get("tournament", {}).get("rounds")
+                    round_stats = metadata.get("round_stats", {})
+                    completed_rounds = sum(1 for round_key in round_stats.keys() if int(round_key) > 0)
+
+                    if total_rounds is not None:
+                        round_info_mapping[job_id] = (completed_rounds, total_rounds)
+                    else:
+                        round_info_mapping[job_id] = None
+            except (json.JSONDecodeError, OSError, KeyError, ValueError) as e:
                 logger.debug(f"Failed to read metadata from {metadata_file}: {e}")
 
         self._job_id_to_folder = mapping
+        self._job_id_to_round_info = round_info_mapping
         logger.info(f"Built job ID mapping with {len(mapping)} entries")
         return mapping
+
+    def _get_round_info(self, job_id: str) -> tuple[int, int] | None:
+        """Get round info for a job"""
+        if self._job_id_to_round_info is None:
+            self._build_job_id_to_folder_mapping()
+        return self._job_id_to_round_info.get(job_id) if self._job_id_to_round_info else None
 
     def _generate_aws_console_link(self, job_id: str) -> str:
         """Generate AWS console link for a job"""

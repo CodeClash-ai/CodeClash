@@ -33,8 +33,8 @@ There are the following statuses:
 - SUBMITTED (grey)
 - PENDING (grey)
 - RUNNABLE (grey)
-- STARTING (yellow)
-- RUNNING (faded green)
+- STARTING (cyan)
+- RUNNING (yellow)
 - SUCCEEDED (green)
 - FAILED (red)
 

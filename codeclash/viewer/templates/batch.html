@@ -146,13 +146,13 @@
         }
 
         .status-STARTING {
-            background: #ffc107;
-            color: #000;
+            background: #17a2b8;
+            color: #fff;
         }
 
         .status-RUNNING {
-            background: rgba(40, 167, 69, 0.3);
-            color: #28a745;
+            background: #ffc107;
+            color: #000;
         }
 
         .status-SUCCEEDED {
@@ -315,6 +315,94 @@
             font-size: 0.85rem;
             margin-left: auto;
         }
+
+        .status-counter {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+
+        .status-counter-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-counter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .status-count-item {
+            background: var(--bg-tertiary);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border-left: 3px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .status-count-item.SUBMITTED,
+        .status-count-item.PENDING,
+        .status-count-item.RUNNABLE {
+            border-left-color: #6c757d;
+        }
+
+        .status-count-item.STARTING {
+            border-left-color: #17a2b8;
+        }
+
+        .status-count-item.RUNNING {
+            border-left-color: #ffc107;
+        }
+
+        .status-count-item.SUCCEEDED {
+            border-left-color: #28a745;
+        }
+
+        .status-count-item.FAILED {
+            border-left-color: #dc3545;
+        }
+
+        .status-count-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .status-count-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .rounds-count {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: #000000;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .rounds-count-warning {
+            background-color: #ffc107;
+        }
+
+        .rounds-unknown {
+            color: var(--text-muted);
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -324,6 +412,16 @@
             <a href="{{ url_for('game_picker') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i> Back to Picker
             </a>
+        </div>
+
+        <div class="status-counter">
+            <div class="status-counter-title">
+                <i class="bi bi-bar-chart"></i>
+                <span>Job Status Summary (Last 24h)</span>
+            </div>
+            <div class="status-counter-grid" id="status-counter-grid">
+                <!-- Will be populated by JavaScript -->
+            </div>
         </div>
 
         <div class="filter-container">
@@ -355,6 +453,39 @@
         let statusFilter = '';
         let lastRefreshTime = null;
 
+        function updateStatusCounter() {
+            const statusCounts = {
+                'SUBMITTED': 0,
+                'PENDING': 0,
+                'RUNNABLE': 0,
+                'STARTING': 0,
+                'RUNNING': 0,
+                'SUCCEEDED': 0,
+                'FAILED': 0
+            };
+
+            allJobs.forEach(job => {
+                if (statusCounts.hasOwnProperty(job.status)) {
+                    statusCounts[job.status]++;
+                }
+            });
+
+            const grid = document.getElementById('status-counter-grid');
+            let html = '';
+
+            Object.keys(statusCounts).forEach(status => {
+                const count = statusCounts[status];
+                html += `
+                    <div class="status-count-item ${status}">
+                        <div class="status-count-label">${status}</div>
+                        <div class="status-count-value">${count}</div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
         async function fetchJobs() {
             try {
                 const response = await fetch('/batch/api/jobs');
@@ -362,6 +493,7 @@
 
                 if (data.success) {
                     allJobs = data.jobs;
+                    updateStatusCounter();
                     renderJobs();
                     clearError();
                     lastRefreshTime = Date.now();
@@ -434,6 +566,7 @@
                                 <th class="sortable" onclick="sortBy('time_running_seconds')">
                                     Time Running <i class="bi bi-arrow-down-up sort-icon"></i>
                                 </th>
+                                <th>Rounds</th>
                                 <th class="sortable" onclick="sortBy('job_name')">
                                     Job Name <i class="bi bi-arrow-down-up sort-icon"></i>
                                 </th>
@@ -450,11 +583,20 @@
                 const escapedJobName = job.job_name.replace(/'/g, "\\'");
                 const escapedJobId = job.job_id.replace(/'/g, "\\'");
 
+                let roundsHtml = '<span class="rounds-unknown">-</span>';
+                if (job.round_info && Array.isArray(job.round_info) && job.round_info.length === 2) {
+                    const completed = job.round_info[0];
+                    const total = job.round_info[1];
+                    const warningClass = completed < total ? ' rounds-count-warning' : '';
+                    roundsHtml = `<span class="rounds-count${warningClass}">${completed}/${total}</span>`;
+                }
+
                 html += `
                     <tr>
                         <td>${job.created_at || '-'}</td>
                         <td><span class="status-tag status-${job.status}">${job.status}</span></td>
                         <td>${job.time_running || '-'}</td>
+                        <td>${roundsHtml}</td>
                         <td>
                             <div class="copy-cell">
                                 <span class="job-name">${job.job_name}</span>
