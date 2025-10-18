@@ -1,10 +1,15 @@
 import re
+import subprocess
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_WORK, RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
 
-BC_LOG = "sim.log"
+BC_LOG = "sim_{idx}.log"
 BC_FOLDER = "mysubmission"
 BC_TIE = "Reason: The winning team won arbitrarily (coin flip)."
 
@@ -29,6 +34,18 @@ Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
+    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str) -> str:
+        try:
+            response = self.environment.execute(cmd + f" > {self.log_env / BC_LOG.format(idx=idx)}")
+        except subprocess.TimeoutExpired:
+            self.logger.warning(f"BattleCode simulation {idx} timed out: {cmd}")
+            return ""
+        if response["returncode"] != 0:
+            self.logger.warning(
+                f"BattleCode simulation {idx} failed with exit code {response['returncode']}:\n{response['output']}"
+            )
+        return response["output"]
+
     def execute_round(self, agents: list[Player]):
         for agent in agents:
             src, dest = f"/{agent.name}/src/{BC_FOLDER}/", str(DIR_WORK / "src" / agent.name)
@@ -37,29 +54,36 @@ Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
-        response = self.environment.execute(cmd + f" > {self.log_env / BC_LOG}")
-        assert response["returncode"] == 0, response
+        with ThreadPoolExecutor(5) as executor:
+            # Submit all simulations to the thread pool
+            futures = [
+                executor.submit(self._run_single_simulation, agents, idx, cmd)
+                for idx in range(self.game_config["sims_per_round"])
+            ]
+            # Collect results as they complete
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Simulations"):
+                future.result()
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
-        with open(self.log_round(round_num) / BC_LOG) as f:
-            lines = f.read().strip().split("\n")
-        # Get the third-to-last line which contains the winner info
-        assert len(lines) >= 3, "Log file does not contain enough lines to determine winner"
-        winner_line = lines[-3]
-        reason_line = lines[-2]
-        self.logger.debug(f"Winner line: {winner_line}")
-        self.logger.debug(f"Reason line: {reason_line}")
-        match = re.search(r"\s\((.*)\)\swins\s\(", winner_line)
-        if match and reason_line != BC_TIE:
-            winner_key = match.group(1)
-            self.logger.debug(f"Winner key from match: {winner_key}")
-            # Map A/B to actual agent names (much closer to original code)
-            winner = {"A": agents[0].name, "B": agents[1].name}.get(winner_key, RESULT_TIE)
-        else:
-            winner = RESULT_TIE
+        scores = defaultdict(int)
+        for idx in range(self.game_config["sims_per_round"]):
+            with open(self.log_round(round_num) / BC_LOG.format(idx=idx)) as f:
+                lines = f.read().strip().split("\n")
+            # Get the third-to-last line which contains the winner info
+            assert len(lines) >= 3, "Log file does not contain enough lines to determine winner"
+            winner_line = lines[-3]
+            reason_line = lines[-2]
+            match = re.search(r"\s\((.*)\)\swins\s\(", winner_line)
+            if match and reason_line != BC_TIE:
+                winner_key = match.group(1)
+                # Map A/B to actual agent names (much closer to original code)
+                winner = {"A": agents[0].name, "B": agents[1].name}.get(winner_key, RESULT_TIE)
+                scores[winner] += 1
+            else:
+                winner = RESULT_TIE
 
-        stats.winner = winner
-        stats.scores = {agent.name: (1 if agent.name == winner else 0) for agent in agents}
+        stats.winner = max(scores, key=scores.get)
+        stats.scores = scores
         for player, score in stats.scores.items():
             stats.player_stats[player].score = score
 

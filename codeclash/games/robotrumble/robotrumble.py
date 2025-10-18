@@ -39,15 +39,15 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
 
         # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
         try:
-            output = self.environment.execute(cmd, timeout=120)
+            response = self.environment.execute(cmd, timeout=120)
         except subprocess.TimeoutExpired:
             self.logger.warning(f"RobotRumble simulation {idx} timed out: {cmd}")
             return ""
-        if output["returncode"] != 0:
+        if response["returncode"] != 0:
             self.logger.warning(
-                f"RobotRumble simulation {idx} failed with exit code {output['returncode']}:\n{output['output']}"
+                f"RobotRumble simulation {idx} failed with exit code {response['returncode']}:\n{response['output']}"
             )
-        return output["output"]
+        return response["output"]
 
     def execute_round(self, agents: list[Player]):
         self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")

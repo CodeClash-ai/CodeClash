@@ -2,6 +2,7 @@ import json
 import random
 import subprocess
 import time
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm.auto import tqdm
@@ -69,7 +70,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
 
         # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
         try:
-            output = self.environment.execute(
+            response = self.environment.execute(
                 cmd,
                 cwd=f"{self.environment.config.cwd}/game",
                 timeout=120,  # this should rarely ever reach this timeout
@@ -77,11 +78,11 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
         except subprocess.TimeoutExpired:
             self.logger.warning(f"Battlesnake simulation timed out: {cmd}")
             return ""
-        if output["returncode"] != 0:
+        if response["returncode"] != 0:
             self.logger.warning(
-                f"Battlesnake simulation failed with exit code {output['returncode']}:\n{output['output']}"
+                f"Battlesnake simulation failed with exit code {response['returncode']}:\n{response['output']}"
             )
-        return output["output"]
+        return response["output"]
 
     def execute_round(self, agents: list[Player]):
         self._failed_to_start_player = []
@@ -132,7 +133,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
             self.environment.execute(f"pkill -f 'python {self.submission}' || true")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
-        scores = {}
+        scores = defaultdict(int)
         available_players = [player.name for player in agents if player.name not in self._failed_to_start_player]
         if len(available_players) > 1:
             # We ran the game
@@ -142,7 +143,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                         lines = f.read().strip().split("\n")
                         results = json.loads(lines[-1])  # Get the last line which contains the game result
                         winner = RESULT_TIE if results["isDraw"] else results["winnerName"]
-                        scores[winner] = scores.get(winner, 0) + 1
+                        scores[winner] += 1
                 except FileNotFoundError:
                     self.logger.warning(f"Simulation {idx} not found, skipping")
                 except json.JSONDecodeError:
