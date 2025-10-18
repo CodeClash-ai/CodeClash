@@ -5,6 +5,7 @@ import json
 import re
 from pathlib import Path
 
+from codeclash.utils.atomic_write import atomic_write
 from codeclash.utils.log import get_logger
 
 logger = get_logger(__name__)
@@ -26,9 +27,12 @@ def update_agent_info(agent: dict, agent_folder: Path) -> bool:
 
     Returns True if any updates were made.
     """
-    agent_name = agent["name"]
+    agent_name = agent.get("name")
+    if not agent_name:
+        logger.warning("Agent entry missing 'name'; skipping")
+        return False
 
-    if not agent_folder.exists():
+    if not agent_folder.is_dir():
         logger.warning(f"No folder found for agent {agent_name} in {agent_folder.parent}")
         return False
 
@@ -77,17 +81,21 @@ def process_tournament_folder(metadata_path: Path, *, dry_run: bool = False) -> 
     tournament_folder = metadata_path.parent
     logger.info(f"Processing tournament folder: {tournament_folder}")
 
-    metadata = json.loads(metadata_path.read_text())
+    original_text = metadata_path.read_text()
+    metadata = json.loads(original_text)
 
     players_folder = tournament_folder / "players"
-    if not players_folder.exists():
+    if not players_folder.is_dir():
         logger.warning(f"No players folder found in {tournament_folder}")
         return
 
     updated = False
 
     for agent in metadata.get("agents", []):
-        agent_name = agent["name"]
+        agent_name = agent.get("name")
+        if not agent_name:
+            logger.warning(f"Skipping agent entry without 'name' in {metadata_path}")
+            continue
         agent_folder = players_folder / agent_name
         if update_agent_info(agent, agent_folder):
             updated = True
@@ -96,7 +104,9 @@ def process_tournament_folder(metadata_path: Path, *, dry_run: bool = False) -> 
         if dry_run:
             logger.info(f"[DRY RUN] Would update metadata file: {metadata_path}")
         else:
-            metadata_path.write_text(json.dumps(metadata, indent=2))
+            bak_path = metadata_path.with_name(metadata_path.name + ".bak")
+            atomic_write(bak_path, original_text)
+            atomic_write(metadata_path, json.dumps(metadata, indent=2))
             logger.info(f"Updated metadata file: {metadata_path}")
     else:
         logger.info(f"No updates needed for {metadata_path}")
