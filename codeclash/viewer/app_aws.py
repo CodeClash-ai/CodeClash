@@ -39,10 +39,16 @@ class AWSBatchMonitor:
         self._job_id_to_folder: dict[str, str] | None = None
         self._job_id_to_round_info: dict[str, tuple[int, int] | None] | None = None
 
-    def list_jobs(self, *, limit: int | None = None) -> list[dict[str, Any]]:
-        """List all jobs from AWS Batch in the last 24h"""
+    def list_jobs(self, *, limit: int | None = None, hours_back: int = 24) -> list[dict[str, Any]]:
+        """List all jobs from AWS Batch
+
+        Args:
+            limit: Maximum number of jobs to return
+            hours_back: Number of hours to look back (default 24)
+        """
         all_jobs = []
         statuses = ["SUBMITTED", "PENDING", "RUNNABLE", "STARTING", "RUNNING", "SUCCEEDED", "FAILED"]
+        cutoff_timestamp = (datetime.now().timestamp() - (hours_back * 3600)) * 1000
 
         for job_status in statuses:
             try:
@@ -55,6 +61,9 @@ class AWSBatchMonitor:
 
             except Exception as e:
                 logger.warning(f"Failed to list jobs with status {job_status}: {e}", exc_info=True)
+
+        # Filter by time range
+        all_jobs = [job for job in all_jobs if job.get("createdAt", 0) >= cutoff_timestamp]
 
         all_jobs.sort(key=lambda x: x.get("createdAt", 0), reverse=True)
 
@@ -73,11 +82,11 @@ class AWSBatchMonitor:
         stopped_at = job.get("stoppedAt")
 
         if isinstance(created_at, datetime):
-            created_str = created_at.strftime("%Y-%m-%d %H:%M:%S")
+            created_str = created_at.strftime("%m/%d %H:%M")
             created_timestamp = created_at.timestamp()
         elif created_at:
             created_timestamp = created_at / 1000
-            created_str = datetime.fromtimestamp(created_timestamp).strftime("%Y-%m-%d %H:%M:%S")
+            created_str = datetime.fromtimestamp(created_timestamp).strftime("%m/%d %H:%M")
         else:
             created_str = ""
             created_timestamp = 0
@@ -130,17 +139,9 @@ class AWSBatchMonitor:
             return "-", 0
 
         duration_seconds = (end_time - start_time).total_seconds()
-
-        if duration_seconds < 60:
-            return f"{int(duration_seconds)}s", duration_seconds
-        elif duration_seconds < 3600:
-            minutes = int(duration_seconds / 60)
-            seconds = int(duration_seconds % 60)
-            return f"{minutes}m {seconds}s", duration_seconds
-        else:
-            hours = int(duration_seconds / 3600)
-            minutes = int((duration_seconds % 3600) / 60)
-            return f"{hours}h {minutes}m", duration_seconds
+        hours = int(duration_seconds / 3600)
+        minutes = int((duration_seconds % 3600) / 60)
+        return f"{hours:02d}:{minutes:02d}", duration_seconds
 
     def _build_job_id_to_folder_mapping(self) -> dict[str, str]:
         """Build mapping from AWS Batch job ID to log folder path and round info"""
@@ -211,7 +212,12 @@ class AWSBatchMonitor:
         encoded_prefix = quote(f"logs/{folder_path}/")
         return f"https://{account_id}-{console_suffix}.{self.region}.console.aws.amazon.com/s3/buckets/codeclash?region={self.region}&bucketType=general&prefix={encoded_prefix}&showversions=false"
 
-    def get_formatted_jobs(self, *, limit: int | None = None) -> list[dict[str, Any]]:
-        """Get all jobs formatted for display"""
-        jobs = self.list_jobs(limit=limit)
+    def get_formatted_jobs(self, *, limit: int | None = None, hours_back: int = 24) -> list[dict[str, Any]]:
+        """Get all jobs formatted for display
+
+        Args:
+            limit: Maximum number of jobs to return
+            hours_back: Number of hours to look back (default 24)
+        """
+        jobs = self.list_jobs(limit=limit, hours_back=hours_back)
         return [self.format_job_for_display(job) for job in jobs]

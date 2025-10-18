@@ -1381,8 +1381,9 @@ def batch_monitor():
 def batch_api_jobs():
     """API endpoint to get AWS Batch jobs"""
     try:
+        hours_back = request.args.get("hours_back", default=24, type=int)
         monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
-        jobs = monitor.get_formatted_jobs()
+        jobs = monitor.get_formatted_jobs(hours_back=hours_back)
         return jsonify({"success": True, "jobs": jobs})
     except Exception as e:
         logger.error(f"Error fetching AWS Batch jobs: {e}", exc_info=True)

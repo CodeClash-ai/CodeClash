@@ -117,6 +117,11 @@
             padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .batch-table td.time-running {
+            text-align: right;
         }
 
         .batch-table tbody tr {
@@ -310,6 +315,209 @@
             box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
         }
 
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 0.375rem;
+            color: #000000;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .action-btn:disabled {
+            background: var(--text-muted);
+            border-color: var(--text-muted);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .modal-action-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.375rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-action-btn:hover {
+            background: var(--accent-color);
+            color: #000000;
+            border-color: var(--accent-color);
+        }
+
+        .modal-textarea-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: stretch;
+        }
+
+        .modal-textarea {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.375rem;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .modal-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .modal-copy-btn {
+            padding: 0.75rem 1rem;
+            background: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 0.375rem;
+            color: #000000;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            align-self: flex-start;
+        }
+
+        .modal-copy-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .modal-copy-btn.copied {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .modal-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid #ffc107;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            color: #ffc107;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .modal-warning.show {
+            display: block;
+        }
+
+        .modal-warning i {
+            margin-right: 0.5rem;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        .job-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+        }
+
+        .search-hidden {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
         .update-info {
             color: var(--text-muted);
             font-size: 0.85rem;
@@ -417,7 +625,7 @@
         <div class="status-counter">
             <div class="status-counter-title">
                 <i class="bi bi-bar-chart"></i>
-                <span>Job Status Summary (Last 24h)</span>
+                <span id="status-counter-title">Job Status Summary</span>
             </div>
             <div class="status-counter-grid" id="status-counter-grid">
                 <!-- Will be populated by JavaScript -->
@@ -425,8 +633,17 @@
         </div>
 
         <div class="filter-container">
-            <label for="status-filter">Filter by status:</label>
-            <select id="status-filter" class="filter-select" onchange="applyStatusFilter()">
+            <label for="time-range-filter">Time range:</label>
+            <select id="time-range-filter" class="filter-select" onchange="applyTimeRangeFilter()">
+                <option value="6">Last 6h</option>
+                <option value="12">Last 12h</option>
+                <option value="24" selected>Last 24h</option>
+                <option value="48">Last 48h</option>
+                <option value="72">Last 72h</option>
+            </select>
+
+            <label for="status-filter">Status:</label>
+            <select id="status-filter" class="filter-select" onchange="applyFilters()">
                 <option value="">All Statuses</option>
                 <option value="SUBMITTED">Submitted</option>
                 <option value="PENDING">Pending</option>
@@ -436,6 +653,19 @@
                 <option value="SUCCEEDED">Succeeded</option>
                 <option value="FAILED">Failed</option>
             </select>
+
+            <label for="rounds-filter">Rounds:</label>
+            <select id="rounds-filter" class="filter-select" onchange="applyFilters()">
+                <option value="any">Any</option>
+                <option value="completed">Completed rounds</option>
+                <option value="uncompleted">Uncompleted rounds</option>
+                <option value="unknown">Unknown</option>
+            </select>
+
+            <button id="bulk-actions-btn" class="action-btn" onclick="openBulkActionsModal()">
+                Bulk Actions
+            </button>
+
             <span class="update-info" id="last-refresh-info">Last refresh: just now</span>
         </div>
 
@@ -445,13 +675,52 @@
         </div>
     </div>
 
+    <!-- Bulk Actions Modal -->
+    <div id="bulk-actions-modal" class="modal-overlay" onclick="closeBulkActionsModalOnOverlay(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Bulk Actions</h2>
+                <button class="modal-close" onclick="closeBulkActionsModal()" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-action-btn" onclick="fillTextareaWithJobIds()">
+                    <i class="bi bi-tag"></i> Job IDs
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithS3Buckets()">
+                    <i class="bi bi-database"></i> S3 Buckets
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithS3RmCommands()">
+                    <i class="bi bi-trash"></i> S3 rm
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithBatchTerminateCommands()">
+                    <i class="bi bi-stop-circle"></i> AWS Batch terminate
+                </button>
+            </div>
+            <div id="modal-warning" class="modal-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span id="modal-warning-text"></span>
+            </div>
+            <div class="modal-textarea-container">
+                <textarea id="bulk-actions-textarea" class="modal-textarea" readonly placeholder="Click a button above to populate this area..."></textarea>
+                <button id="modal-copy-btn" class="modal-copy-btn" onclick="copyFromModal()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let allJobs = [];
         let currentSort = { column: 'created_at', ascending: false };
         let statusFilter = '';
+        let roundsFilter = 'any';
+        let timeRangeHours = 24;
         let lastRefreshTime = null;
+        let selectedJobs = new Set();
 
         function updateStatusCounter() {
             const statusCounts = {
@@ -488,7 +757,7 @@
 
         async function fetchJobs() {
             try {
-                const response = await fetch('/batch/api/jobs');
+                const response = await fetch(`/batch/api/jobs?hours_back=${timeRangeHours}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -504,6 +773,26 @@
             } catch (error) {
                 showError('Network error: ' + error.message);
             }
+        }
+
+        function applyTimeRangeFilter() {
+            timeRangeHours = parseInt(document.getElementById('time-range-filter').value);
+            selectedJobs.clear();
+            updateStatusCounterTitle();
+            fetchJobs();
+        }
+
+        function updateStatusCounterTitle() {
+            const titleElement = document.getElementById('status-counter-title');
+            titleElement.textContent = `Job Status Summary (Last ${timeRangeHours}h)`;
+        }
+
+        function applyFilters() {
+            statusFilter = document.getElementById('status-filter').value;
+            roundsFilter = document.getElementById('rounds-filter').value;
+            selectedJobs.clear();
+            renderJobs();
+            updateActionButtons();
         }
 
         function updateLastRefreshDisplay() {
@@ -527,6 +816,23 @@
             // Apply status filter
             if (statusFilter) {
                 jobs = jobs.filter(job => job.status === statusFilter);
+            }
+
+            // Apply rounds filter
+            if (roundsFilter === 'completed') {
+                jobs = jobs.filter(job => {
+                    if (!job.round_info || !Array.isArray(job.round_info)) return false;
+                    return job.round_info[0] >= job.round_info[1];
+                });
+            } else if (roundsFilter === 'uncompleted') {
+                jobs = jobs.filter(job => {
+                    if (!job.round_info || !Array.isArray(job.round_info)) return false;
+                    return job.round_info[0] < job.round_info[1];
+                });
+            } else if (roundsFilter === 'unknown') {
+                jobs = jobs.filter(job => {
+                    return !job.round_info || !Array.isArray(job.round_info);
+                });
             }
 
             // Apply sorting
@@ -559,12 +865,15 @@
                     <table>
                         <thead>
                             <tr>
+                                <th class="checkbox-cell">
+                                    <input type="checkbox" class="job-checkbox" id="master-checkbox" onchange="toggleAllCheckboxes()" title="Toggle all">
+                                </th>
                                 <th class="sortable" onclick="sortBy('created_at')">
-                                    Time Submitted <i class="bi bi-arrow-down-up sort-icon"></i>
+                                    Time <i class="bi bi-arrow-down-up sort-icon"></i>
                                 </th>
                                 <th>Status</th>
                                 <th class="sortable" onclick="sortBy('time_running_seconds')">
-                                    Time Running <i class="bi bi-arrow-down-up sort-icon"></i>
+                                    Running <i class="bi bi-arrow-down-up sort-icon"></i>
                                 </th>
                                 <th>Rounds</th>
                                 <th class="sortable" onclick="sortBy('job_name')">
@@ -582,6 +891,11 @@
             jobs.forEach(job => {
                 const escapedJobName = job.job_name.replace(/'/g, "\\'");
                 const escapedJobId = job.job_id.replace(/'/g, "\\'");
+                const isChecked = selectedJobs.has(job.job_id) ? 'checked' : '';
+
+                // Truncate job name and ID to 30 characters for display
+                const displayJobName = job.job_name.length > 30 ? job.job_name.substring(0, 30) + '...' : job.job_name;
+                const displayJobId = job.job_id.length > 30 ? job.job_id.substring(0, 30) + '...' : job.job_id;
 
                 let roundsHtml = '<span class="rounds-unknown">-</span>';
                 if (job.round_info && Array.isArray(job.round_info) && job.round_info.length === 2) {
@@ -593,13 +907,19 @@
 
                 html += `
                     <tr>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="job-checkbox" ${isChecked} onchange="toggleJobSelection('${escapedJobId}')">
+                        </td>
                         <td>${job.created_at || '-'}</td>
                         <td><span class="status-tag status-${job.status}">${job.status}</span></td>
-                        <td>${job.time_running || '-'}</td>
+                        <td class="time-running">${job.time_running || '-'}</td>
                         <td>${roundsHtml}</td>
                         <td>
                             <div class="copy-cell">
-                                <span class="job-name">${job.job_name}</span>
+                                <span class="job-name" title="${escapedJobName}">
+                                    ${displayJobName}
+                                    <span class="search-hidden">${job.job_name}</span>
+                                </span>
                                 <button class="copy-btn" onclick="copyToClipboard('${escapedJobName}', this)" title="Copy job name">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
@@ -607,7 +927,10 @@
                         </td>
                         <td>
                             <div class="copy-cell">
-                                <span class="job-id">${job.job_id}</span>
+                                <span class="job-id" title="${escapedJobId}">
+                                    ${displayJobId}
+                                    <span class="search-hidden">${job.job_id}</span>
+                                </span>
                                 <button class="copy-btn" onclick="copyToClipboard('${escapedJobId}', this)" title="Copy job ID">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
@@ -631,6 +954,7 @@
             `;
 
             container.innerHTML = html;
+            updateMasterCheckbox();
         }
 
         function sortBy(column) {
@@ -644,9 +968,224 @@
             renderJobs();
         }
 
-        function applyStatusFilter() {
-            statusFilter = document.getElementById('status-filter').value;
+        function toggleJobSelection(jobId) {
+            if (selectedJobs.has(jobId)) {
+                selectedJobs.delete(jobId);
+            } else {
+                selectedJobs.add(jobId);
+            }
+            updateMasterCheckbox();
+            updateActionButtons();
+        }
+
+        function toggleAllCheckboxes() {
+            const masterCheckbox = document.getElementById('master-checkbox');
+            const visibleJobs = getVisibleJobs();
+
+            if (masterCheckbox.checked) {
+                // Check all visible jobs
+                visibleJobs.forEach(job => selectedJobs.add(job.job_id));
+            } else {
+                // Uncheck all visible jobs
+                visibleJobs.forEach(job => selectedJobs.delete(job.job_id));
+            }
+
             renderJobs();
+            updateActionButtons();
+        }
+
+        function updateMasterCheckbox() {
+            const masterCheckbox = document.getElementById('master-checkbox');
+            if (!masterCheckbox) return;
+
+            const visibleJobs = getVisibleJobs();
+            if (visibleJobs.length === 0) {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = false;
+                return;
+            }
+
+            const selectedVisible = visibleJobs.filter(job => selectedJobs.has(job.job_id)).length;
+
+            if (selectedVisible === 0) {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = false;
+            } else if (selectedVisible === visibleJobs.length) {
+                masterCheckbox.checked = true;
+                masterCheckbox.indeterminate = false;
+            } else {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = true;
+            }
+        }
+
+        function getVisibleJobs() {
+            let jobs = [...allJobs];
+
+            if (statusFilter) {
+                jobs = jobs.filter(job => job.status === statusFilter);
+            }
+
+            if (roundsFilter === 'completed') {
+                jobs = jobs.filter(job => {
+                    if (!job.round_info || !Array.isArray(job.round_info)) return false;
+                    return job.round_info[0] >= job.round_info[1];
+                });
+            } else if (roundsFilter === 'uncompleted') {
+                jobs = jobs.filter(job => {
+                    if (!job.round_info || !Array.isArray(job.round_info)) return false;
+                    return job.round_info[0] < job.round_info[1];
+                });
+            } else if (roundsFilter === 'unknown') {
+                jobs = jobs.filter(job => {
+                    return !job.round_info || !Array.isArray(job.round_info);
+                });
+            }
+
+            return jobs;
+        }
+
+        function updateActionButtons() {
+            // Bulk actions button is always enabled
+        }
+
+        function openBulkActionsModal() {
+            document.getElementById('bulk-actions-modal').classList.add('active');
+            document.getElementById('bulk-actions-textarea').value = '';
+            hideModalWarning();
+        }
+
+        function closeBulkActionsModal() {
+            document.getElementById('bulk-actions-modal').classList.remove('active');
+        }
+
+        function closeBulkActionsModalOnOverlay(event) {
+            if (event.target === event.currentTarget) {
+                closeBulkActionsModal();
+            }
+        }
+
+        function showModalWarning(message) {
+            const warning = document.getElementById('modal-warning');
+            const warningText = document.getElementById('modal-warning-text');
+            warningText.textContent = message;
+            warning.classList.add('show');
+        }
+
+        function hideModalWarning() {
+            document.getElementById('modal-warning').classList.remove('show');
+        }
+
+        function fillTextareaWithJobIds() {
+            if (selectedJobs.size === 0) {
+                showModalWarning('No jobs selected. Please select jobs from the table first.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            hideModalWarning();
+            const jobIds = Array.from(selectedJobs).join(' ');
+            document.getElementById('bulk-actions-textarea').value = jobIds;
+        }
+
+        function fillTextareaWithS3Buckets() {
+            if (selectedJobs.size === 0) {
+                showModalWarning('No jobs selected. Please select jobs from the table first.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            const selectedJobsList = Array.from(selectedJobs);
+            const s3Links = selectedJobsList
+                .map(jobId => allJobs.find(job => job.job_id === jobId))
+                .filter(job => job && job.s3_link)
+                .map(job => job.s3_link)
+                .join(' ');
+
+            if (s3Links) {
+                hideModalWarning();
+                document.getElementById('bulk-actions-textarea').value = s3Links;
+            } else {
+                showModalWarning('None of the selected jobs have S3 links available.');
+                document.getElementById('bulk-actions-textarea').value = '';
+            }
+        }
+
+        function fillTextareaWithS3RmCommands() {
+            if (selectedJobs.size === 0) {
+                showModalWarning('No jobs selected. Please select jobs from the table first.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            const selectedJobsList = Array.from(selectedJobs);
+            const jobsWithS3 = selectedJobsList
+                .map(jobId => allJobs.find(job => job.job_id === jobId))
+                .filter(job => job && job.s3_link);
+
+            if (jobsWithS3.length === 0) {
+                showModalWarning('None of the selected jobs have S3 links available.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            // Extract S3 paths from the console links and generate rm commands
+            const commands = jobsWithS3.map(job => {
+                // Extract the path from the S3 console link
+                // Format: https://...s3/buckets/codeclash?...prefix=logs%2Fbatch%2F<folder>%2F&...
+                const match = job.s3_link.match(/prefix=([^&]+)/);
+                if (match) {
+                    const path = decodeURIComponent(match[1]);
+                    return `aws s3 rm s3://codeclash/${path} --recursive`;
+                }
+                return null;
+            }).filter(cmd => cmd !== null);
+
+            if (commands.length > 0) {
+                hideModalWarning();
+                document.getElementById('bulk-actions-textarea').value = commands.join('\n');
+            } else {
+                showModalWarning('Could not generate S3 rm commands for the selected jobs.');
+                document.getElementById('bulk-actions-textarea').value = '';
+            }
+        }
+
+        function fillTextareaWithBatchTerminateCommands() {
+            if (selectedJobs.size === 0) {
+                showModalWarning('No jobs selected. Please select jobs from the table first.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            const selectedJobsList = Array.from(selectedJobs);
+            const commands = selectedJobsList.map(jobId => {
+                return `aws batch terminate-job --job-id ${jobId} --reason "Manual termination"`;
+            });
+
+            hideModalWarning();
+            document.getElementById('bulk-actions-textarea').value = commands.join('\n');
+        }
+
+        function copyFromModal() {
+            const textarea = document.getElementById('bulk-actions-textarea');
+            const text = textarea.value;
+
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById('modal-copy-btn');
+                    const icon = btn.querySelector('i');
+                    const originalHtml = btn.innerHTML;
+                    btn.classList.add('copied');
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.innerHTML = originalHtml;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
         }
 
         function showError(message) {
@@ -677,6 +1216,7 @@
         }
 
         // Initial fetch
+        updateStatusCounterTitle();
         fetchJobs();
 
         // Auto-refresh every 10 seconds
