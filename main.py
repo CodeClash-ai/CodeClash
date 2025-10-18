@@ -28,7 +28,13 @@ def main(
     config = yaml.safe_load(preprocessed_yaml)
 
     def get_output_path() -> Path:
-        timestamp = time.strftime("%y%m%d%H%M%S")
+        if is_running_in_aws_batch():
+            # Offset timestamp by random seconds to avoid collisions
+            # Hopefully that means we can just remove the uuid part later on
+            offset = random.randint(0, 600)
+            timestamp = time.strftime("%y%m%d%H%M%S", time.localtime(time.time() + offset))
+        else:
+            timestamp = time.strftime("%y%m%d%H%M%S")
         rounds = config["tournament"]["rounds"]
         sims = config["game"]["sims_per_round"]
 
@@ -40,8 +46,7 @@ def main(
             f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
         )
         if is_running_in_aws_batch():
-            # Wait a random time to hopefully avoid collisions with the timestamp even without the uuid
-            time.sleep(random.random() * 20)
+            # Also add a UUID just to be safe
             _uuid = str(uuid.uuid4())
             folder_name += f".{_uuid}-uuid"
         if output_dir is None:
