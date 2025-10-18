@@ -738,6 +738,9 @@
                 <button class="modal-action-btn" onclick="fillTextareaWithBatchTerminateCommands()">
                     <i class="bi bi-stop-circle"></i> AWS Batch terminate
                 </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithAWSResubmitCommands()">
+                    <i class="bi bi-arrow-repeat"></i> AWS resubmit commands
+                </button>
             </div>
             <div id="modal-warning" class="modal-warning">
                 <i class="bi bi-exclamation-triangle"></i>
@@ -1208,6 +1211,32 @@
             const selectedJobsList = Array.from(selectedJobs);
             const commands = selectedJobsList.map(jobId => {
                 return `aws batch terminate-job --job-id ${jobId} --reason "Manual termination"`;
+            });
+
+            hideModalWarning();
+            document.getElementById('bulk-actions-textarea').value = commands.join('\n');
+        }
+
+        function fillTextareaWithAWSResubmitCommands() {
+            if (selectedJobs.size === 0) {
+                showModalWarning('No jobs selected. Please select jobs from the table first.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            const selectedJobsList = Array.from(selectedJobs);
+            const jobsWithCommand = selectedJobsList
+                .map(jobId => allJobs.find(job => job.job_id === jobId))
+                .filter(job => job && job.aws_command);
+
+            if (jobsWithCommand.length === 0) {
+                showModalWarning('None of the selected jobs have AWS command information available.');
+                document.getElementById('bulk-actions-textarea').value = '';
+                return;
+            }
+
+            const commands = jobsWithCommand.map(job => {
+                return `aws/run_job.py -- ${job.aws_command}`;
             });
 
             hideModalWarning();

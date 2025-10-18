@@ -38,6 +38,7 @@ class AWSBatchMonitor:
         self.logs_base_dir = logs_base_dir or Path("logs")
         self._job_id_to_folder: dict[str, str] | None = None
         self._job_id_to_round_info: dict[str, tuple[int, int] | None] | None = None
+        self._job_id_to_aws_command: dict[str, str | None] | None = None
 
     def list_jobs(self, *, limit: int | None = None, hours_back: int = 24) -> list[dict[str, Any]]:
         """List all jobs from AWS Batch
@@ -97,6 +98,7 @@ class AWSBatchMonitor:
         emagedoc_link = self._generate_emagedoc_link(job_id)
         s3_link = self._generate_s3_link(job_id)
         round_info = self._get_round_info(job_id)
+        aws_command = self._get_aws_command(job_id)
 
         return {
             "job_id": job_id,
@@ -110,6 +112,7 @@ class AWSBatchMonitor:
             "emagedoc_link": emagedoc_link,
             "s3_link": s3_link,
             "round_info": round_info,
+            "aws_command": aws_command,
         }
 
     def _calculate_time_running(
@@ -150,10 +153,12 @@ class AWSBatchMonitor:
 
         mapping = {}
         round_info_mapping = {}
+        aws_command_mapping = {}
         if not self.logs_base_dir.exists():
             logger.warning(f"Logs directory does not exist: {self.logs_base_dir}")
             self._job_id_to_folder = mapping
             self._job_id_to_round_info = round_info_mapping
+            self._job_id_to_aws_command = aws_command_mapping
             return mapping
 
         for metadata_file in self.logs_base_dir.rglob("metadata.json"):
@@ -172,11 +177,15 @@ class AWSBatchMonitor:
                         round_info_mapping[job_id] = (completed_rounds, total_rounds)
                     else:
                         round_info_mapping[job_id] = None
+
+                    aws_command = metadata.get("aws", {}).get("AWS_USER_PROVIDED_COMMAND")
+                    aws_command_mapping[job_id] = aws_command
             except (json.JSONDecodeError, OSError, KeyError, ValueError) as e:
                 logger.debug(f"Failed to read metadata from {metadata_file}: {e}")
 
         self._job_id_to_folder = mapping
         self._job_id_to_round_info = round_info_mapping
+        self._job_id_to_aws_command = aws_command_mapping
         logger.info(f"Built job ID mapping with {len(mapping)} entries")
         return mapping
 
@@ -185,6 +194,12 @@ class AWSBatchMonitor:
         if self._job_id_to_round_info is None:
             self._build_job_id_to_folder_mapping()
         return self._job_id_to_round_info.get(job_id) if self._job_id_to_round_info else None
+
+    def _get_aws_command(self, job_id: str) -> str | None:
+        """Get AWS command for a job"""
+        if self._job_id_to_aws_command is None:
+            self._build_job_id_to_folder_mapping()
+        return self._job_id_to_aws_command.get(job_id) if self._job_id_to_aws_command else None
 
     def _generate_aws_console_link(self, job_id: str) -> str:
         """Generate AWS console link for a job"""
