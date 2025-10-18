@@ -92,6 +92,16 @@ class AWSBatchMonitor:
             created_str = ""
             created_timestamp = 0
 
+        if isinstance(started_at, datetime):
+            started_str = started_at.strftime("%m/%d %H:%M")
+            started_timestamp = started_at.timestamp()
+        elif started_at:
+            started_timestamp = started_at / 1000
+            started_str = datetime.fromtimestamp(started_timestamp).strftime("%m/%d %H:%M")
+        else:
+            started_str = ""
+            started_timestamp = 0
+
         time_running_str, time_running_seconds = self._calculate_time_running(started_at, stopped_at, status)
 
         aws_link = self._generate_aws_console_link(job_id)
@@ -106,6 +116,8 @@ class AWSBatchMonitor:
             "status": status,
             "created_at": created_str,
             "created_timestamp": created_timestamp,
+            "started_at": started_str,
+            "started_timestamp": started_timestamp,
             "time_running": time_running_str,
             "time_running_seconds": time_running_seconds,
             "aws_link": aws_link,

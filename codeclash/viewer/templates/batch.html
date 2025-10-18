@@ -904,6 +904,9 @@
                 if (currentSort.column === 'created_at') {
                     aVal = a.created_timestamp || 0;
                     bVal = b.created_timestamp || 0;
+                } else if (currentSort.column === 'started_at') {
+                    aVal = a.started_timestamp || 0;
+                    bVal = b.started_timestamp || 0;
                 } else if (currentSort.column === 'time_running_seconds') {
                     aVal = a.time_running_seconds || 0;
                     bVal = b.time_running_seconds || 0;
@@ -931,6 +934,9 @@
                                 </th>
                                 <th class="sortable" onclick="sortBy('created_at')">
                                     Submitted <i class="bi bi-arrow-down-up sort-icon"></i>
+                                </th>
+                                <th class="sortable" onclick="sortBy('started_at')">
+                                    Started <i class="bi bi-arrow-down-up sort-icon"></i>
                                 </th>
                                 <th>Status</th>
                                 <th class="sortable" onclick="sortBy('time_running_seconds')">
@@ -968,6 +974,7 @@
                             <input type="checkbox" class="job-checkbox" ${isChecked} onchange="toggleJobSelection('${escapedJobId}')">
                         </td>
                         <td>${job.created_at || '-'}</td>
+                        <td>${job.started_at || '-'}</td>
                         <td><span class="status-tag status-${job.status}">${job.status}</span></td>
                         <td class="time-running">${job.time_running || '-'}</td>
                         <td>${roundsHtml}</td>
@@ -1014,7 +1021,7 @@
             } else {
                 currentSort.column = column;
                 // Default to descending for timestamps and time_running (most recent/longest first)
-                currentSort.ascending = (column === 'created_at' || column === 'time_running_seconds') ? false : true;
+                currentSort.ascending = (column === 'created_at' || column === 'started_at' || column === 'time_running_seconds') ? false : true;
             }
             renderJobs();
         }
