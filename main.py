@@ -1,6 +1,8 @@
 import argparse
 import getpass
+import random
 import time
+import uuid
 from pathlib import Path
 
 import yaml
@@ -25,22 +27,32 @@ def main(
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
 
-    timestamp = time.strftime("%y%m%d%H%M%S")
-    rounds = config["tournament"]["rounds"]
-    sims = config["game"]["sims_per_round"]
+    def get_output_path() -> Path:
+        timestamp = time.strftime("%y%m%d%H%M%S")
+        rounds = config["tournament"]["rounds"]
+        sims = config["game"]["sims_per_round"]
 
-    players = [p["name"] for p in config["players"]]
-    p_num = len(players)
-    p_list = ".".join(sorted(players))
-    suffix_part = f".{suffix}" if suffix else ""
-    folder_name = f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
-    if output_dir is None:
+        players = [p["name"] for p in config["players"]]
+        p_num = len(players)
+        p_list = ".".join(sorted(players))
+        suffix_part = f".{suffix}" if suffix else ""
+        folder_name = (
+            f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
+        )
         if is_running_in_aws_batch():
-            full_output_dir = LOCAL_LOG_DIR / "batch" / folder_name
+            # Wait a random time to hopefully avoid collisions with the timestamp even without the uuid
+            time.sleep(random.random() * 20)
+            _uuid = str(uuid.uuid4())
+            folder_name += f".{_uuid}-uuid"
+        if output_dir is None:
+            if is_running_in_aws_batch():
+                return LOCAL_LOG_DIR / "batch" / folder_name
+            else:
+                return LOCAL_LOG_DIR / getpass.getuser() / folder_name
         else:
-            full_output_dir = LOCAL_LOG_DIR / getpass.getuser() / folder_name
-    else:
-        full_output_dir = output_dir / folder_name
+            return output_dir / folder_name
+
+    full_output_dir = get_output_path()
 
     tournament = PvpTournament(
         config, output_dir=full_output_dir, cleanup=cleanup, push=push, keep_containers=keep_containers
