@@ -13,7 +13,7 @@
     "type": "EC2",
     "allocationStrategy": "BEST_FIT_PROGRESSIVE",
     "minvCpus": 0,
-    "maxvCpus": 400,
+    "maxvCpus": 200,
     "desiredvCpus": 0,
     "instanceTypes": [
       "m5.xlarge"
