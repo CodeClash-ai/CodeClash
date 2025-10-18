@@ -1,0 +1,82 @@
+---
+description: Batch monitor as part of the viewer that shows aws batch jobs live
+alwaysApply: false
+---
+
+You are building a batch monitor for AWS batch jobs that are running.
+This is integrated in the viewer, though you should keep the code in separate files.
+
+You should put your python file in codeclash/viewer/app_aws.py
+and keep your other files in similar files from the rest of the viewer directory tree.
+
+## Goal
+
+You are keeping a list of all AWS batch jobs that are running or have been run in the last 24h.
+
+## UI structure
+
+This is essentially big table with the following columns:
+
+- Time submitted (sortable)
+- Time running [HH:MM] (sortable)
+- Status (filterable by status)
+- Job name (sortable)
+- Job ID (sortable)
+- Links
+
+I will now go into details about some of these columns.
+
+### Status column
+
+There are the following statuses:
+
+- SUBMITTED (grey)
+- PENDING (grey)
+- RUNNABLE (grey)
+- STARTING (yellow)
+- RUNNING (faded green)
+- SUCCEEDED (green)
+- FAILED (red)
+
+Use the colors that I just specified as background and format the statuses as "tags".
+
+### Links
+
+There is currently only one link
+
+1. View job on AWS online. This is a link like so: https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/batch/home?region=us-east-1#jobs/ec2/detail/ae71eab1-5da8-4167-92c9-9d02277947d1
+
+2. Link on emagedoc, this is a link like so: https://emagedoc.xyz/?folder=batch%2FPvpTournament.HuskyBench.r15.s100.p2.claude-sonnet-4-20250514.o3.251017231148  where you can get the name of the folder based on what is described below in combining data
+
+3. Link on s3: This is a link like so: https://039984708918-4ppzlrng.us-east-1.console.aws.amazon.com/s3/buckets/codeclash?region=us-east-1&bucketType=general&prefix=logs%2Fbatch%2FPvpTournament.HuskyBench.r15.s100.p2.claude-sonnet-4-20250514.claude-sonnet-4-5-20250929.251017231146%2F&showversions=false where again you get the name of the folder based on the combining data section
+
+## Getting the data
+
+You should get the data from AWS Batch.
+
+You need the following parameters
+
+```
+job_definition_name = "codeclash-default-job"
+job_queue = "codeclash-queue"
+region = "us-east-1"
+```
+
+You should use the `aws/list_jobs.py` script to get the data.
+You should update the data every 10 seconds.
+
+### Combining data
+
+OK now something a bit more complicated. We want to associate the aws jobs with the games from the viewer.
+
+FOr this we first need to map job ids to essentially the output folders/metadata files.
+
+Do this as follows: do Path("logs/").rglob("metadata.json") to find all metadata file.
+For every metadata file, you can find the ["aws"]["AWS_BATCH_JOB_ID"] parameter to get the job id.
+
+Now match together path to metadata with the job id in a dictionary.
+
+## Adding this to the viewer
+
+The url of this should be `/batch`.
+There should be a link on the picker page.

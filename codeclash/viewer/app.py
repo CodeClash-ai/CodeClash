@@ -19,6 +19,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_file,
 
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
+from codeclash.viewer.app_aws import AWSBatchMonitor
 
 # Configure logging
 logging.basicConfig(
@@ -1339,6 +1340,26 @@ def load_trajectory_diffs():
 
     except Exception as e:
         logger.error(f"Error loading trajectory diffs: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/batch")
+@print_timing
+def batch_monitor():
+    """AWS Batch job monitor page"""
+    return render_template("batch.html")
+
+
+@app.route("/batch/api/jobs")
+@print_timing
+def batch_api_jobs():
+    """API endpoint to get AWS Batch jobs"""
+    try:
+        monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
+        jobs = monitor.get_formatted_jobs()
+        return jsonify({"success": True, "jobs": jobs})
+    except Exception as e:
+        logger.error(f"Error fetching AWS Batch jobs: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
 
 
