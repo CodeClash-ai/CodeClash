@@ -39,8 +39,8 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "ruff",
-    "Werkzeug==2.3.7",
-    "frozen-flask==0.18",
+    "Werkzeug",
+    "frozen-flask",
 ]
 aws = [
     "boto3",
