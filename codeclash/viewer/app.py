@@ -1384,7 +1384,8 @@ def batch_api_jobs():
         hours_back = request.args.get("hours_back", default=24, type=int)
         monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
         jobs = monitor.get_formatted_jobs(hours_back=hours_back)
-        return jsonify({"success": True, "jobs": jobs})
+        total_cpus = monitor.get_total_cpus_running()
+        return jsonify({"success": True, "jobs": jobs, "total_cpus_running": total_cpus})
     except Exception as e:
         logger.error(f"Error fetching AWS Batch jobs: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
