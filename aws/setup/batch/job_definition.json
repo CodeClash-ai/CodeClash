@@ -33,10 +33,6 @@
       {
         "name": "PORTKEY_API_KEY",
         "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:PORTKEY_API_KEY::"
-      },
-      {
-        "name": "ANTHROPIC_API_KEY",
-        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:ANTHROPIC_API_KEY::"
       }
     ]
   },

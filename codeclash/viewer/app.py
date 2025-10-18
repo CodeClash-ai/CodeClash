@@ -5,9 +5,12 @@ Trajectory Viewer for AI Agent Benchmark
 A Flask-based web application to visualize AI agent game trajectories
 """
 
+import functools
 import json
 import logging
 import shutil
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,8 +19,31 @@ from flask import Flask, jsonify, redirect, render_template, request, send_file,
 
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
+from codeclash.viewer.app_aws import AWSBatchMonitor
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
+)
 logger = logging.getLogger(__name__)
+
+
+def print_timing(func):
+    """Decorator to log timing information for functions/routes"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        logger.info(f"Starting {func.__name__}")
+        try:
+            return func(*args, **kwargs)
+        finally:
+            elapsed = time.time() - start_time
+            logger.info(f"Completed {func.__name__} in {elapsed:.2f}s")
+
+    return wrapper
 
 
 class Metadata:
@@ -194,82 +220,98 @@ def get_agent_info_from_metadata(metadata: Metadata) -> list[AgentInfo]:
     return agents
 
 
+def _load_game_metadata(folder_info: dict[str, Any]) -> dict[str, Any]:
+    """Helper function to load metadata for a single game folder in parallel"""
+    item = Path(folder_info["full_path"])
+    metadata = load_metadata(item)
+    folder_info["round_info"] = metadata.round_count_info
+    folder_info["models"] = metadata.models
+    folder_info["game_name"] = metadata.game_name
+    folder_info["created_timestamp"] = metadata.get_path("created_timestamp")
+    return folder_info
+
+
+@print_timing
 def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
-    """Recursively find all folders and mark which ones contain metadata.json"""
-    all_folders = []
-    game_folders = set()  # Track which folders are actual game folders
+    """Find all game folders by locating metadata.json files
 
-    def scan_directory(directory: Path, relative_path: str = ""):
-        if not directory.exists() or not directory.is_dir():
-            return
+    Uses parallel loading to speed up metadata.json reading for many game folders.
+    """
+    if not base_dir.exists():
+        return []
 
-        try:
-            for item in directory.iterdir():
-                if item.is_dir():
-                    current_relative = relative_path + "/" + item.name if relative_path else item.name
+    # Find all metadata.json files directly
+    metadata_files = list(base_dir.rglob("metadata.json"))
 
-                    depth = current_relative.count("/")
+    # Create folder info for each game folder
+    game_folder_infos = []
+    game_folder_paths = set()
 
-                    # Check if this directory is a game folder
-                    if is_game_folder(item):
-                        # Load metadata once
-                        metadata = load_metadata(item)
-                        round_info = metadata.round_count_info
-                        models = metadata.models
-                        game_name = metadata.game_name
-                        created_timestamp = metadata.get_path("created_timestamp")
-                        game_folders.add(current_relative)
-                        all_folders.append(
-                            {
-                                "name": current_relative,
-                                "full_path": str(item),
-                                "round_info": round_info,  # Now stores (completed, total) tuple or None
-                                "models": models,
-                                "game_name": game_name,
-                                "created_timestamp": created_timestamp,
-                                "is_game": True,
-                                "depth": depth,
-                                "parent": relative_path if relative_path else None,
-                            }
-                        )
-                    else:
-                        # Add as intermediate folder if it has game folders in subdirectories
-                        all_folders.append(
-                            {
-                                "name": current_relative,
-                                "full_path": str(item),
-                                "round_info": None,
-                                "models": [],
-                                "game_name": "",
-                                "created_timestamp": None,
-                                "is_game": False,
-                                "depth": depth,
-                                "parent": relative_path if relative_path else None,
-                            }
-                        )
+    for metadata_file in metadata_files:
+        game_dir = metadata_file.parent
+        relative_path = str(game_dir.relative_to(base_dir))
+        game_folder_paths.add(relative_path)
+        depth = relative_path.count("/")
 
-                    # Recursively scan subdirectories
-                    scan_directory(item, current_relative)
-        except (PermissionError, OSError):
-            # Skip directories we can't access
-            pass
+        folder_info = {
+            "name": relative_path,
+            "full_path": str(game_dir),
+            "is_game": True,
+            "depth": depth,
+            "parent": str(game_dir.parent.relative_to(base_dir)) if game_dir.parent != base_dir else None,
+        }
+        game_folder_infos.append(folder_info)
 
-    scan_directory(base_dir)
+    # Load metadata.json files in parallel
+    if game_folder_infos:
+        with ThreadPoolExecutor(max_workers=min(32, len(game_folder_infos))) as executor:
+            futures = {
+                executor.submit(_load_game_metadata, folder_info): folder_info for folder_info in game_folder_infos
+            }
+            for future in as_completed(futures):
+                try:
+                    future.result()  # Updates folder_info in place
+                except Exception as e:
+                    # If metadata loading fails, set default values
+                    folder_info = futures[future]
+                    folder_info["round_info"] = None
+                    folder_info["models"] = []
+                    folder_info["game_name"] = ""
+                    folder_info["created_timestamp"] = None
+                    logger.warning(f"Failed to load metadata for {folder_info['name']}: {e}")
 
-    # Filter out intermediate folders that don't lead to any game folders
-    filtered_folders = []
-    for folder in sorted(all_folders, key=lambda x: x["name"]):
-        if folder["is_game"]:
-            # Always include game folders
-            filtered_folders.append(folder)
-        else:
-            # Include intermediate folders only if they have game folders as descendants
-            folder_path = folder["name"]
-            has_game_descendants = any(game_path.startswith(folder_path + "/") for game_path in game_folders)
-            if has_game_descendants:
-                filtered_folders.append(folder)
+    # Create intermediate folder entries for all parent directories
+    intermediate_folders = set()
+    for game_path in game_folder_paths:
+        # Extract all parent paths
+        parts = game_path.split("/")
+        for i in range(1, len(parts)):
+            parent_path = "/".join(parts[:i])
+            if parent_path not in game_folder_paths:  # Only add if not a game folder itself
+                intermediate_folders.add(parent_path)
 
-    return filtered_folders
+    # Add intermediate folders to the result
+    all_folders = game_folder_infos.copy()
+    for intermediate_path in intermediate_folders:
+        depth = intermediate_path.count("/")
+        parent_parts = intermediate_path.split("/")
+        parent_path = "/".join(parent_parts[:-1]) if len(parent_parts) > 1 else None
+
+        all_folders.append(
+            {
+                "name": intermediate_path,
+                "full_path": str(base_dir / intermediate_path),
+                "is_game": False,
+                "depth": depth,
+                "parent": parent_path,
+                "round_info": None,
+                "models": [],
+                "game_name": "",
+                "created_timestamp": None,
+            }
+        )
+
+    return sorted(all_folders, key=lambda x: x["name"])
 
 
 @dataclass
@@ -795,6 +837,7 @@ def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     return {"previous": previous_game, "next": next_game}
 
 
+@print_timing
 def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
     """Common logic for rendering game viewer pages"""
     # Parse the selected game
@@ -840,6 +883,7 @@ app.jinja_env.filters["strip_model_prefix"] = strip_model_prefix
 
 
 @app.route("/")
+@print_timing
 def index():
     """Main viewer page - now redirects to picker if no folder is selected"""
     selected_folder = request.args.get("folder")
@@ -857,6 +901,7 @@ def index():
 
 
 @app.route("/game/<path:folder_path>")
+@print_timing
 def game_view(folder_path):
     """Static-friendly game viewer route using path parameters"""
     # Validate the selected folder exists and is a game folder
@@ -869,6 +914,7 @@ def game_view(folder_path):
 
 
 @app.route("/picker")
+@print_timing
 def game_picker():
     """Game picker page with recursive folder support"""
     logs_dir = LOG_BASE_DIR
@@ -1161,6 +1207,7 @@ def move_folder():
 
 
 @app.route("/analysis/line-counts")
+@print_timing
 def analysis_line_counts():
     """Get line count analysis data for the current game"""
     selected_folder = request.args.get("folder")
@@ -1252,6 +1299,7 @@ def load_log():
 
 
 @app.route("/load-trajectory-diffs")
+@print_timing
 def load_trajectory_diffs():
     """Load trajectory diff data on demand"""
     selected_folder = request.args.get("folder")
@@ -1292,6 +1340,26 @@ def load_trajectory_diffs():
 
     except Exception as e:
         logger.error(f"Error loading trajectory diffs: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/batch")
+@print_timing
+def batch_monitor():
+    """AWS Batch job monitor page"""
+    return render_template("batch.html")
+
+
+@app.route("/batch/api/jobs")
+@print_timing
+def batch_api_jobs():
+    """API endpoint to get AWS Batch jobs"""
+    try:
+        monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
+        jobs = monitor.get_formatted_jobs()
+        return jsonify({"success": True, "jobs": jobs})
+    except Exception as e:
+        logger.error(f"Error fetching AWS Batch jobs: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
 
 

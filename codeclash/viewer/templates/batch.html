@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Batch Monitor - CodeClash</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-tertiary: #222222;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent-color: #00ff88;
+            --accent-hover: #00cc66;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .batch-container {
+            padding: 2rem 1rem;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+
+        .batch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .batch-header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-hover);
+        }
+
+        .batch-table {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            overflow-y: visible;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.8);
+        }
+
+        .batch-table table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+        }
+
+        /* Custom scrollbar for table */
+        .batch-table::-webkit-scrollbar {
+            height: 12px;
+        }
+
+        .batch-table::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 6px;
+        }
+
+        .batch-table::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 6px;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .batch-table::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        .batch-table th {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .batch-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .batch-table tbody tr {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .batch-table tbody tr:hover {
+            background: var(--bg-primary);
+            border-left-color: var(--accent-color);
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-SUBMITTED,
+        .status-PENDING,
+        .status-RUNNABLE {
+            background: #6c757d;
+            color: white;
+        }
+
+        .status-STARTING {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-RUNNING {
+            background: rgba(40, 167, 69, 0.3);
+            color: #28a745;
+        }
+
+        .status-SUCCEEDED {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-FAILED {
+            background: #dc3545;
+            color: white;
+        }
+
+        .job-id,
+        .job-name {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .copy-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-color);
+            color: #000000;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-color);
+            color: #000000;
+            border-color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .link-btn {
+            background: var(--accent-color);
+            border: none;
+            color: #000000;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            background: var(--accent-hover);
+            color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .link-btn.disabled {
+            background: var(--text-muted);
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .links-cell {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid #ff4444;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .sortable:hover {
+            color: var(--accent-color);
+        }
+
+        .sort-icon {
+            margin-left: 0.25rem;
+            opacity: 0.6;
+            font-size: 0.75rem;
+        }
+
+        .sortable:hover .sort-icon {
+            opacity: 1;
+        }
+
+        .filter-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-container label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.375rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1rem;
+        }
+
+        .filter-select:hover {
+            border-color: var(--accent-color);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+        }
+
+        .update-info {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="batch-container">
+        <div class="batch-header">
+            <h1><i class="bi bi-cloud"></i> AWS Batch Job Monitor</h1>
+            <a href="{{ url_for('game_picker') }}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Picker
+            </a>
+        </div>
+
+        <div class="filter-container">
+            <label for="status-filter">Filter by status:</label>
+            <select id="status-filter" class="filter-select" onchange="applyStatusFilter()">
+                <option value="">All Statuses</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="PENDING">Pending</option>
+                <option value="RUNNABLE">Runnable</option>
+                <option value="STARTING">Starting</option>
+                <option value="RUNNING">Running</option>
+                <option value="SUCCEEDED">Succeeded</option>
+                <option value="FAILED">Failed</option>
+            </select>
+            <span class="update-info" id="last-refresh-info">Last refresh: just now</span>
+        </div>
+
+        <div id="error-container"></div>
+        <div id="jobs-container" class="loading">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading jobs...
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allJobs = [];
+        let currentSort = { column: 'created_at', ascending: false };
+        let statusFilter = '';
+        let lastRefreshTime = null;
+
+        async function fetchJobs() {
+            try {
+                const response = await fetch('/batch/api/jobs');
+                const data = await response.json();
+
+                if (data.success) {
+                    allJobs = data.jobs;
+                    renderJobs();
+                    clearError();
+                    lastRefreshTime = Date.now();
+                    updateLastRefreshDisplay();
+                } else {
+                    showError(data.error || 'Failed to fetch jobs');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function updateLastRefreshDisplay() {
+            if (!lastRefreshTime) return;
+
+            const secondsAgo = Math.floor((Date.now() - lastRefreshTime) / 1000);
+            const infoElement = document.getElementById('last-refresh-info');
+
+            if (secondsAgo === 0) {
+                infoElement.textContent = 'Last refresh: just now';
+            } else if (secondsAgo === 1) {
+                infoElement.textContent = 'Last refresh: 1s ago';
+            } else {
+                infoElement.textContent = `Last refresh: ${secondsAgo}s ago`;
+            }
+        }
+
+        function renderJobs() {
+            let jobs = [...allJobs];
+
+            // Apply status filter
+            if (statusFilter) {
+                jobs = jobs.filter(job => job.status === statusFilter);
+            }
+
+            // Apply sorting
+            jobs.sort((a, b) => {
+                let aVal = a[currentSort.column];
+                let bVal = b[currentSort.column];
+
+                if (currentSort.column === 'created_at') {
+                    aVal = a.created_timestamp || 0;
+                    bVal = b.created_timestamp || 0;
+                } else if (currentSort.column === 'time_running_seconds') {
+                    aVal = a.time_running_seconds || 0;
+                    bVal = b.time_running_seconds || 0;
+                }
+
+                if (aVal < bVal) return currentSort.ascending ? -1 : 1;
+                if (aVal > bVal) return currentSort.ascending ? 1 : -1;
+                return 0;
+            });
+
+            const container = document.getElementById('jobs-container');
+
+            if (jobs.length === 0) {
+                container.innerHTML = '<div class="loading">No jobs found</div>';
+                return;
+            }
+
+            let html = `
+                <div class="batch-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortBy('created_at')">
+                                    Time Submitted <i class="bi bi-arrow-down-up sort-icon"></i>
+                                </th>
+                                <th>Status</th>
+                                <th class="sortable" onclick="sortBy('time_running_seconds')">
+                                    Time Running <i class="bi bi-arrow-down-up sort-icon"></i>
+                                </th>
+                                <th class="sortable" onclick="sortBy('job_name')">
+                                    Job Name <i class="bi bi-arrow-down-up sort-icon"></i>
+                                </th>
+                                <th class="sortable" onclick="sortBy('job_id')">
+                                    Job ID <i class="bi bi-arrow-down-up sort-icon"></i>
+                                </th>
+                                <th>Links</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            jobs.forEach(job => {
+                const escapedJobName = job.job_name.replace(/'/g, "\\'");
+                const escapedJobId = job.job_id.replace(/'/g, "\\'");
+
+                html += `
+                    <tr>
+                        <td>${job.created_at || '-'}</td>
+                        <td><span class="status-tag status-${job.status}">${job.status}</span></td>
+                        <td>${job.time_running || '-'}</td>
+                        <td>
+                            <div class="copy-cell">
+                                <span class="job-name">${job.job_name}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${escapedJobName}', this)" title="Copy job name">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="copy-cell">
+                                <span class="job-id">${job.job_id}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${escapedJobId}', this)" title="Copy job ID">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="links-cell">
+                                <a href="${job.aws_link}" target="_blank" class="link-btn">AWS</a>
+                                ${job.emagedoc_link ? `<a href="${job.emagedoc_link}" target="_blank" class="link-btn">Viewer</a>` : '<span class="link-btn disabled">Viewer</span>'}
+                                ${job.s3_link ? `<a href="${job.s3_link}" target="_blank" class="link-btn">S3</a>` : '<span class="link-btn disabled">S3</span>'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function sortBy(column) {
+            if (currentSort.column === column) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = column;
+                // Default to descending for timestamps and time_running
+                currentSort.ascending = (column === 'created_at' || column === 'time_running_seconds') ? false : true;
+            }
+            renderJobs();
+        }
+
+        function applyStatusFilter() {
+            statusFilter = document.getElementById('status-filter').value;
+            renderJobs();
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('error-container').innerHTML = '';
+        }
+
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Change button appearance
+                const icon = button.querySelector('i');
+                const originalClass = icon.className;
+                button.classList.add('copied');
+                icon.className = 'bi bi-check';
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    icon.className = originalClass;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Initial fetch
+        fetchJobs();
+
+        // Auto-refresh every 10 seconds
+        setInterval(fetchJobs, 10000);
+
+        // Update "last refresh" display every second
+        setInterval(updateLastRefreshDisplay, 1000);
+    </script>
+</body>
+</html>
