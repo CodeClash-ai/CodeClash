@@ -161,7 +161,7 @@ class AWSBatchMonitor:
                 logger.debug(f"Failed to read metadata from {metadata_file}: {e}")
 
         self._job_id_to_folder = mapping
-        logger.info(f"Built job ID mapping with {len(mapping)} entries: {mapping}")
+        logger.info(f"Built job ID mapping with {len(mapping)} entries")
         return mapping
 
     def _generate_aws_console_link(self, job_id: str) -> str:
@@ -176,7 +176,7 @@ class AWSBatchMonitor:
         folder_path = mapping.get(job_id)
         if not folder_path:
             return None
-        encoded_folder = quote(f"batch/{folder_path}")
+        encoded_folder = quote(folder_path)
         return f"https://emagedoc.xyz/?folder={encoded_folder}"
 
     def _generate_s3_link(self, job_id: str) -> str | None:
@@ -187,7 +187,7 @@ class AWSBatchMonitor:
             return None
         account_id = "039984708918"
         console_suffix = "4ppzlrng"
-        encoded_prefix = quote(f"logs/batch/{folder_path}/")
+        encoded_prefix = quote(f"logs/{folder_path}/")
         return f"https://{account_id}-{console_suffix}.{self.region}.console.aws.amazon.com/s3/buckets/codeclash?region={self.region}&bucketType=general&prefix={encoded_prefix}&showversions=false"
 
     def get_formatted_jobs(self, *, limit: int | None = None) -> list[dict[str, Any]]:
