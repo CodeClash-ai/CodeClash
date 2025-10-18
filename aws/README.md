@@ -58,6 +58,10 @@ Without the logs you will only see job status, runtime etc.
 The best way to find failures is to either select those with the `Failed` status,
 or with `Succeeded` but `Incomplete rounds`.
 
+When you believe that something has failed because it doesn't have all rounds completed,
+make sure to check the s3 folder for the presence of logs (else there might be a missing sync
+so the viewer doesn't have the most recent completed rounds).
+
 Proceed as follows:
 
 1. Select them all
@@ -67,6 +71,9 @@ Proceed as follows:
 5. Execute the rm commands
 
 Now you've resubmitted them and removed the partial run S3 folders.
+
+You can also still investigate the failure reason with the AWS console.
+In the log viewing window, select sorting -> Desc., then click `Filter logs`.
 
 ## Setup
 
