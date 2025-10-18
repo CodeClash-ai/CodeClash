@@ -2,8 +2,12 @@ FROM ubuntu:22.04
 
 # Install system dependencies
 RUN apt update && apt install -y \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt update && apt install -y \
+    python3.11 \
+    python3.11-venv \
     python3-pip \
-    python3.10-venv \
     git \
     curl \
     unzip \
@@ -30,7 +34,7 @@ WORKDIR /app
 # Clone repository (you'll pass GITHUB_TOKEN as env var)
 ARG GITHUB_TOKEN
 RUN git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git . \
-    && python3 -m venv .venv \
+    && python3.11 -m venv .venv \
     && . .venv/bin/activate \
     && pip install -e '.[dev]'
 
