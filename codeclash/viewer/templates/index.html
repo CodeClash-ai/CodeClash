@@ -134,10 +134,10 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/clipboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/experiment.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/readme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/json-editors.js') }}"></script>
     <script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
     <script src="{{ url_for('static', filename='js/matrix.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/trajectory.js') }}"></script>
     <script>
         // Initialize all components when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -145,10 +145,8 @@
             setupCopyButtons();
             // Setup download buttons
             setupDownloadButtons();
-            // Setup readme autosave (only if not in static mode)
-            {% if not is_static %}
-            setupReadmeAutosave();
-            {% endif %}
+            // Setup trajectory loading
+            setupTrajectoryLoading();
             // Initialize JSON editors with metadata
             initializeJSONEditors({{ metadata | tojson | safe }});
         });

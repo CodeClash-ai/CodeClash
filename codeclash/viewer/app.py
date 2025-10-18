@@ -458,72 +458,109 @@ class LogParser:
             all_logs=all_logs,
         )
 
-    def parse_trajectory(self, player_name: str, round_num: int, *, load_diffs: bool = False) -> TrajectoryInfo | None:
+    def parse_trajectory(
+        self, player_name: str, round_num: int, *, load_diffs: bool = False, load_messages: bool = False
+    ) -> TrajectoryInfo | None:
         """Parse a specific trajectory file
 
         Args:
             player_name: Name of the player
             round_num: Round number
             load_diffs: If True, load diff data. If False (default), skip loading diffs for performance
+            load_messages: If True, load messages/submission/memory. If False (default), skip for performance
         """
         player_dir = self.log_dir / "players" / player_name
         if not player_dir.exists():
             return None
 
+        # Get stats from metadata.json first
+        metadata = self._get_metadata()
+        agent_stats = None
+
+        # Find the agent index for this player
+        agents = metadata.raw_data.get("agents", [])
+        for agent in agents:
+            if agent.get("name") == player_name:
+                agent_stats_dict = agent.get("agent_stats", {})
+                agent_stats = agent_stats_dict.get(str(round_num))
+                break
+
+        # Default values if not found in metadata
+        api_calls = 0
+        cost = 0.0
+        exit_status = None
+
+        if agent_stats:
+            api_calls = agent_stats.get("api_calls", 0)
+            cost = agent_stats.get("cost", 0.0)
+            exit_status = agent_stats.get("exit_status")
+
+        # Load trajectory file for messages, submission, and memory only if requested
         traj_file = player_dir / f"{player_name}_r{round_num}.traj.json"
-        if not traj_file.exists():
-            return None
+        messages = []
+        submission = None
+        memory = None
+
+        if load_messages and traj_file.exists():
+            try:
+                data = json.loads(traj_file.read_text())
+                messages = data.get("messages", [])
+                info = data.get("info", {})
+                submission = info.get("submission")
+                memory = info.get("memory")
+            except (json.JSONDecodeError, KeyError) as e:
+                logger.error(f"Error parsing trajectory file {traj_file}: {e}", exc_info=True)
+
+        # Get diff data from changes file only if requested
+        diff = incremental_diff = modified_files = None
+        diff_by_files = incremental_diff_by_files = None
+
+        if load_diffs:
+            changes_file = player_dir / f"changes_r{round_num}.json"
+            if changes_file.exists():
+                try:
+                    changes_data = json.loads(changes_file.read_text())
+                    diff = changes_data.get("full_diff", "")
+                    incremental_diff = changes_data.get("incremental_diff", "")
+                    modified_files = changes_data.get("modified_files", {})
+
+                    # Filter and split diffs by files
+                    filtered_diff = filter_git_diff(diff) if diff else ""
+                    filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
+                    diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
+                    incremental_diff_by_files = (
+                        split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
+                    )
+                except (json.JSONDecodeError, KeyError):
+                    pass
+
+        # Get valid_submission from round_stats
+        valid_submission = None
         try:
-            data = json.loads(traj_file.read_text())
-            info = data.get("info", {})
-            model_stats = info.get("model_stats", {})
+            round_stats = metadata.round_stats.get(str(round_num), {})
+            player_stats = round_stats.get("player_stats", {})
+            player_stat = player_stats.get(player_name, {})
+            valid_submission = player_stat.get("valid_submit")
+        except (KeyError, AttributeError):
+            pass
 
-            # Get diff data from changes file only if requested
-            diff = incremental_diff = modified_files = None
-            diff_by_files = incremental_diff_by_files = None
-
-            if load_diffs:
-                changes_file = player_dir / f"changes_r{round_num}.json"
-                if changes_file.exists():
-                    try:
-                        changes_data = json.loads(changes_file.read_text())
-                        diff = changes_data.get("full_diff", "")
-                        incremental_diff = changes_data.get("incremental_diff", "")
-                        modified_files = changes_data.get("modified_files", {})
-
-                        # Filter and split diffs by files
-                        filtered_diff = filter_git_diff(diff) if diff else ""
-                        filtered_incremental_diff = filter_git_diff(incremental_diff) if incremental_diff else ""
-                        diff_by_files = split_git_diff_by_files(filtered_diff) if filtered_diff else {}
-                        incremental_diff_by_files = (
-                            split_git_diff_by_files(filtered_incremental_diff) if filtered_incremental_diff else {}
-                        )
-                    except (json.JSONDecodeError, KeyError):
-                        pass
-
-            return TrajectoryInfo(
-                player_id=player_name,
-                round_num=round_num,
-                api_calls=model_stats.get("api_calls", 0),
-                cost=model_stats.get("instance_cost", 0.0),
-                exit_status=info.get("exit_status"),
-                submission=info.get("submission"),
-                memory=info.get("memory"),
-                messages=data.get("messages", []),
-                diff=diff,
-                incremental_diff=incremental_diff,
-                modified_files=modified_files,
-                trajectory_file_path=str(traj_file),
-                diff_by_files=diff_by_files,
-                incremental_diff_by_files=incremental_diff_by_files,
-                valid_submission=self._get_metadata().round_stats[str(round_num)]["player_stats"][player_name][
-                    "valid_submit"
-                ],
-            )
-        except (json.JSONDecodeError, KeyError) as e:
-            logger.error(f"Error parsing {traj_file}: {e}", exc_info=True)
-
-        return None
+        return TrajectoryInfo(
+            player_id=player_name,
+            round_num=round_num,
+            api_calls=api_calls,
+            cost=cost,
+            exit_status=exit_status,
+            submission=submission,
+            memory=memory,
+            messages=messages,
+            diff=diff,
+            incremental_diff=incremental_diff,
+            modified_files=modified_files,
+            trajectory_file_path=str(traj_file) if traj_file.exists() else None,
+            diff_by_files=diff_by_files,
+            incremental_diff_by_files=incremental_diff_by_files,
+            valid_submission=valid_submission,
+        )
 
     def get_available_trajectories(self) -> list[tuple]:
         """Get list of available trajectory files as (player_name, round_num) tuples using metadata"""
@@ -959,61 +996,6 @@ def delete_experiment():
         return jsonify({"success": False, "error": str(e)})
 
 
-@app.route("/save-readme", methods=["POST"])
-def save_readme():
-    """Save readme content to readme.txt in the experiment folder"""
-    try:
-        data = request.get_json()
-        selected_folder = data.get("selected_folder")
-        content = data.get("content", "")
-
-        if not selected_folder:
-            return jsonify({"success": False, "error": "No folder specified"})
-
-        # Get the folder path
-        folder_path = LOG_BASE_DIR / selected_folder
-
-        if not folder_path.exists() or not folder_path.is_dir():
-            return jsonify({"success": False, "error": "Invalid folder"})
-
-        # Save to readme.txt
-        readme_file = folder_path / "readme.txt"
-        readme_file.write_text(content)
-
-        return jsonify({"success": True, "message": "Readme saved successfully"})
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-
-@app.route("/load-readme")
-def load_readme():
-    """Load readme content from readme.txt in the experiment folder"""
-    try:
-        selected_folder = request.args.get("folder")
-
-        if not selected_folder:
-            return jsonify({"success": False, "error": "No folder specified"})
-
-        # Get the folder path
-        folder_path = LOG_BASE_DIR / selected_folder
-
-        if not folder_path.exists() or not folder_path.is_dir():
-            return jsonify({"success": False, "error": "Invalid folder"})
-
-        # Load from readme.txt
-        readme_file = folder_path / "readme.txt"
-        content = ""
-
-        if readme_file.exists():
-            content = readme_file.read_text()
-
-        return jsonify({"success": True, "content": content})
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-
 @app.route("/rename-folders", methods=["POST"])
 def rename_folders():
     """Add suffix to selected folders"""
@@ -1296,6 +1278,50 @@ def load_log():
 
     except (OSError, UnicodeDecodeError) as e:
         return jsonify({"success": False, "error": f"Error reading file: {str(e)}"}), 500
+
+
+@app.route("/load-trajectory-details")
+@print_timing
+def load_trajectory_details():
+    """Load trajectory details (messages, submission, memory) on demand"""
+    selected_folder = request.args.get("folder")
+    player_name = request.args.get("player")
+    round_num = request.args.get("round")
+
+    if not all([selected_folder, player_name, round_num]):
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+
+    try:
+        round_num = int(round_num)
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid round number"}), 400
+
+    try:
+        # Validate the selected folder exists and is a game folder
+        folder_path = LOG_BASE_DIR / selected_folder
+        if not folder_path.exists() or not is_game_folder(folder_path):
+            return jsonify({"success": False, "error": "Invalid game folder"}), 404
+
+        # Parse trajectory with messages loaded
+        parser = LogParser(folder_path)
+        trajectory = parser.parse_trajectory(player_name, round_num, load_messages=True)
+
+        if not trajectory:
+            return jsonify({"success": False, "error": "Trajectory not found"}), 404
+
+        return jsonify(
+            {
+                "success": True,
+                "messages": trajectory.messages,
+                "submission": trajectory.submission,
+                "memory": trajectory.memory,
+                "trajectory_file_path": trajectory.trajectory_file_path,
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error loading trajectory details: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/load-trajectory-diffs")

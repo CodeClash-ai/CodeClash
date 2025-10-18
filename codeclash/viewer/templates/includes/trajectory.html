@@ -26,139 +26,39 @@
         {% endif %}
     </div>
 
-    <!-- Messages Foldout inside the same container -->
-    <details class="trajectory-messages-foldout">
+    <!-- Messages Foldout inside the same container (lazy loaded) -->
+    <details class="trajectory-messages-foldout trajectory-details-foldout"
+             data-player="{{ trajectory.player_id }}"
+             data-round="{{ trajectory.round_num }}">
         <summary>
-            <i class="bi bi-chat"></i> Trajectory ({{ trajectory.messages|length }} total)
-            {% if trajectory.trajectory_file_path %}
-            <button class="copy-path-btn-small" data-path="{{ trajectory.trajectory_file_path }}" title="Copy trajectory file path">
-                <i class="bi bi-clipboard"></i> Copy path
-            </button>
-            <button class="download-btn-small" data-path="{{ trajectory.trajectory_file_path }}" title="Download trajectory file">
-                <i class="bi bi-download"></i> Download
-            </button>
-            {% endif %}
+            <i class="bi bi-chat"></i> Trajectory
         </summary>
         <div class="trajectory-content">
-            <div class="messages-container">
-                {% for message in trajectory.messages %}
-            <div class="message-block {{ message.role }}">
-                <span class="message-role-badge">{{ message.role.title() }} #{{ loop.index }}</span>
-                <div class="message-content">
-                    {% if message.content is string %}
-                        {% set content_lines = message.content.split('\n') %}
-                        {% if content_lines|length <= 5 %}
-                            <!-- Show full content if 5 lines or less -->
-                            <div class="message-content-full">
-                                    {% if message.role == 'assistant' and '```' in message.content %}
-                                        <!-- Special handling for assistant messages with code blocks -->
-                                        {% set parts = message.content.split('```') %}
-                                        {% for part in parts %}
-                                            {% if loop.index is odd %}
-                                                <!-- Text part -->
-                                                <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
-                                            {% else %}
-                                                <!-- Code part -->
-                                                <div class="code-block">
-                                                    <pre><code>{{ part | unescape_content }}</code></pre>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% else %}
-                                        <!-- Regular text content -->
-                                        <div class="message-text">
-                                            <pre>{{ message.content | unescape_content }}</pre>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                            <!-- Show preview with expand button -->
-                            <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
-                                    <div class="message-text">
-                                        <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
-                                    </div>
-                                    <div class="expand-indicator">
-                                        ▼ {{ content_lines|length - 5 }} more lines
-                                    </div>
-                            </div>
-                            <div class="message-content-full" style="display: none;" title="Content expanded - click collapse button below to hide">
-                                    {% if message.role == 'assistant' and '```' in message.content %}
-                                        <!-- Special handling for assistant messages with code blocks -->
-                                        {% set parts = message.content.split('```') %}
-                                        {% for part in parts %}
-                                            {% if loop.index is odd %}
-                                                <!-- Text part -->
-                                                <div class="message-text"><pre>{{ part | unescape_content }}</pre></div>
-                                            {% else %}
-                                                <!-- Code part -->
-                                                <div class="code-block">
-                                                    <pre><code>{{ part | unescape_content }}</code></pre>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% else %}
-                                        <!-- Regular text content -->
-                                        <div class="message-text">
-                                            <pre>{{ message.content | unescape_content }}</pre>
-                                        </div>
-                                    {% endif %}
-                                    <div class="collapse-indicator clickable-message"  title="Click to collapse">
-                                        ▲ Click to collapse
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% elif message.content is iterable %}
-                            <!-- Handle complex content (e.g., user messages with multiple parts) -->
-                            <div class="message-content-full">
-                                {% for content_part in message.content %}
-                                    {% if content_part.type == 'text' %}
-                                        {% set content_lines = content_part.text.split('\n') %}
-                                        {% if content_lines|length <= 5 %}
-                                            <div class="message-text">
-                                                <pre>{{ content_part.text | unescape_content }}</pre>
-                                            </div>
-                                        {% else %}
-                                            <div class="message-preview-short clickable-message"  title="Click to expand ({{ content_lines|length - 5 }} more lines)">
-                                                <div class="message-text">
-                                                    <pre>{{ content_lines[:5] | join('\n') | unescape_content }}</pre>
-                                                </div>
-                                                <div class="expand-indicator">
-                                                    ▼ {{ content_lines|length - 5 }} more lines
-                                                </div>
-                                            </div>
-                                            <div class="message-content-expanded" style="display: none;" title="Content expanded - click collapse button below to hide">
-                                                <div class="message-text">
-                                                    <pre>{{ content_part.text | unescape_content }}</pre>
-                                                </div>
-                                                <div class="collapse-indicator clickable-message"  title="Click to collapse">
-                                                    ▲ Click to collapse
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="message-part">
-                                            <strong>{{ content_part.type.title() }}:</strong>
-                                            <pre>{{ content_part | tojson(indent=2) }}</pre>
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <!-- Fallback for other content types -->
-                            <div class="message-content-full">
-                                <div class="message-text">
-                                    <pre>{{ message.content | tojson(indent=2) }}</pre>
-                                </div>
-                            </div>
-                    {% endif %}
-                </div>
-            </div>
-                {% endfor %}
-            </div>
-            <div class="collapse-messages-button">
-                <button class="btn-collapse-messages">
-                    ▲ Collapse Messages
+            <div class="trajectory-load-placeholder">
+                <button class="btn btn-primary load-trajectory-btn"
+                        data-player="{{ trajectory.player_id }}"
+                        data-round="{{ trajectory.round_num }}">
+                    <i class="bi bi-download"></i> Load Trajectory Messages
                 </button>
+            </div>
+            <div class="trajectory-loading-spinner" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading trajectory data...</span>
+            </div>
+            <div class="trajectory-details-content" style="display: none;">
+                <div class="trajectory-header-info" style="margin-bottom: 1rem;">
+                    <!-- Will be populated with file path and buttons -->
+                </div>
+                <div class="messages-container">
+                    <!-- Messages will be loaded here dynamically -->
+                </div>
+                <div class="collapse-messages-button">
+                    <button class="btn-collapse-messages">
+                        ▲ Collapse Messages
+                    </button>
+                </div>
             </div>
         </div>
     </details>
@@ -230,22 +130,34 @@
 </div>
 
 
-<!-- Submission -->
-{% if trajectory.submission %}
-<details class="foldout">
+<!-- Submission (lazy loaded) -->
+<details class="foldout trajectory-submission-foldout"
+         data-player="{{ trajectory.player_id }}"
+         data-round="{{ trajectory.round_num }}">
     <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
     <div class="log-content">
-        <pre><code>{{ trajectory.submission }}</code></pre>
+        <div class="submission-placeholder">
+            <!-- Will be populated when messages are loaded -->
+            <em>Load trajectory messages above to see submission</em>
+        </div>
+        <div class="submission-content" style="display: none;">
+            <pre><code></code></pre>
+        </div>
     </div>
 </details>
-{% endif %}
 
-<!-- Memory -->
-{% if trajectory.memory %}
-<details class="foldout">
+<!-- Memory (lazy loaded) -->
+<details class="foldout trajectory-memory-foldout"
+         data-player="{{ trajectory.player_id }}"
+         data-round="{{ trajectory.round_num }}">
     <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
     <div class="log-content">
-        <pre><code>{{ trajectory.memory }}</code></pre>
+        <div class="memory-placeholder">
+            <!-- Will be populated when messages are loaded -->
+            <em>Load trajectory messages above to see memory</em>
+        </div>
+        <div class="memory-content" style="display: none;">
+            <pre><code></code></pre>
+        </div>
     </div>
 </details>
-{% endif %}
