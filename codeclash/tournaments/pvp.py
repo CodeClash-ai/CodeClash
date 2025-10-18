@@ -31,6 +31,9 @@ class PvpTournament(AbstractTournament):
         keep_containers: bool = False,
     ):
         super().__init__(config, name="PvpTournament", output_dir=output_dir)
+        if self.metadata_file.exists():
+            self.logger.critical(f"Metadata file already exists: {self.metadata_file}")
+            raise FileExistsError(f"Metadata file already exists: {self.metadata_file}")
         self.cleanup_on_end = cleanup
         self.game: CodeGame = get_game(
             self.config,
@@ -41,6 +44,10 @@ class PvpTournament(AbstractTournament):
         self.agents: list[Player] = []
         for agent_conf in self.config["players"]:
             self.agents.append(self.get_agent(agent_conf, self.config["prompts"], push=push))
+
+    @property
+    def metadata_file(self) -> Path:
+        return self.local_output_dir / "metadata.json"
 
     @property
     def rounds(self) -> int:
@@ -133,9 +140,8 @@ class PvpTournament(AbstractTournament):
 
     def _save(self) -> None:
         self.local_output_dir.mkdir(parents=True, exist_ok=True)
-        metadata_file = self.local_output_dir / "metadata.json"
-        atomic_write(metadata_file, json.dumps(self.get_metadata(), indent=2))
-        self.logger.debug(f"Metadata saved to {metadata_file}")
+        atomic_write(self.metadata_file, json.dumps(self.get_metadata(), indent=2))
+        self.logger.debug(f"Metadata saved to {self.metadata_file}")
         if is_running_in_aws_batch():
             s3_log_sync(self.local_output_dir, logger=self.logger)
 
