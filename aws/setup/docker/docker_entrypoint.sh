@@ -6,20 +6,6 @@ echo "════════════════════════�
 echo "🚀 Hello from docker_entrypoint.sh"
 echo "═══════════════════════════════════════════════════════════════════════════════"
 
-# Function to show disk usage on exit
-cleanup() {
-    local exit_code=$?
-    echo "💾 Disk usage after job:"
-    df -h
-    echo "═══════════════════════════════════════════════════════════════════════════════"
-    echo "✅ docker_entrypoint.sh finished, exit code: $exit_code"
-    echo "═══════════════════════════════════════════════════════════════════════════════"
-    exit $exit_code
-}
-
-# Set trap to always show disk usage on exit (normal exit, signals, errors)
-trap cleanup EXIT
-
 echo "📅 Container built at: $BUILD_TIMESTAMP"
 echo "🔄 Updating repository..."
 
@@ -54,5 +40,5 @@ echo "════════════════════════�
 echo "User provided command starting below:"
 echo "$@"
 echo "═══════════════════════════════════════════════════════════════════════════════"
-# Execute the remaining command arguments
+# Execute the remaining command arguments (container exits with same status)
 exec "$@"

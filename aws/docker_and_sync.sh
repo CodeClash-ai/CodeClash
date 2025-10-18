@@ -19,6 +19,8 @@ cleanup() {
     echo "Cleanup stage of docker_and_sync.sh"
     echo "═══════════════════════════════════════════════════════════════════════════════"
     local exit_code=$?
+    # Ensure cleanup failures do not clobber the original exit code
+    set +e
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
         echo "Compressing rounds..."
         # Tar.gz all subfolders of any 'rounds' directory if we haven't done so.
@@ -60,9 +62,11 @@ PY
     docker stats --no-stream
     echo "Docker space usage:"
     docker system df
+    echo "💾 Disk usage after job:"
+    df -h
     echo "--------------------------------"
     echo "Last 100 lines of Docker logs"
-    docker ps -aq | xargs -I {} sh -c 'logs=$(docker logs --tail 100 {} 2>&1); [ -n "$logs" ] && echo "=== {} ===" && echo "$logs"'
+    docker ps -aq | xargs -r -I {} sh -c 'logs=$(docker logs --tail 100 {} 2>&1); [ -n "$logs" ] && echo "=== {} ===" && echo "$logs"'
     echo "--------------------------------"
     echo "Docker cleanup"
     docker system prune -af
@@ -71,6 +75,7 @@ PY
     echo "═══════════════════════════════════════════════════════════════════════════════"
     echo "✅ Wrapper script docker_and_sync.sh finished, exit code: $exit_code"
     echo "═══════════════════════════════════════════════════════════════════════════════"
+    # This doesn't capture if things went wrong in this cleanup command itself, but that's ok.
     exit $exit_code
 }
 
@@ -126,11 +131,13 @@ mkdir -p logs
 ulimit -n 65536
 
 echo "═══════════════════════════════════════════════════════════════════════════════"
-echo "✅ Wrapper script docker_and_sync.sh pologue finished, executing user command: $*"
+echo "✅ Wrapper script docker_and_sync.sh prologue finished, executing user command: $*"
 echo "═══════════════════════════════════════════════════════════════════════════════"
 # Execute the command passed to container
 # Temporarily disable set -e so we can capture the exit code
 set +e
 "$@"
 exit_code=$?
+echo "Exit code: $exit_code"
+echo "Now exiting with exit code and jumping to cleanup trap..."
 exit $exit_code
