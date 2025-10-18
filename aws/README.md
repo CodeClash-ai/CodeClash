@@ -53,6 +53,21 @@ Without the logs you will only see job status, runtime etc.
 * Select runs that might have problems and click "Bulk actions"
 * This is a generator for commands to take actions on the runs (e.g., terminate, remove S3 folder etc.)
 
+### Dealing with failures
+
+The best way to find failures is to either select those with the `Failed` status,
+or with `Succeeded` but `Incomplete rounds`.
+
+Proceed as follows:
+
+1. Select them all
+2. Bulk action -> generate resubmit commands
+3. Execute those
+4. Bulk action -> generate `s3 rm` commands
+5. Execute the rm commands
+
+Now you've resubmitted them and removed the partial run S3 folders.
+
 ## Setup
 
 * `setup/`: Everything needed to set up AWS to run codeclash jobs. Advanced user stuff.
