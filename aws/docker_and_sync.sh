@@ -15,10 +15,10 @@ echo "📅 Container built at: $BUILD_TIMESTAMP"
 
 # Function to sync logs on exit
 cleanup() {
+    local exit_code=$?
     echo "═══════════════════════════════════════════════════════════════════════════════"
     echo "Cleanup stage of docker_and_sync.sh"
     echo "═══════════════════════════════════════════════════════════════════════════════"
-    local exit_code=$?
     # Ensure cleanup failures do not clobber the original exit code
     set +e
     if [ -n "$(ls -A logs/ 2>/dev/null)" ]; then
