@@ -100,15 +100,21 @@ class CacheEntry:
 
 
 class SimpleCache:
-    """Simple in-memory cache with timeout"""
+    """Simple in-memory cache with timeout and request coalescing
+
+    Prevents cache stampede by using per-key locks to ensure only one
+    request computes a value while others wait.
+    """
 
     def __init__(self):
         self._cache: dict[str, CacheEntry] = {}
-        self._lock = threading.Lock()
+        self._cache_lock = threading.Lock()
+        self._compute_locks: dict[str, threading.Lock] = {}
+        self._compute_locks_lock = threading.Lock()
 
     def get(self, key: str, timeout_seconds: int | None = None) -> Any | None:
         """Get cached value if it exists and hasn't expired"""
-        with self._lock:
+        with self._cache_lock:
             if key not in self._cache:
                 return None
 
@@ -125,19 +131,82 @@ class SimpleCache:
 
     def set(self, key: str, value: Any):
         """Set cache value"""
-        with self._lock:
+        with self._cache_lock:
             self._cache[key] = CacheEntry(data=value, timestamp=datetime.now())
 
     def invalidate(self, key: str):
         """Invalidate a specific cache entry"""
-        with self._lock:
+        with self._cache_lock:
             if key in self._cache:
                 del self._cache[key]
 
     def clear(self):
         """Clear all cache entries"""
-        with self._lock:
+        with self._cache_lock:
             self._cache.clear()
+
+    def _get_compute_lock(self, key: str) -> threading.Lock:
+        """Get or create a lock for a specific cache key"""
+        with self._compute_locks_lock:
+            if key not in self._compute_locks:
+                self._compute_locks[key] = threading.Lock()
+            return self._compute_locks[key]
+
+    def _cleanup_compute_lock(self, key: str):
+        """Clean up compute lock after use to avoid memory leak"""
+        with self._compute_locks_lock:
+            if key in self._compute_locks:
+                # Only delete if no one is using it (not locked)
+                lock = self._compute_locks[key]
+                if not lock.locked():
+                    del self._compute_locks[key]
+
+    def get_or_compute(self, key: str, compute_fn, timeout_seconds: int | None = None) -> Any:
+        """Get cached value or compute it, preventing concurrent computation
+
+        Args:
+            key: Cache key
+            compute_fn: Function to call if cache miss (should take no arguments)
+            timeout_seconds: Cache timeout in seconds
+
+        Returns:
+            Cached or computed value
+        """
+        # First check: see if we have cached value
+        cached_value = self.get(key, timeout_seconds)
+        if cached_value is not None:
+            logger.debug(f"Cache hit for key '{key}'")
+            return cached_value
+
+        # Get per-key lock to prevent concurrent computation
+        compute_lock = self._get_compute_lock(key)
+
+        # Check if we're waiting for another thread
+        if compute_lock.locked():
+            logger.info(f"Cache key '{key}' is being computed by another request, waiting...")
+
+        try:
+            with compute_lock:
+                # Second check: another thread might have computed it while we waited for lock
+                cached_value = self.get(key, timeout_seconds)
+                if cached_value is not None:
+                    logger.info(
+                        f"✓ Duplicate computation prevented for key '{key}' - using result from another request"
+                    )
+                    return cached_value
+
+                # Compute the value
+                logger.info(f"Cache miss for key '{key}', computing value...")
+                value = compute_fn()
+
+                # Store in cache
+                self.set(key, value)
+                logger.info(f"✓ Computed and cached value for key '{key}'")
+
+                return value
+        finally:
+            # Cleanup compute lock to avoid memory leak
+            self._cleanup_compute_lock(key)
 
 
 # Global cache instance
@@ -414,23 +483,18 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
     """Find all game folders by locating metadata.json files
 
     Uses parallel loading to speed up metadata.json reading for many game folders.
-    Results are cached for 5 minutes.
+    Results are cached for 5 minutes. Concurrent requests are coalesced.
     """
     cache_key = f"game_folders:{base_dir}"
-    cached_result = _cache.get(cache_key, timeout_seconds=300)  # 5 min cache
 
-    if cached_result is not None:
-        logger.info(f"Using cached game folders for {base_dir}")
-        return cached_result
+    def compute():
+        try:
+            return _find_all_game_folders_impl(base_dir)
+        except TimeoutError:
+            logger.error(f"Timeout while finding game folders in {base_dir}")
+            return []
 
-    try:
-        result = _find_all_game_folders_impl(base_dir)
-        _cache.set(cache_key, result)
-        return result
-    except TimeoutError:
-        logger.error(f"Timeout while finding game folders in {base_dir}")
-        # Return empty list on timeout
-        return []
+    return _cache.get_or_compute(cache_key, compute, timeout_seconds=300)
 
 
 @dataclass
@@ -1527,7 +1591,10 @@ def _fetch_batch_jobs_impl(hours_back: int):
 @app.route("/batch/api/jobs")
 @print_timing
 def batch_api_jobs():
-    """API endpoint to get AWS Batch jobs with caching (2 min timeout)"""
+    """API endpoint to get AWS Batch jobs with caching (2 min timeout)
+
+    Concurrent requests are coalesced to prevent multiple simultaneous AWS API calls.
+    """
     try:
         hours_back = request.args.get("hours_back", default=24, type=int)
         force_refresh = request.args.get("force_refresh", default="false", type=str).lower() == "true"
@@ -1539,16 +1606,15 @@ def batch_api_jobs():
             _cache.invalidate(cache_key)
             logger.info("Force refresh requested, invalidating batch jobs cache")
 
-        # Try to get from cache (2 min timeout)
-        cached_result = _cache.get(cache_key, timeout_seconds=120)
+        # Use get_or_compute to prevent concurrent AWS API calls
+        def compute():
+            try:
+                return _fetch_batch_jobs_impl(hours_back)
+            except TimeoutError:
+                logger.error("Timeout while fetching AWS Batch jobs")
+                raise  # Re-raise to be caught by outer handler
 
-        if cached_result is not None and not force_refresh:
-            logger.info(f"Using cached batch jobs for hours_back={hours_back}")
-            return jsonify({"success": True, **cached_result})
-
-        # Fetch fresh data
-        result = _fetch_batch_jobs_impl(hours_back)
-        _cache.set(cache_key, result)
+        result = _cache.get_or_compute(cache_key, compute, timeout_seconds=120)
         return jsonify({"success": True, **result})
     except TimeoutError:
         logger.error("Timeout while fetching AWS Batch jobs")
