@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 
 from aws.run_job import AWSBatchJobLauncher
-from aws.utils.job_monitor import JobMonitor
 from codeclash.utils.log import get_logger
 
 logger = get_logger("batch_submit", emoji="🚀")
@@ -27,7 +26,6 @@ class BatchSubmitter:
             job_queue=job_queue,
             region=region,
         )
-        self.monitor = JobMonitor(region=region)
 
     def submit_configs(self, configs: list[str]) -> dict[str, dict[str, str]]:
         """Submit jobs for a list of config files. Returns job_id -> {job_name, config} mapping."""
@@ -51,14 +49,13 @@ class BatchSubmitter:
         return output_file
 
     def run(self, configs: list[str]) -> None:
-        """Submit jobs, save IDs, and monitor."""
+        """Submit jobs and save IDs."""
         job_info = self.submit_configs(configs)
         self.save_job_ids(job_info)
-        self.monitor.monitor(job_info)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Submit multiple AWS Batch jobs and monitor them")
+    parser = argparse.ArgumentParser(description="Submit multiple AWS Batch jobs")
     parser.add_argument("configs_file", type=Path, help="Text file containing config file names (one per line)")
     parser.add_argument(
         "--config-dir",
