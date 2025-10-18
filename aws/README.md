@@ -2,6 +2,35 @@
 
 ## Usage
 
+> [!WARNING]
+> Everything needs to be committed & pushed to the repo! You can use a different branch than main for this.
+
+> [!NOTE]
+> Most scripts should now have the region default hardcoded, but if things mysterously don't exist, your region or account might not be set up correctly.
+
+### Submit batch jobs
+
+Create a text file that contains the names of the config files you want to run, one per line.
+For example:
+
+```
+HuskyBench__claude-sonnet-4-20250514__claude-sonnet-4-5-20250929__r15__s100.yaml
+HuskyBench__claude-sonnet-4-20250514__gemini-2.5-pro__r15__s100.yaml
+HuskyBench__claude-sonnet-4-20250514__gpt-5-mini__r15__s100.yaml
+```
+
+If you want to run things multiple times, just duplicate the lines.
+
+Then run:
+
+```bash
+python batch_submit.py configs/to_run.txt
+```
+
+If the configs are not in `configs/main`, you can use the `--config-dir` flag to specify a different directory.
+
+### Submit single jobs or anything else
+
 ```bash
 # Hello world example
 aws/run_job.py --show-logs -- echo "hello world"
@@ -12,8 +41,17 @@ aws/run_job.py --show-logs -- echo "hello world"
 aws/run_job.py --show-logs -- aws/docker_and_sync.sh python main.py configs/test/battlesnake_pvp_test.yaml
 ```
 
-> [!WARNING]
-> Everything needs to be committed & pushed to the repo! You can use a different branch than main for this.
+## Once jobs are running
+
+Head to https://emagedoc.xyz/batch for the monitor.
+
+Note: For all features to work (link to s3 folder, viewer, etc.), you need to have the logs synced.
+Without the logs you will only see job status, runtime etc.
+
+### Taking actions
+
+* Select runs that might have problems and click "Bulk actions"
+* This is a generator for commands to take actions on the runs (e.g., terminate, remove S3 folder etc.)
 
 ## Setup
 
