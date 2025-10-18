@@ -221,3 +221,52 @@ class AWSBatchMonitor:
         """
         jobs = self.list_jobs(limit=limit, hours_back=hours_back)
         return [self.format_job_for_display(job) for job in jobs]
+
+    def get_total_cpus_running(self) -> int:
+        """Get total number of vCPUs currently allocated in the compute environment"""
+        try:
+            # Get the job queue details to find the compute environment
+            queue_response = self.batch_client.describe_job_queues(jobQueues=[self.job_queue])
+
+            if not queue_response.get("jobQueues"):
+                return 0
+
+            # Get compute environments from the job queue
+            compute_env_orders = queue_response["jobQueues"][0].get("computeEnvironmentOrder", [])
+
+            if not compute_env_orders:
+                return 0
+
+            total_vcpus = 0
+
+            # Get details for each compute environment
+            for env_order in compute_env_orders:
+                compute_env_name = env_order.get("computeEnvironment")
+                if not compute_env_name:
+                    continue
+
+                # Extract just the name from the ARN if needed
+                env_name = compute_env_name.split("/")[-1]
+
+                env_response = self.batch_client.describe_compute_environments(computeEnvironments=[env_name])
+
+                for env in env_response.get("computeEnvironments", []):
+                    # Get the actual allocated vCPUs from the compute resources
+                    compute_resources = env.get("computeResources", {})
+
+                    # Use desiredvCpus if available (what's currently allocated)
+                    # Otherwise fall back to maxvCpus
+                    desired_vcpus = compute_resources.get("desiredvCpus")
+                    if desired_vcpus is not None:
+                        total_vcpus += desired_vcpus
+                    else:
+                        # If desired is not available, we can't get current allocation
+                        # This might happen with FARGATE environments
+                        max_vcpus = compute_resources.get("maxvCpus", 0)
+                        total_vcpus += max_vcpus
+
+            return total_vcpus
+
+        except Exception as e:
+            logger.warning(f"Failed to get vCPU information from compute environment: {e}", exc_info=True)
+            return 0
