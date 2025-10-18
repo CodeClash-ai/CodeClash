@@ -60,13 +60,14 @@ class MiniSWEAgent(Player):
         )
         exit_status = None
         result = None
+        exc_message = None
         try:
             exit_status, result = self.agent.run(task="", **self.game_context.to_template_vars())
         except Exception as e:
             exit_status = str(e)
             exc_message = traceback.format_exc()
             result = exc_message
-            print(exc_message)
+            self.logger.critical(exc_message)
         finally:
             traj_path = (
                 self.game_context.log_local
@@ -91,3 +92,5 @@ class MiniSWEAgent(Player):
                 "cost": self.agent.model.cost,
                 "api_calls": self.agent.model.n_calls,
             }
+        if exit_status.lower().strip() not in ["", "submitted", "limitsexceeded"] and exc_message is not None:
+            raise RuntimeError(f"Agent {self.name} failed with exit status: {exit_status} and exception: {exc_message}")
