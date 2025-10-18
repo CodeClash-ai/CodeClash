@@ -33,7 +33,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
             else:
                 self.run_cmd_round += f" --{arg} {val}"
 
-    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str) -> str:
+    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str):
         """Run a single robotrumble simulation and return the output."""
         cmd = f"{cmd} > {self.log_env / f'sim_{idx}.{self.sim_ext}'}"
 
@@ -42,17 +42,17 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
             response = self.environment.execute(cmd, timeout=120)
         except subprocess.TimeoutExpired:
             self.logger.warning(f"RobotRumble simulation {idx} timed out: {cmd}")
-            return ""
+            return
         if response["returncode"] != 0:
             self.logger.warning(
                 f"RobotRumble simulation {idx} failed with exit code {response['returncode']}:\n{response['output']}"
             )
-        return response["output"]
 
     def execute_round(self, agents: list[Player]):
         self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
+        self.logger.info(f"Running game: {cmd}")
 
         with ThreadPoolExecutor(5) as executor:
             # Submit all simulations to the thread pool
@@ -60,9 +60,6 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
                 executor.submit(self._run_single_simulation, agents, idx, cmd)
                 for idx in range(self.game_config.get("sims_per_round", 100))
             ]
-
-            # Log command being run
-            self.logger.info(f"Running game: {cmd}")
 
             # Collect results as they complete
             for future in tqdm(as_completed(futures), total=len(futures)):
@@ -117,21 +114,18 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
                 else self._get_winner_json(output_file, agents)
             )
 
-        # Count occurrences of each winner
-        counts = Counter(winners)
+        # Count wins
+        win_counts = Counter(winners)
 
         # Find all winners with the maximum count
-        max_count = max(counts.values())
-        top_winners = [w for w, c in counts.items() if c == max_count]
-
-        # If multiple winners have the same count, return RESULT_TIE
-        final_winner = RESULT_TIE if len(top_winners) > 1 else top_winners[0]
+        max_wins = max(win_counts.values())
+        overall_winners = [name for name, count in win_counts.items() if count == max_wins]
 
         # Update stats
-        stats.winner = final_winner
+        stats.winner = RESULT_TIE if len(overall_winners) > 1 else overall_winners[0]
         stats.details.append(f"In this round, {agents[0].name} was Blue and {agents[1].name} was Red.")
-        stats.scores = dict(counts)
-        for player, score in counts.items():
+        stats.scores = dict(win_counts)
+        for player, score in win_counts.items():
             if player != RESULT_TIE:
                 stats.player_stats[player].score = score
 
