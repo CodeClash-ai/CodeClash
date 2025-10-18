@@ -9,13 +9,15 @@ import functools
 import json
 import logging
 import shutil
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, redirect, render_template, request, send_file, url_for
+from flask import Flask, copy_current_request_context, jsonify, redirect, render_template, request, send_file, url_for
 
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.tournaments.utils.git_utils import filter_git_diff, split_git_diff_by_files
@@ -44,6 +46,102 @@ def print_timing(func):
             logger.info(f"Completed {func.__name__} in {elapsed:.2f}s")
 
     return wrapper
+
+
+class TimeoutError(Exception):
+    """Exception raised when a function times out"""
+
+
+def timeout(seconds: int):
+    """Decorator to add timeout to functions
+
+    Args:
+        seconds: Maximum number of seconds the function can run
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            result = [TimeoutError(f"Function {func.__name__} timed out after {seconds}s")]
+
+            # Copy Flask request context to the new thread
+            @copy_current_request_context
+            def target():
+                try:
+                    result[0] = func(*args, **kwargs)
+                except Exception as e:
+                    result[0] = e
+
+            thread = threading.Thread(target=target)
+            thread.daemon = True
+            thread.start()
+            thread.join(timeout=seconds)
+
+            if thread.is_alive():
+                logger.error(f"Function {func.__name__} timed out after {seconds}s")
+                raise TimeoutError(f"Function {func.__name__} timed out after {seconds}s")
+
+            if isinstance(result[0], Exception):
+                raise result[0]
+
+            return result[0]
+
+        return wrapper
+
+    return decorator
+
+
+@dataclass
+class CacheEntry:
+    """Cache entry with data and timestamp"""
+
+    data: Any
+    timestamp: datetime
+
+
+class SimpleCache:
+    """Simple in-memory cache with timeout"""
+
+    def __init__(self):
+        self._cache: dict[str, CacheEntry] = {}
+        self._lock = threading.Lock()
+
+    def get(self, key: str, timeout_seconds: int | None = None) -> Any | None:
+        """Get cached value if it exists and hasn't expired"""
+        with self._lock:
+            if key not in self._cache:
+                return None
+
+            entry = self._cache[key]
+
+            # Check if cache is still valid
+            if timeout_seconds is not None:
+                age = (datetime.now() - entry.timestamp).total_seconds()
+                if age > timeout_seconds:
+                    del self._cache[key]
+                    return None
+
+            return entry.data
+
+    def set(self, key: str, value: Any):
+        """Set cache value"""
+        with self._lock:
+            self._cache[key] = CacheEntry(data=value, timestamp=datetime.now())
+
+    def invalidate(self, key: str):
+        """Invalidate a specific cache entry"""
+        with self._lock:
+            if key in self._cache:
+                del self._cache[key]
+
+    def clear(self):
+        """Clear all cache entries"""
+        with self._lock:
+            self._cache.clear()
+
+
+# Global cache instance
+_cache = SimpleCache()
 
 
 class Metadata:
@@ -231,12 +329,9 @@ def _load_game_metadata(folder_info: dict[str, Any]) -> dict[str, Any]:
     return folder_info
 
 
-@print_timing
-def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
-    """Find all game folders by locating metadata.json files
-
-    Uses parallel loading to speed up metadata.json reading for many game folders.
-    """
+@timeout(120)
+def _find_all_game_folders_impl(base_dir: Path) -> list[dict[str, Any]]:
+    """Internal implementation of find_all_game_folders with timeout"""
     if not base_dir.exists():
         return []
 
@@ -312,6 +407,30 @@ def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
         )
 
     return sorted(all_folders, key=lambda x: x["name"])
+
+
+@print_timing
+def find_all_game_folders(base_dir: Path) -> list[dict[str, Any]]:
+    """Find all game folders by locating metadata.json files
+
+    Uses parallel loading to speed up metadata.json reading for many game folders.
+    Results are cached for 5 minutes.
+    """
+    cache_key = f"game_folders:{base_dir}"
+    cached_result = _cache.get(cache_key, timeout_seconds=300)  # 5 min cache
+
+    if cached_result is not None:
+        logger.info(f"Using cached game folders for {base_dir}")
+        return cached_result
+
+    try:
+        result = _find_all_game_folders_impl(base_dir)
+        _cache.set(cache_key, result)
+        return result
+    except TimeoutError:
+        logger.error(f"Timeout while finding game folders in {base_dir}")
+        # Return empty list on timeout
+        return []
 
 
 @dataclass
@@ -874,9 +993,9 @@ def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     return {"previous": previous_game, "next": next_game}
 
 
-@print_timing
-def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
-    """Common logic for rendering game viewer pages"""
+@timeout(120)
+def _render_game_viewer_impl(folder_path: Path, selected_folder: str) -> str:
+    """Internal implementation of render_game_viewer with timeout"""
     # Parse the selected game
     parser = LogParser(folder_path)
     metadata = parser.parse_game_metadata()
@@ -908,6 +1027,18 @@ def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
         navigation=navigation_info,
         is_static=STATIC_MODE,
     )
+
+
+@print_timing
+def render_game_viewer(folder_path: Path, selected_folder: str) -> str:
+    """Common logic for rendering game viewer pages with timeout protection"""
+    try:
+        return _render_game_viewer_impl(folder_path, selected_folder)
+    except TimeoutError:
+        logger.error(f"Timeout while rendering game viewer for {selected_folder}")
+        return render_template(
+            "error.html", error_message="Request timed out after 2 minutes. The game data may be too large to load."
+        )
 
 
 # Register the custom filters
@@ -1188,6 +1319,13 @@ def move_folder():
         return jsonify({"success": False, "error": str(e)})
 
 
+@timeout(120)
+def _analyze_line_counts_impl(folder_path: Path):
+    """Internal implementation of line counts analysis with timeout"""
+    parser = LogParser(folder_path)
+    return parser.analyze_line_counts()
+
+
 @app.route("/analysis/line-counts")
 @print_timing
 def analysis_line_counts():
@@ -1205,10 +1343,11 @@ def analysis_line_counts():
         return jsonify({"success": False, "error": "Invalid folder"})
 
     try:
-        parser = LogParser(folder_path)
-        analysis_data = parser.analyze_line_counts()
-
+        analysis_data = _analyze_line_counts_impl(folder_path)
         return jsonify({"success": True, "data": analysis_data})
+    except TimeoutError:
+        logger.error(f"Timeout while analyzing line counts for {selected_folder}")
+        return jsonify({"success": False, "error": "Request timed out after 2 minutes"}), 504
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
@@ -1376,16 +1515,44 @@ def batch_monitor():
     return render_template("batch.html")
 
 
+@timeout(120)
+def _fetch_batch_jobs_impl(hours_back: int):
+    """Internal implementation of batch jobs fetching with timeout"""
+    monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
+    jobs = monitor.get_formatted_jobs(hours_back=hours_back)
+    total_cpus = monitor.get_total_cpus_running()
+    return {"jobs": jobs, "total_cpus_running": total_cpus}
+
+
 @app.route("/batch/api/jobs")
 @print_timing
 def batch_api_jobs():
-    """API endpoint to get AWS Batch jobs"""
+    """API endpoint to get AWS Batch jobs with caching (2 min timeout)"""
     try:
         hours_back = request.args.get("hours_back", default=24, type=int)
-        monitor = AWSBatchMonitor(job_queue="codeclash-queue", region="us-east-1", logs_base_dir=LOG_BASE_DIR)
-        jobs = monitor.get_formatted_jobs(hours_back=hours_back)
-        total_cpus = monitor.get_total_cpus_running()
-        return jsonify({"success": True, "jobs": jobs, "total_cpus_running": total_cpus})
+        force_refresh = request.args.get("force_refresh", default="false", type=str).lower() == "true"
+
+        cache_key = f"batch_jobs:{hours_back}"
+
+        # If force_refresh is true, invalidate cache
+        if force_refresh:
+            _cache.invalidate(cache_key)
+            logger.info("Force refresh requested, invalidating batch jobs cache")
+
+        # Try to get from cache (2 min timeout)
+        cached_result = _cache.get(cache_key, timeout_seconds=120)
+
+        if cached_result is not None and not force_refresh:
+            logger.info(f"Using cached batch jobs for hours_back={hours_back}")
+            return jsonify({"success": True, **cached_result})
+
+        # Fetch fresh data
+        result = _fetch_batch_jobs_impl(hours_back)
+        _cache.set(cache_key, result)
+        return jsonify({"success": True, **result})
+    except TimeoutError:
+        logger.error("Timeout while fetching AWS Batch jobs")
+        return jsonify({"success": False, "error": "Request timed out after 2 minutes"}), 504
     except Exception as e:
         logger.error(f"Error fetching AWS Batch jobs: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500

@@ -530,6 +530,15 @@
             color: var(--text-muted);
             font-size: 0.85rem;
             margin-left: auto;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+        }
+
+        .update-info:hover {
+            color: var(--accent-color);
+            background: var(--bg-tertiary);
         }
 
         .status-counter {
@@ -698,7 +707,7 @@
                 Bulk Actions
             </button>
 
-            <span class="update-info" id="last-refresh-info">Last refresh: just now</span>
+            <span class="update-info" id="last-refresh-info" onclick="forceRefresh()" title="Click to refresh now">Last refresh: just now</span>
         </div>
 
         <div id="error-container"></div>
@@ -797,9 +806,10 @@
             grid.innerHTML = html;
         }
 
-        async function fetchJobs() {
+        async function fetchJobs(forceRefresh = false) {
             try {
-                const response = await fetch(`/batch/api/jobs?hours_back=${timeRangeHours}`);
+                const url = `/batch/api/jobs?hours_back=${timeRangeHours}&force_refresh=${forceRefresh}`;
+                const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.success) {
@@ -816,6 +826,11 @@
             } catch (error) {
                 showError('Network error: ' + error.message);
             }
+        }
+
+        function forceRefresh() {
+            // Force refresh by invalidating cache
+            fetchJobs(true);
         }
 
         function applyTimeRangeFilter() {
@@ -1260,8 +1275,8 @@
         updateStatusCounterTitle();
         fetchJobs();
 
-        // Auto-refresh every 10 seconds
-        setInterval(fetchJobs, 10000);
+        // Auto-refresh every 60 seconds
+        setInterval(fetchJobs, 60000);
 
         // Update "last refresh" display every second
         setInterval(updateLastRefreshDisplay, 1000);
