@@ -1,5 +1,9 @@
 FROM ubuntu:22.04
 
+# Set environment to non-interactive to avoid prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # Install system dependencies
 RUN apt update && apt install -y \
     software-properties-common \
