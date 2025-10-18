@@ -14,7 +14,7 @@ from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
 
-os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "30"
+os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "90"
 
 
 class ClashAgent(DefaultAgent):
