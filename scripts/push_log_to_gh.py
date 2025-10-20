@@ -68,12 +68,6 @@ def main(cc_folder: Path):
                 f.write(str(patch))
 
             apply_cmd = "git apply ../temp.diff"
-            if arena == "BattleSnake":
-                apply_cmd += " --exclude=game/battlesnake"
-            elif arena == "CoreWar":
-                apply_cmd += " --exclude=src/pmars"
-            elif arena == "RobotRumble":
-                apply_cmd += " --exclude=rumblebot"
             subprocess.run(apply_cmd, shell=True, check=True, cwd=arena)
             subprocess.run("git add .", shell=True, check=True, cwd=arena)
             subprocess.run(f"git commit -m 'Round {idx} changes'", shell=True, check=True, cwd=arena)
