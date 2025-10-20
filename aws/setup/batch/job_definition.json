@@ -33,6 +33,10 @@
       {
         "name": "PORTKEY_API_KEY",
         "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:PORTKEY_API_KEY::"
+      },
+      {
+        "name": "DASHSCOPE_API_KEY",
+        "valueFrom": "arn:aws:secretsmanager:us-east-1:039984708918:secret:kilian-codeclash-keys-CTX9UJ:DASHSCOPE_API_KEY::"
       }
     ]
   },
