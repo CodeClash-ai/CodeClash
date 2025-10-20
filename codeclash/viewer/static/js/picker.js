@@ -74,10 +74,7 @@ function handleRowClick(event, gameName) {
     // Click is on checkbox or in checkbox area - handle selection
     event.stopPropagation();
 
-    if (checkbox) {
-      // Direct checkbox click - handle shift-click range selection
-      handleCheckboxClick(event, gameName);
-    } else {
+    if (!checkbox) {
       // Click in checkbox area but not on checkbox - toggle selection
       toggleGameSelection(gameName);
     }
@@ -97,49 +94,6 @@ function handleRowClick(event, gameName) {
   } else {
     // Click is elsewhere - do nothing (changed behavior)
     return;
-  }
-}
-
-// Shift-click range selection variables
-let lastClickedCheckbox = null;
-
-function handleCheckboxClick(event, gameName) {
-  const checkbox = event.target;
-
-  if (event.shiftKey && lastClickedCheckbox) {
-    // Shift-click: select range
-    event.preventDefault();
-    // Use the state the checkbox will have after the click (opposite of current)
-    const targetState = !checkbox.checked;
-    checkbox.checked = targetState; // Apply the click manually since we prevented default
-    selectRange(lastClickedCheckbox, gameName, targetState);
-  } else {
-    // Regular click: just update last clicked
-    lastClickedCheckbox = gameName;
-  }
-}
-
-function selectRange(startGameName, endGameName, checked) {
-  // Get all game checkboxes in order
-  const allCheckboxes = Array.from(
-    document.querySelectorAll("input[data-path]"),
-  );
-  const startIndex = allCheckboxes.findIndex(
-    (cb) => cb.getAttribute("data-path") === startGameName,
-  );
-  const endIndex = allCheckboxes.findIndex(
-    (cb) => cb.getAttribute("data-path") === endGameName,
-  );
-
-  if (startIndex === -1 || endIndex === -1) return;
-
-  // Determine the range (handle both directions)
-  const minIndex = Math.min(startIndex, endIndex);
-  const maxIndex = Math.max(startIndex, endIndex);
-
-  // Set all checkboxes in the range to the same state
-  for (let i = minIndex; i <= maxIndex; i++) {
-    allCheckboxes[i].checked = checked;
   }
 }
 
@@ -255,6 +209,33 @@ function toggleSelectAll(selectAllCheckbox) {
   gameCheckboxes.forEach((checkbox) => {
     checkbox.checked = selectAllCheckbox.checked;
   });
+}
+
+function updateSelectAllCheckbox() {
+  const selectAllCheckbox = document.getElementById("select-all");
+  if (!selectAllCheckbox) return;
+
+  const allGameCheckboxes = document.querySelectorAll("input[data-path]");
+  if (allGameCheckboxes.length === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+    return;
+  }
+
+  const checkedCount = document.querySelectorAll(
+    "input[data-path]:checked",
+  ).length;
+
+  if (checkedCount === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+  } else if (checkedCount === allGameCheckboxes.length) {
+    selectAllCheckbox.checked = true;
+    selectAllCheckbox.indeterminate = false;
+  } else {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = true;
+  }
 }
 
 // Modal functions
@@ -497,7 +478,6 @@ let allNavigableRows = [];
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Game Picker initialized");
   console.log("Available keyboard shortcuts:");
-  console.log("  Shift + Click: Range select checkboxes");
   console.log("  Escape: Close move dialog");
   console.log("  Arrow keys / hjkl: Navigate");
   console.log("  Enter: Open selected game");
@@ -515,6 +495,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize filters
   initializeFilters();
+
+  // Add change event listeners to all game checkboxes to update select-all state
+  document.querySelectorAll("input[data-path]").forEach((checkbox) => {
+    checkbox.addEventListener("change", updateSelectAllCheckbox);
+  });
+
+  // Initialize select-all checkbox state
+  updateSelectAllCheckbox();
 
   // Add listener to game filter to save changes
   const gameFilter = document.getElementById("game-filter");
@@ -983,6 +971,9 @@ function applyFilters() {
 
   // Update keyboard navigation after filtering
   updateNavigableRows();
+
+  // Update select-all checkbox state after filtering
+  updateSelectAllCheckbox();
 }
 
 function clearFilters() {

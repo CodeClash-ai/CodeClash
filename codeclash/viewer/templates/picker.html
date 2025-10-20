@@ -18,72 +18,13 @@
     <main class="container-fluid main-content">
         {% if game_folders %}
         <div class="games-table">
-        <div class="table-controls">
-            {% if not is_static %}
-            <div class="selection-controls">
-                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
-                <label for="select-all">Select All</label>
-            </div>
-            <div class="right-controls">
-                <div class="filter-controls">
-                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
-                        <span class="filter-label">Active filters:</span>
-                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
-                            <i class="bi bi-calendar"></i>
-                            <span id="date-filter-text"></span>
-                            <button class="filter-badge-close" onclick="clearDateFilter(event)" title="Clear date filter">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </span>
-                    </div>
-                    <button id="clear-filters" onclick="clearFilters()" title="Clear all filters">
-                        <i class="bi bi-x-circle"></i> Clear Filters
-                    </button>
-                </div>
-                <div class="action-controls">
-                    <button class="bulk-actions-button" onclick="openBulkActionsModal()">
-                        <i class="bi bi-lightning-charge"></i> Bulk Actions
-                    </button>
-                </div>
-            </div>
-            {% else %}
-            <div class="selection-controls">
-                <input type="checkbox" id="select-all" disabled>
-                <label for="select-all" style="color: #666;">Select All (Disabled in static mode)</label>
-            </div>
-            <div class="right-controls">
-                <div class="filter-controls">
-                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
-                        <span class="filter-label">Active filters:</span>
-                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
-                            <i class="bi bi-calendar"></i>
-                            <span id="date-filter-text"></span>
-                        </span>
-                    </div>
-                    <button id="clear-filters" disabled title="Not available in static mode">
-                        <i class="bi bi-x-circle"></i> Clear Filters
-                    </button>
-                </div>
-                <div class="action-controls">
-                    <button class="bulk-actions-button" disabled title="Not available in static mode">
-                        <i class="bi bi-lightning-charge"></i> Bulk Actions
-                    </button>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        <div class="table-header">
-            <div><i class="bi bi-check-square"></i></div>
-            <div class="sortable-header" onclick="sortTable('name')">
-                Name <i class="bi bi-arrow-down-up"></i>
-            </div>
-            <div class="sortable-header" onclick="sortTable('date')">
-                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
-            </div>
-            <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
+        <div class="filter-container-top">
+            <label for="game-filter">Game:</label>
+            <select id="game-filter" onchange="applyFilters()" class="filter-select">
                 <option value="">All Games</option>
             </select>
-            <div><i class="bi bi-target"></i> Rounds</div>
+
+            <label for="model-filter-dropdown">Model:</label>
             <div class="model-filter-container">
                 <div class="model-filter-dropdown" id="model-filter-dropdown">
                     <button class="model-filter-button" id="model-filter-button" onclick="toggleModelDropdown(event)">
@@ -98,6 +39,37 @@
                     </div>
                 </div>
             </div>
+
+            <div id="active-filters-container" class="active-filters-container" style="display: none;">
+                <span class="filter-label">Active filters:</span>
+                <span id="date-filter-badge" class="filter-badge" style="display: none;">
+                    <i class="bi bi-calendar"></i>
+                    <span id="date-filter-text"></span>
+                    <button class="filter-badge-close" onclick="clearDateFilter(event)" title="Clear date filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            </div>
+            <button id="clear-filters" onclick="clearFilters()" title="Clear all filters" {% if is_static %}disabled{% endif %}>
+                <i class="bi bi-x-circle"></i> Clear Filters
+            </button>
+            <button class="bulk-actions-button" onclick="openBulkActionsModal()" {% if is_static %}disabled title="Not available in static mode"{% endif %}>
+                <i class="bi bi-lightning-charge"></i> Bulk Actions
+            </button>
+        </div>
+        <div class="table-header">
+            <div class="checkbox-header">
+                <input type="checkbox" id="select-all" class="game-checkbox" onchange="toggleSelectAll(this)" title="Toggle all" {% if is_static %}disabled{% endif %}>
+            </div>
+            <div class="sortable-header" onclick="sortTable('name')">
+                Name <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div class="sortable-header" onclick="sortTable('date')">
+                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div>Game</div>
+            <div><i class="bi bi-target"></i> Rounds</div>
+            <div>Models</div>
             <div>Action</div>
         </div>
             {% for game in game_folders %}
@@ -112,7 +84,7 @@
                 <div class="checkbox-cell">
                     {% if game.is_game %}
                     <input type="checkbox" class="game-checkbox" data-path="{{ game.name }}"
-                           onclick="{% if not is_static %}handleCheckboxClick(event, '{{ game.name }}'){% endif %}" {% if is_static %}disabled{% endif %}>
+                           onclick="event.stopPropagation()" {% if is_static %}disabled{% endif %}>
                     {% else %}
                     <span class="checkbox-placeholder"></span>
                     {% endif %}
@@ -276,12 +248,6 @@
                         </div>
                         <div class="shortcut-item">
                             <span class="mouse-action">Ctrl+click</span> <span>Open game in new tab</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <span class="mouse-action">Shift+click</span> <span>Range select checkboxes</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <span class="mouse-action">Drag</span> <span>Multi-select checkboxes</span>
                         </div>
                     </div>
                 </div>
