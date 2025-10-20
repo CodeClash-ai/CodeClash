@@ -8,6 +8,8 @@ import os
 import subprocess
 from pathlib import Path
 
+from unidiff import PatchSet
+
 
 def main(cc_folder: Path):
     folder_contents = [f.name for f in list(cc_folder.iterdir())]
@@ -59,8 +61,11 @@ def main(cc_folder: Path):
                 continue
             with open(changes_file) as f:
                 changes = json.load(f)
+            patch = PatchSet(changes["incremental_diff"])
+            # Remove any binary files from the patch
+            patch = PatchSet("\n".join([str(file) for file in patch if "Binary files" not in str(file)]))
             with open("temp.diff", "w") as f:
-                f.write(changes["incremental_diff"])
+                f.write(str(patch))
 
             apply_cmd = "git apply ../temp.diff"
             if arena == "BattleSnake":
