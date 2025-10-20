@@ -100,7 +100,7 @@
   border-color: var(--accent-color);
 }
 
-.filter-container-top {
+.filter-container {
   margin-bottom: 1.5rem;
   display: flex;
   gap: 1rem;
@@ -108,7 +108,7 @@
   flex-wrap: wrap;
 }
 
-.filter-container-top label {
+.filter-container label {
   font-weight: 500;
   color: var(--text-secondary);
 }
@@ -1092,7 +1092,7 @@
     padding: 0 0.5rem;
   }
 
-  .filter-container-top {
+  .filter-container {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;

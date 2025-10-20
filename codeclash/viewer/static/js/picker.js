@@ -97,112 +97,6 @@ function handleRowClick(event, gameName) {
   }
 }
 
-function toggleFolder(folderPath) {
-  // Toggle the collapsed state of a folder
-  const folderRow = document.querySelector(`[data-path="${folderPath}"]`);
-  if (!folderRow) return;
-
-  const currentState = folderStates.get(folderPath) || "collapsed";
-  const newState = currentState === "collapsed" ? "expanded" : "collapsed";
-  folderStates.set(folderPath, newState);
-
-  // Save the updated state to localStorage
-  saveFolderStates();
-
-  if (newState === "expanded") {
-    // Expand folder - show only direct children
-    folderRow.classList.remove("collapsed");
-
-    // Show only direct children (one level down) and restore their states
-    const allRows = document.querySelectorAll(".game-row");
-    allRows.forEach((row) => {
-      const rowPath = row.getAttribute("data-path");
-      if (rowPath && rowPath.startsWith(folderPath + "/")) {
-        // Check if this is a direct child (not a grandchild)
-        const relativePath = rowPath.substring(folderPath.length + 1);
-        if (!relativePath.includes("/")) {
-          // This is a direct child, show it only if it passes current filters
-          if (shouldRowBeVisible(row)) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
-
-          // If this is a folder, restore its individual state
-          if (row.classList.contains("intermediate-folder")) {
-            const childState = folderStates.get(rowPath) || "collapsed";
-            if (childState === "expanded") {
-              // This child was expanded, so expand it and show its children
-              row.classList.remove("collapsed");
-              showChildrenOfFolder(rowPath);
-            } else {
-              // This child was collapsed, so collapse it and hide its children
-              row.classList.add("collapsed");
-              hideChildrenOfFolder(rowPath);
-            }
-          }
-        }
-      }
-    });
-  } else {
-    // Collapse folder - hide all children
-    folderRow.classList.add("collapsed");
-
-    hideChildrenOfFolder(folderPath);
-  }
-}
-
-function hideChildrenOfFolder(folderPath) {
-  // Hide all descendant rows of a folder
-  const allRows = document.querySelectorAll(".game-row");
-  allRows.forEach((row) => {
-    const rowPath = row.getAttribute("data-path");
-    if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      row.style.display = "none";
-    }
-  });
-}
-
-function showChildrenOfFolder(folderPath) {
-  // Show all descendant rows of a folder, respecting their individual states and current filters
-  const allRows = document.querySelectorAll(".game-row");
-  allRows.forEach((row) => {
-    const rowPath = row.getAttribute("data-path");
-    if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      // Check if this is a direct child or a descendant
-      const relativePath = rowPath.substring(folderPath.length + 1);
-
-      if (!relativePath.includes("/")) {
-        // This is a direct child - show it only if it passes current filters
-        if (shouldRowBeVisible(row)) {
-          row.style.display = "";
-        }
-      } else {
-        // This is a grandchild or deeper - check if its parent is visible and expanded
-        const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
-        const parentRow = document.querySelector(`[data-path="${parentPath}"]`);
-
-        if (parentRow && parentRow.style.display !== "none") {
-          // Parent is visible, check if it's expanded
-          const parentState = folderStates.get(parentPath) || "collapsed";
-          if (parentState === "expanded") {
-            // Parent is expanded, so show this child only if it passes current filters
-            if (shouldRowBeVisible(row)) {
-              row.style.display = "";
-            }
-          } else {
-            // Parent is collapsed, so hide this child
-            row.style.display = "none";
-          }
-        } else {
-          // Parent is hidden, so hide this child too
-          row.style.display = "none";
-        }
-      }
-    }
-  });
-}
-
 function toggleSelectAll(selectAllCheckbox) {
   // Toggle all game checkboxes
   const gameCheckboxes = document.querySelectorAll("input[data-path]");
@@ -482,19 +376,18 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("  Arrow keys / hjkl: Navigate");
   console.log("  Enter: Open selected game");
 
-  // Load saved folder states or collapse all by default
-  const hasSavedStates = loadFolderStates();
-  if (hasSavedStates) {
-    applyFolderStates();
-  } else {
-    collapseAllFolders();
-  }
-
   // Initialize keyboard navigation
   initializeKeyboardNavigation();
 
   // Initialize filters
   initializeFilters();
+
+  // Set default folder to first option if not already set
+  const folderFilter = document.getElementById("folder-filter");
+  if (folderFilter && folderFilter.options.length > 0 && !folderFilter.value) {
+    folderFilter.selectedIndex = 0;
+    selectedFolder = folderFilter.value;
+  }
 
   // Add change event listeners to all game checkboxes to update select-all state
   document.querySelectorAll("input[data-path]").forEach((checkbox) => {
@@ -504,7 +397,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize select-all checkbox state
   updateSelectAllCheckbox();
 
-  // Add listener to game filter to save changes
+  // Add listener to filters to save changes
+  if (folderFilter) {
+    folderFilter.addEventListener("change", saveFilters);
+  }
+
   const gameFilter = document.getElementById("game-filter");
   if (gameFilter) {
     gameFilter.addEventListener("change", saveFilters);
@@ -523,80 +420,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-// Track individual folder states
-const folderStates = new Map();
-
-// LocalStorage key for persisting folder states
-const FOLDER_STATES_KEY = "picker_folder_states";
-
-function saveFolderStates() {
-  // Convert Map to object for storage
-  const statesObj = Object.fromEntries(folderStates);
-  try {
-    localStorage.setItem(FOLDER_STATES_KEY, JSON.stringify(statesObj));
-  } catch (e) {
-    console.error("Failed to save folder states:", e);
-  }
-}
-
-function loadFolderStates() {
-  try {
-    const stored = localStorage.getItem(FOLDER_STATES_KEY);
-    if (stored) {
-      const statesObj = JSON.parse(stored);
-      // Convert object back to Map
-      Object.entries(statesObj).forEach(([key, value]) => {
-        folderStates.set(key, value);
-      });
-      return true;
-    }
-  } catch (e) {
-    console.error("Failed to load folder states:", e);
-  }
-  return false;
-}
-
-function collapseAllFolders() {
-  // Find all intermediate folder rows and collapse them
-  const folderRows = document.querySelectorAll(".intermediate-folder");
-  folderRows.forEach((folderRow) => {
-    const folderPath = folderRow.getAttribute("data-path");
-    if (folderPath) {
-      // Set initial state to collapsed
-      folderStates.set(folderPath, "collapsed");
-
-      // Collapse the folder
-      folderRow.classList.add("collapsed");
-
-      // Hide all children of this folder
-      hideChildrenOfFolder(folderPath);
-    }
-  });
-
-  console.log(`Collapsed ${folderRows.length} folders on startup`);
-}
-
-function applyFolderStates() {
-  // Apply loaded folder states to the UI
-  const folderRows = document.querySelectorAll(".intermediate-folder");
-  folderRows.forEach((folderRow) => {
-    const folderPath = folderRow.getAttribute("data-path");
-    if (folderPath) {
-      const state = folderStates.get(folderPath) || "collapsed";
-
-      if (state === "expanded") {
-        folderRow.classList.remove("collapsed");
-        showChildrenOfFolder(folderPath);
-      } else {
-        folderRow.classList.add("collapsed");
-        hideChildrenOfFolder(folderPath);
-      }
-    }
-  });
-
-  console.log(`Applied folder states from localStorage`);
-}
 
 // Keyboard Navigation Functions
 function initializeKeyboardNavigation() {
@@ -681,20 +504,6 @@ function handleKeyboardNavigation(event) {
       handled = true;
       break;
 
-    case "ArrowLeft":
-    case "h":
-      event.preventDefault();
-      navigateLeft();
-      handled = true;
-      break;
-
-    case "ArrowRight":
-    case "l":
-      event.preventDefault();
-      navigateRight();
-      handled = true;
-      break;
-
     case "Enter":
       event.preventDefault();
       activateSelectedRow();
@@ -720,58 +529,6 @@ function navigateDown() {
   }
 }
 
-function navigateLeft() {
-  if (
-    currentSelectedIndex >= 0 &&
-    currentSelectedIndex < allNavigableRows.length
-  ) {
-    const selectedRow = allNavigableRows[currentSelectedIndex];
-    const folderPath = selectedRow.getAttribute("data-path");
-
-    // If it's a folder and it's expanded, collapse it
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      const currentState = folderStates.get(folderPath) || "collapsed";
-      if (currentState === "expanded") {
-        toggleFolder(folderPath);
-        updateNavigableRows();
-        // Keep selection on the same row after collapse
-        const newIndex = allNavigableRows.findIndex(
-          (row) => row.getAttribute("data-path") === folderPath,
-        );
-        if (newIndex >= 0) {
-          setSelectedRow(newIndex);
-        }
-      }
-    }
-  }
-}
-
-function navigateRight() {
-  if (
-    currentSelectedIndex >= 0 &&
-    currentSelectedIndex < allNavigableRows.length
-  ) {
-    const selectedRow = allNavigableRows[currentSelectedIndex];
-    const folderPath = selectedRow.getAttribute("data-path");
-
-    // If it's a folder and it's collapsed, expand it
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      const currentState = folderStates.get(folderPath) || "collapsed";
-      if (currentState === "collapsed") {
-        toggleFolder(folderPath);
-        updateNavigableRows();
-        // Keep selection on the same row after expand
-        const newIndex = allNavigableRows.findIndex(
-          (row) => row.getAttribute("data-path") === folderPath,
-        );
-        if (newIndex >= 0) {
-          setSelectedRow(newIndex);
-        }
-      }
-    }
-  }
-}
-
 function activateSelectedRow() {
   if (
     currentSelectedIndex >= 0 &&
@@ -780,21 +537,8 @@ function activateSelectedRow() {
     const selectedRow = allNavigableRows[currentSelectedIndex];
     const folderPath = selectedRow.getAttribute("data-path");
 
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      // Toggle folder
-      toggleFolder(folderPath);
-      updateNavigableRows();
-      // Keep selection on the same row after toggle
-      const newIndex = allNavigableRows.findIndex(
-        (row) => row.getAttribute("data-path") === folderPath,
-      );
-      if (newIndex >= 0) {
-        setSelectedRow(newIndex);
-      }
-    } else if (selectedRow.classList.contains("game-folder")) {
-      // Open game
-      openGame(folderPath);
-    }
+    // Open game
+    openGame(folderPath);
   }
 }
 
@@ -804,64 +548,62 @@ let uniqueGames = new Set();
 let uniqueModels = new Set();
 let selectedModels = new Set();
 let selectedDate = null;
+let selectedFolder = "";
 
 function shouldRowBeVisible(row) {
+  // Check folder filter (mandatory)
+  const folderFilter = document.getElementById("folder-filter")?.value;
+  if (folderFilter !== undefined) {
+    const rowParentFolder = row.getAttribute("data-parent-folder") || "";
+    if (rowParentFolder !== folderFilter) {
+      return false;
+    }
+  }
+
+  // Check game name filter
   const gameFilter =
     document.getElementById("game-filter")?.value.toLowerCase() || "";
-
-  if (row.classList.contains("game-folder")) {
-    // Check game name filter
-    if (gameFilter) {
-      const gameNameElement = row.querySelector(".game-name-text");
-      const gameName = gameNameElement
-        ? gameNameElement.textContent.toLowerCase()
-        : "";
-      if (!gameName.includes(gameFilter)) {
-        return false;
-      }
+  if (gameFilter) {
+    const gameNameElement = row.querySelector(".game-name-text");
+    const gameName = gameNameElement
+      ? gameNameElement.textContent.toLowerCase()
+      : "";
+    if (!gameName.includes(gameFilter)) {
+      return false;
     }
-
-    // Check model filter - if models are selected, row must have ALL of them (intersection)
-    if (selectedModels.size > 0) {
-      const modelTags = row.querySelectorAll(".model-tag");
-      const rowModels = new Set(
-        Array.from(modelTags).map((tag) => tag.textContent.trim()),
-      );
-      const hasAllModels = Array.from(selectedModels).every((model) =>
-        rowModels.has(model),
-      );
-      if (!hasAllModels) {
-        return false;
-      }
-    }
-
-    // Check date filter - if a date is selected, row must match that date
-    if (selectedDate) {
-      const dateElement = row.querySelector(".date-text");
-      if (dateElement) {
-        const dateText = dateElement.textContent.trim();
-        // Extract just the YYYY-MM-DD part
-        const rowDate = dateText.split(" ")[0];
-        if (rowDate !== selectedDate) {
-          return false;
-        }
-      } else {
-        // Row has no date, so it doesn't match
-        return false;
-      }
-    }
-
-    return true;
-  } else {
-    // For intermediate folders, check if any child game folders should be visible
-    const folderPath = row.getAttribute("data-path");
-    const childGameRows = document.querySelectorAll(
-      `.game-row.game-folder[data-path^="${folderPath}/"]`,
-    );
-    return Array.from(childGameRows).some((childRow) =>
-      shouldRowBeVisible(childRow),
-    );
   }
+
+  // Check model filter - if models are selected, row must have ALL of them (intersection)
+  if (selectedModels.size > 0) {
+    const modelTags = row.querySelectorAll(".model-tag");
+    const rowModels = new Set(
+      Array.from(modelTags).map((tag) => tag.textContent.trim()),
+    );
+    const hasAllModels = Array.from(selectedModels).every((model) =>
+      rowModels.has(model),
+    );
+    if (!hasAllModels) {
+      return false;
+    }
+  }
+
+  // Check date filter - if a date is selected, row must match that date
+  if (selectedDate) {
+    const dateElement = row.querySelector(".date-text");
+    if (dateElement) {
+      const dateText = dateElement.textContent.trim();
+      // Extract just the YYYY-MM-DD part
+      const rowDate = dateText.split(" ")[0];
+      if (rowDate !== selectedDate) {
+        return false;
+      }
+    } else {
+      // Row has no date, so it doesn't match
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function initializeFilters() {
@@ -934,36 +676,12 @@ function populateModelFilter() {
 }
 
 function applyFilters() {
-  // Get all game rows (both game folders and intermediate folders)
+  // Get all game rows
   const allRows = document.querySelectorAll(".game-row");
 
   allRows.forEach((row) => {
     if (shouldRowBeVisible(row)) {
-      // Check if this row should be visible based on parent folder states
-      const rowPath = row.getAttribute("data-path");
-      let shouldShowBasedOnParents = true;
-
-      if (rowPath && rowPath.includes("/")) {
-        let currentPath = rowPath;
-
-        // Walk up the parent hierarchy
-        while (currentPath.includes("/")) {
-          const parentPath = currentPath.substring(
-            0,
-            currentPath.lastIndexOf("/"),
-          );
-          const parentState = folderStates.get(parentPath) || "collapsed";
-
-          if (parentState === "collapsed") {
-            shouldShowBasedOnParents = false;
-            break;
-          }
-
-          currentPath = parentPath;
-        }
-      }
-
-      row.style.display = shouldShowBasedOnParents ? "" : "none";
+      row.style.display = "";
     } else {
       row.style.display = "none";
     }
@@ -977,6 +695,13 @@ function applyFilters() {
 }
 
 function clearFilters() {
+  // Reset folder filter to first option (folder filter is mandatory)
+  const folderFilter = document.getElementById("folder-filter");
+  if (folderFilter && folderFilter.options.length > 0) {
+    folderFilter.selectedIndex = 0;
+    selectedFolder = folderFilter.value;
+  }
+
   document.getElementById("game-filter").value = "";
   selectedModels.clear();
   selectedDate = null;
@@ -984,7 +709,7 @@ function clearFilters() {
   updateDateFilterDisplay();
   saveFilters();
 
-  // Reapply the current folder states without any filters
+  // Reapply filters
   applyFilters();
 }
 
@@ -1140,6 +865,7 @@ const FILTERS_KEY = "picker_filters";
 
 function saveFilters() {
   const filters = {
+    folder: document.getElementById("folder-filter")?.value || "",
     game: document.getElementById("game-filter")?.value || "",
     models: Array.from(selectedModels),
     date: selectedDate,
@@ -1156,6 +882,27 @@ function loadFilters() {
     const stored = localStorage.getItem(FILTERS_KEY);
     if (stored) {
       const filters = JSON.parse(stored);
+
+      // Restore folder filter
+      const folderFilter = document.getElementById("folder-filter");
+      if (folderFilter && filters.folder !== undefined) {
+        // Check if the saved folder still exists in options
+        const optionExists = Array.from(folderFilter.options).some(
+          (opt) => opt.value === filters.folder,
+        );
+        if (optionExists) {
+          folderFilter.value = filters.folder;
+          selectedFolder = filters.folder;
+        } else if (folderFilter.options.length > 0) {
+          // Saved folder doesn't exist, default to first option
+          folderFilter.selectedIndex = 0;
+          selectedFolder = folderFilter.value;
+        }
+      } else if (folderFilter && folderFilter.options.length > 0) {
+        // No saved folder, default to first option
+        folderFilter.selectedIndex = 0;
+        selectedFolder = folderFilter.value;
+      }
 
       // Restore game filter
       const gameFilter = document.getElementById("game-filter");
@@ -1197,22 +944,6 @@ function sortTable(column) {
 
   const rows = Array.from(document.querySelectorAll(".game-row"));
 
-  // Build a tree structure to maintain hierarchy
-  const rowsByPath = new Map();
-  rows.forEach((row) => {
-    rowsByPath.set(row.dataset.path, row);
-  });
-
-  // Group rows by their parent
-  const childrenByParent = new Map();
-  rows.forEach((row) => {
-    const parent = row.dataset.parent || "";
-    if (!childrenByParent.has(parent)) {
-      childrenByParent.set(parent, []);
-    }
-    childrenByParent.get(parent).push(row);
-  });
-
   // Comparison function based on selected column
   function compareRows(a, b) {
     let aValue, bValue;
@@ -1240,27 +971,8 @@ function sortTable(column) {
     return 0;
   }
 
-  // Sort children at each level
-  childrenByParent.forEach((children) => {
-    children.sort(compareRows);
-  });
-
-  // Recursively build the sorted list maintaining hierarchy
-  function buildSortedList(parent) {
-    const result = [];
-    const children = childrenByParent.get(parent) || [];
-
-    for (const child of children) {
-      result.push(child);
-      // Add all descendants of this child
-      result.push(...buildSortedList(child.dataset.path));
-    }
-
-    return result;
-  }
-
-  // Build the final sorted list starting from root (empty parent)
-  const sortedRows = buildSortedList("");
+  // Sort all rows
+  rows.sort(compareRows);
 
   // Get the table header element
   const tableHeader = document.querySelector(".table-header");
@@ -1270,7 +982,7 @@ function sortTable(column) {
 
   // Re-insert rows in sorted order
   let previousElement = tableHeader;
-  sortedRows.forEach((row) => {
+  rows.forEach((row) => {
     previousElement.after(row);
     previousElement = row;
   });

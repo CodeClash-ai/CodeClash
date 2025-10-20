@@ -409,20 +409,18 @@ def _find_all_game_folders_impl(base_dir: Path) -> list[dict[str, Any]]:
 
     # Create folder info for each game folder
     game_folder_infos = []
-    game_folder_paths = set()
 
     for metadata_file in metadata_files:
         game_dir = metadata_file.parent
         relative_path = str(game_dir.relative_to(base_dir))
-        game_folder_paths.add(relative_path)
-        depth = relative_path.count("/")
+
+        # Extract parent folder path (folder containing the game folder)
+        parent_folder = str(game_dir.parent.relative_to(base_dir)) if game_dir.parent != base_dir else ""
 
         folder_info = {
             "name": relative_path,
             "full_path": str(game_dir),
-            "is_game": True,
-            "depth": depth,
-            "parent": str(game_dir.parent.relative_to(base_dir)) if game_dir.parent != base_dir else None,
+            "parent_folder": parent_folder,
         }
         game_folder_infos.append(folder_info)
 
@@ -444,38 +442,7 @@ def _find_all_game_folders_impl(base_dir: Path) -> list[dict[str, Any]]:
                     folder_info["created_timestamp"] = None
                     logger.warning(f"Failed to load metadata for {folder_info['name']}: {e}")
 
-    # Create intermediate folder entries for all parent directories
-    intermediate_folders = set()
-    for game_path in game_folder_paths:
-        # Extract all parent paths
-        parts = game_path.split("/")
-        for i in range(1, len(parts)):
-            parent_path = "/".join(parts[:i])
-            if parent_path not in game_folder_paths:  # Only add if not a game folder itself
-                intermediate_folders.add(parent_path)
-
-    # Add intermediate folders to the result
-    all_folders = game_folder_infos.copy()
-    for intermediate_path in intermediate_folders:
-        depth = intermediate_path.count("/")
-        parent_parts = intermediate_path.split("/")
-        parent_path = "/".join(parent_parts[:-1]) if len(parent_parts) > 1 else None
-
-        all_folders.append(
-            {
-                "name": intermediate_path,
-                "full_path": str(base_dir / intermediate_path),
-                "is_game": False,
-                "depth": depth,
-                "parent": parent_path,
-                "round_info": None,
-                "models": [],
-                "game_name": "",
-                "created_timestamp": None,
-            }
-        )
-
-    return sorted(all_folders, key=lambda x: x["name"])
+    return sorted(game_folder_infos, key=lambda x: x["name"])
 
 
 @print_timing
@@ -1039,8 +1006,8 @@ def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     # Get all game folders
     game_folders = find_all_game_folders(LOG_BASE_DIR)
 
-    # Filter to only actual game folders and sort them
-    game_names = [folder["name"] for folder in game_folders if folder["is_game"]]
+    # Extract game folder names
+    game_names = [folder["name"] for folder in game_folders]
     game_names.sort()
 
     # Find current game index
@@ -1148,11 +1115,20 @@ def game_view(folder_path):
 @app.route("/picker")
 @print_timing
 def game_picker():
-    """Game picker page with recursive folder support"""
+    """Game picker page with flat folder structure"""
     logs_dir = LOG_BASE_DIR
     game_folders = find_all_game_folders(logs_dir)
 
-    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir), is_static=STATIC_MODE)
+    # Extract unique parent folders for the folder dropdown
+    unique_folders = sorted({folder["parent_folder"] for folder in game_folders})
+
+    return render_template(
+        "picker.html",
+        game_folders=game_folders,
+        unique_folders=unique_folders,
+        base_dir=str(logs_dir),
+        is_static=STATIC_MODE,
+    )
 
 
 @app.route("/delete-experiment", methods=["POST"])

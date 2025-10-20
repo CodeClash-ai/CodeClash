@@ -17,8 +17,14 @@
 
     <main class="container-fluid main-content">
         {% if game_folders %}
-        <div class="games-table">
-        <div class="filter-container-top">
+        <div class="filter-container">
+            <label for="folder-filter">Folder:</label>
+            <select id="folder-filter" onchange="applyFilters()" class="filter-select">
+                {% for folder in unique_folders %}
+                <option value="{{ folder }}">{{ folder if folder else "(root)" }}</option>
+                {% endfor %}
+            </select>
+
             <label for="game-filter">Game:</label>
             <select id="game-filter" onchange="applyFilters()" class="filter-select">
                 <option value="">All Games</option>
@@ -57,6 +63,8 @@
                 <i class="bi bi-lightning-charge"></i> Bulk Actions
             </button>
         </div>
+
+        <div class="games-table">
         <div class="table-header">
             <div class="checkbox-header">
                 <input type="checkbox" id="select-all" class="game-checkbox" onchange="toggleSelectAll(this)" title="Toggle all" {% if is_static %}disabled{% endif %}>
@@ -73,35 +81,24 @@
             <div>Action</div>
         </div>
             {% for game in game_folders %}
-            {% set depth = game.name.count('/') %}
             {% set folder_name = game.name.split('/')[-1] %}
-            <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
+            <div class="game-row game-folder"
                  data-path="{{ game.name }}"
-                 data-parent="{{ game.parent or '' }}"
+                 data-parent-folder="{{ game.parent_folder or '' }}"
                  data-timestamp="{{ game.created_timestamp or '' }}"
-                 {% if game.is_game %}onclick="handleRowClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
+                 onclick="handleRowClick(event, '{{ game.name }}')">
 
                 <div class="checkbox-cell">
-                    {% if game.is_game %}
                     <input type="checkbox" class="game-checkbox" data-path="{{ game.name }}"
                            onclick="event.stopPropagation()" {% if is_static %}disabled{% endif %}>
-                    {% else %}
-                    <span class="checkbox-placeholder"></span>
-                    {% endif %}
                 </div>
 
                 <div class="session-name-cell">
-                    <span class="folder-indent">
-                        {% for i in range(depth) %}
-                        <span class="folder-icon">&nbsp;&nbsp;</span>
-                        {% endfor %}
-                    </span>
-                    <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
                 </div>
 
                 <div class="date-cell">
-                    {% if game.is_game and game.created_timestamp %}
+                    {% if game.created_timestamp %}
                     <span class="date-text clickable-filter" onclick="handleDateClick(event, '{{ game.created_timestamp|format_timestamp }}')" title="Click to filter by this date">{{ game.created_timestamp|format_timestamp }}</span>
                     {% else %}
                     <span class="date-unknown">-</span>
@@ -109,7 +106,7 @@
                 </div>
 
                 <div class="game-name-cell">
-                    {% if game.is_game and game.game_name %}
+                    {% if game.game_name %}
                     <span class="game-name-text clickable-filter" onclick="handleGameNameClick(event, '{{ game.game_name }}')" title="Click to filter by this game">{{ game.game_name }}</span>
                     {% else %}
                     <span class="game-name-empty">-</span>
@@ -117,19 +114,15 @@
                 </div>
 
                 <div class="rounds-cell">
-                    {% if game.is_game %}
-                        {% if game.round_info %}
-                        <span class="rounds-count{% if game.round_info[0] < game.round_info[1] %} rounds-count-warning{% endif %}">{{ game.round_info[0] }}/{{ game.round_info[1] }}</span>
-                        {% else %}
-                        <span class="rounds-unknown">?</span>
-                        {% endif %}
+                    {% if game.round_info %}
+                    <span class="rounds-count{% if game.round_info[0] < game.round_info[1] %} rounds-count-warning{% endif %}">{{ game.round_info[0] }}/{{ game.round_info[1] }}</span>
                     {% else %}
-                        <span class="rounds-unknown">-</span>
+                    <span class="rounds-unknown">?</span>
                     {% endif %}
                 </div>
 
                 <div class="models-cell">
-                    {% if game.is_game and game.models %}
+                    {% if game.models %}
                         {% for model in game.models %}
                         <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model|strip_model_prefix }}')" title="Click to filter by this model">{{ model|strip_model_prefix }}</span>
                         {% endfor %}
@@ -139,16 +132,12 @@
                 </div>
 
                 <div class="action-cell">
-                    {% if game.is_game %}
                     <button class="btn btn-primary btn-sm open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
                         Open
                     </button>
                     <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
-                    {% else %}
-                    <span class="folder-indicator">Folder</span>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -228,20 +217,14 @@
                             <kbd>↓</kbd> / <kbd>j</kbd> <span>Navigate down</span>
                         </div>
                         <div class="shortcut-item">
-                            <kbd>←</kbd> / <kbd>h</kbd> <span>Collapse folder</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>→</kbd> / <kbd>l</kbd> <span>Expand folder</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Enter</kbd> <span>Open game or toggle folder</span>
+                            <kbd>Enter</kbd> <span>Open game</span>
                         </div>
                     </div>
 
                     <div class="shortcut-section">
                         <h6><i class="bi bi-mouse"></i> Mouse</h6>
                         <div class="shortcut-item">
-                            <span class="mouse-action">Left-click</span> <span>Select game or toggle folder</span>
+                            <span class="mouse-action">Left-click</span> <span>Select game</span>
                         </div>
                         <div class="shortcut-item">
                             <span class="mouse-action">Middle-click</span> <span>Open game in new tab</span>
