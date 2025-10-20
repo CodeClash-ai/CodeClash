@@ -21,18 +21,10 @@ from typing import Any
 
 import boto3
 
-from codeclash.utils.git_utils import get_current_git_branch, has_unpushed_commits, is_git_repo_dirty
+from codeclash.utils.git_utils import get_current_git_branch
 from codeclash.utils.log import get_logger
 
 logger = get_logger("launch", emoji="🚀")
-
-
-def check_git_status_and_confirm() -> None:
-    if not is_git_repo_dirty() and not has_unpushed_commits():
-        return
-
-    if input("Git repository dirty/unpushed, continue anyway? (y/N): ").strip().lower() not in ("y", "yes"):
-        sys.exit(1)
 
 
 class AWSBatchJobLauncher:
@@ -167,7 +159,7 @@ def main():
     parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
     parser.add_argument("--wait", action="store_true", help="Wait for the job to complete before exiting")
     parser.add_argument("--show-logs", action="store_true", help="Show job logs after completion (implies --wait)")
-    parser.add_argument("-y", action="store_true", help="Skip git dirty prompt and continue automatically")
+    parser.add_argument("-y", action="store_true", help="Legacy")
 
     if "--" in sys.argv:
         separator_index = sys.argv.index("--")
@@ -177,9 +169,6 @@ def main():
         raise ValueError("No command specified. Use -- to separate AWS args from the command to run.")
 
     args = parser.parse_args(aws_args)
-
-    if not args.y:
-        check_git_status_and_confirm()
 
     launcher = AWSBatchJobLauncher(
         job_definition_name=args.job_definition, job_queue=args.job_queue, region=args.region

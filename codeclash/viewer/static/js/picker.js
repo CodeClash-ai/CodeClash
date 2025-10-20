@@ -373,6 +373,157 @@ function fillTextareaWithAWSResubmitCommands() {
   }
 }
 
+async function fillTextareaWithGuessedConfigNames() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
+
+  if (selectedCheckboxes.length === 0) {
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  // Show loading message
+  const textarea = document.getElementById("bulk-actions-textarea");
+  textarea.value = "Loading...";
+  hideModalWarning();
+
+  // Extract folder paths
+  const folderPaths = Array.from(selectedCheckboxes).map((checkbox) =>
+    checkbox.getAttribute("data-path"),
+  );
+
+  try {
+    // Call backend API
+    const response = await fetch("/picker/api/guess-config-names", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ folder_paths: folderPaths }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      showModalWarning(`Error: ${data.error}`);
+      textarea.value = "";
+      return;
+    }
+
+    // Process results
+    const successfulResults = data.results.filter(
+      (result) => result.config_name,
+    );
+    const failedResults = data.results.filter((result) => !result.config_name);
+
+    if (successfulResults.length === 0) {
+      showModalWarning("No config names could be guessed from the metadata.");
+      textarea.value = "";
+      return;
+    }
+
+    // Format output
+    const configNames = successfulResults.map((result) => result.config_name);
+    textarea.value = configNames.join("\n");
+
+    // Show warning if some folders failed
+    if (failedResults.length > 0) {
+      const errorMessages = failedResults.map((result) => {
+        const folderName = result.folder.split("/").pop();
+        return `${folderName}: ${result.error}`;
+      });
+      showModalWarning(
+        `Warning: ${failedResults.length} folder(s) failed:\n${errorMessages.join("\n")}`,
+      );
+    } else {
+      hideModalWarning();
+    }
+  } catch (error) {
+    console.error("Error guessing config names:", error);
+    showModalWarning(`Error: ${error.message}`);
+    textarea.value = "";
+  }
+}
+
+async function fillTextareaWithAWSSubmitCommands() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
+
+  if (selectedCheckboxes.length === 0) {
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  // Show loading message
+  const textarea = document.getElementById("bulk-actions-textarea");
+  textarea.value = "Loading...";
+  hideModalWarning();
+
+  // Extract folder paths
+  const folderPaths = Array.from(selectedCheckboxes).map((checkbox) =>
+    checkbox.getAttribute("data-path"),
+  );
+
+  try {
+    // Call backend API
+    const response = await fetch("/picker/api/guess-config-names", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ folder_paths: folderPaths }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      showModalWarning(`Error: ${data.error}`);
+      textarea.value = "";
+      return;
+    }
+
+    // Process results
+    const successfulResults = data.results.filter(
+      (result) => result.config_name,
+    );
+    const failedResults = data.results.filter((result) => !result.config_name);
+
+    if (successfulResults.length === 0) {
+      showModalWarning("No config names could be guessed from the metadata.");
+      textarea.value = "";
+      return;
+    }
+
+    // Format output as AWS submit commands
+    const commands = successfulResults.map(
+      (result) =>
+        `aws/run_job.py -- aws/docker_and_sync.sh python main.py configs/main/${result.config_name}`,
+    );
+    textarea.value = commands.join("\n");
+
+    // Show warning if some folders failed
+    if (failedResults.length > 0) {
+      const errorMessages = failedResults.map((result) => {
+        const folderName = result.folder.split("/").pop();
+        return `${folderName}: ${result.error}`;
+      });
+      showModalWarning(
+        `Warning: ${failedResults.length} folder(s) skipped:\n${errorMessages.join("\n")}`,
+      );
+    } else {
+      hideModalWarning();
+    }
+  } catch (error) {
+    console.error("Error generating AWS submit commands:", error);
+    showModalWarning(`Error: ${error.message}`);
+    textarea.value = "";
+  }
+}
+
 function copyFromModal() {
   const textarea = document.getElementById("bulk-actions-textarea");
   const text = textarea.value;
