@@ -21,7 +21,7 @@ for arena in tracker:
 
 for arena_log in arena_logs:
     name = arena_log.stem
-    if name.endswith("-uuid"):
+    if arena_log.name.endswith("-uuid"):
         # Strip uuid
         name = name.rpartition(".")[0]
     arena = name.split(".", 2)[1]
