@@ -395,6 +395,7 @@ def _load_game_metadata(folder_info: dict[str, Any]) -> dict[str, Any]:
     folder_info["models"] = metadata.models
     folder_info["game_name"] = metadata.game_name
     folder_info["created_timestamp"] = metadata.get_path("created_timestamp")
+    folder_info["aws_command"] = metadata.get_path("aws.AWS_USER_PROVIDED_COMMAND")
     return folder_info
 
 
@@ -409,20 +410,18 @@ def _find_all_game_folders_impl(base_dir: Path) -> list[dict[str, Any]]:
 
     # Create folder info for each game folder
     game_folder_infos = []
-    game_folder_paths = set()
 
     for metadata_file in metadata_files:
         game_dir = metadata_file.parent
         relative_path = str(game_dir.relative_to(base_dir))
-        game_folder_paths.add(relative_path)
-        depth = relative_path.count("/")
+
+        # Extract parent folder path (folder containing the game folder)
+        parent_folder = str(game_dir.parent.relative_to(base_dir)) if game_dir.parent != base_dir else ""
 
         folder_info = {
             "name": relative_path,
             "full_path": str(game_dir),
-            "is_game": True,
-            "depth": depth,
-            "parent": str(game_dir.parent.relative_to(base_dir)) if game_dir.parent != base_dir else None,
+            "parent_folder": parent_folder,
         }
         game_folder_infos.append(folder_info)
 
@@ -444,38 +443,7 @@ def _find_all_game_folders_impl(base_dir: Path) -> list[dict[str, Any]]:
                     folder_info["created_timestamp"] = None
                     logger.warning(f"Failed to load metadata for {folder_info['name']}: {e}")
 
-    # Create intermediate folder entries for all parent directories
-    intermediate_folders = set()
-    for game_path in game_folder_paths:
-        # Extract all parent paths
-        parts = game_path.split("/")
-        for i in range(1, len(parts)):
-            parent_path = "/".join(parts[:i])
-            if parent_path not in game_folder_paths:  # Only add if not a game folder itself
-                intermediate_folders.add(parent_path)
-
-    # Add intermediate folders to the result
-    all_folders = game_folder_infos.copy()
-    for intermediate_path in intermediate_folders:
-        depth = intermediate_path.count("/")
-        parent_parts = intermediate_path.split("/")
-        parent_path = "/".join(parent_parts[:-1]) if len(parent_parts) > 1 else None
-
-        all_folders.append(
-            {
-                "name": intermediate_path,
-                "full_path": str(base_dir / intermediate_path),
-                "is_game": False,
-                "depth": depth,
-                "parent": parent_path,
-                "round_info": None,
-                "models": [],
-                "game_name": "",
-                "created_timestamp": None,
-            }
-        )
-
-    return sorted(all_folders, key=lambda x: x["name"])
+    return sorted(game_folder_infos, key=lambda x: x["name"])
 
 
 @print_timing
@@ -1012,14 +980,14 @@ def get_parent_folder(path):
 
 
 def format_timestamp(timestamp):
-    """Format Unix timestamp as YYYY-MM-DD HH:MM"""
+    """Format Unix timestamp as MM/DD HH:MM"""
     if timestamp is None:
         return ""
     from datetime import datetime
 
     try:
         dt = datetime.fromtimestamp(timestamp)
-        return dt.strftime("%Y-%m-%d %H:%M")
+        return dt.strftime("%m/%d %H:%M")
     except (ValueError, OSError):
         return ""
 
@@ -1039,8 +1007,8 @@ def get_navigation_info(selected_folder: str) -> dict[str, str | None]:
     # Get all game folders
     game_folders = find_all_game_folders(LOG_BASE_DIR)
 
-    # Filter to only actual game folders and sort them
-    game_names = [folder["name"] for folder in game_folders if folder["is_game"]]
+    # Extract game folder names
+    game_names = [folder["name"] for folder in game_folders]
     game_names.sort()
 
     # Find current game index
@@ -1148,11 +1116,20 @@ def game_view(folder_path):
 @app.route("/picker")
 @print_timing
 def game_picker():
-    """Game picker page with recursive folder support"""
+    """Game picker page with flat folder structure"""
     logs_dir = LOG_BASE_DIR
     game_folders = find_all_game_folders(logs_dir)
 
-    return render_template("picker.html", game_folders=game_folders, base_dir=str(logs_dir), is_static=STATIC_MODE)
+    # Extract unique parent folders for the folder dropdown
+    unique_folders = sorted({folder["parent_folder"] for folder in game_folders})
+
+    return render_template(
+        "picker.html",
+        game_folders=game_folders,
+        unique_folders=unique_folders,
+        base_dir=str(logs_dir),
+        is_static=STATIC_MODE,
+    )
 
 
 @app.route("/delete-experiment", methods=["POST"])
@@ -1186,198 +1163,6 @@ def delete_experiment():
         shutil.rmtree(folder_path_obj)
 
         return jsonify({"success": True, "message": "Experiment deleted successfully"})
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-
-@app.route("/rename-folders", methods=["POST"])
-def rename_folders():
-    """Add suffix to selected folders"""
-    try:
-        data = request.get_json()
-        action = data.get("action")
-        paths = data.get("paths", [])
-        suffix = data.get("suffix", "")
-
-        if not paths:
-            return jsonify({"success": False, "error": "No paths provided"})
-
-        if action != "add-suffix":
-            return jsonify({"success": False, "error": "Invalid action"})
-
-        if not suffix:
-            return jsonify({"success": False, "error": "No suffix provided"})
-
-        successful_renames = []
-        failed_renames = []
-
-        for relative_path in paths:
-            try:
-                # Get the full path
-                old_path = LOG_BASE_DIR / relative_path
-
-                if not old_path.exists():
-                    failed_renames.append(f"{relative_path}: does not exist")
-                    continue
-
-                # Create new path with suffix
-                parent_dir = old_path.parent
-                old_name = old_path.name
-                new_name = f"{old_name}.{suffix}"
-                new_path = parent_dir / new_name
-
-                # Check if target already exists
-                if new_path.exists():
-                    failed_renames.append(f"{relative_path}: target already exists")
-                    continue
-
-                # Perform the rename
-                old_path.rename(new_path)
-                successful_renames.append(f"{relative_path} → {old_name}.{suffix}")
-
-            except Exception as e:
-                failed_renames.append(f"{relative_path}: {str(e)}")
-
-        if failed_renames:
-            error_msg = "Some renames failed:\n" + "\n".join(failed_renames)
-            if successful_renames:
-                error_msg += "\n\nSuccessful renames:\n" + "\n".join(successful_renames)
-            return jsonify({"success": False, "error": error_msg})
-
-        return jsonify(
-            {
-                "success": True,
-                "message": f"Successfully renamed {len(successful_renames)} folder(s)",
-                "renamed": successful_renames,
-            }
-        )
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-
-@app.route("/move-to-subfolder", methods=["POST"])
-def move_to_subfolder():
-    """Move selected folders to a new subfolder"""
-    try:
-        data = request.get_json()
-        paths = data.get("paths", [])
-        subfolder_name = data.get("subfolder", "")
-
-        if not paths:
-            return jsonify({"success": False, "error": "No paths provided"})
-
-        if not subfolder_name:
-            return jsonify({"success": False, "error": "No subfolder name provided"})
-
-        # Validate subfolder name (no path separators, etc.)
-        if "/" in subfolder_name or "\\" in subfolder_name or ".." in subfolder_name:
-            return jsonify({"success": False, "error": "Invalid subfolder name"})
-
-        successful_moves = []
-        failed_moves = []
-
-        for relative_path in paths:
-            try:
-                # Get the full path
-                old_path = LOG_BASE_DIR / relative_path
-
-                if not old_path.exists():
-                    failed_moves.append(f"{relative_path}: does not exist")
-                    continue
-
-                # Determine where to create the subfolder
-                parent_dir = old_path.parent
-                subfolder_path = parent_dir / subfolder_name
-
-                # Create subfolder if it doesn't exist
-                subfolder_path.mkdir(exist_ok=True)
-
-                # Create new path inside subfolder
-                folder_name = old_path.name
-                new_path = subfolder_path / folder_name
-
-                # Check if target already exists
-                if new_path.exists():
-                    failed_moves.append(f"{relative_path}: target already exists in subfolder")
-                    continue
-
-                # Perform the move
-                old_path.rename(new_path)
-
-                # Calculate the new relative path for display
-                new_relative_path = str(new_path.relative_to(LOG_BASE_DIR))
-                successful_moves.append(f"{relative_path} → {new_relative_path}")
-
-            except Exception as e:
-                failed_moves.append(f"{relative_path}: {str(e)}")
-
-        if failed_moves:
-            error_msg = "Some moves failed:\n" + "\n".join(failed_moves)
-            if successful_moves:
-                error_msg += "\n\nSuccessful moves:\n" + "\n".join(successful_moves)
-            return jsonify({"success": False, "error": error_msg})
-
-        return jsonify(
-            {
-                "success": True,
-                "message": f"Successfully moved {len(successful_moves)} folder(s) to subfolder '{subfolder_name}'",
-                "moved": successful_moves,
-            }
-        )
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
-
-
-@app.route("/move-folder", methods=["POST"])
-def move_folder():
-    """Move/rename a single folder to a new path"""
-    try:
-        data = request.get_json()
-        old_path = data.get("old_path", "")
-        new_path = data.get("new_path", "")
-
-        if not old_path:
-            return jsonify({"success": False, "error": "No old path provided"})
-
-        if not new_path:
-            return jsonify({"success": False, "error": "No new path provided"})
-
-        # Convert to Path objects relative to LOG_BASE_DIR
-        old_full_path = LOG_BASE_DIR / old_path
-        new_full_path = LOG_BASE_DIR / new_path
-
-        # Validate old path exists
-        if not old_full_path.exists():
-            return jsonify({"success": False, "error": "Source folder does not exist"})
-
-        # Validate new path doesn't already exist
-        if new_full_path.exists():
-            return jsonify({"success": False, "error": "Target path already exists"})
-
-        # Security check: ensure both paths are within our expected logs directory
-        try:
-            old_full_path.relative_to(LOG_BASE_DIR)
-            new_full_path.relative_to(LOG_BASE_DIR)
-        except ValueError:
-            return jsonify({"success": False, "error": "Invalid path - must be within logs directory"})
-
-        # Create intermediate directories if necessary
-        new_full_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Perform the move
-        old_full_path.rename(new_full_path)
-
-        return jsonify(
-            {
-                "success": True,
-                "message": f"Successfully moved folder from '{old_path}' to '{new_path}'",
-                "old_path": old_path,
-                "new_path": new_path,
-            }
-        )
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})

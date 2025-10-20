@@ -20,10 +20,14 @@ for arena in tracker:
             tracker[arena][setting][k] = [0, 0]
 
 for arena_log in arena_logs:
-    arena = arena_log.stem.split(".", 2)[1]
-    k = arena_log.stem.split(".", 2)[-1]
-    pvp = k.split(".", 3)[-1]
-    setting = k[: -len(pvp) - 1]
+    name = arena_log.stem
+    if name.endswith("-uuid"):
+        # Strip uuid
+        name = name.rpartition(".")[0]
+    arena = name.split(".", 2)[1]
+    k = name.split(".", 2)[-1]
+    pvp = k.split(".", 3)[-1]  # (the model pair)
+    setting = k[: -len(pvp) - 1]  # (number of rounds etc.)
     if arena == "RoboCode":
         with open(arena_log / "metadata.json") as f:
             metadata = json.load(f)
