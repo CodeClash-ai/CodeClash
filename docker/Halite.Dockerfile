@@ -9,6 +9,16 @@ RUN apt-get update \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
  && rm -rf /var/lib/apt/lists/*
 
+# Install Rust via rustup
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && . "$HOME/.cargo/env" \
+    && echo 'source $HOME/.cargo/env' >> /etc/bash.bashrc
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install ocaml
+RUN apt-get update && apt-get install -y ocaml ocamlbuild
+
+# Clone Halite repository
 ARG GITHUB_TOKEN
 RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/Halite.git /workspace \
     && cd /workspace \

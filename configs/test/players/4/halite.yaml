@@ -2,12 +2,16 @@ tournament:
   rounds: 3
 game:
   name: Halite
-  sims_per_round: 250
+  sims_per_round: 10
 players:
 - agent: dummy
   name: p1
 - agent: dummy
   name: p2
+- agent: dummy
+  name: p3
+- agent: dummy
+  name: p4
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in an arena called Halite.
