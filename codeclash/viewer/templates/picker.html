@@ -41,13 +41,9 @@
                     </button>
                 </div>
                 <div class="action-controls">
-                    <select id="action-dropdown" onchange="handleAction(this.value)">
-                        <option value="">Choose action...</option>
-                        <option value="copy-paths">Copy paths</option>
-                        <option value="add-suffix">Add suffix</option>
-                        <option value="copy-foldernames">Copy foldernames</option>
-                        <option value="move-to-subfolder">Move to subfolder</option>
-                    </select>
+                    <button class="bulk-actions-button" onclick="openBulkActionsModal()">
+                        <i class="bi bi-lightning-charge"></i> Bulk Actions
+                    </button>
                 </div>
             </div>
             {% else %}
@@ -69,9 +65,9 @@
                     </button>
                 </div>
                 <div class="action-controls">
-                    <select id="action-dropdown" disabled>
-                        <option value="">Actions disabled in static mode</option>
-                    </select>
+                    <button class="bulk-actions-button" disabled title="Not available in static mode">
+                        <i class="bi bi-lightning-charge"></i> Bulk Actions
+                    </button>
                 </div>
             </div>
             {% endif %}
@@ -178,15 +174,6 @@
                     <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
-                    {% if not is_static %}
-                    <button class="btn btn-outline-warning btn-sm move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
-                        <i class="bi bi-folder-symlink"></i>
-                    </button>
-                    {% else %}
-                    <button class="btn btn-outline-secondary btn-sm move-button" disabled title="Not available in static mode">
-                        <i class="bi bi-folder-symlink"></i>
-                    </button>
-                    {% endif %}
                     {% else %}
                     <span class="folder-indicator">Folder</span>
                     {% endif %}
@@ -203,15 +190,38 @@
         {% endif %}
     </main>
 
-    <!-- Move/Rename Dialog -->
-    <div id="move-dialog" class="move-dialog" style="display: none;">
-        <div class="move-dialog-content">
-            <h3>Move/Rename Folder</h3>
-            <p>Edit the path to move or rename the folder:</p>
-            <input type="text" id="move-path-input" class="move-path-input" />
-            <div class="move-dialog-buttons">
-                <button onclick="confirmMove()">Move</button>
-                <button onclick="cancelMove()">Cancel</button>
+    <!-- Bulk Actions Modal -->
+    <div id="bulk-actions-modal" class="modal-overlay" onclick="closeBulkActionsModalOnOverlay(event)" style="display: none;">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Bulk Actions</h2>
+                <button class="modal-close" onclick="closeBulkActionsModal()" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-action-btn" onclick="fillTextareaWithPaths()">
+                    <i class="bi bi-folder"></i> Paths
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithFoldernames()">
+                    <i class="bi bi-tag"></i> Folder Names
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithS3RmCommands()">
+                    <i class="bi bi-trash"></i> S3 rm
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithAWSResubmitCommands()">
+                    <i class="bi bi-arrow-repeat"></i> AWS resubmit
+                </button>
+            </div>
+            <div id="modal-warning" class="modal-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span id="modal-warning-text"></span>
+            </div>
+            <div class="modal-textarea-container">
+                <textarea id="bulk-actions-textarea" class="modal-textarea" readonly placeholder="Click a button above to populate this area..."></textarea>
+                <button id="modal-copy-btn" class="modal-copy-btn" onclick="copyFromModal()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
             </div>
         </div>
     </div>

@@ -94,20 +94,6 @@ function initializeKeyboardShortcuts() {
       return;
     }
 
-    // Handle move dialog shortcuts first
-    const dialog = document.getElementById("move-dialog");
-    if (dialog && dialog.style.display === "flex") {
-      if (e.key === "Escape") {
-        window.cancelMove();
-        return;
-      }
-      if (e.key === "Enter") {
-        window.confirmMove();
-        return;
-      }
-      return;
-    }
-
     // h or Left Arrow: Navigate to previous game
     if (e.key === "h" || e.key === "ArrowLeft") {
       e.preventDefault();
@@ -741,78 +727,3 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Mouse shortcuts:");
   console.log("  Middle-click or Ctrl+click: Open in new tab");
 });
-
-// Move/Rename Dialog Variables (for main viewer page)
-window.currentMovePath = "";
-
-window.showMoveDialog = function (folderPath) {
-  window.currentMovePath = folderPath;
-  const dialog = document.getElementById("move-dialog");
-  const input = document.getElementById("move-path-input");
-
-  if (dialog && input) {
-    input.value = folderPath;
-    dialog.style.display = "flex";
-
-    // Focus and select the input text
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 100);
-  }
-};
-
-window.cancelMove = function () {
-  const dialog = document.getElementById("move-dialog");
-  if (dialog) {
-    dialog.style.display = "none";
-  }
-  window.currentMovePath = "";
-};
-
-window.confirmMove = function () {
-  const input = document.getElementById("move-path-input");
-  if (!input) return;
-
-  const newPath = input.value.trim();
-
-  if (!newPath) {
-    alert("Please enter a valid path");
-    return;
-  }
-
-  if (newPath === window.currentMovePath) {
-    window.cancelMove();
-    return;
-  }
-
-  // Send move request to server
-  fetch("/move-folder", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      old_path: window.currentMovePath,
-      new_path: newPath,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        alert(`Moved folder to: ${newPath}`);
-        // Redirect to the new path
-        window.location.href = `/?folder=${encodeURIComponent(newPath)}`;
-      } else {
-        alert("Failed to move folder: " + data.error);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to move folder: ", err);
-      alert("Failed to move folder. Please try again.");
-    });
-
-  window.cancelMove();
-};
-
-// Move dialog keyboard shortcuts are now handled in the main keyboard handler
