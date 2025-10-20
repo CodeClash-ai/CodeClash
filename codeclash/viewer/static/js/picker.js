@@ -257,52 +257,65 @@ function toggleSelectAll(selectAllCheckbox) {
   });
 }
 
-function handleAction(action) {
-  if (!action) return;
-
-  if (action === "copy-paths") {
-    copySelectedPaths();
-  } else if (action === "add-suffix") {
-    addSuffixToSelected();
-  } else if (action === "copy-foldernames") {
-    copySelectedFoldernames();
-  } else if (action === "move-to-subfolder") {
-    moveToSubfolder();
+// Modal functions
+function openBulkActionsModal() {
+  const selectedCheckboxes = document.querySelectorAll(
+    "input[data-path]:checked",
+  );
+  if (selectedCheckboxes.length === 0) {
+    alert("Please select at least one game folder first.");
+    return;
   }
 
-  // Reset dropdown
-  document.getElementById("action-dropdown").value = "";
+  const modal = document.getElementById("bulk-actions-modal");
+  modal.style.display = "flex";
+  // Clear previous content and warning
+  document.getElementById("bulk-actions-textarea").value = "";
+  hideModalWarning();
 }
 
-function copySelectedPaths() {
+function closeBulkActionsModal() {
+  const modal = document.getElementById("bulk-actions-modal");
+  modal.style.display = "none";
+  document.getElementById("bulk-actions-textarea").value = "";
+  hideModalWarning();
+}
+
+function closeBulkActionsModalOnOverlay(event) {
+  if (event.target === event.currentTarget) {
+    closeBulkActionsModal();
+  }
+}
+
+function showModalWarning(message) {
+  const warning = document.getElementById("modal-warning");
+  const warningText = document.getElementById("modal-warning-text");
+  warningText.textContent = message;
+  warning.classList.add("show");
+}
+
+function hideModalWarning() {
+  document.getElementById("modal-warning").classList.remove("show");
+}
+
+function fillTextareaWithPaths() {
   const selectedCheckboxes = document.querySelectorAll(
     "input[data-path]:checked",
   );
 
   if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to copy paths.");
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
     return;
   }
 
+  hideModalWarning();
   const paths = Array.from(selectedCheckboxes).map((checkbox) =>
     checkbox.getAttribute("data-path"),
   );
-
-  const pathsString = paths.join(" ");
-
-  // Copy to clipboard with fallback
-  copyToClipboard(pathsString)
-    .then(() => {
-      // Show temporary success message
-      showCopyMessage(
-        `Copied ${paths.length} path${paths.length > 1 ? "s" : ""} to clipboard`,
-      );
-    })
-    .catch((err) => {
-      console.error("Failed to copy paths: ", err);
-      // Fallback: show paths in alert
-      alert("Failed to copy to clipboard. Paths:\n" + pathsString);
-    });
+  document.getElementById("bulk-actions-textarea").value = paths.join(" ");
 }
 
 function copyToClipboard(text) {
@@ -365,242 +378,116 @@ function showCopyMessage(message) {
   }, 2000);
 }
 
-function addSuffixToSelected() {
+function fillTextareaWithFoldernames() {
   const selectedCheckboxes = document.querySelectorAll(
     "input[data-path]:checked",
   );
 
   if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to add suffix.");
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
     return;
   }
 
-  // Create a minimally styled input prompt
-  const suffix = prompt("Enter suffix to add to selected folders:");
+  hideModalWarning();
+  const folderNames = Array.from(selectedCheckboxes).map((checkbox) => {
+    const fullPath = checkbox.getAttribute("data-path");
+    return fullPath.split("/").pop();
+  });
+  document.getElementById("bulk-actions-textarea").value =
+    folderNames.join(" ");
+}
 
-  if (suffix === null || suffix.trim() === "") {
-    return; // User cancelled or entered empty string
+function fillTextareaWithS3RmCommands() {
+  const selectedCheckboxes = document.querySelectorAll(
+    "input[data-path]:checked",
+  );
+
+  if (selectedCheckboxes.length === 0) {
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
   }
 
-  const trimmedSuffix = suffix.trim();
+  hideModalWarning();
   const paths = Array.from(selectedCheckboxes).map((checkbox) =>
     checkbox.getAttribute("data-path"),
   );
 
-  // Send rename request to server
-  fetch("/rename-folders", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "add-suffix",
-      paths: paths,
-      suffix: trimmedSuffix,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showCopyMessage(
-          `Added suffix "${trimmedSuffix}" to ${paths.length} folder${paths.length > 1 ? "s" : ""}`,
-        );
-        // Refresh the page to show updated folder names
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alert("Failed to add suffix: " + data.error);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to add suffix: ", err);
-      alert("Failed to add suffix. Please try again.");
-    });
+  const commands = paths.map((path) => {
+    const encodedPath = path.replace(/\\/g, "/");
+    return `aws s3 rm s3://codeclash/logs/${encodedPath}/ --recursive`;
+  });
+
+  document.getElementById("bulk-actions-textarea").value = commands.join("\n");
 }
 
-function copySelectedFoldernames() {
+function fillTextareaWithAWSResubmitCommands() {
   const selectedCheckboxes = document.querySelectorAll(
     "input[data-path]:checked",
   );
 
   if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to copy folder names.");
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
     return;
   }
 
+  hideModalWarning();
   const folderNames = Array.from(selectedCheckboxes).map((checkbox) => {
     const fullPath = checkbox.getAttribute("data-path");
-    // Extract just the folder name (last part of the path)
     return fullPath.split("/").pop();
   });
 
-  const folderNamesString = folderNames.join(" ");
+  const commands = folderNames.map((folderName) => {
+    return `aws/run_job.py -- main.py --config-file configs/main/${folderName}.yaml`;
+  });
 
-  // Copy to clipboard with fallback
-  copyToClipboard(folderNamesString)
-    .then(() => {
-      // Show temporary success message
-      showCopyMessage(
-        `Copied ${folderNames.length} folder name${folderNames.length > 1 ? "s" : ""} to clipboard`,
-      );
-    })
-    .catch((err) => {
-      console.error("Failed to copy folder names: ", err);
-      // Fallback: show folder names in alert
-      alert("Failed to copy to clipboard. Folder names:\n" + folderNamesString);
-    });
+  document.getElementById("bulk-actions-textarea").value = commands.join("\n");
 }
 
-function moveToSubfolder() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+function copyFromModal() {
+  const textarea = document.getElementById("bulk-actions-textarea");
+  const text = textarea.value;
 
-  if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to move to subfolder.");
-    return;
-  }
+  if (text) {
+    copyToClipboard(text)
+      .then(() => {
+        const btn = document.getElementById("modal-copy-btn");
+        const originalHtml = btn.innerHTML;
+        btn.classList.add("copied");
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
 
-  // Create a minimally styled input prompt
-  const subfolderName = prompt(
-    "Enter subfolder name to move selected folders to:",
-  );
-
-  if (subfolderName === null || subfolderName.trim() === "") {
-    return; // User cancelled or entered empty string
-  }
-
-  const trimmedSubfolderName = subfolderName.trim();
-  const paths = Array.from(selectedCheckboxes).map((checkbox) =>
-    checkbox.getAttribute("data-path"),
-  );
-
-  // Send move request to server
-  fetch("/move-to-subfolder", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      paths: paths,
-      subfolder: trimmedSubfolderName,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showCopyMessage(
-          `Moved ${paths.length} folder${paths.length > 1 ? "s" : ""} to subfolder "${trimmedSubfolderName}"`,
-        );
-        // Refresh the page to show updated folder structure
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alert("Failed to move folders: " + data.error);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to move folders: ", err);
-      alert("Failed to move folders. Please try again.");
-    });
-}
-
-// Move/Rename Dialog Variables (for picker page)
-// Only define these if they don't already exist (app.js might have defined them)
-if (typeof window.currentMovePath === "undefined") {
-  window.currentMovePath = "";
-}
-
-if (typeof window.showMoveDialog === "undefined") {
-  window.showMoveDialog = function (gamePath) {
-    window.currentMovePath = gamePath;
-    const dialog = document.getElementById("move-dialog");
-    const input = document.getElementById("move-path-input");
-
-    input.value = gamePath;
-    dialog.style.display = "flex";
-
-    // Focus and select the input text
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 100);
-  };
-}
-
-if (typeof window.cancelMove === "undefined") {
-  window.cancelMove = function () {
-    const dialog = document.getElementById("move-dialog");
-    dialog.style.display = "none";
-    window.currentMovePath = "";
-  };
-}
-
-if (typeof window.confirmMove === "undefined") {
-  window.confirmMove = function () {
-    const input = document.getElementById("move-path-input");
-    const newPath = input.value.trim();
-
-    if (!newPath) {
-      alert("Please enter a valid path");
-      return;
-    }
-
-    if (newPath === window.currentMovePath) {
-      window.cancelMove();
-      return;
-    }
-
-    // Send move request to server
-    fetch("/move-folder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        old_path: window.currentMovePath,
-        new_path: newPath,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          showCopyMessage(`Moved folder to: ${newPath}`);
-          // Refresh the page to show updated folder structure
-          setTimeout(() => window.location.reload(), 1500);
-        } else {
-          alert("Failed to move folder: " + data.error);
-        }
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.innerHTML = originalHtml;
+        }, 2000);
       })
       .catch((err) => {
-        console.error("Failed to move folder: ", err);
-        alert("Failed to move folder. Please try again.");
+        console.error("Failed to copy:", err);
       });
-
-    window.cancelMove();
-  };
+  }
 }
 
-// Close dialog and dropdowns on Escape key
+// Close modal and dropdowns on Escape key
 document.addEventListener("keydown", function (event) {
   if (event.key === "Escape") {
-    const dialog = document.getElementById("move-dialog");
+    const modal = document.getElementById("bulk-actions-modal");
     const modelDropdown = document.getElementById("model-filter-options");
 
-    if (dialog.style.display === "flex") {
-      cancelMove();
+    if (modal && modal.style.display === "flex") {
+      closeBulkActionsModal();
     } else if (modelDropdown && modelDropdown.style.display === "block") {
       modelDropdown.style.display = "none";
     }
   }
 });
-
-// Close dialog when clicking outside the dialog content
-document
-  .getElementById("move-dialog")
-  .addEventListener("click", function (event) {
-    if (event.target === this) {
-      cancelMove();
-    }
-  });
 
 // Keyboard navigation state
 let currentSelectedIndex = -1;
@@ -773,9 +660,10 @@ function setSelectedRow(index) {
 
 function handleKeyboardNavigation(event) {
   // Don't handle keyboard navigation if a dialog is open or input is focused
+  const modal = document.getElementById("bulk-actions-modal");
   const modelDropdown = document.getElementById("model-filter-options");
   if (
-    document.getElementById("move-dialog").style.display === "flex" ||
+    (modal && modal.style.display === "flex") ||
     (modelDropdown && modelDropdown.style.display === "block") ||
     document.activeElement.tagName === "INPUT" ||
     document.activeElement.tagName === "SELECT"
