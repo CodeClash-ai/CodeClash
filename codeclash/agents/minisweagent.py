@@ -10,11 +10,13 @@ from minisweagent.models import get_model
 from minisweagent.models.test_models import DeterministicModel
 from minisweagent.run.utils.save import save_traj
 
+from codeclash import REPO_DIR
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
 
 os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "90"
+os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str((REPO_DIR / "configs" / "litellm_custom_model_config.yaml").resolve())
 
 
 class ClashAgent(DefaultAgent):
