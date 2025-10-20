@@ -121,6 +121,11 @@ You may include additional files as needed, but please ensure:
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+        # Check that the `submission/` folder exists
+        exists_output = agent.environment.execute("test -d submission && echo 'exists'")["output"]
+        if "exists" != exists_output.strip():
+            return False, f"Submission folder `{self.submission}/` does not exist"
+
         # Check that there is a *single* file called "main.<ext>" in the submission folder
         # and that <ext> is one of the supported file types
         sub_path = Path(agent.environment.config.cwd) / self.submission
