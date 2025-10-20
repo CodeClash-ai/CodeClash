@@ -17,77 +17,26 @@
 
     <main class="container-fluid main-content">
         {% if game_folders %}
-        <div class="games-table">
-        <div class="table-controls">
-            {% if not is_static %}
-            <div class="selection-controls">
-                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
-                <label for="select-all">Select All</label>
-            </div>
-            <div class="right-controls">
-                <div class="filter-controls">
-                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
-                        <span class="filter-label">Active filters:</span>
-                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
-                            <i class="bi bi-calendar"></i>
-                            <span id="date-filter-text"></span>
-                            <button class="filter-badge-close" onclick="clearDateFilter(event)" title="Clear date filter">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </span>
-                    </div>
-                    <button id="clear-filters" onclick="clearFilters()" title="Clear all filters">
-                        <i class="bi bi-x-circle"></i> Clear Filters
-                    </button>
-                </div>
-                <div class="action-controls">
-                    <select id="action-dropdown" onchange="handleAction(this.value)">
-                        <option value="">Choose action...</option>
-                        <option value="copy-paths">Copy paths</option>
-                        <option value="add-suffix">Add suffix</option>
-                        <option value="copy-foldernames">Copy foldernames</option>
-                        <option value="move-to-subfolder">Move to subfolder</option>
-                    </select>
-                </div>
-            </div>
-            {% else %}
-            <div class="selection-controls">
-                <input type="checkbox" id="select-all" disabled>
-                <label for="select-all" style="color: #666;">Select All (Disabled in static mode)</label>
-            </div>
-            <div class="right-controls">
-                <div class="filter-controls">
-                    <div id="active-filters-container" class="active-filters-container" style="display: none;">
-                        <span class="filter-label">Active filters:</span>
-                        <span id="date-filter-badge" class="filter-badge" style="display: none;">
-                            <i class="bi bi-calendar"></i>
-                            <span id="date-filter-text"></span>
-                        </span>
-                    </div>
-                    <button id="clear-filters" disabled title="Not available in static mode">
-                        <i class="bi bi-x-circle"></i> Clear Filters
-                    </button>
-                </div>
-                <div class="action-controls">
-                    <select id="action-dropdown" disabled>
-                        <option value="">Actions disabled in static mode</option>
-                    </select>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        <div class="table-header">
-            <div><i class="bi bi-check-square"></i></div>
-            <div class="sortable-header" onclick="sortTable('name')">
-                Name <i class="bi bi-arrow-down-up"></i>
-            </div>
-            <div class="sortable-header" onclick="sortTable('date')">
-                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
-            </div>
-            <select id="game-filter" onchange="applyFilters()" class="header-filter-only">
+        <div class="filter-container">
+            <label for="folder-filter">Folder:</label>
+            <select id="folder-filter" onchange="applyFilters()" class="filter-select">
+                {% for folder in unique_folders %}
+                <option value="{{ folder }}">{{ folder if folder else "(root)" }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="text" id="name-filter" oninput="applyFilters()" class="filter-input" placeholder="Filter by name...">
+
+            <select id="game-filter" onchange="applyFilters()" class="filter-select">
                 <option value="">All Games</option>
             </select>
-            <div><i class="bi bi-target"></i> Rounds</div>
+
+            <select id="rounds-filter" onchange="applyFilters()" class="filter-select">
+                <option value="">All status</option>
+                <option value="complete">Complete</option>
+                <option value="incomplete">Incomplete</option>
+            </select>
+
             <div class="model-filter-container">
                 <div class="model-filter-dropdown" id="model-filter-dropdown">
                     <button class="model-filter-button" id="model-filter-button" onclick="toggleModelDropdown(event)">
@@ -102,38 +51,63 @@
                     </div>
                 </div>
             </div>
-            <div>Action</div>
+
+            <div id="active-filters-container" class="active-filters-container" style="display: none;">
+                <span class="filter-label">Active filters:</span>
+                <span id="date-filter-badge" class="filter-badge" style="display: none;">
+                    <i class="bi bi-calendar"></i>
+                    <span id="date-filter-text"></span>
+                    <button class="filter-badge-close" onclick="clearDateFilter(event)" title="Clear date filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            </div>
+            <button id="clear-filters" onclick="clearFilters()" title="Clear all filters" {% if is_static %}disabled{% endif %}>
+                <i class="bi bi-x-circle"></i> Clear Filters
+            </button>
+            <div class="filter-spacer"></div>
+            <button class="bulk-actions-button" onclick="openBulkActionsModal()" {% if is_static %}disabled title="Not available in static mode"{% endif %}>
+                <i class="bi bi-lightning-charge"></i> Bulk Actions
+            </button>
+        </div>
+
+        <div id="runs-status" class="runs-status"></div>
+
+        <div class="games-table">
+        <div class="table-header">
+            <div class="checkbox-header">
+                <input type="checkbox" id="select-all" class="game-checkbox" onchange="toggleSelectAll(this)" title="Toggle all" {% if is_static %}disabled{% endif %}>
+            </div>
+            <div class="sortable-header" onclick="sortTable('name')">
+                Name <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div class="sortable-header" onclick="sortTable('date')">
+                <i class="bi bi-calendar"></i> Date <i class="bi bi-arrow-down-up"></i>
+            </div>
+            <div>Game</div>
+            <div><i class="bi bi-target"></i> Rounds</div>
+            <div>Models</div>
         </div>
             {% for game in game_folders %}
-            {% set depth = game.name.count('/') %}
             {% set folder_name = game.name.split('/')[-1] %}
-            <div class="game-row depth-{{ depth }} {% if game.is_game %}game-folder{% else %}intermediate-folder{% endif %}"
+            <div class="game-row game-folder"
                  data-path="{{ game.name }}"
-                 data-parent="{{ game.parent or '' }}"
+                 data-parent-folder="{{ game.parent_folder or '' }}"
                  data-timestamp="{{ game.created_timestamp or '' }}"
-                 {% if game.is_game %}onclick="handleRowClick(event, '{{ game.name }}')"{% else %}onclick="toggleFolder('{{ game.name }}')"{% endif %}>
+                 data-aws-command="{{ game.aws_command or '' }}"
+                 onclick="handleRowClick(event, '{{ game.name }}')">
 
                 <div class="checkbox-cell">
-                    {% if game.is_game %}
                     <input type="checkbox" class="game-checkbox" data-path="{{ game.name }}"
-                           onclick="{% if not is_static %}handleCheckboxClick(event, '{{ game.name }}'){% endif %}" {% if is_static %}disabled{% endif %}>
-                    {% else %}
-                    <span class="checkbox-placeholder"></span>
-                    {% endif %}
+                           onclick="event.stopPropagation()" {% if is_static %}disabled{% endif %}>
                 </div>
 
                 <div class="session-name-cell">
-                    <span class="folder-indent">
-                        {% for i in range(depth) %}
-                        <span class="folder-icon">&nbsp;&nbsp;</span>
-                        {% endfor %}
-                    </span>
-                    <span class="folder-icon collapse-icon"></span>
                     <span class="game-name">{{ folder_name }}</span>
                 </div>
 
                 <div class="date-cell">
-                    {% if game.is_game and game.created_timestamp %}
+                    {% if game.created_timestamp %}
                     <span class="date-text clickable-filter" onclick="handleDateClick(event, '{{ game.created_timestamp|format_timestamp }}')" title="Click to filter by this date">{{ game.created_timestamp|format_timestamp }}</span>
                     {% else %}
                     <span class="date-unknown">-</span>
@@ -141,7 +115,7 @@
                 </div>
 
                 <div class="game-name-cell">
-                    {% if game.is_game and game.game_name %}
+                    {% if game.game_name %}
                     <span class="game-name-text clickable-filter" onclick="handleGameNameClick(event, '{{ game.game_name }}')" title="Click to filter by this game">{{ game.game_name }}</span>
                     {% else %}
                     <span class="game-name-empty">-</span>
@@ -149,46 +123,20 @@
                 </div>
 
                 <div class="rounds-cell">
-                    {% if game.is_game %}
-                        {% if game.round_info %}
-                        <span class="rounds-count{% if game.round_info[0] < game.round_info[1] %} rounds-count-warning{% endif %}">{{ game.round_info[0] }}/{{ game.round_info[1] }}</span>
-                        {% else %}
-                        <span class="rounds-unknown">?</span>
-                        {% endif %}
+                    {% if game.round_info %}
+                    <span class="rounds-count{% if game.round_info[0] < game.round_info[1] %} rounds-count-warning{% endif %}">{{ game.round_info[0] }}/{{ game.round_info[1] }}</span>
                     {% else %}
-                        <span class="rounds-unknown">-</span>
+                    <span class="rounds-unknown">?</span>
                     {% endif %}
                 </div>
 
                 <div class="models-cell">
-                    {% if game.is_game and game.models %}
+                    {% if game.models %}
                         {% for model in game.models %}
                         <span class="model-tag clickable-filter" onclick="handleModelTagClick(event, '{{ model|strip_model_prefix }}')" title="Click to filter by this model">{{ model|strip_model_prefix }}</span>
                         {% endfor %}
                     {% else %}
                         <span class="models-unknown">-</span>
-                    {% endif %}
-                </div>
-
-                <div class="action-cell">
-                    {% if game.is_game %}
-                    <button class="btn btn-primary btn-sm open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
-                        Open
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                    </button>
-                    {% if not is_static %}
-                    <button class="btn btn-outline-warning btn-sm move-button" onclick="event.stopPropagation(); showMoveDialog('{{ game.name }}')" title="Move/rename">
-                        <i class="bi bi-folder-symlink"></i>
-                    </button>
-                    {% else %}
-                    <button class="btn btn-outline-secondary btn-sm move-button" disabled title="Not available in static mode">
-                        <i class="bi bi-folder-symlink"></i>
-                    </button>
-                    {% endif %}
-                    {% else %}
-                    <span class="folder-indicator">Folder</span>
                     {% endif %}
                 </div>
             </div>
@@ -203,15 +151,38 @@
         {% endif %}
     </main>
 
-    <!-- Move/Rename Dialog -->
-    <div id="move-dialog" class="move-dialog" style="display: none;">
-        <div class="move-dialog-content">
-            <h3>Move/Rename Folder</h3>
-            <p>Edit the path to move or rename the folder:</p>
-            <input type="text" id="move-path-input" class="move-path-input" />
-            <div class="move-dialog-buttons">
-                <button onclick="confirmMove()">Move</button>
-                <button onclick="cancelMove()">Cancel</button>
+    <!-- Bulk Actions Modal -->
+    <div id="bulk-actions-modal" class="modal-overlay" onclick="closeBulkActionsModalOnOverlay(event)" style="display: none;">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Bulk Actions</h2>
+                <button class="modal-close" onclick="closeBulkActionsModal()" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-action-btn" onclick="fillTextareaWithPaths()">
+                    <i class="bi bi-folder"></i> Paths
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithFoldernames()">
+                    <i class="bi bi-tag"></i> Folder Names
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithS3RmCommands()">
+                    <i class="bi bi-trash"></i> S3 rm
+                </button>
+                <button class="modal-action-btn" onclick="fillTextareaWithAWSResubmitCommands()">
+                    <i class="bi bi-arrow-repeat"></i> AWS resubmit
+                </button>
+            </div>
+            <div id="modal-warning" class="modal-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span id="modal-warning-text"></span>
+            </div>
+            <div class="modal-textarea-container">
+                <textarea id="bulk-actions-textarea" class="modal-textarea" readonly placeholder="Click a button above to populate this area..."></textarea>
+                <button id="modal-copy-btn" class="modal-copy-btn" onclick="copyFromModal()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
             </div>
         </div>
     </div>
@@ -246,32 +217,20 @@
                             <kbd>↓</kbd> / <kbd>j</kbd> <span>Navigate down</span>
                         </div>
                         <div class="shortcut-item">
-                            <kbd>←</kbd> / <kbd>h</kbd> <span>Collapse folder</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>→</kbd> / <kbd>l</kbd> <span>Expand folder</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Enter</kbd> <span>Open game or toggle folder</span>
+                            <kbd>Enter</kbd> <span>Open game</span>
                         </div>
                     </div>
 
                     <div class="shortcut-section">
                         <h6><i class="bi bi-mouse"></i> Mouse</h6>
                         <div class="shortcut-item">
-                            <span class="mouse-action">Left-click</span> <span>Select game or toggle folder</span>
+                            <span class="mouse-action">Left-click</span> <span>Select game</span>
                         </div>
                         <div class="shortcut-item">
                             <span class="mouse-action">Middle-click</span> <span>Open game in new tab</span>
                         </div>
                         <div class="shortcut-item">
                             <span class="mouse-action">Ctrl+click</span> <span>Open game in new tab</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <span class="mouse-action">Shift+click</span> <span>Range select checkboxes</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <span class="mouse-action">Drag</span> <span>Multi-select checkboxes</span>
                         </div>
                     </div>
                 </div>

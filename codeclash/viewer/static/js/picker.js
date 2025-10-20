@@ -63,26 +63,16 @@ function handleRowClick(event, gameName) {
   const checkbox = event.target.closest('input[type="checkbox"]');
   const checkboxCell = event.target.closest(".checkbox-cell");
 
-  // Check if click is on name column content (session name)
-  const sessionNameCell = event.target.closest(".session-name-cell");
-  const sessionNameContent = event.target.closest(".game-name");
-
-  // Check if click is on action buttons (these have their own handlers)
-  const actionButton = event.target.closest(".action-cell button");
-
   if (checkbox || checkboxCell) {
     // Click is on checkbox or in checkbox area - handle selection
     event.stopPropagation();
 
-    if (checkbox) {
-      // Direct checkbox click - handle shift-click range selection
-      handleCheckboxClick(event, gameName);
-    } else {
+    if (!checkbox) {
       // Click in checkbox area but not on checkbox - toggle selection
       toggleGameSelection(gameName);
     }
-  } else if (sessionNameCell && sessionNameContent) {
-    // Click is on the session name content - open game
+  } else {
+    // Click is anywhere else on the row - open game
     if (event.button === 1 || event.ctrlKey || event.metaKey) {
       // Middle click, Ctrl+click, or Cmd+click - open in new tab
       event.preventDefault();
@@ -91,162 +81,7 @@ function handleRowClick(event, gameName) {
       // Left click - open in same tab
       openGame(gameName);
     }
-  } else if (actionButton) {
-    // Click is on action button - let the button handle it (don't interfere)
-    return;
-  } else {
-    // Click is elsewhere - do nothing (changed behavior)
-    return;
   }
-}
-
-// Shift-click range selection variables
-let lastClickedCheckbox = null;
-
-function handleCheckboxClick(event, gameName) {
-  const checkbox = event.target;
-
-  if (event.shiftKey && lastClickedCheckbox) {
-    // Shift-click: select range
-    event.preventDefault();
-    // Use the state the checkbox will have after the click (opposite of current)
-    const targetState = !checkbox.checked;
-    checkbox.checked = targetState; // Apply the click manually since we prevented default
-    selectRange(lastClickedCheckbox, gameName, targetState);
-  } else {
-    // Regular click: just update last clicked
-    lastClickedCheckbox = gameName;
-  }
-}
-
-function selectRange(startGameName, endGameName, checked) {
-  // Get all game checkboxes in order
-  const allCheckboxes = Array.from(
-    document.querySelectorAll("input[data-path]"),
-  );
-  const startIndex = allCheckboxes.findIndex(
-    (cb) => cb.getAttribute("data-path") === startGameName,
-  );
-  const endIndex = allCheckboxes.findIndex(
-    (cb) => cb.getAttribute("data-path") === endGameName,
-  );
-
-  if (startIndex === -1 || endIndex === -1) return;
-
-  // Determine the range (handle both directions)
-  const minIndex = Math.min(startIndex, endIndex);
-  const maxIndex = Math.max(startIndex, endIndex);
-
-  // Set all checkboxes in the range to the same state
-  for (let i = minIndex; i <= maxIndex; i++) {
-    allCheckboxes[i].checked = checked;
-  }
-}
-
-function toggleFolder(folderPath) {
-  // Toggle the collapsed state of a folder
-  const folderRow = document.querySelector(`[data-path="${folderPath}"]`);
-  if (!folderRow) return;
-
-  const currentState = folderStates.get(folderPath) || "collapsed";
-  const newState = currentState === "collapsed" ? "expanded" : "collapsed";
-  folderStates.set(folderPath, newState);
-
-  // Save the updated state to localStorage
-  saveFolderStates();
-
-  if (newState === "expanded") {
-    // Expand folder - show only direct children
-    folderRow.classList.remove("collapsed");
-
-    // Show only direct children (one level down) and restore their states
-    const allRows = document.querySelectorAll(".game-row");
-    allRows.forEach((row) => {
-      const rowPath = row.getAttribute("data-path");
-      if (rowPath && rowPath.startsWith(folderPath + "/")) {
-        // Check if this is a direct child (not a grandchild)
-        const relativePath = rowPath.substring(folderPath.length + 1);
-        if (!relativePath.includes("/")) {
-          // This is a direct child, show it only if it passes current filters
-          if (shouldRowBeVisible(row)) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
-
-          // If this is a folder, restore its individual state
-          if (row.classList.contains("intermediate-folder")) {
-            const childState = folderStates.get(rowPath) || "collapsed";
-            if (childState === "expanded") {
-              // This child was expanded, so expand it and show its children
-              row.classList.remove("collapsed");
-              showChildrenOfFolder(rowPath);
-            } else {
-              // This child was collapsed, so collapse it and hide its children
-              row.classList.add("collapsed");
-              hideChildrenOfFolder(rowPath);
-            }
-          }
-        }
-      }
-    });
-  } else {
-    // Collapse folder - hide all children
-    folderRow.classList.add("collapsed");
-
-    hideChildrenOfFolder(folderPath);
-  }
-}
-
-function hideChildrenOfFolder(folderPath) {
-  // Hide all descendant rows of a folder
-  const allRows = document.querySelectorAll(".game-row");
-  allRows.forEach((row) => {
-    const rowPath = row.getAttribute("data-path");
-    if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      row.style.display = "none";
-    }
-  });
-}
-
-function showChildrenOfFolder(folderPath) {
-  // Show all descendant rows of a folder, respecting their individual states and current filters
-  const allRows = document.querySelectorAll(".game-row");
-  allRows.forEach((row) => {
-    const rowPath = row.getAttribute("data-path");
-    if (rowPath && rowPath.startsWith(folderPath + "/")) {
-      // Check if this is a direct child or a descendant
-      const relativePath = rowPath.substring(folderPath.length + 1);
-
-      if (!relativePath.includes("/")) {
-        // This is a direct child - show it only if it passes current filters
-        if (shouldRowBeVisible(row)) {
-          row.style.display = "";
-        }
-      } else {
-        // This is a grandchild or deeper - check if its parent is visible and expanded
-        const parentPath = rowPath.substring(0, rowPath.lastIndexOf("/"));
-        const parentRow = document.querySelector(`[data-path="${parentPath}"]`);
-
-        if (parentRow && parentRow.style.display !== "none") {
-          // Parent is visible, check if it's expanded
-          const parentState = folderStates.get(parentPath) || "collapsed";
-          if (parentState === "expanded") {
-            // Parent is expanded, so show this child only if it passes current filters
-            if (shouldRowBeVisible(row)) {
-              row.style.display = "";
-            }
-          } else {
-            // Parent is collapsed, so hide this child
-            row.style.display = "none";
-          }
-        } else {
-          // Parent is hidden, so hide this child too
-          row.style.display = "none";
-        }
-      }
-    }
-  });
 }
 
 function toggleSelectAll(selectAllCheckbox) {
@@ -255,54 +90,123 @@ function toggleSelectAll(selectAllCheckbox) {
   gameCheckboxes.forEach((checkbox) => {
     checkbox.checked = selectAllCheckbox.checked;
   });
+  updateRunsStatus();
 }
 
-function handleAction(action) {
-  if (!action) return;
+function updateSelectAllCheckbox() {
+  const selectAllCheckbox = document.getElementById("select-all");
+  if (!selectAllCheckbox) return;
 
-  if (action === "copy-paths") {
-    copySelectedPaths();
-  } else if (action === "add-suffix") {
-    addSuffixToSelected();
-  } else if (action === "copy-foldernames") {
-    copySelectedFoldernames();
-  } else if (action === "move-to-subfolder") {
-    moveToSubfolder();
-  }
-
-  // Reset dropdown
-  document.getElementById("action-dropdown").value = "";
-}
-
-function copySelectedPaths() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
-
-  if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to copy paths.");
+  const allGameCheckboxes = document.querySelectorAll("input[data-path]");
+  if (allGameCheckboxes.length === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
     return;
   }
 
+  const checkedCount = document.querySelectorAll(
+    "input[data-path]:checked",
+  ).length;
+
+  if (checkedCount === 0) {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+  } else if (checkedCount === allGameCheckboxes.length) {
+    selectAllCheckbox.checked = true;
+    selectAllCheckbox.indeterminate = false;
+  } else {
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = true;
+  }
+
+  updateRunsStatus();
+}
+
+function updateRunsStatus() {
+  const statusElement = document.getElementById("runs-status");
+  if (!statusElement) return;
+
+  // Count visible rows
+  const allRows = document.querySelectorAll(".game-row");
+  const visibleRows = Array.from(allRows).filter(
+    (row) => row.style.display !== "none",
+  );
+  const listedCount = visibleRows.length;
+
+  // Count checked rows among visible ones
+  const markedCount = visibleRows.filter((row) => {
+    const checkbox = row.querySelector("input[data-path]");
+    return checkbox && checkbox.checked;
+  }).length;
+
+  // Update display
+  statusElement.textContent = `${listedCount} runs listed (${markedCount} selected)`;
+}
+
+// Modal functions
+function openBulkActionsModal() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
+  if (selectedCheckboxes.length === 0) {
+    alert("Please select at least one game folder first.");
+    return;
+  }
+
+  const modal = document.getElementById("bulk-actions-modal");
+  modal.style.display = "flex";
+  // Clear previous content and warning
+  document.getElementById("bulk-actions-textarea").value = "";
+  hideModalWarning();
+}
+
+function closeBulkActionsModal() {
+  const modal = document.getElementById("bulk-actions-modal");
+  modal.style.display = "none";
+  document.getElementById("bulk-actions-textarea").value = "";
+  hideModalWarning();
+}
+
+function closeBulkActionsModalOnOverlay(event) {
+  if (event.target === event.currentTarget) {
+    closeBulkActionsModal();
+  }
+}
+
+function showModalWarning(message) {
+  const warning = document.getElementById("modal-warning");
+  const warningText = document.getElementById("modal-warning-text");
+  warningText.textContent = message;
+  warning.classList.add("show");
+}
+
+function hideModalWarning() {
+  document.getElementById("modal-warning").classList.remove("show");
+}
+
+function getVisibleCheckedCheckboxes() {
+  // Get all checked checkboxes and filter out those in hidden rows
+  const allChecked = document.querySelectorAll("input[data-path]:checked");
+  return Array.from(allChecked).filter((checkbox) => {
+    const row = checkbox.closest(".game-row");
+    return row && row.style.display !== "none";
+  });
+}
+
+function fillTextareaWithPaths() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
+
+  if (selectedCheckboxes.length === 0) {
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  hideModalWarning();
   const paths = Array.from(selectedCheckboxes).map((checkbox) =>
     checkbox.getAttribute("data-path"),
   );
-
-  const pathsString = paths.join(" ");
-
-  // Copy to clipboard with fallback
-  copyToClipboard(pathsString)
-    .then(() => {
-      // Show temporary success message
-      showCopyMessage(
-        `Copied ${paths.length} path${paths.length > 1 ? "s" : ""} to clipboard`,
-      );
-    })
-    .catch((err) => {
-      console.error("Failed to copy paths: ", err);
-      // Fallback: show paths in alert
-      alert("Failed to copy to clipboard. Paths:\n" + pathsString);
-    });
+  document.getElementById("bulk-actions-textarea").value = paths.join(" ");
 }
 
 function copyToClipboard(text) {
@@ -365,242 +269,146 @@ function showCopyMessage(message) {
   }, 2000);
 }
 
-function addSuffixToSelected() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+function fillTextareaWithFoldernames() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to add suffix.");
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
     return;
   }
 
-  // Create a minimally styled input prompt
-  const suffix = prompt("Enter suffix to add to selected folders:");
-
-  if (suffix === null || suffix.trim() === "") {
-    return; // User cancelled or entered empty string
-  }
-
-  const trimmedSuffix = suffix.trim();
-  const paths = Array.from(selectedCheckboxes).map((checkbox) =>
-    checkbox.getAttribute("data-path"),
-  );
-
-  // Send rename request to server
-  fetch("/rename-folders", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "add-suffix",
-      paths: paths,
-      suffix: trimmedSuffix,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showCopyMessage(
-          `Added suffix "${trimmedSuffix}" to ${paths.length} folder${paths.length > 1 ? "s" : ""}`,
-        );
-        // Refresh the page to show updated folder names
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alert("Failed to add suffix: " + data.error);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to add suffix: ", err);
-      alert("Failed to add suffix. Please try again.");
-    });
-}
-
-function copySelectedFoldernames() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
-
-  if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to copy folder names.");
-    return;
-  }
-
+  hideModalWarning();
   const folderNames = Array.from(selectedCheckboxes).map((checkbox) => {
     const fullPath = checkbox.getAttribute("data-path");
-    // Extract just the folder name (last part of the path)
     return fullPath.split("/").pop();
   });
-
-  const folderNamesString = folderNames.join(" ");
-
-  // Copy to clipboard with fallback
-  copyToClipboard(folderNamesString)
-    .then(() => {
-      // Show temporary success message
-      showCopyMessage(
-        `Copied ${folderNames.length} folder name${folderNames.length > 1 ? "s" : ""} to clipboard`,
-      );
-    })
-    .catch((err) => {
-      console.error("Failed to copy folder names: ", err);
-      // Fallback: show folder names in alert
-      alert("Failed to copy to clipboard. Folder names:\n" + folderNamesString);
-    });
+  document.getElementById("bulk-actions-textarea").value =
+    folderNames.join(" ");
 }
 
-function moveToSubfolder() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+function fillTextareaWithS3RmCommands() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
-    alert("Please select at least one game to move to subfolder.");
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
     return;
   }
 
-  // Create a minimally styled input prompt
-  const subfolderName = prompt(
-    "Enter subfolder name to move selected folders to:",
-  );
-
-  if (subfolderName === null || subfolderName.trim() === "") {
-    return; // User cancelled or entered empty string
-  }
-
-  const trimmedSubfolderName = subfolderName.trim();
+  hideModalWarning();
   const paths = Array.from(selectedCheckboxes).map((checkbox) =>
     checkbox.getAttribute("data-path"),
   );
 
-  // Send move request to server
-  fetch("/move-to-subfolder", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      paths: paths,
-      subfolder: trimmedSubfolderName,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showCopyMessage(
-          `Moved ${paths.length} folder${paths.length > 1 ? "s" : ""} to subfolder "${trimmedSubfolderName}"`,
-        );
-        // Refresh the page to show updated folder structure
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        alert("Failed to move folders: " + data.error);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to move folders: ", err);
-      alert("Failed to move folders. Please try again.");
-    });
+  const commands = paths.map((path) => {
+    const encodedPath = path.replace(/\\/g, "/");
+    return `aws s3 rm s3://codeclash/logs/${encodedPath}/ --recursive`;
+  });
+
+  document.getElementById("bulk-actions-textarea").value = commands.join("\n");
 }
 
-// Move/Rename Dialog Variables (for picker page)
-// Only define these if they don't already exist (app.js might have defined them)
-if (typeof window.currentMovePath === "undefined") {
-  window.currentMovePath = "";
+function fillTextareaWithAWSResubmitCommands() {
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
+
+  if (selectedCheckboxes.length === 0) {
+    showModalWarning(
+      "No folders selected. Please select folders from the table first.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  // Get the row for each checkbox and extract AWS command from metadata
+  const commandsWithInfo = Array.from(selectedCheckboxes).map((checkbox) => {
+    const row = checkbox.closest(".game-row");
+    const awsCommand = row ? row.getAttribute("data-aws-command") : "";
+    const fullPath = checkbox.getAttribute("data-path");
+
+    return {
+      path: fullPath,
+      awsCommand: awsCommand,
+      hasCommand: awsCommand && awsCommand.trim() !== "",
+    };
+  });
+
+  // Separate folders with and without AWS commands
+  const foldersWithCommands = commandsWithInfo.filter(
+    (info) => info.hasCommand,
+  );
+  const foldersWithoutCommands = commandsWithInfo.filter(
+    (info) => !info.hasCommand,
+  );
+
+  if (foldersWithCommands.length === 0) {
+    showModalWarning(
+      "None of the selected folders have AWS command information in their metadata.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  // Generate commands for folders that have AWS command info
+  const commands = foldersWithCommands.map((info) => {
+    return `aws/run_job.py -- ${info.awsCommand}`;
+  });
+
+  document.getElementById("bulk-actions-textarea").value = commands.join("\n");
+
+  // Show warning if some folders are missing AWS commands
+  if (foldersWithoutCommands.length > 0) {
+    const folderNames = foldersWithoutCommands
+      .map((info) => info.path.split("/").pop())
+      .join(", ");
+    showModalWarning(
+      `Warning: ${foldersWithoutCommands.length} folder(s) skipped due to missing AWS command in metadata: ${folderNames}`,
+    );
+  } else {
+    hideModalWarning();
+  }
 }
 
-if (typeof window.showMoveDialog === "undefined") {
-  window.showMoveDialog = function (gamePath) {
-    window.currentMovePath = gamePath;
-    const dialog = document.getElementById("move-dialog");
-    const input = document.getElementById("move-path-input");
+function copyFromModal() {
+  const textarea = document.getElementById("bulk-actions-textarea");
+  const text = textarea.value;
 
-    input.value = gamePath;
-    dialog.style.display = "flex";
+  if (text) {
+    copyToClipboard(text)
+      .then(() => {
+        const btn = document.getElementById("modal-copy-btn");
+        const originalHtml = btn.innerHTML;
+        btn.classList.add("copied");
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
 
-    // Focus and select the input text
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 100);
-  };
-}
-
-if (typeof window.cancelMove === "undefined") {
-  window.cancelMove = function () {
-    const dialog = document.getElementById("move-dialog");
-    dialog.style.display = "none";
-    window.currentMovePath = "";
-  };
-}
-
-if (typeof window.confirmMove === "undefined") {
-  window.confirmMove = function () {
-    const input = document.getElementById("move-path-input");
-    const newPath = input.value.trim();
-
-    if (!newPath) {
-      alert("Please enter a valid path");
-      return;
-    }
-
-    if (newPath === window.currentMovePath) {
-      window.cancelMove();
-      return;
-    }
-
-    // Send move request to server
-    fetch("/move-folder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        old_path: window.currentMovePath,
-        new_path: newPath,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          showCopyMessage(`Moved folder to: ${newPath}`);
-          // Refresh the page to show updated folder structure
-          setTimeout(() => window.location.reload(), 1500);
-        } else {
-          alert("Failed to move folder: " + data.error);
-        }
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.innerHTML = originalHtml;
+        }, 2000);
       })
       .catch((err) => {
-        console.error("Failed to move folder: ", err);
-        alert("Failed to move folder. Please try again.");
+        console.error("Failed to copy:", err);
       });
-
-    window.cancelMove();
-  };
+  }
 }
 
-// Close dialog and dropdowns on Escape key
+// Close modal and dropdowns on Escape key
 document.addEventListener("keydown", function (event) {
   if (event.key === "Escape") {
-    const dialog = document.getElementById("move-dialog");
+    const modal = document.getElementById("bulk-actions-modal");
     const modelDropdown = document.getElementById("model-filter-options");
 
-    if (dialog.style.display === "flex") {
-      cancelMove();
+    if (modal && modal.style.display === "flex") {
+      closeBulkActionsModal();
     } else if (modelDropdown && modelDropdown.style.display === "block") {
       modelDropdown.style.display = "none";
     }
   }
 });
-
-// Close dialog when clicking outside the dialog content
-document
-  .getElementById("move-dialog")
-  .addEventListener("click", function (event) {
-    if (event.target === this) {
-      cancelMove();
-    }
-  });
 
 // Keyboard navigation state
 let currentSelectedIndex = -1;
@@ -610,18 +418,9 @@ let allNavigableRows = [];
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Game Picker initialized");
   console.log("Available keyboard shortcuts:");
-  console.log("  Shift + Click: Range select checkboxes");
   console.log("  Escape: Close move dialog");
   console.log("  Arrow keys / hjkl: Navigate");
   console.log("  Enter: Open selected game");
-
-  // Load saved folder states or collapse all by default
-  const hasSavedStates = loadFolderStates();
-  if (hasSavedStates) {
-    applyFolderStates();
-  } else {
-    collapseAllFolders();
-  }
 
   // Initialize keyboard navigation
   initializeKeyboardNavigation();
@@ -629,10 +428,42 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize filters
   initializeFilters();
 
-  // Add listener to game filter to save changes
+  // Set default folder to first option if not already set
+  const folderFilter = document.getElementById("folder-filter");
+  if (folderFilter && folderFilter.options.length > 0 && !folderFilter.value) {
+    folderFilter.selectedIndex = 0;
+    selectedFolder = folderFilter.value;
+  }
+
+  // Add change event listeners to all game checkboxes to update select-all state
+  document.querySelectorAll("input[data-path]").forEach((checkbox) => {
+    checkbox.addEventListener("change", updateSelectAllCheckbox);
+  });
+
+  // Initialize select-all checkbox state
+  updateSelectAllCheckbox();
+
+  // Initialize runs status
+  updateRunsStatus();
+
+  // Add listener to filters to save changes
+  if (folderFilter) {
+    folderFilter.addEventListener("change", saveFilters);
+  }
+
+  const nameFilter = document.getElementById("name-filter");
+  if (nameFilter) {
+    nameFilter.addEventListener("input", saveFilters);
+  }
+
   const gameFilter = document.getElementById("game-filter");
   if (gameFilter) {
     gameFilter.addEventListener("change", saveFilters);
+  }
+
+  const roundsFilter = document.getElementById("rounds-filter");
+  if (roundsFilter) {
+    roundsFilter.addEventListener("change", saveFilters);
   }
 
   // Close model dropdown when clicking outside
@@ -648,80 +479,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-// Track individual folder states
-const folderStates = new Map();
-
-// LocalStorage key for persisting folder states
-const FOLDER_STATES_KEY = "picker_folder_states";
-
-function saveFolderStates() {
-  // Convert Map to object for storage
-  const statesObj = Object.fromEntries(folderStates);
-  try {
-    localStorage.setItem(FOLDER_STATES_KEY, JSON.stringify(statesObj));
-  } catch (e) {
-    console.error("Failed to save folder states:", e);
-  }
-}
-
-function loadFolderStates() {
-  try {
-    const stored = localStorage.getItem(FOLDER_STATES_KEY);
-    if (stored) {
-      const statesObj = JSON.parse(stored);
-      // Convert object back to Map
-      Object.entries(statesObj).forEach(([key, value]) => {
-        folderStates.set(key, value);
-      });
-      return true;
-    }
-  } catch (e) {
-    console.error("Failed to load folder states:", e);
-  }
-  return false;
-}
-
-function collapseAllFolders() {
-  // Find all intermediate folder rows and collapse them
-  const folderRows = document.querySelectorAll(".intermediate-folder");
-  folderRows.forEach((folderRow) => {
-    const folderPath = folderRow.getAttribute("data-path");
-    if (folderPath) {
-      // Set initial state to collapsed
-      folderStates.set(folderPath, "collapsed");
-
-      // Collapse the folder
-      folderRow.classList.add("collapsed");
-
-      // Hide all children of this folder
-      hideChildrenOfFolder(folderPath);
-    }
-  });
-
-  console.log(`Collapsed ${folderRows.length} folders on startup`);
-}
-
-function applyFolderStates() {
-  // Apply loaded folder states to the UI
-  const folderRows = document.querySelectorAll(".intermediate-folder");
-  folderRows.forEach((folderRow) => {
-    const folderPath = folderRow.getAttribute("data-path");
-    if (folderPath) {
-      const state = folderStates.get(folderPath) || "collapsed";
-
-      if (state === "expanded") {
-        folderRow.classList.remove("collapsed");
-        showChildrenOfFolder(folderPath);
-      } else {
-        folderRow.classList.add("collapsed");
-        hideChildrenOfFolder(folderPath);
-      }
-    }
-  });
-
-  console.log(`Applied folder states from localStorage`);
-}
 
 // Keyboard Navigation Functions
 function initializeKeyboardNavigation() {
@@ -773,9 +530,10 @@ function setSelectedRow(index) {
 
 function handleKeyboardNavigation(event) {
   // Don't handle keyboard navigation if a dialog is open or input is focused
+  const modal = document.getElementById("bulk-actions-modal");
   const modelDropdown = document.getElementById("model-filter-options");
   if (
-    document.getElementById("move-dialog").style.display === "flex" ||
+    (modal && modal.style.display === "flex") ||
     (modelDropdown && modelDropdown.style.display === "block") ||
     document.activeElement.tagName === "INPUT" ||
     document.activeElement.tagName === "SELECT"
@@ -805,20 +563,6 @@ function handleKeyboardNavigation(event) {
       handled = true;
       break;
 
-    case "ArrowLeft":
-    case "h":
-      event.preventDefault();
-      navigateLeft();
-      handled = true;
-      break;
-
-    case "ArrowRight":
-    case "l":
-      event.preventDefault();
-      navigateRight();
-      handled = true;
-      break;
-
     case "Enter":
       event.preventDefault();
       activateSelectedRow();
@@ -844,58 +588,6 @@ function navigateDown() {
   }
 }
 
-function navigateLeft() {
-  if (
-    currentSelectedIndex >= 0 &&
-    currentSelectedIndex < allNavigableRows.length
-  ) {
-    const selectedRow = allNavigableRows[currentSelectedIndex];
-    const folderPath = selectedRow.getAttribute("data-path");
-
-    // If it's a folder and it's expanded, collapse it
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      const currentState = folderStates.get(folderPath) || "collapsed";
-      if (currentState === "expanded") {
-        toggleFolder(folderPath);
-        updateNavigableRows();
-        // Keep selection on the same row after collapse
-        const newIndex = allNavigableRows.findIndex(
-          (row) => row.getAttribute("data-path") === folderPath,
-        );
-        if (newIndex >= 0) {
-          setSelectedRow(newIndex);
-        }
-      }
-    }
-  }
-}
-
-function navigateRight() {
-  if (
-    currentSelectedIndex >= 0 &&
-    currentSelectedIndex < allNavigableRows.length
-  ) {
-    const selectedRow = allNavigableRows[currentSelectedIndex];
-    const folderPath = selectedRow.getAttribute("data-path");
-
-    // If it's a folder and it's collapsed, expand it
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      const currentState = folderStates.get(folderPath) || "collapsed";
-      if (currentState === "collapsed") {
-        toggleFolder(folderPath);
-        updateNavigableRows();
-        // Keep selection on the same row after expand
-        const newIndex = allNavigableRows.findIndex(
-          (row) => row.getAttribute("data-path") === folderPath,
-        );
-        if (newIndex >= 0) {
-          setSelectedRow(newIndex);
-        }
-      }
-    }
-  }
-}
-
 function activateSelectedRow() {
   if (
     currentSelectedIndex >= 0 &&
@@ -904,21 +596,8 @@ function activateSelectedRow() {
     const selectedRow = allNavigableRows[currentSelectedIndex];
     const folderPath = selectedRow.getAttribute("data-path");
 
-    if (selectedRow.classList.contains("intermediate-folder")) {
-      // Toggle folder
-      toggleFolder(folderPath);
-      updateNavigableRows();
-      // Keep selection on the same row after toggle
-      const newIndex = allNavigableRows.findIndex(
-        (row) => row.getAttribute("data-path") === folderPath,
-      );
-      if (newIndex >= 0) {
-        setSelectedRow(newIndex);
-      }
-    } else if (selectedRow.classList.contains("game-folder")) {
-      // Open game
-      openGame(folderPath);
-    }
+    // Open game
+    openGame(folderPath);
   }
 }
 
@@ -928,64 +607,98 @@ let uniqueGames = new Set();
 let uniqueModels = new Set();
 let selectedModels = new Set();
 let selectedDate = null;
+let selectedFolder = "";
 
 function shouldRowBeVisible(row) {
+  // Check folder filter (mandatory)
+  const folderFilter = document.getElementById("folder-filter")?.value;
+  if (folderFilter !== undefined) {
+    const rowParentFolder = row.getAttribute("data-parent-folder") || "";
+    if (rowParentFolder !== folderFilter) {
+      return false;
+    }
+  }
+
+  // Check name filter
+  const nameFilter =
+    document.getElementById("name-filter")?.value.toLowerCase() || "";
+  if (nameFilter) {
+    const sessionNameElement = row.querySelector(".game-name");
+    const sessionName = sessionNameElement
+      ? sessionNameElement.textContent.toLowerCase()
+      : "";
+    if (!sessionName.includes(nameFilter)) {
+      return false;
+    }
+  }
+
+  // Check game name filter
   const gameFilter =
     document.getElementById("game-filter")?.value.toLowerCase() || "";
-
-  if (row.classList.contains("game-folder")) {
-    // Check game name filter
-    if (gameFilter) {
-      const gameNameElement = row.querySelector(".game-name-text");
-      const gameName = gameNameElement
-        ? gameNameElement.textContent.toLowerCase()
-        : "";
-      if (!gameName.includes(gameFilter)) {
-        return false;
-      }
+  if (gameFilter) {
+    const gameNameElement = row.querySelector(".game-name-text");
+    const gameName = gameNameElement
+      ? gameNameElement.textContent.toLowerCase()
+      : "";
+    if (!gameName.includes(gameFilter)) {
+      return false;
     }
-
-    // Check model filter - if models are selected, row must have ALL of them (intersection)
-    if (selectedModels.size > 0) {
-      const modelTags = row.querySelectorAll(".model-tag");
-      const rowModels = new Set(
-        Array.from(modelTags).map((tag) => tag.textContent.trim()),
-      );
-      const hasAllModels = Array.from(selectedModels).every((model) =>
-        rowModels.has(model),
-      );
-      if (!hasAllModels) {
-        return false;
-      }
-    }
-
-    // Check date filter - if a date is selected, row must match that date
-    if (selectedDate) {
-      const dateElement = row.querySelector(".date-text");
-      if (dateElement) {
-        const dateText = dateElement.textContent.trim();
-        // Extract just the YYYY-MM-DD part
-        const rowDate = dateText.split(" ")[0];
-        if (rowDate !== selectedDate) {
-          return false;
-        }
-      } else {
-        // Row has no date, so it doesn't match
-        return false;
-      }
-    }
-
-    return true;
-  } else {
-    // For intermediate folders, check if any child game folders should be visible
-    const folderPath = row.getAttribute("data-path");
-    const childGameRows = document.querySelectorAll(
-      `.game-row.game-folder[data-path^="${folderPath}/"]`,
-    );
-    return Array.from(childGameRows).some((childRow) =>
-      shouldRowBeVisible(childRow),
-    );
   }
+
+  // Check rounds filter
+  const roundsFilter = document.getElementById("rounds-filter")?.value || "";
+  if (roundsFilter) {
+    const roundsElement = row.querySelector(".rounds-count");
+    if (roundsFilter === "complete") {
+      // Only show rows with complete rounds (no warning class)
+      if (
+        !roundsElement ||
+        roundsElement.classList.contains("rounds-count-warning")
+      ) {
+        return false;
+      }
+    } else if (roundsFilter === "incomplete") {
+      // Only show rows with incomplete rounds (has warning class) or unknown
+      if (
+        roundsElement &&
+        !roundsElement.classList.contains("rounds-count-warning")
+      ) {
+        return false;
+      }
+    }
+  }
+
+  // Check model filter - if models are selected, row must have ALL of them (intersection)
+  if (selectedModels.size > 0) {
+    const modelTags = row.querySelectorAll(".model-tag");
+    const rowModels = new Set(
+      Array.from(modelTags).map((tag) => tag.textContent.trim()),
+    );
+    const hasAllModels = Array.from(selectedModels).every((model) =>
+      rowModels.has(model),
+    );
+    if (!hasAllModels) {
+      return false;
+    }
+  }
+
+  // Check date filter - if a date is selected, row must match that date
+  if (selectedDate) {
+    const dateElement = row.querySelector(".date-text");
+    if (dateElement) {
+      const dateText = dateElement.textContent.trim();
+      // Extract just the MM/DD part
+      const rowDate = dateText.split(" ")[0];
+      if (rowDate !== selectedDate) {
+        return false;
+      }
+    } else {
+      // Row has no date, so it doesn't match
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function initializeFilters() {
@@ -1018,6 +731,9 @@ function initializeFilters() {
     // Apply the loaded filters
     applyFilters();
   }
+
+  // Initialize clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function populateGameFilter() {
@@ -1058,36 +774,12 @@ function populateModelFilter() {
 }
 
 function applyFilters() {
-  // Get all game rows (both game folders and intermediate folders)
+  // Get all game rows
   const allRows = document.querySelectorAll(".game-row");
 
   allRows.forEach((row) => {
     if (shouldRowBeVisible(row)) {
-      // Check if this row should be visible based on parent folder states
-      const rowPath = row.getAttribute("data-path");
-      let shouldShowBasedOnParents = true;
-
-      if (rowPath && rowPath.includes("/")) {
-        let currentPath = rowPath;
-
-        // Walk up the parent hierarchy
-        while (currentPath.includes("/")) {
-          const parentPath = currentPath.substring(
-            0,
-            currentPath.lastIndexOf("/"),
-          );
-          const parentState = folderStates.get(parentPath) || "collapsed";
-
-          if (parentState === "collapsed") {
-            shouldShowBasedOnParents = false;
-            break;
-          }
-
-          currentPath = parentPath;
-        }
-      }
-
-      row.style.display = shouldShowBasedOnParents ? "" : "none";
+      row.style.display = "";
     } else {
       row.style.display = "none";
     }
@@ -1095,17 +787,42 @@ function applyFilters() {
 
   // Update keyboard navigation after filtering
   updateNavigableRows();
+
+  // Update select-all checkbox state after filtering
+  updateSelectAllCheckbox();
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
+
+  // Update runs status
+  updateRunsStatus();
 }
 
 function clearFilters() {
-  document.getElementById("game-filter").value = "";
+  // Reset folder filter to first option (folder filter is mandatory)
+  const folderFilter = document.getElementById("folder-filter");
+  if (folderFilter && folderFilter.options.length > 0) {
+    folderFilter.selectedIndex = 0;
+    selectedFolder = folderFilter.value;
+  }
+
+  const nameFilter = document.getElementById("name-filter");
+  if (nameFilter) nameFilter.value = "";
+
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) gameFilter.value = "";
+
+  const roundsFilter = document.getElementById("rounds-filter");
+  if (roundsFilter) roundsFilter.value = "";
+
   selectedModels.clear();
   selectedDate = null;
   updateModelFilterDisplay();
   updateDateFilterDisplay();
+  updateClearFiltersButton();
   saveFilters();
 
-  // Reapply the current folder states without any filters
+  // Reapply filters
   applyFilters();
 }
 
@@ -1160,6 +877,9 @@ function updateModelFilterDisplay() {
       option.classList.remove("selected");
     }
   });
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function toggleModelDropdown(event) {
@@ -1235,14 +955,30 @@ function updateDateFilterDisplay() {
       container.style.display = "none";
     }
   }
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function hasActiveFilters() {
   return (
     selectedDate !== null ||
     selectedModels.size > 0 ||
-    (document.getElementById("game-filter")?.value || "") !== ""
+    (document.getElementById("name-filter")?.value || "") !== "" ||
+    (document.getElementById("game-filter")?.value || "") !== "" ||
+    (document.getElementById("rounds-filter")?.value || "") !== ""
   );
+}
+
+function updateClearFiltersButton() {
+  const clearButton = document.getElementById("clear-filters");
+  if (clearButton) {
+    if (hasActiveFilters()) {
+      clearButton.classList.add("show");
+    } else {
+      clearButton.classList.remove("show");
+    }
+  }
 }
 
 function clearDateFilter(event) {
@@ -1261,7 +997,10 @@ const FILTERS_KEY = "picker_filters";
 
 function saveFilters() {
   const filters = {
+    folder: document.getElementById("folder-filter")?.value || "",
+    name: document.getElementById("name-filter")?.value || "",
     game: document.getElementById("game-filter")?.value || "",
+    rounds: document.getElementById("rounds-filter")?.value || "",
     models: Array.from(selectedModels),
     date: selectedDate,
   };
@@ -1278,10 +1017,43 @@ function loadFilters() {
     if (stored) {
       const filters = JSON.parse(stored);
 
+      // Restore folder filter
+      const folderFilter = document.getElementById("folder-filter");
+      if (folderFilter && filters.folder !== undefined) {
+        // Check if the saved folder still exists in options
+        const optionExists = Array.from(folderFilter.options).some(
+          (opt) => opt.value === filters.folder,
+        );
+        if (optionExists) {
+          folderFilter.value = filters.folder;
+          selectedFolder = filters.folder;
+        } else if (folderFilter.options.length > 0) {
+          // Saved folder doesn't exist, default to first option
+          folderFilter.selectedIndex = 0;
+          selectedFolder = folderFilter.value;
+        }
+      } else if (folderFilter && folderFilter.options.length > 0) {
+        // No saved folder, default to first option
+        folderFilter.selectedIndex = 0;
+        selectedFolder = folderFilter.value;
+      }
+
+      // Restore name filter
+      const nameFilter = document.getElementById("name-filter");
+      if (nameFilter && filters.name) {
+        nameFilter.value = filters.name;
+      }
+
       // Restore game filter
       const gameFilter = document.getElementById("game-filter");
       if (gameFilter && filters.game) {
         gameFilter.value = filters.game;
+      }
+
+      // Restore rounds filter
+      const roundsFilter = document.getElementById("rounds-filter");
+      if (roundsFilter && filters.rounds) {
+        roundsFilter.value = filters.rounds;
       }
 
       // Restore model filter
@@ -1318,22 +1090,6 @@ function sortTable(column) {
 
   const rows = Array.from(document.querySelectorAll(".game-row"));
 
-  // Build a tree structure to maintain hierarchy
-  const rowsByPath = new Map();
-  rows.forEach((row) => {
-    rowsByPath.set(row.dataset.path, row);
-  });
-
-  // Group rows by their parent
-  const childrenByParent = new Map();
-  rows.forEach((row) => {
-    const parent = row.dataset.parent || "";
-    if (!childrenByParent.has(parent)) {
-      childrenByParent.set(parent, []);
-    }
-    childrenByParent.get(parent).push(row);
-  });
-
   // Comparison function based on selected column
   function compareRows(a, b) {
     let aValue, bValue;
@@ -1361,27 +1117,8 @@ function sortTable(column) {
     return 0;
   }
 
-  // Sort children at each level
-  childrenByParent.forEach((children) => {
-    children.sort(compareRows);
-  });
-
-  // Recursively build the sorted list maintaining hierarchy
-  function buildSortedList(parent) {
-    const result = [];
-    const children = childrenByParent.get(parent) || [];
-
-    for (const child of children) {
-      result.push(child);
-      // Add all descendants of this child
-      result.push(...buildSortedList(child.dataset.path));
-    }
-
-    return result;
-  }
-
-  // Build the final sorted list starting from root (empty parent)
-  const sortedRows = buildSortedList("");
+  // Sort all rows
+  rows.sort(compareRows);
 
   // Get the table header element
   const tableHeader = document.querySelector(".table-header");
@@ -1391,7 +1128,7 @@ function sortTable(column) {
 
   // Re-insert rows in sorted order
   let previousElement = tableHeader;
-  sortedRows.forEach((row) => {
+  rows.forEach((row) => {
     previousElement.after(row);
     previousElement = row;
   });
