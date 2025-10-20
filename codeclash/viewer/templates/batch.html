@@ -676,9 +676,9 @@
         <div class="filter-container">
             <label for="time-range-filter">Time range:</label>
             <select id="time-range-filter" class="filter-select" onchange="applyTimeRangeFilter()">
-                <option value="6">Last 6h</option>
+                <option value="6" selected>Last 6h</option>
                 <option value="12">Last 12h</option>
-                <option value="24" selected>Last 24h</option>
+                <option value="24">Last 24h</option>
                 <option value="48">Last 48h</option>
                 <option value="72">Last 72h</option>
             </select>
@@ -763,7 +763,7 @@
         let currentSort = { column: 'created_at', ascending: false };
         let statusFilter = '';
         let roundsFilter = 'any';
-        let timeRangeHours = 24;
+        let timeRangeHours = 6;
         let lastRefreshTime = null;
         let selectedJobs = new Set();
         let totalCpusRunning = 0;
