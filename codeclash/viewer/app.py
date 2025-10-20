@@ -1409,4 +1409,84 @@ def batch_api_jobs():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route("/picker/api/guess-config-names", methods=["POST"])
+@print_timing
+def guess_config_names():
+    """Guess config file names based on metadata.json files"""
+    try:
+        data = request.get_json()
+        folder_paths = data.get("folder_paths", [])
+
+        if not folder_paths:
+            return jsonify({"success": False, "error": "No folder paths provided"})
+
+        results = []
+        for folder_path in folder_paths:
+            folder_path_obj = LOG_BASE_DIR / folder_path
+
+            if not folder_path_obj.exists() or not is_game_folder(folder_path_obj):
+                results.append({"folder": folder_path, "config_name": None, "error": "Invalid folder"})
+                continue
+
+            metadata = load_metadata(folder_path_obj)
+            if not metadata.is_valid:
+                results.append({"folder": folder_path, "config_name": None, "error": "No metadata"})
+                continue
+
+            # Extract components for config name
+            game_name = metadata.game_name
+            rounds = metadata.get_path("config.tournament.rounds")
+            sims = metadata.get_path("config.game.sims_per_round")
+            players = metadata.get_path("config.players", [])
+
+            # Extract player names
+            player_names = []
+            for player in players:
+                if isinstance(player, dict):
+                    name = player.get("name", "")
+                    if name:
+                        player_names.append(name)
+
+            # Build config file name
+            if game_name and rounds and sims and len(player_names) >= 2:
+                # Determine correct model ordering by checking folder name
+                folder_name = Path(folder_path).name
+                model1, model2 = player_names[0], player_names[1]
+
+                # Check which order appears in the folder name
+                if f"{model1}.{model2}" in folder_name:
+                    # Order is correct
+                    pass
+                elif f"{model2}.{model1}" in folder_name:
+                    # Swap order
+                    model1, model2 = model2, model1
+                # If neither appears, keep original order
+
+                config_name = f"{game_name}__{model1}__{model2}__r{rounds}__s{sims}.yaml"
+                results.append({"folder": folder_path, "config_name": config_name, "error": None})
+            else:
+                missing = []
+                if not game_name:
+                    missing.append("game_name")
+                if not rounds:
+                    missing.append("rounds")
+                if not sims:
+                    missing.append("sims")
+                if len(player_names) < 2:
+                    missing.append(f"players (found {len(player_names)})")
+                results.append(
+                    {
+                        "folder": folder_path,
+                        "config_name": None,
+                        "error": f"Missing: {', '.join(missing)}",
+                    }
+                )
+
+        return jsonify({"success": True, "results": results})
+
+    except Exception as e:
+        logger.error(f"Error guessing config names: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # Use run_viewer.py to launch the application
