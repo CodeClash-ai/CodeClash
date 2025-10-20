@@ -179,6 +179,17 @@
   box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
 }
 
+.runs-status {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 0.25rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .games-table {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);

@@ -90,6 +90,7 @@ function toggleSelectAll(selectAllCheckbox) {
   gameCheckboxes.forEach((checkbox) => {
     checkbox.checked = selectAllCheckbox.checked;
   });
+  updateRunsStatus();
 }
 
 function updateSelectAllCheckbox() {
@@ -117,13 +118,34 @@ function updateSelectAllCheckbox() {
     selectAllCheckbox.checked = false;
     selectAllCheckbox.indeterminate = true;
   }
+
+  updateRunsStatus();
+}
+
+function updateRunsStatus() {
+  const statusElement = document.getElementById("runs-status");
+  if (!statusElement) return;
+
+  // Count visible rows
+  const allRows = document.querySelectorAll(".game-row");
+  const visibleRows = Array.from(allRows).filter(
+    (row) => row.style.display !== "none",
+  );
+  const listedCount = visibleRows.length;
+
+  // Count checked rows among visible ones
+  const markedCount = visibleRows.filter((row) => {
+    const checkbox = row.querySelector("input[data-path]");
+    return checkbox && checkbox.checked;
+  }).length;
+
+  // Update display
+  statusElement.textContent = `${listedCount} runs listed (${markedCount} selected)`;
 }
 
 // Modal functions
 function openBulkActionsModal() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
   if (selectedCheckboxes.length === 0) {
     alert("Please select at least one game folder first.");
     return;
@@ -160,10 +182,17 @@ function hideModalWarning() {
   document.getElementById("modal-warning").classList.remove("show");
 }
 
+function getVisibleCheckedCheckboxes() {
+  // Get all checked checkboxes and filter out those in hidden rows
+  const allChecked = document.querySelectorAll("input[data-path]:checked");
+  return Array.from(allChecked).filter((checkbox) => {
+    const row = checkbox.closest(".game-row");
+    return row && row.style.display !== "none";
+  });
+}
+
 function fillTextareaWithPaths() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
     showModalWarning(
@@ -241,9 +270,7 @@ function showCopyMessage(message) {
 }
 
 function fillTextareaWithFoldernames() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
     showModalWarning(
@@ -263,9 +290,7 @@ function fillTextareaWithFoldernames() {
 }
 
 function fillTextareaWithS3RmCommands() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
     showModalWarning(
@@ -289,9 +314,7 @@ function fillTextareaWithS3RmCommands() {
 }
 
 function fillTextareaWithAWSResubmitCommands() {
-  const selectedCheckboxes = document.querySelectorAll(
-    "input[data-path]:checked",
-  );
+  const selectedCheckboxes = getVisibleCheckedCheckboxes();
 
   if (selectedCheckboxes.length === 0) {
     showModalWarning(
@@ -383,6 +406,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize select-all checkbox state
   updateSelectAllCheckbox();
+
+  // Initialize runs status
+  updateRunsStatus();
 
   // Add listener to filters to save changes
   if (folderFilter) {
@@ -731,6 +757,9 @@ function applyFilters() {
 
   // Update clear filters button visibility
   updateClearFiltersButton();
+
+  // Update runs status
+  updateRunsStatus();
 }
 
 function clearFilters() {
