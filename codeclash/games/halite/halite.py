@@ -12,7 +12,6 @@ from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
 
 HALITE_LOG = "sim_{idx}.log"
-HALITE_SUBMISSION = "submission"
 HALITE_HIDDEN_EXEC = ".codeclash_exec"
 
 # Command to be run in each agent's `submission/` folder to compile agent
@@ -36,13 +35,13 @@ MAP_FILE_TYPE_TO_RUN = {
 
 class HaliteGame(CodeGame):
     name: str = "Halite"
-    description: str = f"""Halite is a multi-player turn-based strategy game where bots compete on a rectangular grid to capture territory and accumulate strength.
+    description: str = """Halite is a multi-player turn-based strategy game where bots compete on a rectangular grid to capture territory and accumulate strength.
 Players control pieces that can move across the map to conquer neutral and enemy territory, with each cell providing production that increases the strength of pieces occupying it.
 The goal is to control the most territory by the end of the game through strategic expansion, consolidation of forces, and tactical combat decisions.
 
 You have the choice of writing your Halite bot in one of four programming languages: C, C++, OCaml, or Rust.
 Example implementations can be found under the `airesources/` folder.
-Your submission should be stored in the `{HALITE_SUBMISSION}/` folder. This folder currently contains an example C bot, but feel free to use any of the supported languages.
+Your submission should be stored in the `submission/` folder. This folder currently contains an example C bot, but feel free to use any of the supported languages.
 Please make sure your main file is named `main.<ext>`, where `<ext>` is the appropriate file extension for your chosen programming language.
 You may include additional files as needed, but please ensure:
 1. The `submission/` folder contains only files relevant to your bot.
@@ -50,6 +49,7 @@ You may include additional files as needed, but please ensure:
 3. Your bot can be compiled. See `runGame.sh` under the corresponding `submission/<language>/` folder to see how we will compile and run your bot.
 """
     default_args: dict = {}
+    submission: str = "submission"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
@@ -123,7 +123,7 @@ You may include additional files as needed, but please ensure:
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         # Check that there is a *single* file called "main.<ext>" in the submission folder
         # and that <ext> is one of the supported file types
-        sub_path = Path(agent.environment.config.cwd) / HALITE_SUBMISSION
+        sub_path = Path(agent.environment.config.cwd) / self.submission
         ls_output = agent.environment.execute("ls", cwd=sub_path)["output"]
         main_files = [
             fname
@@ -144,15 +144,15 @@ You may include additional files as needed, but please ensure:
             try:
                 compile_response = agent.environment.execute(compile_cmd, timeout=15, cwd=sub_path)
             except subprocess.TimeoutExpired:
-                return False, f"Compilation failed (ran {compile_cmd} inside {HALITE_SUBMISSION}): timed out"
+                return False, f"Compilation failed (ran {compile_cmd} inside {self.submission}): timed out"
             if compile_response["returncode"] != 0:
                 return (
                     False,
-                    f"Compilation failed (ran {compile_cmd} inside {HALITE_SUBMISSION}): {compile_response['output']}",
+                    f"Compilation failed (ran {compile_cmd} inside {self.submission}): {compile_response['output']}",
                 )
 
         # Check that submission runs in competition
-        executable = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=HALITE_SUBMISSION, name="main")
+        executable = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=self.submission, name="main")
         run_cmd = f"./environment/halite {shlex.join([executable, executable])}"
         try:
             run_response = agent.environment.execute(run_cmd, timeout=15)
@@ -162,6 +162,6 @@ You may include additional files as needed, but please ensure:
             return False, f"Submission failed to run (ran {run_cmd}): {run_response['output']}"
 
         # Record command to run executable to hidden file
-        executable_comp = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=f"/{agent.name}/{HALITE_SUBMISSION}", name="main")
+        executable_comp = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=f"/{agent.name}/{self.submission}", name="main")
         agent.environment.execute(f'echo "{executable_comp}" > {HALITE_HIDDEN_EXEC}')
         return True, None
