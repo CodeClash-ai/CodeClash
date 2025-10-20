@@ -25,12 +25,18 @@
                 {% endfor %}
             </select>
 
-            <label for="game-filter">Game:</label>
+            <input type="text" id="name-filter" oninput="applyFilters()" class="filter-input" placeholder="Filter by name...">
+
             <select id="game-filter" onchange="applyFilters()" class="filter-select">
                 <option value="">All Games</option>
             </select>
 
-            <label for="model-filter-dropdown">Model:</label>
+            <select id="rounds-filter" onchange="applyFilters()" class="filter-select">
+                <option value="">All status</option>
+                <option value="complete">Complete</option>
+                <option value="incomplete">Incomplete</option>
+            </select>
+
             <div class="model-filter-container">
                 <div class="model-filter-dropdown" id="model-filter-dropdown">
                     <button class="model-filter-button" id="model-filter-button" onclick="toggleModelDropdown(event)">
@@ -59,6 +65,7 @@
             <button id="clear-filters" onclick="clearFilters()" title="Clear all filters" {% if is_static %}disabled{% endif %}>
                 <i class="bi bi-x-circle"></i> Clear Filters
             </button>
+            <div class="filter-spacer"></div>
             <button class="bulk-actions-button" onclick="openBulkActionsModal()" {% if is_static %}disabled title="Not available in static mode"{% endif %}>
                 <i class="bi bi-lightning-charge"></i> Bulk Actions
             </button>
@@ -78,7 +85,6 @@
             <div>Game</div>
             <div><i class="bi bi-target"></i> Rounds</div>
             <div>Models</div>
-            <div>Action</div>
         </div>
             {% for game in game_folders %}
             {% set folder_name = game.name.split('/')[-1] %}
@@ -129,15 +135,6 @@
                     {% else %}
                         <span class="models-unknown">-</span>
                     {% endif %}
-                </div>
-
-                <div class="action-cell">
-                    <button class="btn btn-primary btn-sm open-button" onmousedown="event.stopPropagation(); handleGameClick(event, '{{ game.name }}')">
-                        Open
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm open-new-tab-button" onclick="event.stopPropagation(); openGameInNewTab('{{ game.name }}')" title="Open in new tab">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                    </button>
                 </div>
             </div>
             {% endfor %}

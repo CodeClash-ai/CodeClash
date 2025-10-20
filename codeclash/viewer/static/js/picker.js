@@ -63,13 +63,6 @@ function handleRowClick(event, gameName) {
   const checkbox = event.target.closest('input[type="checkbox"]');
   const checkboxCell = event.target.closest(".checkbox-cell");
 
-  // Check if click is on name column content (session name)
-  const sessionNameCell = event.target.closest(".session-name-cell");
-  const sessionNameContent = event.target.closest(".game-name");
-
-  // Check if click is on action buttons (these have their own handlers)
-  const actionButton = event.target.closest(".action-cell button");
-
   if (checkbox || checkboxCell) {
     // Click is on checkbox or in checkbox area - handle selection
     event.stopPropagation();
@@ -78,8 +71,8 @@ function handleRowClick(event, gameName) {
       // Click in checkbox area but not on checkbox - toggle selection
       toggleGameSelection(gameName);
     }
-  } else if (sessionNameCell && sessionNameContent) {
-    // Click is on the session name content - open game
+  } else {
+    // Click is anywhere else on the row - open game
     if (event.button === 1 || event.ctrlKey || event.metaKey) {
       // Middle click, Ctrl+click, or Cmd+click - open in new tab
       event.preventDefault();
@@ -88,12 +81,6 @@ function handleRowClick(event, gameName) {
       // Left click - open in same tab
       openGame(gameName);
     }
-  } else if (actionButton) {
-    // Click is on action button - let the button handle it (don't interfere)
-    return;
-  } else {
-    // Click is elsewhere - do nothing (changed behavior)
-    return;
   }
 }
 
@@ -402,9 +389,19 @@ document.addEventListener("DOMContentLoaded", function () {
     folderFilter.addEventListener("change", saveFilters);
   }
 
+  const nameFilter = document.getElementById("name-filter");
+  if (nameFilter) {
+    nameFilter.addEventListener("input", saveFilters);
+  }
+
   const gameFilter = document.getElementById("game-filter");
   if (gameFilter) {
     gameFilter.addEventListener("change", saveFilters);
+  }
+
+  const roundsFilter = document.getElementById("rounds-filter");
+  if (roundsFilter) {
+    roundsFilter.addEventListener("change", saveFilters);
   }
 
   // Close model dropdown when clicking outside
@@ -560,6 +557,19 @@ function shouldRowBeVisible(row) {
     }
   }
 
+  // Check name filter
+  const nameFilter =
+    document.getElementById("name-filter")?.value.toLowerCase() || "";
+  if (nameFilter) {
+    const sessionNameElement = row.querySelector(".game-name");
+    const sessionName = sessionNameElement
+      ? sessionNameElement.textContent.toLowerCase()
+      : "";
+    if (!sessionName.includes(nameFilter)) {
+      return false;
+    }
+  }
+
   // Check game name filter
   const gameFilter =
     document.getElementById("game-filter")?.value.toLowerCase() || "";
@@ -570,6 +580,29 @@ function shouldRowBeVisible(row) {
       : "";
     if (!gameName.includes(gameFilter)) {
       return false;
+    }
+  }
+
+  // Check rounds filter
+  const roundsFilter = document.getElementById("rounds-filter")?.value || "";
+  if (roundsFilter) {
+    const roundsElement = row.querySelector(".rounds-count");
+    if (roundsFilter === "complete") {
+      // Only show rows with complete rounds (no warning class)
+      if (
+        !roundsElement ||
+        roundsElement.classList.contains("rounds-count-warning")
+      ) {
+        return false;
+      }
+    } else if (roundsFilter === "incomplete") {
+      // Only show rows with incomplete rounds (has warning class) or unknown
+      if (
+        roundsElement &&
+        !roundsElement.classList.contains("rounds-count-warning")
+      ) {
+        return false;
+      }
     }
   }
 
@@ -592,7 +625,7 @@ function shouldRowBeVisible(row) {
     const dateElement = row.querySelector(".date-text");
     if (dateElement) {
       const dateText = dateElement.textContent.trim();
-      // Extract just the YYYY-MM-DD part
+      // Extract just the MM/DD part
       const rowDate = dateText.split(" ")[0];
       if (rowDate !== selectedDate) {
         return false;
@@ -636,6 +669,9 @@ function initializeFilters() {
     // Apply the loaded filters
     applyFilters();
   }
+
+  // Initialize clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function populateGameFilter() {
@@ -692,6 +728,9 @@ function applyFilters() {
 
   // Update select-all checkbox state after filtering
   updateSelectAllCheckbox();
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function clearFilters() {
@@ -702,11 +741,20 @@ function clearFilters() {
     selectedFolder = folderFilter.value;
   }
 
-  document.getElementById("game-filter").value = "";
+  const nameFilter = document.getElementById("name-filter");
+  if (nameFilter) nameFilter.value = "";
+
+  const gameFilter = document.getElementById("game-filter");
+  if (gameFilter) gameFilter.value = "";
+
+  const roundsFilter = document.getElementById("rounds-filter");
+  if (roundsFilter) roundsFilter.value = "";
+
   selectedModels.clear();
   selectedDate = null;
   updateModelFilterDisplay();
   updateDateFilterDisplay();
+  updateClearFiltersButton();
   saveFilters();
 
   // Reapply filters
@@ -764,6 +812,9 @@ function updateModelFilterDisplay() {
       option.classList.remove("selected");
     }
   });
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function toggleModelDropdown(event) {
@@ -839,14 +890,30 @@ function updateDateFilterDisplay() {
       container.style.display = "none";
     }
   }
+
+  // Update clear filters button visibility
+  updateClearFiltersButton();
 }
 
 function hasActiveFilters() {
   return (
     selectedDate !== null ||
     selectedModels.size > 0 ||
-    (document.getElementById("game-filter")?.value || "") !== ""
+    (document.getElementById("name-filter")?.value || "") !== "" ||
+    (document.getElementById("game-filter")?.value || "") !== "" ||
+    (document.getElementById("rounds-filter")?.value || "") !== ""
   );
+}
+
+function updateClearFiltersButton() {
+  const clearButton = document.getElementById("clear-filters");
+  if (clearButton) {
+    if (hasActiveFilters()) {
+      clearButton.classList.add("show");
+    } else {
+      clearButton.classList.remove("show");
+    }
+  }
 }
 
 function clearDateFilter(event) {
@@ -866,7 +933,9 @@ const FILTERS_KEY = "picker_filters";
 function saveFilters() {
   const filters = {
     folder: document.getElementById("folder-filter")?.value || "",
+    name: document.getElementById("name-filter")?.value || "",
     game: document.getElementById("game-filter")?.value || "",
+    rounds: document.getElementById("rounds-filter")?.value || "",
     models: Array.from(selectedModels),
     date: selectedDate,
   };
@@ -904,10 +973,22 @@ function loadFilters() {
         selectedFolder = folderFilter.value;
       }
 
+      // Restore name filter
+      const nameFilter = document.getElementById("name-filter");
+      if (nameFilter && filters.name) {
+        nameFilter.value = filters.name;
+      }
+
       // Restore game filter
       const gameFilter = document.getElementById("game-filter");
       if (gameFilter && filters.game) {
         gameFilter.value = filters.game;
+      }
+
+      // Restore rounds filter
+      const roundsFilter = document.getElementById("rounds-filter");
+      if (roundsFilter && filters.rounds) {
+        roundsFilter.value = filters.rounds;
       }
 
       // Restore model filter
