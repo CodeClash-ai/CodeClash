@@ -42,28 +42,32 @@
 
 #clear-filters {
   padding: 0.5rem 1rem;
-  background-color: var(--bg-tertiary);
-  border: 2px solid var(--border-color);
+  background-color: #ffc107;
+  border: 2px solid #ffc107;
   border-radius: 0.375rem;
-  color: var(--text-primary);
+  color: #000000;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 0.5rem;
 }
 
+#clear-filters.show {
+  display: flex;
+}
+
 #clear-filters:hover:not(:disabled) {
-  background-color: var(--bg-primary);
-  border-color: var(--accent-color);
+  background-color: #e0a800;
+  border-color: #e0a800;
 }
 
 #clear-filters:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+  border-color: #e0a800;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
 }
 
 #clear-filters:disabled {
@@ -106,6 +110,41 @@
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.filter-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-input {
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.filter-input:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-primary);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+  background: var(--bg-primary);
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-weight: 500;
 }
 
 .filter-container label {
@@ -211,7 +250,10 @@
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 40px 2.5fr 140px 2fr 100px 3fr 180px;
+  grid-template-columns: 40px 1fr 140px minmax(auto, 125px) 70px minmax(
+      auto,
+      250px
+    );
   gap: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -219,12 +261,16 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 40px 2.5fr 140px 2fr 100px 3fr 180px;
+  grid-template-columns: 40px 1fr 140px minmax(auto, 125px) 70px minmax(
+      auto,
+      250px
+    );
   gap: 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
   transition: all 0.2s ease;
   align-items: center;
+  cursor: pointer;
 }
 
 .game-row:last-child {
@@ -416,14 +462,13 @@
 
 .game-name {
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--accent-color);
   font-weight: 500;
   word-break: break-all;
   flex: 1;
   min-width: 0;
   margin-left: 0.5rem;
-  cursor: pointer;
 }
 
 .rounds-cell {
@@ -451,7 +496,7 @@
 }
 
 .rounds-count-warning {
-  background-color: var(--warning-color);
+  background-color: #ffc107;
 }
 
 .rounds-unknown {
