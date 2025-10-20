@@ -324,17 +324,53 @@ function fillTextareaWithAWSResubmitCommands() {
     return;
   }
 
-  hideModalWarning();
-  const folderNames = Array.from(selectedCheckboxes).map((checkbox) => {
+  // Get the row for each checkbox and extract AWS command from metadata
+  const commandsWithInfo = Array.from(selectedCheckboxes).map((checkbox) => {
+    const row = checkbox.closest(".game-row");
+    const awsCommand = row ? row.getAttribute("data-aws-command") : "";
     const fullPath = checkbox.getAttribute("data-path");
-    return fullPath.split("/").pop();
+
+    return {
+      path: fullPath,
+      awsCommand: awsCommand,
+      hasCommand: awsCommand && awsCommand.trim() !== "",
+    };
   });
 
-  const commands = folderNames.map((folderName) => {
-    return `aws/run_job.py -- main.py --config-file configs/main/${folderName}.yaml`;
+  // Separate folders with and without AWS commands
+  const foldersWithCommands = commandsWithInfo.filter(
+    (info) => info.hasCommand,
+  );
+  const foldersWithoutCommands = commandsWithInfo.filter(
+    (info) => !info.hasCommand,
+  );
+
+  if (foldersWithCommands.length === 0) {
+    showModalWarning(
+      "None of the selected folders have AWS command information in their metadata.",
+    );
+    document.getElementById("bulk-actions-textarea").value = "";
+    return;
+  }
+
+  // Generate commands for folders that have AWS command info
+  const commands = foldersWithCommands.map((info) => {
+    return `aws/run_job.py -- ${info.awsCommand}`;
   });
 
   document.getElementById("bulk-actions-textarea").value = commands.join("\n");
+
+  // Show warning if some folders are missing AWS commands
+  if (foldersWithoutCommands.length > 0) {
+    const folderNames = foldersWithoutCommands
+      .map((info) => info.path.split("/").pop())
+      .join(", ");
+    showModalWarning(
+      `Warning: ${foldersWithoutCommands.length} folder(s) skipped due to missing AWS command in metadata: ${folderNames}`,
+    );
+  } else {
+    hideModalWarning();
+  }
 }
 
 function copyFromModal() {

@@ -94,6 +94,7 @@
                  data-path="{{ game.name }}"
                  data-parent-folder="{{ game.parent_folder or '' }}"
                  data-timestamp="{{ game.created_timestamp or '' }}"
+                 data-aws-command="{{ game.aws_command or '' }}"
                  onclick="handleRowClick(event, '{{ game.name }}')">
 
                 <div class="checkbox-cell">

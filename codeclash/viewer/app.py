@@ -395,6 +395,7 @@ def _load_game_metadata(folder_info: dict[str, Any]) -> dict[str, Any]:
     folder_info["models"] = metadata.models
     folder_info["game_name"] = metadata.game_name
     folder_info["created_timestamp"] = metadata.get_path("created_timestamp")
+    folder_info["aws_command"] = metadata.get_path("aws.AWS_USER_PROVIDED_COMMAND")
     return folder_info
 
 
