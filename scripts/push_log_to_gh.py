@@ -10,6 +10,13 @@ from pathlib import Path
 
 from unidiff import PatchSet
 
+from codeclash.constants import GH_ORG
+
+
+def remove_binaries(patch: PatchSet) -> PatchSet:
+    """Remove binary files from diff patch string"""
+    return PatchSet("\n".join([str(file) for file in patch if "Binary files" not in str(file)]))
+
 
 def main(cc_folder: Path):
     folder_contents = [f.name for f in list(cc_folder.iterdir())]
@@ -20,7 +27,7 @@ def main(cc_folder: Path):
 
     # Clone GitHub repository if it doesn't exist
     if arena not in os.listdir():
-        clone_cmd = f"git clone git@github.com:emagedoc/{arena}.git"
+        clone_cmd = f"git clone git@github.com:{GH_ORG}/{arena}.git"
         subprocess.run(clone_cmd, shell=True, check=True)
 
     # Get existing remote branches
@@ -61,9 +68,8 @@ def main(cc_folder: Path):
                 continue
             with open(changes_file) as f:
                 changes = json.load(f)
-            patch = PatchSet(changes["incremental_diff"])
             # Remove any binary files from the patch
-            patch = PatchSet("\n".join([str(file) for file in patch if "Binary files" not in str(file)]))
+            patch = remove_binaries(PatchSet(changes["incremental_diff"]))
             with open("temp.diff", "w") as f:
                 f.write(str(patch))
 
