@@ -131,7 +131,6 @@ robocode.battle.selectedRobots={selected_robots}
                 result_output = f.read()
             lines = result_output.strip().split("\n")
 
-            scores = {}
             for line in lines:
                 line = line.strip()
                 if not re.match(r"^\d", line):
