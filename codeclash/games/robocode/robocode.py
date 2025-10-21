@@ -2,6 +2,7 @@ import random
 import re
 import subprocess
 import time
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -111,6 +112,7 @@ robocode.battle.selectedRobots={selected_robots}
 
         # Run battle with results output to file
         cmd = f"{self.run_cmd_round} -battle {battle_file}"
+        self.logger.info(f"Running game: {cmd}")
         with ThreadPoolExecutor(5) as executor:
             # Submit all simulations to the thread pool
             futures = [
@@ -123,6 +125,7 @@ robocode.battle.selectedRobots={selected_robots}
                 future.result()
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
+        scores = defaultdict(int)
         for idx in range(self.game_config.get("sims_per_round", 100) // SIMS_PER_RUN):
             with open(self.log_round(round_num) / f"results_{idx}.txt") as f:
                 result_output = f.read()
@@ -136,10 +139,7 @@ robocode.battle.selectedRobots={selected_robots}
                 match = re.search(r"(\d+)\S+\:\s(\S+)\s+(\d+)", line)
                 if match:
                     player = match.group(2).rsplit(".", 1)[0]
-                    score = int(match.group(3))
-                    if player not in scores:
-                        scores[player] = 0
-                    scores[player] += score
+                    scores[player] += int(match.group(3))
 
         stats.winner = max(scores, key=scores.get)
         stats.scores = scores
