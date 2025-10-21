@@ -24,7 +24,10 @@ def main(log_dir: Path):
     for metadata_file in tqdm(list(log_dir.rglob("metadata.json"))):
         try:
             metadata = json.load(open(metadata_file))
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+            p2m = {
+                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                for x in metadata["config"]["players"]
+            }
 
             if len(p2m) != 2:
                 continue

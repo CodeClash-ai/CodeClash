@@ -35,7 +35,8 @@ def main(log_dir: Path):
         metadata = json.load(open(game_log_folder / "metadata.json"))
         try:
             player_to_model = {
-                x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]
+                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                for x in metadata["config"]["players"]
             }
         except KeyError:
             continue

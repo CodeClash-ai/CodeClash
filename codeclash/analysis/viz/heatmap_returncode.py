@@ -23,7 +23,10 @@ def main(logs: Path):
             with open(game_log_folder / "metadata.json") as f:
                 metadata = json.load(f)
             try:
-                p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+                p2m = {
+                    x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                    for x in metadata["config"]["players"]
+                }
                 for model in p2m.values():
                     if model not in model_to_arena_to_return_codes:
                         model_to_arena_to_return_codes[model] = {}

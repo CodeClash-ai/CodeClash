@@ -87,7 +87,10 @@ def build_data(log_dir: Path):
             continue
 
         try:
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+            p2m = {
+                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                for x in metadata["config"]["players"]
+            }
         except Exception:
             # malformed metadata
             continue
