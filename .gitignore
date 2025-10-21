@@ -227,3 +227,4 @@ __marimo__/
 # >>>>>>>>> CUSTOM THINGS ON TOP OF FILE <<<<<<<<<
 assets/*.json
 assets/*.png
+assets/code_org
