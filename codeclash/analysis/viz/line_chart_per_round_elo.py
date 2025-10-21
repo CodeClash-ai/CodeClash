@@ -36,7 +36,10 @@ def main(log_dir: Path, k_factor: int, starting_elo: int, weighting_function: st
         arena = game_log_folder.name.split(".")[1]
         metadata = json.load(open(game_log_folder / "metadata.json"))
         try:
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+            p2m = {
+                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                for x in metadata["config"]["players"]
+            }
         except KeyError:
             print(f"Skipping {game_log_folder} (malformed metadata.json)")
             continue

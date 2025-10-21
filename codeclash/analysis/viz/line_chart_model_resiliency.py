@@ -156,7 +156,10 @@ def analyze_tournament_directory(log_dir):
             player_names = [p["name"] for p in players]
 
             # Create player-to-model mapping (consistent with other analysis scripts)
-            p2m = {x["name"]: x["config"]["model"]["model_name"].strip("@") for x in metadata["config"]["players"]}
+            p2m = {
+                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
+                for x in metadata["config"]["players"]
+            }
 
             # Skip if not exactly 2 players (PvP tournament)
             if len(player_names) != 2:
