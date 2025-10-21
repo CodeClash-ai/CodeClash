@@ -31,9 +31,13 @@ for arena_log in arena_logs:
     if arena == "RoboCode":
         with open(arena_log / "metadata.json") as f:
             metadata = json.load(f)
-            pvp = ".".join(
-                sorted([p["config"]["model"]["model_name"].split("/")[-1] for p in metadata["config"]["players"]])
-            )
+            try:
+                pvp = ".".join(
+                    sorted([p["config"]["model"]["model_name"].split("/")[-1] for p in metadata["config"]["players"]])
+                )
+            except KeyError as e:
+                print(f"[{arena_log}] Error: Missing key in metadata: {e}")
+                continue
 
     if arena in tracker and setting in tracker[arena] and pvp in tracker[arena][setting]:
         tracker[arena][setting][pvp][0] += 1

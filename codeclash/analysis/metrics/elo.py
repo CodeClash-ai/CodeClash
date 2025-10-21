@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
-from codeclash.games import ARENAS, DummyGame
+from codeclash.games import ARENAS, BattleCodeGame, DummyGame
 
 
 @dataclass
@@ -226,7 +226,7 @@ class ELOCalculator:
         player2profile = {}
         for player_config in players:
             player_name = player_config["name"]
-            model = player_config["config"]["model"]["model_name"].strip("@")
+            model = player_config["config"]["model"]["model_name"].strip("@").split("/")[-1]
             key = f"{arena}.{model}"
             if key not in self._player_profiles:
                 self._player_profiles[key] = ModelEloProfile(model=model, arena=arena, rating=self._starting_elo)
@@ -289,7 +289,7 @@ class ELOCalculator:
         # Claude 4 Sonnet & ... & & & \\
         # ...
         print("\nLaTeX formatted table:")
-        arenas = [x.name for x in ARENAS if x != DummyGame]
+        arenas = [x.name for x in ARENAS if x not in [DummyGame, BattleCodeGame]]
         lines = []
         arenas_small = [f"\\scriptsize{{{arena}}}" for arena in arenas]
         line = "& " + " & ".join(arenas_small) + " & \\textbf{All}" + r" \\"
