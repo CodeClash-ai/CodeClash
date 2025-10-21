@@ -1,9 +1,9 @@
 {
   "Halite": {
     "r15.s250.p2": {
-      "claude-sonnet-4-20250514.claude-sonnet-4-5-20250929": "10 (148 rounds)",
+      "claude-sonnet-4-20250514.claude-sonnet-4-5-20250929": "10 (160 rounds)",
       "claude-sonnet-4-20250514.grok-code-fast-1": "10 (160 rounds)",
-      "claude-sonnet-4-20250514.gemini-2.5-pro": "10 (149 rounds)",
+      "claude-sonnet-4-20250514.gemini-2.5-pro": "10 (158 rounds)",
       "claude-sonnet-4-20250514.glm-4-5": "0 (0 rounds)",
       "claude-sonnet-4-20250514.gpt-5": "10 (160 rounds)",
       "claude-sonnet-4-20250514.gpt-5-mini": "10 (160 rounds)",
@@ -15,16 +15,16 @@
       "claude-sonnet-4-5-20250929.gpt-5": "10 (160 rounds)",
       "claude-sonnet-4-5-20250929.gpt-5-mini": "10 (160 rounds)",
       "claude-sonnet-4-5-20250929.qwen3-coder-plus-2025-09-23": "10 (160 rounds)",
-      "claude-sonnet-4-5-20250929.o3": "11 (176 rounds)",
-      "gemini-2.5-pro.grok-code-fast-1": "10 (151 rounds)",
+      "claude-sonnet-4-5-20250929.o3": "12 (192 rounds)",
+      "gemini-2.5-pro.grok-code-fast-1": "10 (160 rounds)",
       "glm-4-5.grok-code-fast-1": "0 (0 rounds)",
       "gpt-5.grok-code-fast-1": "10 (160 rounds)",
       "gpt-5-mini.grok-code-fast-1": "10 (160 rounds)",
       "grok-code-fast-1.qwen3-coder-plus-2025-09-23": "10 (160 rounds)",
       "grok-code-fast-1.o3": "10 (160 rounds)",
       "gemini-2.5-pro.glm-4-5": "0 (0 rounds)",
-      "gemini-2.5-pro.gpt-5": "10 (149 rounds)",
-      "gemini-2.5-pro.gpt-5-mini": "11 (166 rounds)",
+      "gemini-2.5-pro.gpt-5": "10 (156 rounds)",
+      "gemini-2.5-pro.gpt-5-mini": "12 (191 rounds)",
       "gemini-2.5-pro.qwen3-coder-plus-2025-09-23": "10 (160 rounds)",
       "gemini-2.5-pro.o3": "10 (160 rounds)",
       "glm-4-5.gpt-5": "0 (0 rounds)",
@@ -60,7 +60,7 @@
       "glm-4-5.grok-code-fast-1": "0 (0 rounds)",
       "gpt-5.grok-code-fast-1": "10 (160 rounds)",
       "gpt-5-mini.grok-code-fast-1": "10 (160 rounds)",
-      "grok-code-fast-1.qwen3-coder-plus-2025-09-23": "9 (143 rounds)",
+      "grok-code-fast-1.qwen3-coder-plus-2025-09-23": "9 (144 rounds)",
       "grok-code-fast-1.o3": "10 (160 rounds)",
       "gemini-2.5-pro.glm-4-5": "0 (0 rounds)",
       "gemini-2.5-pro.gpt-5": "10 (160 rounds)",
@@ -76,7 +76,7 @@
       "gpt-5.o3": "10 (160 rounds)",
       "gpt-5-mini.qwen3-coder-plus-2025-09-23": "9 (144 rounds)",
       "gpt-5-mini.o3": "10 (160 rounds)",
-      "o3.qwen3-coder-plus-2025-09-23": "9 (139 rounds)"
+      "o3.qwen3-coder-plus-2025-09-23": "9 (144 rounds)"
     }
   },
   "RobotRumble": {
