@@ -76,56 +76,96 @@ def get_status_data() -> StatusData:
     )
 
 
-def set_max_vcpus(vcpus: int, logger: Any = None) -> None:
+def set_job_queue_state(enabled: bool, logger: Any = None) -> None:
+    """Enable or disable the job queue to control whether new jobs can start."""
     batch: Any = boto3.client("batch", region_name="us-east-1")
-    # See aws/setup/batch/environment.json for the environment name and defaults
-    response = batch.update_compute_environment(
+    state = "ENABLED" if enabled else "DISABLED"
+    batch.update_job_queue(jobQueue="codeclash-queue", state=state)
+    if logger:
+        logger.info(f"Job queue set to {state}")
+
+
+def set_max_vcpus(vcpus: int, logger: Any = None) -> None:
+    """Set the maximum vCPUs for the compute environment."""
+    batch: Any = boto3.client("batch", region_name="us-east-1")
+    batch.update_compute_environment(
         computeEnvironment="codeclash-batch",
         computeResources={"maxvCpus": int(vcpus)},
     )
     if logger:
-        logger.info(f"Update response: {response}")
-        # Verify the update
-        env = batch.describe_compute_environments(computeEnvironments=["codeclash-batch"])
-        status = env["computeEnvironments"][0]["status"]
-        current_max = env["computeEnvironments"][0]["computeResources"].get("maxvCpus")
-        logger.info(f"Compute environment status: {status}, current maxvCpus in config: {current_max}")
+        logger.info(f"Set maxvCpus to {vcpus}")
 
 
 class AutoScaler:
-    def __init__(self, max_vcpus: int = 40 * 4):
-        self.default_max_vcpus = max_vcpus
-        self.current_max_vcpus = max_vcpus
+    def __init__(self, *, max_vcpus: int = 200):
+        self.queue_enabled = True
+        self.max_vcpus = max_vcpus
+        self.current_vcpus = max_vcpus
+        self.last_scale_up_time: datetime | None = None
+        self.ramp_up_schedule = [16, 32, 64, 128, max_vcpus]
         self.logger = get_logger("AutoScaler", emoji="🔄")
 
-    def get_scale_factor(self, status_data: StatusData) -> float:
-        if status_data.n_jobs_completed_last_2h >= 5:
-            if status_data.failed_ratio > 0.2:
-                return 0.0
-            elif status_data.failed_ratio > 0.1:
-                return 0.5
-            elif status_data.failed_ratio > 0.05:
-                return 0.75
-            return 1.0
-        # Run at least 1 vCPU, but otherwise don't change anything
-        return max(4, self.current_max_vcpus / self.default_max_vcpus)
+    def should_disable_queue(self, status_data: StatusData) -> bool:
+        """Decide whether to disable the queue based on failure rate."""
+        if status_data.n_jobs_completed_last_2h >= 5 and status_data.failed_ratio > 0.2:
+            return True
+        return False
+
+    def handle_gradual_scale_up(self) -> None:
+        """Gradually increase maxvCpus over time when ramping up after a failure."""
+        if self.current_vcpus >= self.max_vcpus:
+            return
+
+        now = datetime.now(UTC)
+        if self.last_scale_up_time is None:
+            return
+
+        time_since_last_scale = now - self.last_scale_up_time
+        if time_since_last_scale >= timedelta(hours=1):
+            for target in self.ramp_up_schedule:
+                if target > self.current_vcpus:
+                    self.logger.info(f"Ramping up maxvCpus from {self.current_vcpus} to {target}")
+                    set_max_vcpus(target, logger=self.logger)
+                    self.current_vcpus = target
+                    self.last_scale_up_time = now
+                    break
 
     def run(self) -> None:
-        self.logger.info(f"Starting AutoScaler with default max vCPUs: {self.default_max_vcpus}")
-        set_max_vcpus(self.default_max_vcpus, logger=self.logger)
-        self.current_max_vcpus = self.default_max_vcpus
+        self.logger.info(f"Starting AutoScaler sentinel (max_vcpus={self.max_vcpus})")
+        set_job_queue_state(enabled=True, logger=self.logger)
+        set_max_vcpus(self.max_vcpus, logger=self.logger)
+        self.queue_enabled = True
+        self.current_vcpus = self.max_vcpus
+
         while True:
             try:
                 status_data = get_status_data()
-                print(status_data)
-                scale_factor = self.get_scale_factor(status_data)
-                new_max_vcpus = int(self.default_max_vcpus * scale_factor)
-                if new_max_vcpus != self.current_max_vcpus:
-                    self.logger.info(f"Scaling from {self.current_max_vcpus} to {new_max_vcpus}")
-                    set_max_vcpus(new_max_vcpus, logger=self.logger)
-                    self.current_max_vcpus = new_max_vcpus
+                self.logger.info(
+                    f"Status: {status_data.n_jobs_running} running, {status_data.n_jobs_runnable} runnable, "
+                    f"{status_data.n_jobs_failed_last_2h}/{status_data.n_jobs_completed_last_2h} failed/completed (2h)"
+                )
+
+                should_disable = self.should_disable_queue(status_data)
+
+                if should_disable and self.queue_enabled:
+                    self.logger.warning(f"High failure rate ({status_data.failed_ratio:.1%}), disabling job queue")
+                    set_job_queue_state(enabled=False, logger=self.logger)
+                    self.queue_enabled = False
+                elif not should_disable and not self.queue_enabled:
+                    self.logger.info("Failure rate acceptable, re-enabling job queue with gradual scale-up")
+                    set_job_queue_state(enabled=True, logger=self.logger)
+                    self.queue_enabled = True
+                    # Start gradual ramp-up from 16 vCPUs
+                    self.current_vcpus = self.ramp_up_schedule[0]
+                    set_max_vcpus(self.current_vcpus, logger=self.logger)
+                    self.last_scale_up_time = datetime.now(UTC)
+
+                # Continue gradual scale-up if in progress
+                if self.queue_enabled and self.current_vcpus < self.max_vcpus:
+                    self.handle_gradual_scale_up()
+
             except Exception as e:
-                self.logger.error(f"Error scaling: {e}", exc_info=True)
+                self.logger.error(f"Error in sentinel: {e}", exc_info=True)
             finally:
                 time.sleep(600)
 
