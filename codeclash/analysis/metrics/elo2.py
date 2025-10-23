@@ -277,16 +277,16 @@ class ScoreMatrixBuilder:
 class BradleyTerryFitter:
     def __init__(
         self,
-        win_matrix: dict[str, dict[tuple[str, str], list[float]]],
+        matchups: dict[tuple[str, str], list[float]],
         *,
         regularization: float = 0.01,
         compute_uncertainties: bool = True,
     ):
-        self.win_matrix = win_matrix
+        self.matchups = matchups
         self.regularization = regularization
         self.compute_uncertainties = compute_uncertainties
-        self.results: dict[str, dict] = {}
-        """game name -> {players: list[str], strengths: np.ndarray, log_likelihood: float}"""
+        self.result: dict | None = None
+        """{players: list[str], strengths: np.ndarray, log_likelihood: float}"""
 
     def _sigmoid(self, x: np.ndarray) -> np.ndarray:
         return 1 / (1 + np.exp(-x))
@@ -353,15 +353,15 @@ class BradleyTerryFitter:
         Hr_inv = np.linalg.pinv(Hr)
         return Z @ Hr_inv @ Z.T
 
-    def _fit_game(self, game_name: str, matchups: dict[tuple[str, str], list[float]]) -> dict:
-        """Fit Bradley-Terry model for a single game."""
-        players = sorted({p for pair in matchups.keys() for p in pair})
+    def fit(self) -> dict:
+        """Fit Bradley-Terry model."""
+        players = sorted({p for pair in self.matchups.keys() for p in pair})
         n_players = len(players)
         player_to_idx = {p: i for i, p in enumerate(players)}
 
         pairs = []
         wins = []
-        for (p1, p2), (w1, w2) in matchups.items():
+        for (p1, p2), (w1, w2) in self.matchups.items():
             i, j = player_to_idx[p1], player_to_idx[p2]
             pairs.append((i, j))
             wins.append([w1, w2])
@@ -390,9 +390,6 @@ class BradleyTerryFitter:
             options={"ftol": 1e-9, "maxiter": 1000},
         )
 
-        if not result.success:
-            logger.warning(f"Optimization failed for {game_name}: {result.message}")
-
         strengths = result.x
         out = {
             "players": players,
@@ -406,46 +403,41 @@ class BradleyTerryFitter:
             elo_std = scale * np.sqrt(np.clip(np.diag(cov), 0.0, np.inf))
             out["covariance"] = cov
             out["elo_std"] = elo_std
+        self.result = out
         return out
-
-    def fit_all(self) -> None:
-        """Fit Bradley-Terry model for all games."""
-        for game_name, matchups in self.win_matrix.items():
-            logger.info(f"Fitting Bradley-Terry model for {game_name}")
-            self.results[game_name] = self._fit_game(game_name, matchups)
-
-    def print_results(self) -> None:
-        """Print fitted strengths and Elo ratings."""
-        print(f"Regularization λ = {self.regularization}")
-        print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
-        for game_name, result in sorted(self.results.items()):
-            print(f"\n{game_name}:")
-            print(f"Log-likelihood: {result['log_likelihood']:.2f}")
-            has_sigma = "elo_std" in result
-            if has_sigma:
-                print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s} {'±1σ':>8s}")
-                print("-" * 62)
-            else:
-                print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
-                print("-" * 52)
-
-            # Sort by strength descending
-            indices = np.argsort(result["strengths"])[::-1]
-            for idx in indices:
-                player = result["players"][idx]
-                strength = result["strengths"][idx]
-                elo = self.bt_to_elo(strength)
-                sigma = result.get("elo_std")
-                if sigma is not None:
-                    s = sigma[idx]
-                    print(f"  {player:<30s} {strength:12.3f} {elo:8.0f} {s:8.0f}")
-                else:
-                    print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
 
 
 class BradleyTerryFitterPlots:
-    def __init__(self, fitter: BradleyTerryFitter):
-        self.fitter = fitter
+    def __init__(self, results: dict[str, dict], win_matrix: dict[str, dict[tuple[str, str], list[float]]]):
+        self.results = results
+        self.win_matrix = win_matrix
+
+    @staticmethod
+    def bt_to_elo(strength: float) -> float:
+        """Convert Bradley-Terry strength to Elo rating.
+
+        Formula: R_i = R_0 + (β/ln(10)) * s_i
+        where β = 400 (ELO_SLOPE), R_0 = 1200 (ELO_BASE)
+        """
+        return ELO_BASE + (ELO_SLOPE / np.log(10)) * strength
+
+    @staticmethod
+    def _sigmoid(x: np.ndarray) -> np.ndarray:
+        return 1 / (1 + np.exp(-x))
+
+    def _negative_log_likelihood(
+        self, strengths: np.ndarray, pairs: list, wins: np.ndarray, regularization: float
+    ) -> float:
+        """Negative log-likelihood for Bradley-Terry model with L2 regularization."""
+        assert len(wins) == len(pairs)
+        ll = 0.0
+        for k, (i, j) in enumerate(pairs):
+            diff = strengths[i] - strengths[j]
+            w_ij, w_ji = wins[k]
+            ll += w_ij * np.log(self._sigmoid(diff) + 1e-10)
+            ll += w_ji * np.log(self._sigmoid(-diff) + 1e-10)
+        regularization_term = regularization * np.sum(strengths**2)
+        return -ll + regularization_term
 
     def create_elo_plots(self, output_dir: Path) -> None:
         """Create combined horizontal bar chart showing Elo ratings for all games.
@@ -458,14 +450,14 @@ class BradleyTerryFitterPlots:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Get player ordering from "ALL" game
-        if "ALL" not in self.fitter.results:
+        if "ALL" not in self.results:
             logger.warning("No 'ALL' game found in results, skipping Elo plots")
             return
 
-        all_result = self.fitter.results["ALL"]
+        all_result = self.results["ALL"]
         all_players = all_result["players"]
         all_strengths = all_result["strengths"]
-        all_elos = np.array([self.fitter.bt_to_elo(s) for s in all_strengths])
+        all_elos = np.array([self.bt_to_elo(s) for s in all_strengths])
 
         # Sort by ALL game Elo descending
         all_indices = np.argsort(all_elos)[::-1]
@@ -475,7 +467,7 @@ class BradleyTerryFitterPlots:
         player_to_pos = {p: i for i, p in enumerate(player_order)}
 
         # Create subplots for each game
-        games = sorted(self.fitter.results.keys())
+        games = sorted(self.results.keys())
         n_games = len(games)
 
         fig, axes = plt.subplots(1, n_games, figsize=(5 * n_games, max(8, len(player_order) * 0.5)), sharey=True)
@@ -483,13 +475,13 @@ class BradleyTerryFitterPlots:
             axes = [axes]
 
         for ax, game_name in zip(axes, games):
-            result = self.fitter.results[game_name]
+            result = self.results[game_name]
             players = result["players"]
             strengths = result["strengths"]
             sigma = result.get("elo_std")
 
             # Convert to Elo ratings
-            elos = {p: self.fitter.bt_to_elo(s) for p, s in zip(players, strengths)}
+            elos = {p: self.bt_to_elo(s) for p, s in zip(players, strengths)}
 
             # Create arrays aligned with player_order
             y_positions = []
@@ -547,22 +539,23 @@ class BradleyTerryFitterPlots:
         plt.close()
         logger.info(f"Saved combined Elo plot: {output_path}")
 
-    def create_validation_plots(self, output_dir: Path) -> None:
+    def create_validation_plots(self, output_dir: Path, regularization: float = 0.01) -> None:
         """Create validation plots showing log-likelihood profiles for each player.
 
         Args:
             output_dir: Directory to save PDF plots
+            regularization: L2 regularization strength used in fitting
         """
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        for game_name, result in self.fitter.results.items():
+        for game_name, result in self.results.items():
             players = result["players"]
             strengths = result["strengths"]
             n_players = len(players)
 
             # Rebuild pairs and wins for this game
             player_to_idx = {p: i for i, p in enumerate(players)}
-            matchups = self.fitter.win_matrix[game_name]
+            matchups = self.win_matrix[game_name]
             pairs = []
             wins = []
             for (p1, p2), (w1, w2) in matchups.items():
@@ -592,7 +585,7 @@ class BradleyTerryFitterPlots:
                     test_strengths[idx] = s
                     # Re-normalize to maintain sum=0 constraint
                     test_strengths -= test_strengths.mean()
-                    neg_ll = self.fitter._negative_log_likelihood(test_strengths, pairs, wins)
+                    neg_ll = self._negative_log_likelihood(test_strengths, pairs, wins, regularization)
                     neg_lls.append(neg_ll)
 
                 neg_lls = np.array(neg_lls)
@@ -631,6 +624,39 @@ class BradleyTerryFitterPlots:
             plt.savefig(output_path, format="pdf", bbox_inches="tight")
             plt.close()
             logger.info(f"Saved validation plot: {output_path}")
+
+
+def print_results(results: dict[str, dict]) -> None:
+    """Print fitted strengths and Elo ratings for all games.
+
+    Args:
+        results: Dictionary mapping game name to fit results
+        regularization: L2 regularization strength used in fitting
+    """
+    for game_name in sorted(results.keys()):
+        result = results[game_name]
+        print(f"\n{game_name}:")
+        print(f"Log-likelihood: {result['log_likelihood']:.2f}")
+        has_sigma = "elo_std" in result
+        if has_sigma:
+            print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s} {'±1σ':>8s}")
+            print("-" * 62)
+        else:
+            print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
+            print("-" * 52)
+
+        # Sort by strength descending
+        indices = np.argsort(result["strengths"])[::-1]
+        for idx in indices:
+            player = result["players"][idx]
+            strength = result["strengths"][idx]
+            elo = BradleyTerryFitter.bt_to_elo(strength)
+            sigma = result.get("elo_std")
+            if sigma is not None:
+                s = sigma[idx]
+                print(f"  {player:<30s} {strength:12.3f} {elo:8.0f} {s:8.0f}")
+            else:
+                print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
 
 
 if __name__ == "__main__":
@@ -685,20 +711,28 @@ if __name__ == "__main__":
     if args.print_matrix:
         builder.print_matrix()
 
-    compute_uncertainties = (
+    uncertainties_supported = (
         args.score_type == "per_tournament_boolean_drop_draws" and args.all_normalization_scheme == "none"
     )
-    fitter = BradleyTerryFitter(
-        builder.win_matrix,
-        regularization=args.regularization,
-        compute_uncertainties=compute_uncertainties,
-    )
-    fitter.fit_all()
-    fitter.print_results()
+
+    # Fit Bradley-Terry model for each game
+    results = {}
+    for game_name, matchups in builder.win_matrix.items():
+        logger.info(f"Fitting Bradley-Terry model for {game_name}")
+        fitter = BradleyTerryFitter(
+            matchups,
+            regularization=args.regularization,
+            compute_uncertainties=uncertainties_supported,
+        )
+        results[game_name] = fitter.fit()
+
+    print(f"\nRegularization λ = {args.regularization}")
+    print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
+    print_results(results)
 
     if args.validation_plots or args.elo_plot:
-        plotter = BradleyTerryFitterPlots(fitter)
+        plotter = BradleyTerryFitterPlots(results, builder.win_matrix)
         if args.validation_plots:
-            plotter.create_validation_plots(args.validation_dir)
+            plotter.create_validation_plots(args.validation_dir, regularization=args.regularization)
         if args.elo_plot:
             plotter.create_elo_plots(args.elo_plot_dir)
