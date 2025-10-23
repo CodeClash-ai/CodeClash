@@ -2,12 +2,14 @@
 import argparse
 import json
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TypeAlias, get_args
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import minimize
+from scipy.stats import kendalltau, spearmanr
 from tqdm import tqdm
 
 from codeclash.analysis.metrics.elo import get_scores
@@ -277,12 +279,19 @@ class ScoreMatrixBuilder:
 class BradleyTerryFitter:
     def __init__(
         self,
-        matchups: dict[tuple[str, str], list[float]],
+        win_matrix: dict[tuple[str, str], list[float]],
         *,
         regularization: float = 0.01,
         compute_uncertainties: bool = True,
     ):
-        self.matchups = matchups
+        """Fit Bradley-Terry model to a win matrix
+
+        Args:
+            win_matrix: Dictionary mapping player pairs to win counts
+            regularization: L2 regularization strength
+            compute_uncertainties: Whether to compute uncertainties
+        """
+        self.matchups = win_matrix
         self.regularization = regularization
         self.compute_uncertainties = compute_uncertainties
         self.result: dict | None = None
@@ -626,6 +635,150 @@ class BradleyTerryFitterPlots:
             logger.info(f"Saved validation plot: {output_path}")
 
 
+@dataclass
+class BootStrapRankStabilityConfig:
+    n_bootstrap: int = 200
+    game: str = "ALL"
+    regularization: float = 0.01
+    topks: list[int] | None = None
+    rng_seed: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.topks is None:
+            self.topks = [1, 3, 5]
+
+
+class BootStrapRankStability:
+    def __init__(
+        self,
+        builder: ScoreMatrixBuilder,
+        *,
+        n_bootstrap: int = 200,
+        game: str = "ALL",
+        regularization: float = 0.01,
+        topks: list[int] | None = None,
+    ):
+        self.builder = builder
+        self.n_bootstrap = n_bootstrap
+        self.game = game
+        self.regularization = regularization
+        self.topks = topks
+
+    @staticmethod
+    def _elos_from_result(result: dict) -> dict[str, float]:
+        return {p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(result["players"], result["strengths"])}
+
+    @staticmethod
+    def _ranking_from_elos(elos: dict[str, float]) -> list[str]:
+        return [p for p, _ in sorted(elos.items(), key=lambda kv: kv[1], reverse=True)]
+
+    @staticmethod
+    def _positions(ranking: list[str]) -> dict[str, int]:
+        return {p: i for i, p in enumerate(ranking)}
+
+    @staticmethod
+    def _max_footrule(n: int) -> float:
+        return (n * n) / 2 if n % 2 == 0 else (n * n - 1) / 2
+
+    def _fit_on_matrix(self, matchups: dict[tuple[str, str], list[float]]) -> dict:
+        fitter = BradleyTerryFitter(matchups, regularization=self.regularization, compute_uncertainties=False)
+        return fitter.fit()
+
+    def run(self) -> None:
+        game = self.game
+        assert game in self.builder.win_matrix, f"Game '{game}' not found in win matrix"
+
+        baseline_res = self._fit_on_matrix(self.builder.win_matrix[game])
+        baseline_elos = self._elos_from_result(baseline_res)
+        baseline_ranking = self._ranking_from_elos(baseline_elos)
+        players = baseline_ranking
+        n = len(players)
+        topks = list(range(1, n + 1)) if self.topks is None else [k for k in self.topks if k <= n]
+
+        rank_samples: dict[str, list[int]] = {p: [] for p in players}
+        tau_vals: list[float] = []
+        rho_vals: list[float] = []
+        footrule_vals: list[float] = []
+        topk_overlap: dict[int, list[float]] = {k: [] for k in topks}
+        top1_match = 0
+        pair_agree = 0
+        total_pairs = n * (n - 1) // 2
+
+        base_pos = self._positions(baseline_ranking)
+
+        rng = np.random.default_rng(42)
+        for _ in tqdm(range(self.n_bootstrap), desc="Bootstrap samples"):
+            boot = self.builder.get_nonparametric_bootstrap(rng=rng)
+            res = self._fit_on_matrix(boot[game])
+            elos = self._elos_from_result(res)
+            ranking = self._ranking_from_elos(elos)
+            pos = self._positions(ranking)
+
+            for p in players:
+                rank_samples[p].append(pos[p] + 1)
+
+            base_rank_arr = np.array([base_pos[p] + 1 for p in players])
+            boot_rank_arr = np.array([pos[p] + 1 for p in players])
+            tau = kendalltau(base_rank_arr, boot_rank_arr, variant="b").correlation
+            rho = spearmanr(base_rank_arr, boot_rank_arr).correlation
+            tau_vals.append(float(tau) if tau is not None else float("nan"))
+            rho_vals.append(float(rho) if rho is not None else float("nan"))
+
+            foot = float(np.abs(base_rank_arr - boot_rank_arr).sum())
+            footrule_vals.append(foot / self._max_footrule(n))
+
+            for k in topks:
+                base_set = set(baseline_ranking[:k])
+                boot_set = set(ranking[:k])
+                inter = len(base_set & boot_set)
+                topk_overlap[k].append(inter / k)
+
+            if ranking and baseline_ranking and ranking[0] == baseline_ranking[0]:
+                top1_match += 1
+
+            agree = 0
+            for i in range(n):
+                for j in range(i + 1, n):
+                    pi, pj = players[i], players[j]
+                    agree += int((base_pos[pi] < base_pos[pj]) == (pos[pi] < pos[pj]))
+            pair_agree += agree
+
+        mean_tau = float(np.nanmean(np.array(tau_vals))) if tau_vals else float("nan")
+        mean_rho = float(np.nanmean(np.array(rho_vals))) if rho_vals else float("nan")
+        mean_foot = float(np.nanmean(np.array(footrule_vals))) if footrule_vals else float("nan")
+        top1_consistency = top1_match / self.n_bootstrap if self.n_bootstrap > 0 else float("nan")
+        pairwise_agreement = (pair_agree / (self.n_bootstrap * total_pairs)) if total_pairs > 0 else float("nan")
+
+        lines = []
+        lines.append("\nRank stability (bootstrap)")
+        lines.append(f"Game: {game}")
+        lines.append(f"Bootstraps: {self.n_bootstrap}")
+        lines.append("")
+        lines.append(f"{'Metric':<28} {'Value':>10}")
+        lines.append("-" * 40)
+        lines.append(f"{'Kendall tau (avg)':<28} {mean_tau:>10.3f}")
+        lines.append(f"{'Spearman rho (avg)':<28} {mean_rho:>10.3f}")
+        lines.append(f"{'Footrule (avg, norm)':<28} {mean_foot:>10.3f}")
+        lines.append(f"{'Top-1 consistency':<28} {top1_consistency:>10.3f}")
+        lines.append(f"{'Pairwise order agree':<28} {pairwise_agreement:>10.3f}")
+        for k in topks:
+            lines.append(f"{f'Top-{k} overlap (avg)':<28} {float(np.mean(topk_overlap[k])):>10.3f}")
+        for ln in lines:
+            logger.info(ln)
+
+        header = f"\n{'Model':<30} {'MeanRank':>9} {'StdRank':>8} " + " ".join([f"P@{k:>2}" for k in topks])
+        logger.info(header)
+        logger.info("-" * max(40, len(header)))
+        for p in players:
+            ranks = np.array(rank_samples[p], dtype=float)
+            mean_r = float(np.mean(ranks))
+            std_r = float(np.std(ranks, ddof=0))
+            probs = []
+            for k in topks:
+                probs.append(np.mean(ranks <= k))
+            logger.info(f"{p:<30} {mean_r:9.2f} {std_r:8.2f} " + " ".join([f"{float(pr):>5.2f}" for pr in probs]))
+
+
 def print_results(results: dict[str, dict]) -> None:
     """Print fitted strengths and Elo ratings for all games.
 
@@ -701,6 +854,16 @@ if __name__ == "__main__":
         default=Path("elo2_plots"),
         help="Directory to save Elo plots (default: elo2_plots)",
     )
+    parser.add_argument("--rank-stability", action="store_true", help="Run bootstrap rank stability analysis")
+    parser.add_argument("--rank-stability-game", type=str, default="ALL", help="Game to analyze (default: ALL)")
+    parser.add_argument("--rank-stability-n", type=int, default=200, help="Number of bootstrap samples")
+    parser.add_argument(
+        "--rank-stability-topk",
+        type=int,
+        nargs="*",
+        default=None,
+        help="Top-k cutoffs for overlap metrics (default: all players)",
+    )
     args = parser.parse_args()
 
     builder = ScoreMatrixBuilder(
@@ -736,3 +899,12 @@ if __name__ == "__main__":
             plotter.create_validation_plots(args.validation_dir, regularization=args.regularization)
         if args.elo_plot:
             plotter.create_elo_plots(args.elo_plot_dir)
+
+    if args.rank_stability:
+        BootStrapRankStability(
+            builder,
+            n_bootstrap=args.rank_stability_n,
+            game=args.rank_stability_game,
+            regularization=args.regularization,
+            topks=args.rank_stability_topk if args.rank_stability_topk else None,
+        ).run()
