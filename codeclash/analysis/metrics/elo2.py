@@ -149,26 +149,38 @@ class ScoreMatrixBuilder:
         models = [p["config"]["model"]["model_name"].strip("@") for p in players]
 
         # Aggregate scores for each round
-        p1_round_score = 0
-        p2_round_score = 0
+        p1_round_scores = []
+        p2_round_scores = []
         for idx, stats in metadata["round_stats"].items():
             if idx == "0":
                 continue
 
             _p1_score, _p2_score = self._get_round_score(stats, player_names, game_name)
-            p1_round_score += _p1_score
-            p2_round_score += _p2_score
+            p1_round_scores.append(_p1_score)
+            p2_round_scores.append(_p2_score)
 
         # If we're scoring per tournament, we need to convert the round scores to a tournament score
-        p1_score = p1_round_score
-        p2_score = p2_round_score
         if self.score_type == "per_tournament_boolean_drop_draws":
-            if p1_round_score == p2_round_score:
-                p1_score, p2_score = 0.0, 0.0
-            if p1_round_score > p2_round_score:
+            if sum(p1_round_scores) == sum(p2_round_scores):
+                # Check for the last round that was not a tie
+                logger.debug(f"Tie in tournament {metadata_path}")
+                for i in range(len(p1_round_scores) - 1, -1, -1):
+                    if p1_round_scores[i] > p2_round_scores[i]:
+                        p1_score, p2_score = 1.0, 0.0
+                        break
+                    if p1_round_scores[i] < p2_round_scores[i]:
+                        p1_score, p2_score = 0.0, 1.0
+                        break
+                else:
+                    logger.warning(f"Tie in tournament {metadata_path} could not be broken, skipping tournament.")
+                    p1_score, p2_score = 0.0, 0.0
+            elif sum(p1_round_scores) > sum(p2_round_scores):
                 p1_score, p2_score = 1.0, 0.0
             else:
                 p1_score, p2_score = 0.0, 1.0
+        else:
+            p1_score = sum(p1_round_scores)
+            p2_score = sum(p2_round_scores)
 
         # Convert to unique names and sorted pair when updating matrix
         unique_names = [self._get_unique_model_name(m) for m in models]
@@ -235,6 +247,10 @@ class ScoreMatrixBuilder:
         """
         if self.all_normalization_scheme != "none":
             raise NotImplementedError("get_nonparametric_bootstrap supports all_normalization_scheme='none' only")
+        if self.score_type != "per_tournament_boolean_drop_draws":
+            raise NotImplementedError(
+                "get_nonparametric_bootstrap supports score_type='per_tournament_boolean_drop_draws' only"
+            )
         if rng is None:
             rng = np.random.default_rng()
 
@@ -257,6 +273,50 @@ class ScoreMatrixBuilder:
                 boot_matrix[game_name][pair] = [w1, w2]
 
         # Build combined 'ALL' game by summing, same as other games
+        combined: dict[tuple[str, str], list[float]] = defaultdict(lambda: [0.0, 0.0])
+        for matchups in boot_matrix.values():
+            for pair, (w1, w2) in matchups.items():
+                combined[pair][0] += w1
+                combined[pair][1] += w2
+
+        boot_matrix["ALL"] = {k: [v[0], v[1]] for k, v in combined.items()}
+        return boot_matrix
+
+    def get_parametric_bootstrap(
+        self, *, rng: np.random.Generator | None = None
+    ) -> dict[str, dict[tuple[str, str], list[float]]]:
+        """Return a parametric bootstrap sample based on a Bernoulli model.
+
+        For each matchup, we estimate the win probability p = w1/(w1+w2) and then
+        sample n = w1+w2 Bernoulli trials with that probability to get new counts.
+        """
+        if self.all_normalization_scheme != "none":
+            raise NotImplementedError("get_nonparametric_bootstrap supports all_normalization_scheme='none' only")
+        if self.score_type != "per_tournament_boolean_drop_draws":
+            raise NotImplementedError(
+                "get_nonparametric_bootstrap supports score_type='per_tournament_boolean_drop_draws' only"
+            )
+        if rng is None:
+            rng = np.random.default_rng()
+
+        boot_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
+            lambda: defaultdict(lambda: [0.0, 0.0])
+        )
+
+        for game_name, matchups in self.win_matrix.items():
+            if game_name == "ALL":
+                continue
+            for pair, (w1, w2) in matchups.items():
+                n = int(w1 + w2)
+                if n == 0:
+                    boot_matrix[game_name][pair] = [0.0, 0.0]
+                    continue
+                p = w1 / (w1 + w2)
+                w1_new = float(rng.binomial(n, p))
+                w2_new = float(n - w1_new)
+                boot_matrix[game_name][pair] = [w1_new, w2_new]
+
+        # Build combined 'ALL' game by summing
         combined: dict[tuple[str, str], list[float]] = defaultdict(lambda: [0.0, 0.0])
         for matchups in boot_matrix.values():
             for pair, (w1, w2) in matchups.items():
@@ -422,6 +482,14 @@ class BradleyTerryFitterPlots:
         self.win_matrix = win_matrix
 
     @staticmethod
+    def _save_plot(output_dir: Path, filename_base: str) -> None:
+        """Save plot in both PDF and PNG formats."""
+        for fmt in ["pdf", "png"]:
+            output_path = output_dir / f"{filename_base}.{fmt}"
+            plt.savefig(output_path, format=fmt, bbox_inches="tight", dpi=300 if fmt == "png" else None)
+            logger.info(f"Saved plot: {output_path}")
+
+    @staticmethod
     def bt_to_elo(strength: float) -> float:
         """Convert Bradley-Terry strength to Elo rating.
 
@@ -543,10 +611,8 @@ class BradleyTerryFitterPlots:
         axes[0].invert_yaxis()
 
         plt.tight_layout()
-        output_path = output_dir / "all_games_elo.pdf"
-        plt.savefig(output_path, format="pdf", bbox_inches="tight")
+        self._save_plot(output_dir, "all_games_elo")
         plt.close()
-        logger.info(f"Saved combined Elo plot: {output_path}")
 
     def create_validation_plots(self, output_dir: Path, regularization: float = 0.01) -> None:
         """Create validation plots showing log-likelihood profiles for each player.
@@ -629,10 +695,8 @@ class BradleyTerryFitterPlots:
 
             plt.tight_layout()
             safe_game_name = game_name.replace("/", "_").replace(" ", "_")
-            output_path = output_dir / f"{safe_game_name}_validation.pdf"
-            plt.savefig(output_path, format="pdf", bbox_inches="tight")
+            self._save_plot(output_dir, f"{safe_game_name}_validation")
             plt.close()
-            logger.info(f"Saved validation plot: {output_path}")
 
 
 @dataclass
@@ -642,6 +706,7 @@ class BootStrapRankStabilityConfig:
     regularization: float = 0.01
     topks: list[int] | None = None
     rng_seed: int | None = None
+    bootstrap_type: Literal["nonparametric", "parametric"] = "nonparametric"
 
     def __post_init__(self) -> None:
         if self.topks is None:
@@ -653,16 +718,28 @@ class BootStrapRankStability:
         self,
         builder: ScoreMatrixBuilder,
         *,
-        n_bootstrap: int = 200,
+        n_bootstrap: int = 1000,
         game: str = "ALL",
         regularization: float = 0.01,
         topks: list[int] | None = None,
+        bootstrap_type: Literal["nonparametric", "parametric"] = "nonparametric",
+        output_dir: Path | None = None,
     ):
         self.builder = builder
         self.n_bootstrap = n_bootstrap
         self.game = game
         self.regularization = regularization
         self.topks = topks
+        self.bootstrap_type = bootstrap_type
+        self.output_dir = output_dir
+
+    @staticmethod
+    def _save_plot(output_dir: Path, filename_base: str) -> None:
+        """Save plot in both PDF and PNG formats."""
+        for fmt in ["pdf", "png"]:
+            output_path = output_dir / f"{filename_base}.{fmt}"
+            plt.savefig(output_path, format=fmt, bbox_inches="tight", dpi=300 if fmt == "png" else None)
+            logger.info(f"Saved plot: {output_path}")
 
     @staticmethod
     def _elos_from_result(result: dict) -> dict[str, float]:
@@ -684,6 +761,101 @@ class BootStrapRankStability:
         fitter = BradleyTerryFitter(matchups, regularization=self.regularization, compute_uncertainties=False)
         return fitter.fit()
 
+    def _create_rank_matrix_plot(
+        self, players: list[str], rank_samples: dict[str, list[int]], output_dir: Path
+    ) -> None:
+        """Create a matrix plot showing the percentage of times each model achieves each rank."""
+        n = len(players)
+        rank_matrix = np.zeros((n, n))
+
+        for model_idx, model in enumerate(players):
+            ranks = rank_samples[model]
+            for rank in ranks:
+                rank_matrix[rank - 1, model_idx] += 1
+
+        rank_matrix = (rank_matrix / self.n_bootstrap) * 100
+
+        fig, ax = plt.subplots(figsize=(max(10, n * 0.8), max(8, n * 0.6)))
+        im = ax.imshow(rank_matrix, cmap="YlOrRd", aspect="auto", vmin=0, vmax=100)
+
+        ax.set_xticks(range(n))
+        ax.set_xticklabels(players, rotation=45, ha="right", fontsize=10)
+        ax.set_yticks(range(n))
+        ax.set_yticklabels([f"Rank {i + 1}" for i in range(n)], fontsize=10)
+
+        ax.set_xlabel("Model", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Rank", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Rank Distribution ({self.bootstrap_type} bootstrap, {self.n_bootstrap} samples)",
+            fontsize=14,
+            fontweight="bold",
+        )
+
+        for i in range(n):
+            for j in range(n):
+                value = rank_matrix[i, j]
+                if value > 0:
+                    text_color = "white" if value > 50 else "black"
+                    ax.text(
+                        j, i, f"{value:.1f}%", ha="center", va="center", color=text_color, fontsize=9, fontweight="bold"
+                    )
+
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.set_label("Percentage (%)", fontsize=11, fontweight="bold")
+
+        plt.tight_layout()
+        self._save_plot(output_dir, f"{self.game}_rank_matrix_{self.bootstrap_type}")
+        plt.close()
+
+    def _create_elo_violin_plot(
+        self, players: list[str], elo_samples: dict[str, list[float]], baseline_elos: dict[str, float], output_dir: Path
+    ) -> None:
+        """Create a violin plot showing the distribution of Elo scores for each model."""
+        elo_data = [elo_samples[p] for p in players]
+
+        fig, ax = plt.subplots(figsize=(max(10, len(players) * 0.8), 8))
+
+        parts = ax.violinplot(elo_data, positions=range(len(players)), showmeans=False, showmedians=False, widths=0.7)
+
+        for pc in parts["bodies"]:
+            pc.set_facecolor("steelblue")
+            pc.set_alpha(0.7)
+            pc.set_edgecolor("black")
+            pc.set_linewidth(1)
+
+        for partname in ("cbars", "cmins", "cmaxes"):
+            if partname in parts:
+                parts[partname].set_edgecolor("black")
+                parts[partname].set_linewidth(1)
+
+        baseline_vals = [baseline_elos[p] for p in players]
+        ax.scatter(
+            range(len(players)),
+            baseline_vals,
+            color="red",
+            s=100,
+            zorder=3,
+            marker="D",
+            label="Baseline Elo",
+            edgecolors="black",
+            linewidths=1,
+        )
+
+        ax.set_xticks(range(len(players)))
+        ax.set_xticklabels(players, rotation=45, ha="right", fontsize=10)
+        ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Elo Distribution ({self.bootstrap_type} bootstrap, {self.n_bootstrap} samples)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        ax.grid(True, axis="y", alpha=0.3)
+        ax.legend(fontsize=10)
+
+        plt.tight_layout()
+        self._save_plot(output_dir, f"{self.game}_elo_violin_{self.bootstrap_type}")
+        plt.close()
+
     def run(self) -> None:
         game = self.game
         assert game in self.builder.win_matrix, f"Game '{game}' not found in win matrix"
@@ -696,6 +868,7 @@ class BootStrapRankStability:
         topks = list(range(1, n + 1)) if self.topks is None else [k for k in self.topks if k <= n]
 
         rank_samples: dict[str, list[int]] = {p: [] for p in players}
+        elo_samples: dict[str, list[float]] = {p: [] for p in players}
         tau_vals: list[float] = []
         rho_vals: list[float] = []
         footrule_vals: list[float] = []
@@ -708,7 +881,10 @@ class BootStrapRankStability:
 
         rng = np.random.default_rng(42)
         for _ in tqdm(range(self.n_bootstrap), desc="Bootstrap samples"):
-            boot = self.builder.get_nonparametric_bootstrap(rng=rng)
+            if self.bootstrap_type == "nonparametric":
+                boot = self.builder.get_nonparametric_bootstrap(rng=rng)
+            else:
+                boot = self.builder.get_parametric_bootstrap(rng=rng)
             res = self._fit_on_matrix(boot[game])
             elos = self._elos_from_result(res)
             ranking = self._ranking_from_elos(elos)
@@ -716,6 +892,7 @@ class BootStrapRankStability:
 
             for p in players:
                 rank_samples[p].append(pos[p] + 1)
+                elo_samples[p].append(elos[p])
 
             base_rank_arr = np.array([base_pos[p] + 1 for p in players])
             boot_rank_arr = np.array([pos[p] + 1 for p in players])
@@ -753,6 +930,7 @@ class BootStrapRankStability:
         lines.append("\nRank stability (bootstrap)")
         lines.append(f"Game: {game}")
         lines.append(f"Bootstraps: {self.n_bootstrap}")
+        lines.append(f"Bootstrap type: {self.bootstrap_type}")
         lines.append("")
         lines.append(f"{'Metric':<28} {'Value':>10}")
         lines.append("-" * 40)
@@ -766,17 +944,30 @@ class BootStrapRankStability:
         for ln in lines:
             logger.info(ln)
 
-        header = f"\n{'Model':<30} {'MeanRank':>9} {'StdRank':>8} " + " ".join([f"P@{k:>2}" for k in topks])
+        header = f"\n{'Model':<30} {'BaseElo':>8} {'StdElo':>8} {'MeanRank':>9} {'StdRank':>8} " + " ".join(
+            [f"P@{k:>2}" for k in topks]
+        )
         logger.info(header)
         logger.info("-" * max(40, len(header)))
         for p in players:
             ranks = np.array(rank_samples[p], dtype=float)
+            elos_arr = np.array(elo_samples[p], dtype=float)
+            base_elo = baseline_elos[p]
             mean_r = float(np.mean(ranks))
             std_r = float(np.std(ranks, ddof=0))
+            std_elo = float(np.std(elos_arr, ddof=0))
             probs = []
             for k in topks:
                 probs.append(np.mean(ranks <= k))
-            logger.info(f"{p:<30} {mean_r:9.2f} {std_r:8.2f} " + " ".join([f"{float(pr):>5.2f}" for pr in probs]))
+            logger.info(
+                f"{p:<30} {base_elo:8.0f} {std_elo:8.0f} {mean_r:9.2f} {std_r:8.2f} "
+                + " ".join([f"{float(pr):>5.2f}" for pr in probs])
+            )
+
+        if self.output_dir is not None:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            self._create_rank_matrix_plot(players, rank_samples, self.output_dir)
+            self._create_elo_violin_plot(players, elo_samples, baseline_elos, self.output_dir)
 
 
 def print_results(results: dict[str, dict]) -> None:
@@ -839,30 +1030,10 @@ if __name__ == "__main__":
         help="See ScoreMatrixBuilder for possible values",
     )
     parser.add_argument(
-        "--validation-plots", action="store_true", help="Create validation plots showing likelihood profiles"
-    )
-    parser.add_argument(
-        "--validation-dir",
-        type=Path,
-        default=Path("elo2_validation_plots"),
-        help="Directory to save validation plots (default: elo2_validation_plots)",
-    )
-    parser.add_argument("--elo-plot", action="store_true", help="Create horizontal bar charts showing Elo ratings")
-    parser.add_argument(
-        "--elo-plot-dir",
+        "--output-dir",
         type=Path,
         default=Path("elo2_plots"),
-        help="Directory to save Elo plots (default: elo2_plots)",
-    )
-    parser.add_argument("--rank-stability", action="store_true", help="Run bootstrap rank stability analysis")
-    parser.add_argument("--rank-stability-game", type=str, default="ALL", help="Game to analyze (default: ALL)")
-    parser.add_argument("--rank-stability-n", type=int, default=200, help="Number of bootstrap samples")
-    parser.add_argument(
-        "--rank-stability-topk",
-        type=int,
-        nargs="*",
-        default=None,
-        help="Top-k cutoffs for overlap metrics (default: all players)",
+        help="Directory to save plots (default: elo2_plots)",
     )
     args = parser.parse_args()
 
@@ -893,18 +1064,18 @@ if __name__ == "__main__":
     print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
     print_results(results)
 
-    if args.validation_plots or args.elo_plot:
-        plotter = BradleyTerryFitterPlots(results, builder.win_matrix)
-        if args.validation_plots:
-            plotter.create_validation_plots(args.validation_dir, regularization=args.regularization)
-        if args.elo_plot:
-            plotter.create_elo_plots(args.elo_plot_dir)
+    plotter = BradleyTerryFitterPlots(results, builder.win_matrix)
+    plotter.create_validation_plots(args.output_dir, regularization=args.regularization)
+    plotter.create_elo_plots(args.output_dir)
 
-    if args.rank_stability:
-        BootStrapRankStability(
-            builder,
-            n_bootstrap=args.rank_stability_n,
-            game=args.rank_stability_game,
-            regularization=args.regularization,
-            topks=args.rank_stability_topk if args.rank_stability_topk else None,
-        ).run()
+    if uncertainties_supported:
+        for bootstrap_type in ["nonparametric", "parametric"]:
+            BootStrapRankStability(
+                builder,
+                n_bootstrap=200,
+                game="ALL",
+                regularization=args.regularization,
+                topks=None,
+                bootstrap_type=bootstrap_type,
+                output_dir=args.output_dir,
+            ).run()
