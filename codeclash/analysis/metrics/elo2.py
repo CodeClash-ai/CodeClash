@@ -2,7 +2,6 @@
 import argparse
 import json
 from collections import defaultdict
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TypeAlias, get_args
 
@@ -14,6 +13,7 @@ from tqdm import tqdm
 
 from codeclash.analysis.metrics.elo import get_scores
 from codeclash.analysis.significance import calculate_p_value
+from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import get_logger
 
@@ -699,20 +699,6 @@ class BradleyTerryFitterPlots:
             plt.close()
 
 
-@dataclass
-class BootStrapRankStabilityConfig:
-    n_bootstrap: int = 200
-    game: str = "ALL"
-    regularization: float = 0.01
-    topks: list[int] | None = None
-    rng_seed: int | None = None
-    bootstrap_type: Literal["nonparametric", "parametric"] = "nonparametric"
-
-    def __post_init__(self) -> None:
-        if self.topks is None:
-            self.topks = [1, 3, 5]
-
-
 class BootStrapRankStability:
     def __init__(
         self,
@@ -1003,6 +989,79 @@ def print_results(results: dict[str, dict]) -> None:
                 print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
 
 
+def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
+    """Write LaTeX table with ELO results to file.
+
+    Args:
+        results: Dictionary mapping game name to fit results
+        output_dir: Directory to save the LaTeX file
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / "main_results.tex"
+
+    single_arena_games = ["BattleSnake", "CoreWar", "Halite", "HuskyBench", "RoboCode", "RobotRumble"]
+    games_in_table = [g for g in single_arena_games if g in results]
+
+    if "ALL" not in results:
+        logger.warning("No 'ALL' game found in results, skipping LaTeX table generation")
+        return
+
+    all_result = results["ALL"]
+    all_players = all_result["players"]
+    all_strengths = all_result["strengths"]
+    all_elos = {p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(all_players, all_strengths)}
+    sorted_players = sorted(all_elos.items(), key=lambda x: x[1], reverse=True)
+
+    lines = []
+    lines.append("% LaTeX commands for formatting ELO results")
+    lines.append(r"\newcommand{\eloSingleArenaResult}[1]{\textcolor{gray}{\small #1}}")
+    lines.append(r"\newcommand{\eloMainResult}[1]{#1}")
+    lines.append("")
+    lines.append(r"\begin{table}[t]")
+    lines.append(r"\centering")
+    lines.append(r"\begin{tabular}{l|" + "c" * len(games_in_table) + "|c}")
+    lines.append(r"\toprule")
+
+    display_names = [g.replace("HuskyBench", "Poker") for g in games_in_table]
+    header_parts = [""] + [rf"\scriptsize{{{g}}}" for g in display_names] + [r"\textbf{All}"]
+    lines.append(" & ".join(header_parts) + r" \\")
+    lines.append(r"\midrule")
+
+    def format_elo(elo: float) -> str:
+        """Format ELO number with phantom padding for numbers < 1000"""
+        elo_int = int(elo)
+        if elo_int < 1000:
+            return rf"\phantom{{0}}{elo_int}"
+        return str(elo_int)
+
+    for player, all_elo in sorted_players:
+        display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+        row_parts = [display_name.replace("_", r"\_")]
+
+        for game_name in games_in_table:
+            if game_name in results:
+                game_result = results[game_name]
+                if player in game_result["players"]:
+                    idx = game_result["players"].index(player)
+                    strength = game_result["strengths"][idx]
+                    elo = BradleyTerryFitter.bt_to_elo(strength)
+                    row_parts.append(rf"\eloSingleArenaResult{{{format_elo(elo)}}}")
+                else:
+                    row_parts.append("--")
+            else:
+                row_parts.append("--")
+
+        row_parts.append(rf"\eloMainResult{{{format_elo(all_elo)}}}")
+        lines.append(" & ".join(row_parts) + r" \\")
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+    lines.append(r"\end{table}")
+
+    output_file.write_text("\n".join(lines) + "\n")
+    logger.info(f"Saved LaTeX table: {output_file}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build win matrix and fit Bradley-Terry model")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
@@ -1067,6 +1126,7 @@ if __name__ == "__main__":
     plotter = BradleyTerryFitterPlots(results, builder.win_matrix)
     plotter.create_validation_plots(args.output_dir, regularization=args.regularization)
     plotter.create_elo_plots(args.output_dir)
+    write_latex_table(results, args.output_dir)
 
     if uncertainties_supported:
         for bootstrap_type in ["nonparametric", "parametric"]:
