@@ -61,6 +61,9 @@ class ScoreMatrixBuilder:
         """game name -> (player1, player2) -> [wins, losses]"""
         self.all_normalization_scheme = all_games_normalization_scheme
         self.score_type = score_type
+        self._samples: dict[str, dict[tuple[str, str], list[tuple[float, float]]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
 
     def _get_unique_model_name(self, model: str) -> str:
         return model.rpartition("/")[2]
@@ -172,9 +175,11 @@ class ScoreMatrixBuilder:
         if unique_names[0] == sorted_pair[0]:
             self.win_matrix[game_name][sorted_pair][0] += p1_score
             self.win_matrix[game_name][sorted_pair][1] += p2_score
+            self._samples[game_name][sorted_pair].append((p1_score, p2_score))
         else:
             self.win_matrix[game_name][sorted_pair][0] += p2_score
             self.win_matrix[game_name][sorted_pair][1] += p1_score
+            self._samples[game_name][sorted_pair].append((p2_score, p1_score))
 
     def build(self, log_dir: Path) -> None:
         for metadata_path in tqdm(list(log_dir.rglob("metadata.json"))):
@@ -218,6 +223,46 @@ class ScoreMatrixBuilder:
                         combined[pair][1] += w2 / total_games
 
         self.win_matrix["ALL"] = {k: [v[0], v[1]] for k, v in combined.items()}
+
+    def get_nonparametric_bootstrap(
+        self, *, rng: np.random.Generator | None = None
+    ) -> dict[str, dict[tuple[str, str], list[float]]]:
+        """Return a bootstrap-resampled win matrix with the same format as win_matrix.
+
+        Sampling is done with replacement over per-tournament contributions for each (game, pair).
+        """
+        if self.all_normalization_scheme != "none":
+            raise NotImplementedError("get_nonparametric_bootstrap supports all_normalization_scheme='none' only")
+        if rng is None:
+            rng = np.random.default_rng()
+
+        boot_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
+            lambda: defaultdict(lambda: [0.0, 0.0])
+        )
+
+        for game_name, matchups in self._samples.items():
+            for pair, samples in matchups.items():
+                n = len(samples)
+                if n == 0:
+                    continue
+                indices = rng.integers(0, n, size=n)
+                w1 = 0.0
+                w2 = 0.0
+                for idx in indices:
+                    s1, s2 = samples[int(idx)]
+                    w1 += s1
+                    w2 += s2
+                boot_matrix[game_name][pair] = [w1, w2]
+
+        # Build combined 'ALL' game by summing, same as other games
+        combined: dict[tuple[str, str], list[float]] = defaultdict(lambda: [0.0, 0.0])
+        for matchups in boot_matrix.values():
+            for pair, (w1, w2) in matchups.items():
+                combined[pair][0] += w1
+                combined[pair][1] += w2
+
+        boot_matrix["ALL"] = {k: [v[0], v[1]] for k, v in combined.items()}
+        return boot_matrix
 
     def print_matrix(self) -> None:
         for game, matchups in sorted(self.win_matrix.items()):
