@@ -1014,25 +1014,32 @@ def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
 
     lines = []
     lines.append("% LaTeX commands for formatting ELO results")
-    lines.append(r"\newcommand{\eloSingleArenaResult}[1]{\textcolor{gray}{\small #1}}")
-    lines.append(r"\newcommand{\eloMainResult}[1]{#1}")
+    lines.append(r"\newcommand{\eloSingleArenaResult}[1]{% #1=formatted number")
+    lines.append(r"  \begin{tikzpicture}[baseline=(text.base)]")
+    lines.append(r"    \pgfmathsetmacro{\barwidth}{#1 * 0.0007}")
+    lines.append(r"    \fill[black!15] (0, -0.15) rectangle (\barwidth, 0.25);")
+    lines.append(r"    \node[anchor=west,text=black,font=\footnotesize] (text) at (-0.05, 0.05) {#1};")
+    lines.append(r"  \end{tikzpicture}%")
+    lines.append(r"}")
+    lines.append(r"\newcommand{\eloMainResult}[1]{% #1=raw number")
+    lines.append(r"  \begin{tikzpicture}[baseline=(text.base)]")
+    lines.append(r"    \pgfmathsetmacro{\barwidth}{#1 * 0.001}")
+    lines.append(r"    \fill[chart!35] (0, -0.15) rectangle (\barwidth, 0.25);")
+    lines.append(r"    \node[anchor=west,font=\bfseries] (text) at (0, 0.05) {#1};")
+    lines.append(r"  \end{tikzpicture}%")
+    lines.append(r"}")
     lines.append("")
     lines.append(r"\begin{table}[t]")
     lines.append(r"\centering")
-    lines.append(r"\begin{tabular}{l|" + "c" * len(games_in_table) + "|c}")
+    lines.append(r"\setlength{\tabcolsep}{3pt}")
+    lines.append(r"\renewcommand{\arraystretch}{0.9}")
+    lines.append(r"\begin{tabular}{l|" + "l" * len(games_in_table) + "|l}")
     lines.append(r"\toprule")
 
     display_names = [g.replace("HuskyBench", "Poker") for g in games_in_table]
-    header_parts = [""] + [rf"\scriptsize{{{g}}}" for g in display_names] + [r"\textbf{All}"]
+    header_parts = [""] + [rf"\scriptsize{{{g}}}" for g in display_names] + [r"\multicolumn{1}{c}{\textbf{All}}"]
     lines.append(" & ".join(header_parts) + r" \\")
     lines.append(r"\midrule")
-
-    def format_elo(elo: float) -> str:
-        """Format ELO number with phantom padding for numbers < 1000"""
-        elo_int = int(elo)
-        if elo_int < 1000:
-            return rf"\phantom{{0}}{elo_int}"
-        return str(elo_int)
 
     for player, all_elo in sorted_players:
         display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
@@ -1045,13 +1052,13 @@ def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
                     idx = game_result["players"].index(player)
                     strength = game_result["strengths"][idx]
                     elo = BradleyTerryFitter.bt_to_elo(strength)
-                    row_parts.append(rf"\eloSingleArenaResult{{{format_elo(elo)}}}")
+                    row_parts.append(rf"\eloSingleArenaResult{{{int(elo)}}}")
                 else:
                     row_parts.append("--")
             else:
                 row_parts.append("--")
 
-        row_parts.append(rf"\eloMainResult{{{format_elo(all_elo)}}}")
+        row_parts.append(rf"\eloMainResult{{{int(all_elo)}}}")
         lines.append(" & ".join(row_parts) + r" \\")
 
     lines.append(r"\bottomrule")
