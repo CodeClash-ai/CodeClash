@@ -10,6 +10,8 @@ import numpy as np
 from scipy.optimize import minimize
 from tqdm import tqdm
 
+from codeclash.analysis.metrics.elo import get_scores
+from codeclash.analysis.significance import calculate_p_value
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import get_logger
 
@@ -21,12 +23,18 @@ ELO_BASE = 1200
 
 
 class ScoreMatrixBuilder:
-    def __init__(self, *, all_normalization_scheme: Literal["none", "by_game_model_pair", "by_game"] = "none"):
+    def __init__(
+        self,
+        *,
+        all_normalization_scheme: Literal["none", "by_game_model_pair", "by_game"] = "none",
+        round_score_type: Literal["tertiary", "float", "tertiary_p_value"] = "tertiary",
+    ):
         self.win_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
             lambda: defaultdict(lambda: [0.0, 0.0])
         )
-        self.all_normalization_scheme = all_normalization_scheme
         """game name -> (player1, player2) -> [wins, losses]"""
+        self.all_normalization_scheme = all_normalization_scheme
+        self.round_score_type = round_score_type
 
     def _get_unique_model_name(self, model: str) -> str:
         return model.rpartition("/")[2]
@@ -39,52 +47,58 @@ class ScoreMatrixBuilder:
 
         Returns (p1_score, p2_score) where each is 0.0, 0.5, or 1.0.
         """
-        if stats["winner"] == RESULT_TIE:
+        if self.round_score_type == "float":
+            scores = get_scores(stats)
+            if len(stats["scores"]) == 1 and stats["scores"][RESULT_TIE] > 0:
+                return (0.5, 0.5)
+            # print(stats)
+            return (scores[player_names[0]], scores[player_names[1]])
+        elif self.round_score_type == "tertiary":
+            if stats["winner"] == RESULT_TIE:
+                return (0.5, 0.5)
+            if stats["winner"] == player_names[0]:
+                return (1.0, 0.0)
+            elif stats["winner"] == player_names[1]:
+                return (0.0, 1.0)
+            raise ValueError(f"Expected winner to be one of {player_names}, got {stats['winner']}")
+        elif self.round_score_type == "tertiary_p_value":
+            player2score = stats["scores"]
+            assert len(player_names) == 2
+
+            # Handle special case that one or more had an invalid submit
+            valid_submits = sum(
+                [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
+            )
+            if valid_submits == 0:
+                return (0.5, 0.5)
+            if valid_submits == 1:
+                if stats["winner"] == "Tie":
+                    return (0.5, 0.5)
+                if stats["winner"] == player_names[0]:
+                    return (1, 0)
+                else:
+                    return (0, 1)
+
+            # if len(player2score) != 2:
+            #     raise ValueError(f"Expected 2 players, got {len(player2score)}: {player2score}")
+
+            p1_name, p2_name = player_names
+            if p1_name not in player2score or p2_name not in player2score:
+                raise ValueError(f"Expected {p1_name} and {p2_name} in {player2score}")
+
+            # For HuskyBench and RoboCode, don't use significance testing
+            if game_name not in ["HuskyBench", "RoboCode"]:
+                p_value = calculate_p_value(player2score)
+                if p_value > 0.05:
+                    return (0.5, 0.5)
+
+            # Determine winner
+            if player2score[p1_name] > player2score[p2_name]:
+                return (1.0, 0.0)
+            elif player2score[p2_name] > player2score[p1_name]:
+                return (0.0, 1.0)
             return (0.5, 0.5)
-        if stats["winner"] == player_names[0]:
-            return (1.0, 0.0)
-        elif stats["winner"] == player_names[1]:
-            return (0.0, 1.0)
-        raise ValueError(f"Expected winner to be one of {player_names}, got {stats['winner']}")
-        # player2score = stats["scores"]
-        # assert len(player_names) == 2
-
-        # Handle special case that one or more had an invalid submit
-        # valid_submits = sum(
-        #     [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
-        # )
-        # if valid_submits == 2:
-        #     return (0, 0)
-        # if valid_submits == 1:
-        #     if stats["winner"] == "Tie":
-        #         return (0, 0)
-        #     if stats["winner"] == player_names[0]:
-        #         return (1, 0)
-        #     else:
-        #         return (0, 1)
-
-        # print(stats)
-        # print(player2score)
-
-        # if len(player2score) != 2:
-        #     raise ValueError(f"Expected 2 players, got {len(player2score)}: {player2score}")
-
-        # p1_name, p2_name = player_names
-        # if p1_name not in player2score or p2_name not in player2score:
-        #     raise ValueError(f"Expected {p1_name} and {p2_name} in {player2score}")
-
-        # # For HuskyBench and RoboCode, don't use significance testing
-        # if game_name not in ["HuskyBench", "RoboCode"]:
-        #     p_value = calculate_p_value(player2score)
-        #     if p_value > 0.05:
-        #         return (0, 0)
-
-        # # Determine winner
-        # if player2score[p1_name] > player2score[p2_name]:
-        #     return (1, 0)
-        # elif player2score[p2_name] > player2score[p1_name]:
-        #     return (0, 1)
-        # raise ValueError(f"Shouldn't get here, p value should have been > 0.05: {player2score}, {p_value}")
+        raise ValueError(f"Invalid round score type: {self.round_score_type}")
 
     def _process_tournament(self, metadata_path: Path) -> None:
         metadata = json.loads(metadata_path.read_text())
@@ -436,6 +450,12 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
     parser.add_argument("--print-matrix", action="store_true", help="Print win matrix")
     parser.add_argument(
+        "--round-score-type",
+        choices=["tertiary", "float", "tertiary_p_value"],
+        default="tertiary",
+        help="Round score type: 'tertiary' (0.0, 0.5, 1.0) or 'float' (0.0-1.0)",
+    )
+    parser.add_argument(
         "-l",
         "--lambda",
         dest="regularization",
@@ -468,7 +488,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    builder = ScoreMatrixBuilder(all_normalization_scheme=args.all_normalization_scheme)
+    builder = ScoreMatrixBuilder(
+        all_normalization_scheme=args.all_normalization_scheme, round_score_type=args.round_score_type
+    )
     builder.build(args.log_dir)
 
     if args.print_matrix:
