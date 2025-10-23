@@ -3,7 +3,7 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TypeAlias, get_args
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,19 +22,45 @@ ELO_SLOPE = 400
 ELO_BASE = 1200
 
 
+SCORING_TYPES: TypeAlias = Literal[
+    "per_round_tertiary", "per_round_float", "per_round_tertiary_p_value", "per_tournament_boolean_drop_draws"
+]
+
+ALL_GAMES_NORMALIZATION_SCHEMES: TypeAlias = Literal["none", "by_game_model_pair", "by_game"]
+
+
 class ScoreMatrixBuilder:
     def __init__(
         self,
         *,
-        all_normalization_scheme: Literal["none", "by_game_model_pair", "by_game"] = "none",
-        round_score_type: Literal["tertiary", "float", "tertiary_p_value"] = "tertiary",
+        all_games_normalization_scheme: ALL_GAMES_NORMALIZATION_SCHEMES = "none",
+        score_type: SCORING_TYPES = "per_round_tertiary",
     ):
+        """This class builds a win matrix from a log directory, it doesn't fit anything yet.
+        It also adds a "ALL" game to the win matrix, which is the sum of all games.
+        There are different choices for normalize the "ALL" game, which is controlled by the all_normalization_scheme parameter.
+
+        The possible values are:
+        - "none": No normalization, just sum up raw scores
+        - "by_game_model_pair": Normalize each matchup by its total: wij/(wij+wji)/total_games  (NOTE: can't calculate uncertainties for this)
+        - "by_game": Normalize by total games in each game  (NOTE: can't calculate uncertainties for this)
+
+        The `score_type` parameter controls how the score is calculated for each round. The possible values are:
+        - "per_round_tertiary": Returns 0.0, 0.5, or 1.0 for the score of each player for each round,
+            depending on the "winner" field in the stats dictionary.
+        - "per_round_float": The "float" score type returns the scores based on performance over sims
+        - "per_round_tertiary_p_value": The "tertiary_p_value" score type returns 0.0, 0.5, or 1.0 for the score of each player,
+            similar to the "tertiary" score type, but if the p-value is greater than 0.05, it concludes
+            a draw.
+        - "per_tournament_boolean_drop_draws": The "boolean_drop_draws" score type returns 0.0 or 1.0 for the score of each player,
+            depending on the "winner" field in the stats dictionary. This is the only score type that gives proper uncertainties for the win matrix.
+        """
         self.win_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
             lambda: defaultdict(lambda: [0.0, 0.0])
         )
         """game name -> (player1, player2) -> [wins, losses]"""
-        self.all_normalization_scheme = all_normalization_scheme
-        self.round_score_type = round_score_type
+        self.all_normalization_scheme = all_games_normalization_scheme
+        self.score_type = score_type
 
     def _get_unique_model_name(self, model: str) -> str:
         return model.rpartition("/")[2]
@@ -42,26 +68,28 @@ class ScoreMatrixBuilder:
     def _get_sorted_pair(self, p1: str, p2: str) -> tuple[str, str]:
         return tuple(sorted([p1, p2]))
 
-    def _get_score(self, stats: dict, player_names: list[str], game_name: str) -> tuple[float, float]:
+    def _get_round_score(self, stats: dict, player_names: list[str], game_name: str) -> tuple[float, float]:
         """Calculate score for a round.
 
         Returns (p1_score, p2_score) where each is 0.0, 0.5, or 1.0.
         """
-        if self.round_score_type == "float":
+        if self.score_type == "float":
             scores = get_scores(stats)
             if len(stats["scores"]) == 1 and stats["scores"][RESULT_TIE] > 0:
                 return (0.5, 0.5)
             # print(stats)
             return (scores[player_names[0]], scores[player_names[1]])
-        elif self.round_score_type == "tertiary":
+        elif self.score_type in ["per_round_tertiary", "per_tournament_boolean_drop_draws"]:
             if stats["winner"] == RESULT_TIE:
+                if self.score_type == "per_tournament_boolean_drop_draws":
+                    return (0.0, 0.0)
                 return (0.5, 0.5)
             if stats["winner"] == player_names[0]:
                 return (1.0, 0.0)
             elif stats["winner"] == player_names[1]:
                 return (0.0, 1.0)
             raise ValueError(f"Expected winner to be one of {player_names}, got {stats['winner']}")
-        elif self.round_score_type == "tertiary_p_value":
+        elif self.score_type == "per_round_tertiary_p_value":
             player2score = stats["scores"]
             assert len(player_names) == 2
 
@@ -72,12 +100,12 @@ class ScoreMatrixBuilder:
             if valid_submits == 0:
                 return (0.5, 0.5)
             if valid_submits == 1:
-                if stats["winner"] == "Tie":
+                if stats["winner"] == RESULT_TIE:
                     return (0.5, 0.5)
                 if stats["winner"] == player_names[0]:
-                    return (1, 0)
+                    return (1.0, 0.0)
                 else:
-                    return (0, 1)
+                    return (0.0, 1.0)
 
             # if len(player2score) != 2:
             #     raise ValueError(f"Expected 2 players, got {len(player2score)}: {player2score}")
@@ -98,7 +126,7 @@ class ScoreMatrixBuilder:
             elif player2score[p2_name] > player2score[p1_name]:
                 return (0.0, 1.0)
             return (0.5, 0.5)
-        raise ValueError(f"Invalid round score type: {self.round_score_type}")
+        raise ValueError(f"Invalid round score type: {self.score_type}")
 
     def _process_tournament(self, metadata_path: Path) -> None:
         metadata = json.loads(metadata_path.read_text())
@@ -115,23 +143,38 @@ class ScoreMatrixBuilder:
         player_names = [p["name"] for p in players]
         models = [p["config"]["model"]["model_name"].strip("@") for p in players]
 
-        # Process each round
+        # Aggregate scores for each round
+        p1_round_score = 0
+        p2_round_score = 0
         for idx, stats in metadata["round_stats"].items():
             if idx == "0":
                 continue
 
-            p1_score, p2_score = self._get_score(stats, player_names, game_name)
+            _p1_score, _p2_score = self._get_round_score(stats, player_names, game_name)
+            p1_round_score += _p1_score
+            p2_round_score += _p2_score
 
-            # Convert to unique names and sorted pair when updating matrix
-            unique_names = [self._get_unique_model_name(m) for m in models]
-            sorted_pair = self._get_sorted_pair(unique_names[0], unique_names[1])
-
-            if unique_names[0] == sorted_pair[0]:
-                self.win_matrix[game_name][sorted_pair][0] += p1_score
-                self.win_matrix[game_name][sorted_pair][1] += p2_score
+        # If we're scoring per tournament, we need to convert the round scores to a tournament score
+        p1_score = p1_round_score
+        p2_score = p2_round_score
+        if self.score_type == "per_tournament_boolean_drop_draws":
+            if p1_round_score == p2_round_score:
+                p1_score, p2_score = 0.0, 0.0
+            if p1_round_score > p2_round_score:
+                p1_score, p2_score = 1.0, 0.0
             else:
-                self.win_matrix[game_name][sorted_pair][0] += p2_score
-                self.win_matrix[game_name][sorted_pair][1] += p1_score
+                p1_score, p2_score = 0.0, 1.0
+
+        # Convert to unique names and sorted pair when updating matrix
+        unique_names = [self._get_unique_model_name(m) for m in models]
+        sorted_pair = self._get_sorted_pair(unique_names[0], unique_names[1])
+
+        if unique_names[0] == sorted_pair[0]:
+            self.win_matrix[game_name][sorted_pair][0] += p1_score
+            self.win_matrix[game_name][sorted_pair][1] += p2_score
+        else:
+            self.win_matrix[game_name][sorted_pair][0] += p2_score
+            self.win_matrix[game_name][sorted_pair][1] += p1_score
 
     def build(self, log_dir: Path) -> None:
         for metadata_path in tqdm(list(log_dir.rglob("metadata.json"))):
@@ -157,11 +200,13 @@ class ScoreMatrixBuilder:
         elif self.all_normalization_scheme == "by_game_model_pair":
             # Normalize each matchup by its total: wij/(wij+wji)
             for matchups in self.win_matrix.values():
-                for pair, (w1, w2) in matchups.items():
-                    total_pair = w1 + w2
-                    if total_pair > 0:
-                        combined[pair][0] += w1 / total_pair
-                        combined[pair][1] += w2 / total_pair
+                total_games = sum(w1 + w2 for w1, w2 in matchups.values())
+                if total_games > 0:
+                    for pair, (w1, w2) in matchups.items():
+                        total_pair = w1 + w2
+                        if total_pair > 0:
+                            combined[pair][0] += w1 / total_pair / total_games
+                            combined[pair][1] += w2 / total_pair / total_games
 
         elif self.all_normalization_scheme == "by_game":
             # Normalize by total games in each game
@@ -185,9 +230,16 @@ class ScoreMatrixBuilder:
 
 
 class BradleyTerryFitter:
-    def __init__(self, win_matrix: dict[str, dict[tuple[str, str], list[float]]], *, regularization: float = 0.01):
+    def __init__(
+        self,
+        win_matrix: dict[str, dict[tuple[str, str], list[float]]],
+        *,
+        regularization: float = 0.01,
+        compute_uncertainties: bool = True,
+    ):
         self.win_matrix = win_matrix
         self.regularization = regularization
+        self.compute_uncertainties = compute_uncertainties
         self.results: dict[str, dict] = {}
         """game name -> {players: list[str], strengths: np.ndarray, log_likelihood: float}"""
 
@@ -214,6 +266,7 @@ class BradleyTerryFitter:
         Returns:
             -log(likelihood) + λ * Σ_i s_i^2 (MAP estimate with Gaussian prior)
         """
+        assert len(wins) == len(pairs)
         ll = 0.0
         for k, (i, j) in enumerate(pairs):
             diff = strengths[i] - strengths[j]
@@ -223,6 +276,37 @@ class BradleyTerryFitter:
         # Add L2 regularization: -λΣ_i s_i^2 becomes +λΣ_i s_i^2 in the objective
         regularization_term = self.regularization * np.sum(strengths**2)
         return -ll + regularization_term
+
+    def _hessian(self, strengths: np.ndarray, pairs: list[tuple[int, int]], wins: np.ndarray) -> np.ndarray:
+        n = strengths.shape[0]
+        H = np.zeros((n, n))
+        for k, (i, j) in enumerate(pairs):
+            diff = strengths[i] - strengths[j]
+            p = self._sigmoid(diff)
+            w_ij, w_ji = wins[k]
+            w = (w_ij + w_ji) * p * (1 - p)
+            if w == 0:
+                continue
+            H[i, i] += w
+            H[j, j] += w
+            H[i, j] -= w
+            H[j, i] -= w
+        # L2 regularization Hessian
+        H += 2 * self.regularization * np.eye(n)
+        return H
+
+    def _constrained_covariance(self, H: np.ndarray) -> np.ndarray:
+        n = H.shape[0]
+        if n == 1:
+            return np.array([[1.0 / H[0, 0]]])
+        # Basis Z for subspace sum(s)=0: columns e_k - e_n, k=0..n-2
+        Z = np.zeros((n, n - 1))
+        for k in range(n - 1):
+            Z[k, k] = 1.0
+            Z[n - 1, k] = -1.0
+        Hr = Z.T @ H @ Z
+        Hr_inv = np.linalg.pinv(Hr)
+        return Z @ Hr_inv @ Z.T
 
     def _fit_game(self, game_name: str, matchups: dict[tuple[str, str], list[float]]) -> dict:
         """Fit Bradley-Terry model for a single game."""
@@ -241,7 +325,15 @@ class BradleyTerryFitter:
         # Initial guess: all strengths = 0
         s0 = np.zeros(n_players)
 
+        # HUMAN COMMENT, DO NOT ERASE
         # Constraint: sum of strengths = 0
+        # This is because the win probabilities only depend on differences,
+        # so we could add a constant A to all strengths without changing the win probabilities.
+        # Therefore we need to make a normalization choice here.
+        # There are different choices for the normalization, and they DO change the Elo ratings
+        # by adding a constant to all strengths.
+        # However, Elo ratings also are only meaningful up to an additive constant, so it doesn't
+        # matter which we choose.
         constraints = {"type": "eq", "fun": lambda s: np.sum(s)}
 
         result = minimize(
@@ -256,13 +348,59 @@ class BradleyTerryFitter:
         if not result.success:
             logger.warning(f"Optimization failed for {game_name}: {result.message}")
 
-        return {"players": players, "strengths": result.x, "log_likelihood": -result.fun}
+        strengths = result.x
+        out = {
+            "players": players,
+            "strengths": strengths,
+            "log_likelihood": -result.fun,
+        }
+        if self.compute_uncertainties:
+            H = self._hessian(strengths, pairs, wins)
+            cov = self._constrained_covariance(H)
+            scale = ELO_SLOPE / np.log(10)
+            elo_std = scale * np.sqrt(np.clip(np.diag(cov), 0.0, np.inf))
+            out["covariance"] = cov
+            out["elo_std"] = elo_std
+        return out
 
     def fit_all(self) -> None:
         """Fit Bradley-Terry model for all games."""
         for game_name, matchups in self.win_matrix.items():
             logger.info(f"Fitting Bradley-Terry model for {game_name}")
             self.results[game_name] = self._fit_game(game_name, matchups)
+
+    def print_results(self) -> None:
+        """Print fitted strengths and Elo ratings."""
+        print(f"Regularization λ = {self.regularization}")
+        print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
+        for game_name, result in sorted(self.results.items()):
+            print(f"\n{game_name}:")
+            print(f"Log-likelihood: {result['log_likelihood']:.2f}")
+            has_sigma = "elo_std" in result
+            if has_sigma:
+                print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s} {'±1σ':>8s}")
+                print("-" * 62)
+            else:
+                print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
+                print("-" * 52)
+
+            # Sort by strength descending
+            indices = np.argsort(result["strengths"])[::-1]
+            for idx in indices:
+                player = result["players"][idx]
+                strength = result["strengths"][idx]
+                elo = self.bt_to_elo(strength)
+                sigma = result.get("elo_std")
+                if sigma is not None:
+                    s = sigma[idx]
+                    print(f"  {player:<30s} {strength:12.3f} {elo:8.0f} {s:8.0f}")
+                else:
+                    print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
+
+
+class BradleyTerryFitterPlots:
+    def __init__(self, fitter: BradleyTerryFitter):
+        self.fitter = fitter
 
     def create_elo_plots(self, output_dir: Path) -> None:
         """Create combined horizontal bar chart showing Elo ratings for all games.
@@ -275,14 +413,14 @@ class BradleyTerryFitter:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Get player ordering from "ALL" game
-        if "ALL" not in self.results:
+        if "ALL" not in self.fitter.results:
             logger.warning("No 'ALL' game found in results, skipping Elo plots")
             return
 
-        all_result = self.results["ALL"]
+        all_result = self.fitter.results["ALL"]
         all_players = all_result["players"]
         all_strengths = all_result["strengths"]
-        all_elos = np.array([self.bt_to_elo(s) for s in all_strengths])
+        all_elos = np.array([self.fitter.bt_to_elo(s) for s in all_strengths])
 
         # Sort by ALL game Elo descending
         all_indices = np.argsort(all_elos)[::-1]
@@ -292,7 +430,7 @@ class BradleyTerryFitter:
         player_to_pos = {p: i for i, p in enumerate(player_order)}
 
         # Create subplots for each game
-        games = sorted(self.results.keys())
+        games = sorted(self.fitter.results.keys())
         n_games = len(games)
 
         fig, axes = plt.subplots(1, n_games, figsize=(5 * n_games, max(8, len(player_order) * 0.5)), sharey=True)
@@ -300,31 +438,55 @@ class BradleyTerryFitter:
             axes = [axes]
 
         for ax, game_name in zip(axes, games):
-            result = self.results[game_name]
+            result = self.fitter.results[game_name]
             players = result["players"]
             strengths = result["strengths"]
+            sigma = result.get("elo_std")
 
             # Convert to Elo ratings
-            elos = {p: self.bt_to_elo(s) for p, s in zip(players, strengths)}
+            elos = {p: self.fitter.bt_to_elo(s) for p, s in zip(players, strengths)}
 
             # Create arrays aligned with player_order
             y_positions = []
             elo_values = []
+            sigma_values = []
             for player in player_order:
                 if player in elos:
                     y_positions.append(player_to_pos[player])
                     elo_values.append(elos[player])
+                    if sigma is not None:
+                        # Map player's index in this game's ordering to σ
+                        idx = players.index(player)
+                        sigma_values.append(float(sigma[idx]))
+                    else:
+                        sigma_values.append(0.0)
 
             # Create horizontal bar chart
             ax.barh(y_positions, elo_values, color="steelblue", edgecolor="black", linewidth=0.5)
+            # Add horizontal error indicators (±1σ) at the end of bars
+            if any(v > 0 for v in sigma_values):
+                ax.errorbar(
+                    elo_values,
+                    y_positions,
+                    xerr=sigma_values,
+                    fmt="none",
+                    ecolor="black",
+                    elinewidth=1.0,
+                    capsize=0,
+                    zorder=3,
+                )
 
             ax.set_xlabel("Elo Rating", fontsize=11, fontweight="bold")
-            ax.set_title(game_name, fontsize=12, fontweight="bold")
+            ax.set_title(game_name, fontsize=14, fontweight="bold")
             ax.grid(True, axis="x", alpha=0.3)
 
-            # Add value labels inside bars near x=0
-            for pos, elo in zip(y_positions, elo_values):
-                ax.text(10, pos, f"{elo:.0f}", va="center", ha="left", fontsize=11, fontweight="bold", color="white")
+            # Add value labels inside bars near x=0, include ±1σ when available
+            has_sigma = any(v > 0 for v in sigma_values)
+            for pos, elo, sig in zip(y_positions, elo_values, sigma_values):
+                label = f"{elo:.0f}"
+                if has_sigma and sig > 0:
+                    label = f"{elo:.0f} ± {sig:.0f}"
+                ax.text(20, pos, label, va="center", ha="left", fontsize=13, fontweight="bold", color="white")
 
             # Add reference line at ELO_BASE
             ax.axvline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1)
@@ -348,14 +510,14 @@ class BradleyTerryFitter:
         """
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        for game_name, result in self.results.items():
+        for game_name, result in self.fitter.results.items():
             players = result["players"]
             strengths = result["strengths"]
             n_players = len(players)
 
             # Rebuild pairs and wins for this game
             player_to_idx = {p: i for i, p in enumerate(players)}
-            matchups = self.win_matrix[game_name]
+            matchups = self.fitter.win_matrix[game_name]
             pairs = []
             wins = []
             for (p1, p2), (w1, w2) in matchups.items():
@@ -385,7 +547,7 @@ class BradleyTerryFitter:
                     test_strengths[idx] = s
                     # Re-normalize to maintain sum=0 constraint
                     test_strengths -= test_strengths.mean()
-                    neg_ll = self._negative_log_likelihood(test_strengths, pairs, wins)
+                    neg_ll = self.fitter._negative_log_likelihood(test_strengths, pairs, wins)
                     neg_lls.append(neg_ll)
 
                 neg_lls = np.array(neg_lls)
@@ -425,35 +587,17 @@ class BradleyTerryFitter:
             plt.close()
             logger.info(f"Saved validation plot: {output_path}")
 
-    def print_results(self, *, all_normalization_scheme: str = "none") -> None:
-        """Print fitted strengths and Elo ratings."""
-        print(f"Regularization λ = {self.regularization}")
-        print(f"ALL game normalization: {all_normalization_scheme}")
-        print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
-        for game_name, result in sorted(self.results.items()):
-            print(f"\n{game_name}:")
-            print(f"Log-likelihood: {result['log_likelihood']:.2f}")
-            print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
-            print("-" * 52)
-
-            # Sort by strength descending
-            indices = np.argsort(result["strengths"])[::-1]
-            for idx in indices:
-                player = result["players"][idx]
-                strength = result["strengths"][idx]
-                elo = self.bt_to_elo(strength)
-                print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build win matrix and fit Bradley-Terry model")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
     parser.add_argument("--print-matrix", action="store_true", help="Print win matrix")
     parser.add_argument(
-        "--round-score-type",
-        choices=["tertiary", "float", "tertiary_p_value"],
-        default="tertiary",
-        help="Round score type: 'tertiary' (0.0, 0.5, 1.0) or 'float' (0.0-1.0)",
+        "-s",
+        "--score-type",
+        choices=get_args(SCORING_TYPES),
+        default="per_tournament_boolean_drop_draws",
+        help="See ScoreMatrixBuilder for possible values",
     )
     parser.add_argument(
         "-l",
@@ -466,9 +610,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ars",
         dest="all_normalization_scheme",
-        choices=["none", "by_game_model_pair", "by_game"],
+        choices=get_args(ALL_GAMES_NORMALIZATION_SCHEMES),
         default="none",
-        help="ALL game normalization scheme: 'none' (no normalization), 'by_game_model_pair' (normalize by pair total), 'by_game' (normalize by game total) (default: none)",
+        help="See ScoreMatrixBuilder for possible values",
     )
     parser.add_argument(
         "--validation-plots", action="store_true", help="Create validation plots showing likelihood profiles"
@@ -489,19 +633,27 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     builder = ScoreMatrixBuilder(
-        all_normalization_scheme=args.all_normalization_scheme, round_score_type=args.round_score_type
+        all_games_normalization_scheme=args.all_normalization_scheme, score_type=args.score_type
     )
     builder.build(args.log_dir)
 
     if args.print_matrix:
         builder.print_matrix()
 
-    fitter = BradleyTerryFitter(builder.win_matrix, regularization=args.regularization)
+    compute_uncertainties = (
+        args.score_type == "per_tournament_boolean_drop_draws" and args.all_normalization_scheme == "none"
+    )
+    fitter = BradleyTerryFitter(
+        builder.win_matrix,
+        regularization=args.regularization,
+        compute_uncertainties=compute_uncertainties,
+    )
     fitter.fit_all()
-    fitter.print_results(all_normalization_scheme=args.all_normalization_scheme)
+    fitter.print_results()
 
-    if args.validation_plots:
-        fitter.create_validation_plots(args.validation_dir)
-
-    if args.elo_plot:
-        fitter.create_elo_plots(args.elo_plot_dir)
+    if args.validation_plots or args.elo_plot:
+        plotter = BradleyTerryFitterPlots(fitter)
+        if args.validation_plots:
+            plotter.create_validation_plots(args.validation_dir)
+        if args.elo_plot:
+            plotter.create_elo_plots(args.elo_plot_dir)
