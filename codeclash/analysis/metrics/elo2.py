@@ -37,6 +37,8 @@ class ScoreMatrixBuilder:
         *,
         all_games_normalization_scheme: ALL_GAMES_NORMALIZATION_SCHEMES = "none",
         score_type: SCORING_TYPES = "per_round_tertiary",
+        max_round: int = 15,
+        only_specific_round: bool = False,
     ):
         """This class builds a win matrix from a log directory, it doesn't fit anything yet.
         It also adds a "ALL" game to the win matrix, which is the sum of all games.
@@ -56,6 +58,9 @@ class ScoreMatrixBuilder:
             a draw.
         - "per_tournament_boolean_drop_draws": The "boolean_drop_draws" score type returns 0.0 or 1.0 for the score of each player,
             depending on the "winner" field in the stats dictionary. This is the only score type that gives proper uncertainties for the win matrix.
+
+        The `max_round` parameter controls the maximum number of rounds to include in the score calculation (default: 15).
+        The `only_specific_round` parameter controls whether to only include the specific round (True) or all rounds up to max_round (False).
         """
         self.win_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
             lambda: defaultdict(lambda: [0.0, 0.0])
@@ -63,6 +68,8 @@ class ScoreMatrixBuilder:
         """game name -> (player1, player2) -> [wins, losses]"""
         self.all_normalization_scheme = all_games_normalization_scheme
         self.score_type = score_type
+        self.max_round = max_round
+        self.only_specific_round = only_specific_round
         self._samples: dict[str, dict[tuple[str, str], list[tuple[float, float]]]] = defaultdict(
             lambda: defaultdict(list)
         )
@@ -154,6 +161,14 @@ class ScoreMatrixBuilder:
         for idx, stats in metadata["round_stats"].items():
             if idx == "0":
                 continue
+
+            round_num = int(idx)
+            if self.only_specific_round:
+                if round_num != self.max_round:
+                    continue
+            else:
+                if round_num > self.max_round:
+                    continue
 
             _p1_score, _p2_score = self._get_round_score(stats, player_names, game_name)
             p1_round_scores.append(_p1_score)
@@ -621,6 +636,7 @@ class BradleyTerryFitterPlots:
             output_dir: Directory to save PDF plots
             regularization: L2 regularization strength used in fitting
         """
+        output_dir = output_dir / "fit_validation"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         for game_name, result in self.results.items():
@@ -951,9 +967,237 @@ class BootStrapRankStability:
             )
 
         if self.output_dir is not None:
-            self.output_dir.mkdir(parents=True, exist_ok=True)
-            self._create_rank_matrix_plot(players, rank_samples, self.output_dir)
-            self._create_elo_violin_plot(players, elo_samples, baseline_elos, self.output_dir)
+            bootstrap_dir = self.output_dir / "bootstrap"
+            bootstrap_dir.mkdir(parents=True, exist_ok=True)
+            self._create_rank_matrix_plot(players, rank_samples, bootstrap_dir)
+            self._create_elo_violin_plot(players, elo_samples, baseline_elos, bootstrap_dir)
+
+
+class EloVsMaxRounds:
+    def __init__(
+        self,
+        *,
+        log_dir: Path,
+        max_rounds: int = 15,
+        all_games_normalization_scheme: ALL_GAMES_NORMALIZATION_SCHEMES = "none",
+        score_type: SCORING_TYPES = "per_round_tertiary",
+        regularization: float = 0.01,
+        output_dir: Path | None = None,
+        games: list[str] | None = None,
+    ):
+        self.log_dir = log_dir
+        self.max_rounds = max_rounds
+        self.all_games_normalization_scheme = all_games_normalization_scheme
+        self.score_type = score_type
+        self.regularization = regularization
+        self.output_dir = output_dir
+        self.games = games
+
+    @staticmethod
+    def _save_plot(output_dir: Path, filename_base: str) -> None:
+        """Save plot in both PDF and PNG formats."""
+        for fmt in ["pdf", "png"]:
+            output_path = output_dir / f"{filename_base}.{fmt}"
+            plt.savefig(output_path, format=fmt, bbox_inches="tight", dpi=300 if fmt == "png" else None)
+            logger.info(f"Saved plot: {output_path}")
+
+    def run(self) -> None:
+        """Calculate Elo for max rounds from 1 to max_rounds and plot the results."""
+        logger.info(f"Calculating Elo for max rounds 1 to {self.max_rounds}")
+
+        # Dictionary to store results: {max_round: {game_name: {player: elo}}}
+        results_by_max_round: dict[int, dict[str, dict[str, float]]] = {}
+
+        for max_round in tqdm(range(1, self.max_rounds + 1), desc="Processing max rounds"):
+            builder = ScoreMatrixBuilder(
+                all_games_normalization_scheme=self.all_games_normalization_scheme,
+                score_type=self.score_type,
+                max_round=max_round,
+            )
+            builder.build(self.log_dir)
+
+            results_by_max_round[max_round] = {}
+
+            for game_name, matchups in builder.win_matrix.items():
+                if self.games is not None and game_name not in self.games:
+                    continue
+
+                fitter = BradleyTerryFitter(matchups, regularization=self.regularization, compute_uncertainties=False)
+                result = fitter.fit()
+
+                results_by_max_round[max_round][game_name] = {
+                    p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(result["players"], result["strengths"])
+                }
+
+        self._plot_results(results_by_max_round)
+
+    def _plot_results(self, results_by_max_round: dict[int, dict[str, dict[str, float]]]) -> None:
+        """Create line plots showing Elo vs max rounds for each game."""
+        if self.output_dir is None:
+            logger.warning("No output directory specified, skipping plots")
+            return
+
+        output_dir = self.output_dir / "elo_vs_max_rounds"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Get all games
+        all_games = set()
+        for game_results in results_by_max_round.values():
+            all_games.update(game_results.keys())
+
+        for game_name in sorted(all_games):
+            # Collect all players that appear in this game
+            all_players = set()
+            for round_results in results_by_max_round.values():
+                if game_name in round_results:
+                    all_players.update(round_results[game_name].keys())
+
+            players = sorted(all_players)
+
+            # Create plot
+            fig, ax = plt.subplots(figsize=(12, 8))
+
+            for player in players:
+                max_rounds_list = []
+                elos_list = []
+
+                for max_round in sorted(results_by_max_round.keys()):
+                    if game_name in results_by_max_round[max_round]:
+                        if player in results_by_max_round[max_round][game_name]:
+                            max_rounds_list.append(max_round)
+                            elos_list.append(results_by_max_round[max_round][game_name][player])
+
+                if max_rounds_list:
+                    ax.plot(max_rounds_list, elos_list, marker="o", label=player, linewidth=2, markersize=6)
+
+            ax.set_xlabel("Max Round", fontsize=12, fontweight="bold")
+            ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
+            ax.set_title(f"Elo vs Max Rounds: {game_name}", fontsize=14, fontweight="bold")
+            ax.grid(True, alpha=0.3)
+
+            # Add reference line at ELO_BASE
+            ax.axhline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1, label=f"Base Elo ({ELO_BASE})")
+
+            ax.legend(fontsize=10, loc="best")
+
+            plt.tight_layout()
+            safe_game_name = game_name.replace("/", "_").replace(" ", "_")
+            self._save_plot(output_dir, f"{safe_game_name}_elo_vs_max_rounds")
+            plt.close()
+
+
+class EloOnlyAtRound:
+    def __init__(
+        self,
+        *,
+        log_dir: Path,
+        max_rounds: int = 15,
+        all_games_normalization_scheme: ALL_GAMES_NORMALIZATION_SCHEMES = "none",
+        score_type: SCORING_TYPES = "per_round_tertiary",
+        regularization: float = 0.01,
+        output_dir: Path | None = None,
+        games: list[str] | None = None,
+    ):
+        self.log_dir = log_dir
+        self.max_rounds = max_rounds
+        self.all_games_normalization_scheme = all_games_normalization_scheme
+        self.score_type = score_type
+        self.regularization = regularization
+        self.output_dir = output_dir
+        self.games = games
+
+    @staticmethod
+    def _save_plot(output_dir: Path, filename_base: str) -> None:
+        """Save plot in both PDF and PNG formats."""
+        for fmt in ["pdf", "png"]:
+            output_path = output_dir / f"{filename_base}.{fmt}"
+            plt.savefig(output_path, format=fmt, bbox_inches="tight", dpi=300 if fmt == "png" else None)
+            logger.info(f"Saved plot: {output_path}")
+
+    def run(self) -> None:
+        """Calculate Elo for only specific rounds from 1 to max_rounds and plot the results."""
+        logger.info(f"Calculating Elo for only specific rounds 1 to {self.max_rounds}")
+
+        # Dictionary to store results: {round: {game_name: {player: elo}}}
+        results_by_round: dict[int, dict[str, dict[str, float]]] = {}
+
+        for round_num in tqdm(range(1, self.max_rounds + 1), desc="Processing specific rounds"):
+            builder = ScoreMatrixBuilder(
+                all_games_normalization_scheme=self.all_games_normalization_scheme,
+                score_type=self.score_type,
+                max_round=round_num,
+                only_specific_round=True,
+            )
+            builder.build(self.log_dir)
+
+            results_by_round[round_num] = {}
+
+            for game_name, matchups in builder.win_matrix.items():
+                if self.games is not None and game_name not in self.games:
+                    continue
+
+                fitter = BradleyTerryFitter(matchups, regularization=self.regularization, compute_uncertainties=False)
+                result = fitter.fit()
+
+                results_by_round[round_num][game_name] = {
+                    p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(result["players"], result["strengths"])
+                }
+
+        self._plot_results(results_by_round)
+
+    def _plot_results(self, results_by_round: dict[int, dict[str, dict[str, float]]]) -> None:
+        """Create line plots showing Elo vs round for each game."""
+        if self.output_dir is None:
+            logger.warning("No output directory specified, skipping plots")
+            return
+
+        output_dir = self.output_dir / "elos_only_at_round"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Get all games
+        all_games = set()
+        for game_results in results_by_round.values():
+            all_games.update(game_results.keys())
+
+        for game_name in sorted(all_games):
+            # Collect all players that appear in this game
+            all_players = set()
+            for round_results in results_by_round.values():
+                if game_name in round_results:
+                    all_players.update(round_results[game_name].keys())
+
+            players = sorted(all_players)
+
+            # Create plot
+            fig, ax = plt.subplots(figsize=(12, 8))
+
+            for player in players:
+                rounds_list = []
+                elos_list = []
+
+                for round_num in sorted(results_by_round.keys()):
+                    if game_name in results_by_round[round_num]:
+                        if player in results_by_round[round_num][game_name]:
+                            rounds_list.append(round_num)
+                            elos_list.append(results_by_round[round_num][game_name][player])
+
+                if rounds_list:
+                    ax.plot(rounds_list, elos_list, marker="o", label=player, linewidth=2, markersize=6)
+
+            ax.set_xlabel("Round", fontsize=12, fontweight="bold")
+            ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
+            ax.set_title(f"Elo at Specific Round: {game_name}", fontsize=14, fontweight="bold")
+            ax.grid(True, alpha=0.3)
+
+            # Add reference line at ELO_BASE
+            ax.axhline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1, label=f"Base Elo ({ELO_BASE})")
+
+            ax.legend(fontsize=10, loc="best")
+
+            plt.tight_layout()
+            safe_game_name = game_name.replace("/", "_").replace(" ", "_")
+            self._save_plot(output_dir, f"{safe_game_name}_elo_only_at_round")
+            plt.close()
 
 
 def print_results(results: dict[str, dict]) -> None:
@@ -1146,3 +1390,23 @@ if __name__ == "__main__":
                 bootstrap_type=bootstrap_type,
                 output_dir=args.output_dir,
             ).run()
+
+    logger.info("Running EloVsMaxRounds analysis")
+    EloVsMaxRounds(
+        log_dir=args.log_dir,
+        max_rounds=15,
+        all_games_normalization_scheme=args.all_normalization_scheme,
+        score_type=args.score_type,
+        regularization=args.regularization,
+        output_dir=args.output_dir,
+    ).run()
+
+    logger.info("Running EloOnlyAtRound analysis")
+    EloOnlyAtRound(
+        log_dir=args.log_dir,
+        max_rounds=15,
+        all_games_normalization_scheme=args.all_normalization_scheme,
+        score_type=args.score_type,
+        regularization=args.regularization,
+        output_dir=args.output_dir,
+    ).run()
