@@ -16,7 +16,7 @@ players:
       model_name: '@anthropic/claude-sonnet-4-20250514'
       model_class: portkey
       model_kwargs:
-        temperature: 0.0
+        temperature: 0.2
         max_tokens: 4096
 - agent: mini
   name: gemini25pro
@@ -25,6 +25,8 @@ players:
     model:
       model_name: '@google/gemini-2.5-pro'
       model_class: portkey
+      model_kwargs:
+        temperature: 0.2
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called RoboCode.

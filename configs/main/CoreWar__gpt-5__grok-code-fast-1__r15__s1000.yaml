@@ -13,6 +13,8 @@ players:
       model_name: '@x-ai/grok-code-fast-1'
       model_class: portkey
       litellm_model_name_override: xai/grok-code-fast-1
+      model_kwargs:
+        temperature: 0.2
 - agent: mini
   name: gpt-5
   config:

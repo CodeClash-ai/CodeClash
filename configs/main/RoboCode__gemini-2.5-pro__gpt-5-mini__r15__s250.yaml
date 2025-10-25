@@ -15,6 +15,8 @@ players:
     model:
       model_name: '@google/gemini-2.5-pro'
       model_class: portkey
+      model_kwargs:
+        temperature: 0.2
 - agent: mini
   name: gpt5mini
   config:

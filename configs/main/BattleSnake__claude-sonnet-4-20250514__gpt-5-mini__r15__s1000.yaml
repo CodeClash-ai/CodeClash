@@ -16,7 +16,7 @@ players:
       model_name: '@anthropic/claude-sonnet-4-20250514'
       model_class: portkey
       model_kwargs:
-        temperature: 0.0
+        temperature: 0.2
         max_tokens: 4096
 - agent: mini
   name: gpt-5-mini
