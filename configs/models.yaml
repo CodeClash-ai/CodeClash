@@ -20,7 +20,7 @@
   model_class: portkey
   model_kwargs:
     temperature: 0.2
-- model_name: "@fireworks/accounts/fireworks/models/glm-4-5"
+- model_name: "@fireworks/accounts/fireworks/models/glm-4p5"
   model_class: portkey
   litellm_model_name_override: "deepinfra/zai-org/GLM-4.5"
 - model_name: "@openai/gpt-5"

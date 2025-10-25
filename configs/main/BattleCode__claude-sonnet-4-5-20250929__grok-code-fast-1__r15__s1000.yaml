@@ -14,7 +14,7 @@ players:
       model_name: '@anthropic/claude-sonnet-4-5-20250929'
       model_class: portkey
       model_kwargs:
-        temperature: 0.0
+        temperature: 0.2
         max_tokens: 4096
 - agent: mini
   name: grok-code-fast-1
@@ -24,6 +24,8 @@ players:
       model_name: '@x-ai/grok-code-fast-1'
       model_class: portkey
       litellm_model_name_override: xai/grok-code-fast-1
+      model_kwargs:
+        temperature: 0.2
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called BattleCode.

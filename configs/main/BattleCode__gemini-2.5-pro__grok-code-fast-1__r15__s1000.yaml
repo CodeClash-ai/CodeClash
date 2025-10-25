@@ -14,6 +14,8 @@ players:
       model_name: '@x-ai/grok-code-fast-1'
       model_class: portkey
       litellm_model_name_override: xai/grok-code-fast-1
+      model_kwargs:
+        temperature: 0.2
 - agent: mini
   name: gemini-2.5-pro
   config:
@@ -21,6 +23,8 @@ players:
     model:
       model_name: '@google/gemini-2.5-pro'
       model_class: portkey
+      model_kwargs:
+        temperature: 0.2
 prompts:
   game_description: |-
     You are a software developer ({{player_id}}) competing in a coding game called BattleCode.
