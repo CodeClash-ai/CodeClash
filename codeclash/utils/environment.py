@@ -27,7 +27,9 @@ def copy_between_containers(
     Be extremely careful with trailing slashes in src_path and dest_path, the behavior
     of docker cp is also different depending on whether the destination exists.
     """
-    print(f"Copy between containers: {src_path} -> {dest_path}")
+    print(
+        f"Copy between containers: {src_container.container_id}:{src_path} -> {dest_container.container_id}:{dest_path}"
+    )
     # Some weird stuff happening on AWS where /tmp doesn't work properly
     dir = Path.home() / "tmp"
     dir.mkdir(parents=True, exist_ok=True)
