@@ -227,13 +227,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_by_game",
         type=Path,
-        default=Path("round_score_distribution_by_game.pdf"),
+        default=Path("assets/round_score_distribution_by_game.pdf"),
         help="Output path for by-game plot",
     )
     parser.add_argument(
         "--output_by_model",
         type=Path,
-        default=Path("round_score_distribution_by_model.pdf"),
+        default=Path("assets/round_score_distribution_by_model.pdf"),
         help="Output path for by-model plot",
     )
     args = parser.parse_args()

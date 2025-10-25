@@ -95,7 +95,7 @@ def main(logs: Path):
     print(f"Overall: {overall_rate:.2f}% average malform rate")
 
     # Create heatmap data
-    models = list(model_to_arena_to_return_codes.keys())
+    models = sorted(list(model_to_arena_to_return_codes.keys()))
     arenas = set()
     for arena_data in model_to_arena_to_return_codes.values():
         arenas.update(arena_data.keys())

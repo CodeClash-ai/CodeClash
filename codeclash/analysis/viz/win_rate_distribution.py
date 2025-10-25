@@ -373,19 +373,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_by_game",
         type=Path,
-        default=Path("win_rate_distribution_by_game.pdf"),
+        default=Path("assets/win_rate_distribution_by_game.pdf"),
         help="Output path for by-game plot",
     )
     parser.add_argument(
         "--output_by_model",
         type=Path,
-        default=Path("win_rate_distribution_by_model.pdf"),
+        default=Path("assets/win_rate_distribution_by_model.pdf"),
         help="Output path for by-model plot",
     )
     parser.add_argument(
         "--output_overlaid",
         type=Path,
-        default=Path("win_rates_won_games_by_model_overlaid.pdf"),
+        default=Path("assets/win_rates_won_games_by_model_overlaid.pdf"),
         help="Output path for overlaid win rate plot",
     )
     args = parser.parse_args()

@@ -322,7 +322,9 @@ def create_comeback_visualization(success_rates, output_path):
 def main():
     """Main function to run round-to-round recovery analysis."""
     parser = argparse.ArgumentParser(description="Analyze next-round win rates after losses by loss margin")
-    parser.add_argument("log_dir", help="Path to directory containing tournament logs", type=Path)
+    parser.add_argument(
+        "-d", "--log_dir", help="Path to directory containing tournament logs", type=Path, default="logs/"
+    )
     parser.add_argument("--output", "-o", default=OUTPUT_FILE, help="Output path for the visualization")
 
     args = parser.parse_args()

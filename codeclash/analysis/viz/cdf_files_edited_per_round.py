@@ -65,7 +65,7 @@ def main():
     plt.xlabel("Files Edited per Round", fontproperties=FONT_BOLD, fontsize=18)
     # plt.ylabel("Cumulative Probability", fontproperties=FONT_BOLD, fontsize=18)
     # plt.title("CDF of Files Edited per Round by Model")
-    FONT_BOLD.set_size(20)
+    FONT_BOLD.set_size(18)
     plt.legend(prop=FONT_BOLD)
     plt.grid(True)
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
