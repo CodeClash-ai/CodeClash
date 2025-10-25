@@ -1,5 +1,6 @@
 tournament:
   rounds: 15
+  transparent: true
 game:
   name: Halite
   sims_per_round: 250

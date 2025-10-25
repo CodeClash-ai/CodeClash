@@ -36,6 +36,7 @@ def main(models: str, arenas: str, rounds: int, simulations: int, record_ratio: 
             config = get_config(rounds, simulations, arena, pair)
 
             # Inform model that it can see opponent's codebases
+            config["tournament"]["transparent"] = True
             config["prompts"]["game_description"] += f"""
 In this tournament, you have full access to your opponent(s)' codebase.
 You can access their codebase(s) under /{OPPONENT_CODEBASES_DIR_NAME}/.
