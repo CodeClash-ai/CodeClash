@@ -8,3 +8,4 @@ DIR_WORK = Path("/workspace")
 FILE_RESULTS = "results.json"
 GH_ORG = "emagedoc"
 RESULT_TIE = "Tie"
+OPPONENT_CODEBASES_DIR_NAME = "opponent_codebases"

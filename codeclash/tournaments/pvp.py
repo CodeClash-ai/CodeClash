@@ -11,7 +11,7 @@ from pathlib import Path
 from codeclash.agents import get_agent
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.constants import DIR_LOGS, DIR_WORK, FILE_RESULTS
+from codeclash.constants import DIR_LOGS, DIR_WORK, FILE_RESULTS, OPPONENT_CODEBASES_DIR_NAME
 from codeclash.games import get_game
 from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
@@ -136,7 +136,7 @@ class PvpTournament(AbstractTournament):
                         agent.environment,
                         opp.environment,
                         agent.environment.config.cwd,
-                        f"/{agent.name}/",
+                        f"/{OPPONENT_CODEBASES_DIR_NAME}/{agent.name}/",
                     )
 
         with ThreadPoolExecutor() as executor:
