@@ -116,7 +116,8 @@ are more competitive and less clear-cut ({ratio:.2f}x less dominant).
     ax1.set_xlabel("Winner's Share of Total Points (%)", fontsize=18, fontproperties=FONT_BOLD)
     ax1.set_ylabel("Frequency", fontsize=18, fontproperties=FONT_BOLD)
     ax1.tick_params(axis="both", labelsize=14)
-    ax1.legend(prop=FONT_BOLD, fontsize=12)
+    FONT_BOLD.set_size(16)
+    ax1.legend(prop=FONT_BOLD)
     ax1.grid(alpha=0.3)
 
     # Plot 2: Box plot comparison
@@ -133,7 +134,8 @@ are more competitive and less clear-cut ({ratio:.2f}x less dominant).
     # Add mean markers
     for i, data in enumerate([winner_shares_6p, winner_shares_2p], 1):
         ax2.plot(i, np.mean(data), "D", color="darkred", markersize=8, label="Mean" if i == 1 else "")
-    ax2.legend(prop=FONT_BOLD, fontsize=12)
+    FONT_BOLD.set_size(16)
+    ax2.legend(prop=FONT_BOLD)
 
     # Set tick labels with custom font
     for label in ax2.get_xticklabels():

@@ -125,7 +125,8 @@ Lead change rate:
     ax1.set_xlabel("Number of Lead Changes per Tournament", fontsize=18, fontproperties=FONT_BOLD)
     ax1.set_ylabel("Frequency", fontsize=18, fontproperties=FONT_BOLD)
     ax1.tick_params(axis="both", labelsize=14)
-    ax1.legend(prop=FONT_BOLD, fontsize=12)
+    FONT_BOLD.set_size(16)
+    ax1.legend(prop=FONT_BOLD)
     ax1.grid(alpha=0.3)
 
     # Plot 2: Change rates comparison
@@ -142,7 +143,8 @@ Lead change rate:
     # Add mean markers
     for i, data in enumerate([change_rates_6p, change_rates_2p], 1):
         ax2.plot(i, np.mean(data), "D", color="darkred", markersize=8, label="Mean" if i == 1 else "")
-    ax2.legend(prop=FONT_BOLD, fontsize=12)
+    FONT_BOLD.set_size(16)
+    ax2.legend(prop=FONT_BOLD)
 
     # Set tick labels with custom font
     for label in ax2.get_xticklabels():

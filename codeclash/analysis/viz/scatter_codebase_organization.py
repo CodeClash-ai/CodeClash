@@ -227,7 +227,10 @@ def analyze_per_player_arena(data: list, N: int = 5) -> pd.DataFrame:
 def analyze_per_player(data: list, N: int = 5) -> pd.DataFrame:
     df = analyze_per_player_arena(data, N=N)
     df = df[df["total_files"] > 0]
-    return df.groupby("player")["active_file_ratio"].agg(["mean", "std"]).reset_index()
+    result = df.groupby("player")["active_file_ratio"].agg(["mean", "std", "count"]).reset_index()
+    # Calculate standard error of the mean (SEM)
+    result["sem"] = result["std"] / (result["count"] ** 0.5)
+    return result
 
 
 def calculate_root_clutter_ratio(file_history: dict) -> dict:
@@ -263,7 +266,10 @@ def analyze_root_clutter_per_player(data: list) -> pd.DataFrame:
 
     df = pd.DataFrame(results)
     df = df[df["total_files"] > 0]
-    return df.groupby("player")["root_clutter_ratio"].agg(["mean", "std"]).reset_index()
+    result = df.groupby("player")["root_clutter_ratio"].agg(["mean", "std", "count"]).reset_index()
+    # Calculate standard error of the mean (SEM)
+    result["sem"] = result["std"] / (result["count"] ** 0.5)
+    return result
 
 
 def calculate_churn_concentration(file_history: dict, use_magnitude: bool = False) -> dict:
@@ -324,7 +330,10 @@ def analyze_churn_concentration_per_player(data: list, use_magnitude: bool = Fal
 
     df = pd.DataFrame(results)
     df = df[df["total_churn"] > 0]
-    return df.groupby("player")["churn_concentration"].agg(["mean", "std"]).reset_index()
+    result = df.groupby("player")["churn_concentration"].agg(["mean", "std", "count"]).reset_index()
+    # Calculate standard error of the mean (SEM)
+    result["sem"] = result["std"] / (result["count"] ** 0.5)
+    return result
 
 
 def plot_organization_metrics(file_reuse_df: pd.DataFrame, root_clutter_df: pd.DataFrame):
@@ -355,8 +364,8 @@ def plot_organization_metrics(file_reuse_df: pd.DataFrame, root_clutter_df: pd.D
         plt.errorbar(
             row["mean_clutter"],
             row["mean_reuse"],
-            xerr=row["std_clutter"],
-            yerr=row["std_reuse"],
+            xerr=row["sem_clutter"],
+            yerr=row["sem_reuse"],
             fmt="none",
             ecolor=color,
             elinewidth=1.5,
@@ -472,7 +481,10 @@ def analyze_file_reuse_per_player(data: list) -> pd.DataFrame:
 
     df = pd.DataFrame(results)
     df = df[df["total_files_created"] > 0]
-    return df.groupby("player")["file_reuse_ratio"].agg(["mean", "std"]).reset_index()
+    result = df.groupby("player")["file_reuse_ratio"].agg(["mean", "std", "count"]).reset_index()
+    # Calculate standard error of the mean (SEM)
+    result["sem"] = result["std"] / (result["count"] ** 0.5)
+    return result
 
 
 def calculate_filename_redundancy(file_history: dict) -> dict:
@@ -542,10 +554,10 @@ def calculate_redundancy_over_rounds(file_history: dict) -> list:
 
 def plot_filename_redundancy_over_rounds(redundancy_df: pd.DataFrame):
     """Line plot showing filename redundancy over rounds per model.
-
-    - X: Round number
-    - Y: Filename redundancy ratio (mean across tournaments)
-    - One line per model, colored consistently
+    sc
+        - X: Round number
+        - Y: Filename redundancy ratio (mean across tournaments)
+        - One line per model, colored consistently
     """
     # Aggregate by player and round (mean across all tournaments)
     agg_redundancy = (
