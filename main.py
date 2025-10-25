@@ -36,6 +36,7 @@ def main(
         else:
             timestamp = time.strftime("%y%m%d%H%M%S")
         rounds = config["tournament"]["rounds"]
+        transparent = config["tournament"].get("transparent", False)
         sims = config["game"]["sims_per_round"]
 
         players = [p["name"] for p in config["players"]]
@@ -45,6 +46,8 @@ def main(
         folder_name = (
             f"PvpTournament.{config['game']['name']}.r{rounds}.s{sims}.p{p_num}.{p_list}{suffix_part}.{timestamp}"
         )
+        if transparent:
+            folder_name += ".transparent"
         if is_running_in_aws_batch():
             # Also add a UUID just to be safe
             _uuid = str(uuid.uuid4())

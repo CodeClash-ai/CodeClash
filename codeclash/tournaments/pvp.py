@@ -17,7 +17,7 @@ from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.utils.atomic_write import atomic_write
 from codeclash.utils.aws import is_running_in_aws_batch, s3_log_sync
-from codeclash.utils.environment import copy_to_container
+from codeclash.utils.environment import copy_between_containers, copy_to_container
 
 
 class PvpTournament(AbstractTournament):
@@ -52,6 +52,10 @@ class PvpTournament(AbstractTournament):
     @property
     def rounds(self) -> int:
         return self.config["tournament"]["rounds"]
+
+    @property
+    def transparent(self) -> bool:
+        return self.config["tournament"].get("transparent", False)
 
     def get_metadata(self) -> dict:
         # will be saved in end()
@@ -119,6 +123,21 @@ class PvpTournament(AbstractTournament):
                 DIR_LOGS / "rounds" / str(round_num - 1),
             )
         self._compress_round_folder(round_num - 1)
+
+        if self.transparent:
+            # Copy agent's codebase to all other agents
+            self.logger.info("Transparent mode enabled: copying codebases between agents...")
+            for idx in range(len(self.agents)):
+                agent = self.agents[idx]
+                opponents = [a for j, a in enumerate(self.agents) if j != idx]
+                self.logger.info(f"Copying {agent.name}'s codebase to other agents...")
+                for opp in opponents:
+                    copy_between_containers(
+                        agent.environment,
+                        opp.environment,
+                        agent.environment.config.cwd,
+                        f"/{agent.name}/",
+                    )
 
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.run_agent, agent, round_num) for agent in self.agents]
