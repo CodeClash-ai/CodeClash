@@ -30,6 +30,7 @@ dependencies = [
     "markupsafe",
     "scipy",
     "unidiff",
+    "trueskill",
 ]
 
 [project.optional-dependencies]
