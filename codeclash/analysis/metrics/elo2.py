@@ -7,13 +7,14 @@ from typing import Literal, TypeAlias, get_args
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy.optimize import minimize
 from scipy.stats import kendalltau, spearmanr
 from tqdm import tqdm
 
 from codeclash.analysis.metrics.elo import get_scores
 from codeclash.analysis.significance import calculate_p_value
-from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import add_file_handler, get_logger
 
@@ -546,6 +547,9 @@ class BradleyTerryFitterPlots:
         all_indices = np.argsort(all_elos)[::-1]
         player_order = [all_players[i] for i in all_indices]
 
+        # Translate to display names
+        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in player_order]
+
         # Create mapping from player to y-position
         player_to_pos = {p: i for i, p in enumerate(player_order)}
 
@@ -596,8 +600,8 @@ class BradleyTerryFitterPlots:
                     zorder=3,
                 )
 
-            ax.set_xlabel("Elo Rating", fontsize=11, fontweight="bold")
-            ax.set_title(game_name, fontsize=14, fontweight="bold")
+            ax.set_xlabel("Elo Rating", fontproperties=FONT_BOLD, fontsize=14)
+            ax.set_title(game_name, fontproperties=FONT_BOLD, fontsize=16)
             ax.grid(True, axis="x", alpha=0.3)
 
             # Add value labels inside bars near x=0, include ±1σ when available
@@ -606,14 +610,14 @@ class BradleyTerryFitterPlots:
                 label = f"{elo:.0f}"
                 if has_sigma and sig > 0:
                     label = f"{elo:.0f} ± {sig:.0f}"
-                ax.text(20, pos, label, va="center", ha="left", fontsize=13, fontweight="bold", color="white")
+                ax.text(20, pos, label, va="center", ha="left", fontproperties=FONT_BOLD, fontsize=14, color="white")
 
             # Add reference line at ELO_BASE
             ax.axvline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1)
 
         # Set y-axis labels on the first subplot
         axes[0].set_yticks(range(len(player_order)))
-        axes[0].set_yticklabels(player_order, fontsize=13)
+        axes[0].set_yticklabels(display_names, fontproperties=FONT_BOLD, fontsize=14)
         axes[0].invert_yaxis()
 
         plt.tight_layout()
@@ -690,10 +694,12 @@ class BradleyTerryFitterPlots:
                     bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
                 )
 
-                ax.set_xlabel("BT Strength", fontsize=10)
-                ax.set_ylabel("Negative Log-Likelihood", fontsize=10)
-                ax.set_title(f"{player}", fontsize=11, fontweight="bold")
-                ax.legend(fontsize=8, loc="upper right")
+                ax.set_xlabel("BT Strength", fontproperties=FONT_BOLD, fontsize=12)
+                ax.set_ylabel("Negative Log-Likelihood", fontproperties=FONT_BOLD, fontsize=12)
+                display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                ax.set_title(display_name, fontproperties=FONT_BOLD, fontsize=14)
+                legend = ax.legend(prop=FONT_BOLD, fontsize=10, loc="upper right")
+                legend.set_frame_on(False)
                 ax.grid(True, alpha=0.3)
 
             # Hide unused subplots
@@ -768,20 +774,24 @@ class BootStrapRankStability:
 
         rank_matrix = (rank_matrix / self.n_bootstrap) * 100
 
-        fig, ax = plt.subplots(figsize=(max(10, n * 0.8), max(8, n * 0.6)))
+        # Translate player names to display names
+        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in players]
+
+        fig, ax = plt.subplots(figsize=(6, 6))
         im = ax.imshow(rank_matrix, cmap="YlOrRd", aspect="auto", vmin=0, vmax=100)
 
         ax.set_xticks(range(n))
-        ax.set_xticklabels(players, rotation=45, ha="right", fontsize=10)
+        ax.set_xticklabels(display_names, rotation=45, ha="right", fontproperties=FONT_BOLD, fontsize=10)
         ax.set_yticks(range(n))
-        ax.set_yticklabels([f"Rank {i + 1}" for i in range(n)], fontsize=10)
+        ax.set_yticklabels([f"Rank {i + 1}" for i in range(n)], fontproperties=FONT_BOLD, fontsize=10)
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
 
-        ax.set_xlabel("Model", fontsize=12, fontweight="bold")
-        ax.set_ylabel("Rank", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Model", fontproperties=FONT_BOLD, fontsize=12)
+        ax.set_ylabel("Rank", fontproperties=FONT_BOLD, fontsize=12)
         ax.set_title(
             f"Rank Distribution ({self.bootstrap_type} bootstrap, {self.n_bootstrap} samples)",
+            fontproperties=FONT_BOLD,
             fontsize=14,
-            fontweight="bold",
         )
 
         for i in range(n):
@@ -790,11 +800,18 @@ class BootStrapRankStability:
                 if value > 0:
                     text_color = "white" if value > 50 else "black"
                     ax.text(
-                        j, i, f"{value:.1f}%", ha="center", va="center", color=text_color, fontsize=9, fontweight="bold"
+                        j,
+                        i,
+                        f"{value:.1f}%",
+                        ha="center",
+                        va="center",
+                        color=text_color,
+                        fontproperties=FONT_BOLD,
+                        fontsize=12,
                     )
 
         cbar = plt.colorbar(im, ax=ax)
-        cbar.set_label("Percentage (%)", fontsize=11, fontweight="bold")
+        cbar.set_label("Percentage (%)", fontproperties=FONT_BOLD, fontsize=14)
 
         plt.tight_layout()
         self._save_plot(output_dir, f"{self.game}_rank_matrix_{self.bootstrap_type}")
@@ -806,7 +823,10 @@ class BootStrapRankStability:
         """Create a violin plot showing the distribution of Elo scores for each model."""
         elo_data = [elo_samples[p] for p in players]
 
-        fig, ax = plt.subplots(figsize=(max(10, len(players) * 0.8), 8))
+        # Translate player names to display names
+        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in players]
+
+        fig, ax = plt.subplots(figsize=(6, 6))
 
         parts = ax.violinplot(elo_data, positions=range(len(players)), showmeans=False, showmedians=False, widths=0.7)
 
@@ -835,15 +855,17 @@ class BootStrapRankStability:
         )
 
         ax.set_xticks(range(len(players)))
-        ax.set_xticklabels(players, rotation=45, ha="right", fontsize=10)
-        ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
+        ax.set_xticklabels(display_names, rotation=45, ha="right", fontproperties=FONT_BOLD, fontsize=12)
+        ax.set_ylabel("Elo Rating", fontproperties=FONT_BOLD, fontsize=14)
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
         ax.set_title(
             f"Elo Distribution ({self.bootstrap_type} bootstrap, {self.n_bootstrap} samples)",
-            fontsize=14,
-            fontweight="bold",
+            fontproperties=FONT_BOLD,
+            fontsize=16,
         )
         ax.grid(True, axis="y", alpha=0.3)
-        ax.legend(fontsize=10)
+        legend = ax.legend(prop=FONT_BOLD, fontsize=12)
+        legend.set_frame_on(False)
 
         plt.tight_layout()
         self._save_plot(output_dir, f"{self.game}_elo_violin_{self.bootstrap_type}")
@@ -1062,17 +1084,20 @@ class EloVsMaxRounds:
                             elos_list.append(results_by_max_round[max_round][game_name][player])
 
                 if max_rounds_list:
-                    ax.plot(max_rounds_list, elos_list, marker="o", label=player, linewidth=2, markersize=6)
+                    display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                    ax.plot(max_rounds_list, elos_list, marker="o", label=display_name, linewidth=2, markersize=6)
 
-            ax.set_xlabel("Max Round", fontsize=12, fontweight="bold")
-            ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
-            ax.set_title(f"Elo vs Max Rounds: {game_name}", fontsize=14, fontweight="bold")
+            ax.set_xlabel("Max Round", fontproperties=FONT_BOLD, fontsize=14)
+            ax.set_ylabel("Elo Rating", fontproperties=FONT_BOLD, fontsize=14)
+            ax.set_title(f"Elo vs Max Rounds: {game_name}", fontproperties=FONT_BOLD, fontsize=16)
             ax.grid(True, alpha=0.3)
+            ax.yaxis.set_minor_locator(AutoMinorLocator())
 
             # Add reference line at ELO_BASE
             ax.axhline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1, label=f"Base Elo ({ELO_BASE})")
 
-            ax.legend(fontsize=10, loc="best")
+            legend = ax.legend(prop=FONT_BOLD, fontsize=12, loc="best")
+            legend.set_frame_on(False)
 
             plt.tight_layout()
             safe_game_name = game_name.replace("/", "_").replace(" ", "_")
@@ -1176,17 +1201,20 @@ class EloOnlyAtRound:
                             elos_list.append(results_by_round[round_num][game_name][player])
 
                 if rounds_list:
-                    ax.plot(rounds_list, elos_list, marker="o", label=player, linewidth=2, markersize=6)
+                    display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                    ax.plot(rounds_list, elos_list, marker="o", label=display_name, linewidth=2, markersize=6)
 
-            ax.set_xlabel("Round", fontsize=12, fontweight="bold")
-            ax.set_ylabel("Elo Rating", fontsize=12, fontweight="bold")
-            ax.set_title(f"Elo at Specific Round: {game_name}", fontsize=14, fontweight="bold")
+            ax.set_xlabel("Round", fontproperties=FONT_BOLD, fontsize=14)
+            ax.set_ylabel("Elo Rating", fontproperties=FONT_BOLD, fontsize=14)
+            ax.set_title(f"Elo at Specific Round: {game_name}", fontproperties=FONT_BOLD, fontsize=16)
             ax.grid(True, alpha=0.3)
+            ax.yaxis.set_minor_locator(AutoMinorLocator())
 
             # Add reference line at ELO_BASE
             ax.axhline(ELO_BASE, color="red", linestyle="--", alpha=0.5, linewidth=1, label=f"Base Elo ({ELO_BASE})")
 
-            ax.legend(fontsize=10, loc="best")
+            legend = ax.legend(prop=FONT_BOLD, fontsize=12, loc="best")
+            legend.set_frame_on(False)
 
             plt.tight_layout()
             safe_game_name = game_name.replace("/", "_").replace(" ", "_")
