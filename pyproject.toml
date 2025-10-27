@@ -31,7 +31,6 @@ dependencies = [
     "scipy",
     "unidiff",
     "trueskill",
-    "difflib",
     "cdifflib",
 ]
 
