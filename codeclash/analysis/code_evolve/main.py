@@ -56,7 +56,7 @@ def get_submission_diff_at_round(log_folder: Path, player_name: str, round_num: 
 def get_submission_diffs_at_round(log_folders: list[Path], player_name: str, round_num: int) -> dict[Path, PatchSet]:
     """Extract submission diffs for a player at a specific round across multiple tournaments."""
     diffs = {}
-    for folder in tqdm(log_folders, desc=f"Loading diffs for round {round_num}"):
+    for folder in log_folders:
         try:
             diffs[folder] = get_submission_diff_at_round(folder, player_name, round_num)
         except FileNotFoundError as e:
@@ -181,12 +181,10 @@ def collect_data(
         models = [x["model_name"].rsplit("/")[-1] for x in yaml.safe_load(f)]
 
     with open(data_cache, mode) as f:
-        for i in range(0, len(models)):
-            for j in range(0, len(models)):
-                if i == j:
-                    continue
-                for round in TARGET_ROUNDS:
-                    if round != 1:
+        for round in TARGET_ROUNDS:
+            for i in range(0, len(models)):
+                for j in range(0, len(models)):
+                    if i == j:
                         continue
                     if (
                         tag_to_str(
