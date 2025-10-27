@@ -5,9 +5,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
-from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.games import BattleCodeGame, DummyGame
 from codeclash.utils.log import get_logger
@@ -82,77 +83,74 @@ def plot_stratified(
     data_by_category: dict[str, list[int]], output_path: Path, *, title: str, by_model: bool = False
 ) -> None:
     """Plot win counts stratified by category (game or model)."""
-    all_win_counts = [w for counts in data_by_category.values() for w in counts]
-
     # Determine category order
     if by_model:
-        category_names = sorted(data_by_category.keys(), key=lambda m: MODEL_TO_DISPLAY_NAME.get(m, m))
+        # Sort by full model name (including prefix), then strip prefix for display
+        category_names = sorted(data_by_category.keys())
     else:
         category_names = sorted(data_by_category.keys())
 
-    # Create subplots: 1 for all + 1 per category
-    n_plots = 1 + len(category_names)
-    n_cols = 2
+    # Create subplots: 3 columns, no "All" plot
+    n_plots = len(category_names)
+    n_cols = 3
     n_rows = (n_plots + n_cols - 1) // n_cols
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
+    # Use 4x4 for all plots
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 4 * n_rows))
     axes = axes.flatten() if n_plots > 1 else [axes]
 
     bins = np.arange(-0.5, 16.5, 1)
 
-    # Plot all combined
-    ax = axes[0]
-    ax.hist(all_win_counts, bins=bins, edgecolor="black", alpha=0.7)
-    ax.set_xlabel("Total number of rounds won (out of 15)", fontsize=10, fontweight="bold")
-    ax.set_ylabel("Frequency", fontsize=10, fontweight="bold")
-    ax.set_title("All Models" if by_model else "All Games", fontsize=12, fontweight="bold")
-    ax.set_xticks(range(0, 16))
-    ax.grid(True, alpha=0.3, axis="y")
-
-    mean_wc = np.mean(all_win_counts)
-    median_wc = np.median(all_win_counts)
-    stats_text = f"Mean: {mean_wc:.2f}\nMedian: {median_wc:.1f}\nN: {len(all_win_counts)}"
-    ax.text(
-        0.02,
-        0.98,
-        stats_text,
-        transform=ax.transAxes,
-        verticalalignment="top",
-        fontsize=9,
-        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
-    )
-
     # Plot per category
-    for idx, category_name in enumerate(category_names, start=1):
+    for idx, category_name in enumerate(category_names):
         ax = axes[idx]
         counts = data_by_category[category_name]
 
-        ax.hist(counts, bins=bins, edgecolor="black", alpha=0.7)
-        ax.set_xlabel("Total number of rounds won (out of 15)", fontsize=10, fontweight="bold")
-        ax.set_ylabel("Frequency", fontsize=10, fontweight="bold")
-        display_name = MODEL_TO_DISPLAY_NAME.get(category_name, category_name) if by_model else category_name
-        ax.set_title(display_name, fontsize=12, fontweight="bold")
+        ax.hist(counts, bins=bins, edgecolor="black", alpha=0.7, density=True)
+        ax.set_xlabel("Total number of rounds won (out of 15)", fontproperties=FONT_BOLD, fontsize=12)
+        ax.set_ylabel("Density", fontproperties=FONT_BOLD, fontsize=12)
+
+        # Set tick labels to also use bold font
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(FONT_BOLD)
+
+        if by_model:
+            display_name = MODEL_TO_DISPLAY_NAME.get(category_name, category_name)
+        else:
+            display_name = category_name.replace("Halite", "Poker")
+        ax.set_title(display_name, fontproperties=FONT_BOLD, fontsize=14)
         ax.set_xticks(range(0, 16))
+
+        # Add minor ticks on y-axis
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+        # Show ticks on all sides, pointing inward
+        ax.tick_params(top=True, right=True, which="both", direction="in")
+
         ax.grid(True, alpha=0.3, axis="y")
 
-        mean_wc = np.mean(counts)
-        median_wc = np.median(counts)
-        stats_text = f"Mean: {mean_wc:.2f}\nMedian: {median_wc:.1f}\nN: {len(counts)}"
-        ax.text(
-            0.02,
-            0.98,
-            stats_text,
-            transform=ax.transAxes,
-            verticalalignment="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
-        )
+        # Add stats text only for by_model plots
+        if by_model:
+            mean_wc = np.mean(counts)
+            median_wc = np.median(counts)
+            stats_text = f"Mean: {mean_wc:.2f}\nMedian: {median_wc:.1f}\nN: {len(counts)}"
+            ax.text(
+                0.5,
+                0.93,
+                stats_text,
+                transform=ax.transAxes,
+                verticalalignment="top",
+                horizontalalignment="center",
+                fontproperties=FONT_BOLD,
+                fontsize=10,
+                bbox=dict(boxstyle="square", facecolor="white", edgecolor="black", linewidth=1),
+            )
 
     # Hide unused subplots
     for idx in range(n_plots, len(axes)):
         axes[idx].set_visible(False)
 
-    plt.suptitle(title, fontsize=14, fontweight="bold")
+    plt.suptitle(title, fontproperties=FONT_BOLD, fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
 
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
@@ -259,7 +257,7 @@ def plot_overlaid_win_margins(win_margins_by_model: dict[str, list[int]], output
     # Sort models by display name
     model_names = sorted(win_margins_by_model.keys(), key=lambda m: MODEL_TO_DISPLAY_NAME.get(m, m))
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 10))
 
     # Integer bins for rounds won (0 to 15)
     bins = np.arange(-0.5, 16.5, 1)  # Centers on integers 0-15
@@ -284,13 +282,16 @@ def plot_overlaid_win_margins(win_margins_by_model: dict[str, list[int]], output
         label = f"{display_name} (μ={mean_rounds:.1f}, med={median_rounds:.1f})"
         ax.plot(bin_centers, hist, marker="o", linewidth=2, markersize=4, label=label, alpha=0.8)
 
-    ax.set_xlabel("Rounds Won (out of 15, in tournaments won)", fontsize=12, fontweight="bold")
-    ax.set_ylabel("Normalized Frequency", fontsize=12, fontweight="bold")
-    ax.set_title("Distribution of Victory Margins by Model (Winning Tournaments Only)", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Rounds Won (out of 15, in tournaments won)", fontproperties=FONT_BOLD, fontsize=14)
+    ax.set_ylabel("Normalized Frequency", fontproperties=FONT_BOLD, fontsize=14)
+    ax.set_title(
+        "Distribution of Victory Margins by Model (Winning Tournaments Only)", fontproperties=FONT_BOLD, fontsize=16
+    )
     ax.set_xticks(range(0, 16))
     ax.set_xlim(-0.5, 15.5)
     ax.grid(True, alpha=0.3, axis="y")
-    ax.legend(fontsize=10, loc="best")
+    legend = ax.legend(prop=FONT_BOLD, fontsize=12, loc="best")
+    legend.set_frame_on(False)
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
@@ -298,7 +299,7 @@ def plot_overlaid_win_margins(win_margins_by_model: dict[str, list[int]], output
     plt.close()
 
 
-def main(log_dir: Path, output_by_game: Path, output_by_model: Path, output_overlaid: Path) -> None:
+def main(log_dir: Path) -> None:
     """Calculate win counts and plot histograms stratified by game and by model."""
     logger.info(f"Processing tournaments from {log_dir}")
 
@@ -343,6 +344,7 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path, output_over
     )
 
     # Plot by game
+    output_by_game = ASSETS_DIR / "win_rate_distribution_by_game.pdf"
     plot_stratified(
         win_counts_by_game,
         output_by_game,
@@ -351,6 +353,7 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path, output_over
     )
 
     # Plot by model
+    output_by_model = ASSETS_DIR / "win_rate_distribution_by_model.pdf"
     plot_stratified(
         win_counts_by_model,
         output_by_model,
@@ -362,6 +365,7 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path, output_over
     if win_margins_by_model:
         total_wins = sum(len(v) for v in win_margins_by_model.values())
         logger.info(f"Collected {total_wins} winning tournaments across {len(win_margins_by_model)} models")
+        output_overlaid = ASSETS_DIR / "win_rates_won_games_by_model_overlaid.pdf"
         plot_overlaid_win_margins(win_margins_by_model, output_overlaid)
 
 
@@ -370,24 +374,6 @@ if __name__ == "__main__":
         description="Plot distribution of player win counts (only tournaments with 15 rounds)"
     )
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR, help="Path to log directory")
-    parser.add_argument(
-        "--output_by_game",
-        type=Path,
-        default=Path("assets/win_rate_distribution_by_game.pdf"),
-        help="Output path for by-game plot",
-    )
-    parser.add_argument(
-        "--output_by_model",
-        type=Path,
-        default=Path("assets/win_rate_distribution_by_model.pdf"),
-        help="Output path for by-model plot",
-    )
-    parser.add_argument(
-        "--output_overlaid",
-        type=Path,
-        default=Path("assets/win_rates_won_games_by_model_overlaid.pdf"),
-        help="Output path for overlaid win rate plot",
-    )
     args = parser.parse_args()
 
-    main(args.log_dir, args.output_by_game, args.output_by_model, args.output_overlaid)
+    main(args.log_dir)
