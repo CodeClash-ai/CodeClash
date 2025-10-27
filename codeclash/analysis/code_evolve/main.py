@@ -1,5 +1,6 @@
 """Code evolution and consistency analysis across tournament games."""
 
+import argparse
 import difflib
 import json
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -16,7 +17,6 @@ from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DIS
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.games import ARENAS
 
-DATA_CACHE = Path("assets/code_evolve_cache.jsonl")
 MODELS_PATH = Path("configs/models.yaml")
 TARGET_ROUNDS = [1, 5, 10, 15]
 
@@ -73,7 +73,7 @@ def find_max_round_for_player(log_folder: Path, player_name: str) -> int:
     return max(rounds) if rounds else 0
 
 
-def compute_code_similarity(diff1: PatchSet, diff2: PatchSet) -> float:
+def _compute_code_sim_difflib(diff1: PatchSet, diff2: PatchSet) -> float:
     """Compute similarity score between two diffs using edit distance (0.0 = different, 1.0 = identical)."""
     diff1_str = "\n".join(str(f) for f in diff1)
     diff2_str = "\n".join(str(f) for f in diff2)
@@ -81,20 +81,46 @@ def compute_code_similarity(diff1: PatchSet, diff2: PatchSet) -> float:
     return seq_matcher.ratio()
 
 
+def compute_code_sim_jaccard(diff1: PatchSet, diff2: PatchSet) -> float:
+    """Jaccard similarity on line-level tokens."""
+
+    def get_lines(patch):
+        return {str(f).splitlines() for f in patch}
+
+    lines1 = get_lines(diff1)
+    lines2 = get_lines(diff2)
+
+    if not lines1 and not lines2:
+        return 1.0
+    if not lines1 or not lines2:
+        return 0.0
+
+    intersection = len(lines1 & lines2)
+    union = len(lines1 | lines2)
+    return intersection / union
+
+
+def compute_code_similarity(diff1: PatchSet, diff2: PatchSet, similarity: str = "difflib") -> float:
+    return {
+        "difflib": _compute_code_sim_difflib,
+        "jaccard": compute_code_sim_jaccard,
+    }[similarity](diff1, diff2)
+
+
 def _compute_similarity_row(args):
     """Helper for parallel similarity computation."""
-    i, patch_i, patches = args
+    i, patch_i, patches, similarity = args
     row = np.zeros(len(patches))
     for j, patch_j in enumerate(patches):
         if i != j:
-            row[j] = compute_code_similarity(patch_i, patch_j)
+            row[j] = compute_code_similarity(patch_i, patch_j, similarity)
         else:
             row[j] = 1.0
     return i, row
 
 
 def compute_round_consistency(
-    model: str, opponent: str, arena: str, round_num: int, n_workers: int = 4
+    model: str, opponent: str, arena: str, round_num: int, n_workers: int = 4, similarity: str = "difflib"
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute pairwise similarity between a model's solutions at a specific round across multiple games.
@@ -110,7 +136,7 @@ def compute_round_consistency(
     similarity_matrix = np.zeros((n, n))
 
     with ProcessPoolExecutor(max_workers=n_workers) as executor:
-        tasks = [(i, patch_list[i], patch_list) for i in range(n)]
+        tasks = [(i, patch_list[i], patch_list, similarity) for i in range(n)]
         futures = {executor.submit(_compute_similarity_row, task): task for task in tasks}
 
         for future in tqdm(as_completed(futures), total=n, desc="Computing similarities"):
@@ -127,14 +153,16 @@ def tag_to_str(tag: dict) -> str:
     return f"{tag['model_a']}__vs__{tag['model_b']}__in__{tag['arena']}__r{tag['round']}"
 
 
-def collect_data():
+def collect_data(
+    data_cache: Path = Path("assets/code_evolve_cache_BattleSnake_difflib.jsonl"),
+    arena: str = "BattleSnake",
+    similarity: str = "difflib",
+):
     """Run code evolution analyses."""
-    if not DATA_CACHE.parent.exists():
-        DATA_CACHE.parent.mkdir(parents=True, exist_ok=True)
     mode, to_skip = "w", []
-    if DATA_CACHE.exists():
+    if data_cache.exists():
         mode = "a"
-        with open(DATA_CACHE) as f:
+        with open(data_cache) as f:
             for line in f:
                 entry = json.loads(line)
                 to_skip.append(
@@ -147,16 +175,19 @@ def collect_data():
                         }
                     )
                 )
+        print(f"Found cache file, skipping {len(to_skip)} entries.")
 
     with open(MODELS_PATH) as f:
         models = [x["model_name"].rsplit("/")[-1] for x in yaml.safe_load(f)]
-    arena = "BattleSnake"
-    with open(DATA_CACHE, mode) as f:
+
+    with open(data_cache, mode) as f:
         for i in range(0, len(models)):
             for j in range(0, len(models)):
                 if i == j:
                     continue
                 for round in TARGET_ROUNDS:
+                    if round != 1:
+                        continue
                     if (
                         tag_to_str(
                             {
@@ -170,7 +201,9 @@ def collect_data():
                     ):
                         continue
                     try:
-                        sim_matrix, _ = compute_round_consistency(models[i], models[j], arena, round)
+                        sim_matrix, _ = compute_round_consistency(
+                            models[i], models[j], arena, round, similarity=similarity
+                        )
                     except Exception as e:
                         print(
                             f"Error computing consistency for {models[i]} vs {models[j]} in {arena} at round {round}: {e}"
@@ -196,10 +229,10 @@ def collect_data():
 # =============================================c
 
 
-def load_cached_results() -> list[dict]:
+def load_cached_results(data_cache: Path) -> list[dict]:
     """Load all cached results from the data file."""
     results = []
-    with open(DATA_CACHE) as f:
+    with open(data_cache) as f:
         for line in f:
             results.append(json.loads(line))
     return results
@@ -264,7 +297,7 @@ def compute_opponent_effect_matrix(results: list[dict], target_round: int) -> tu
     return sorted(opponent_matrix.keys()), opponent_matrix
 
 
-def plot_opponent_effect_heatmap(target_round: int, output_path: str = None):
+def plot_opponent_effect_heatmap(data_cache: str, target_round: int, output_path: str = None):
     """
     Plot heatmap showing how model consistency varies by opponent.
     Answers questions 2a (round 1) and 2b (round 15).
@@ -272,7 +305,7 @@ def plot_opponent_effect_heatmap(target_round: int, output_path: str = None):
     if output_path is None:
         output_path = f"assets/heatmap_code_evolution_per_opponent_r{target_round}.png"
 
-    results = load_cached_results()
+    results = load_cached_results(data_cache)
     models, opponent_matrix = compute_opponent_effect_matrix(results, target_round)
 
     # Get all unique opponents
@@ -291,7 +324,7 @@ def plot_opponent_effect_heatmap(target_round: int, output_path: str = None):
                 matrix[i, j] = opponent_matrix[model][opponent]
 
     # Create heatmap with blue-white-red colormap like win_rates
-    FONT_BOLD.set_size(16)
+    FONT_BOLD.set_size(14)
     _, ax = plt.subplots(figsize=(6, 6))
     cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#3498db", "#ffffff", "#e74c3c"])
     masked = np.ma.masked_where(np.isnan(matrix), matrix)
@@ -328,12 +361,12 @@ def plot_opponent_effect_heatmap(target_round: int, output_path: str = None):
     print(f"Saved heatmap to {output_path}")
 
 
-def plot_consistency_over_rounds(output_path: str = "assets/line_chart_code_evolution.png"):
+def plot_consistency_over_rounds(data_cache: str, output_path: str = "assets/line_chart_code_evolution.png"):
     """
     Plot line graph: x-axis = round, y-axis = code similarity, one line per model.
     Answers questions 1a (early round consistency) and 1b (evolution over time).
     """
-    results = load_cached_results()
+    results = load_cached_results(data_cache)
     model_consistency = compute_model_consistency_over_rounds(results)
 
     plt.figure(figsize=(6, 6))
@@ -359,12 +392,24 @@ def plot_consistency_over_rounds(output_path: str = "assets/line_chart_code_evol
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Code Evolution and Consistency Analysis")
+    parser.add_argument("-a", "--arena", type=str, default="BattleSnake", help="Arena name to analyze")
+    parser.add_argument(
+        "-s", "--similarity", type=str, default="difflib", help="Similarity function to use (difflib or jaccard)"
+    )
+    args = parser.parse_args()
+
+    data_cache = Path(f"assets/code_evolve_cache_{args.arena}_{args.similarity}.jsonl")
     # Run data collection
-    # collect_data()
+    collect_data(
+        data_cache=data_cache,
+        arena=args.arena,
+        similarity=args.similarity,
+    )
 
     # Questions 1a/1b: Consistency over rounds
-    plot_consistency_over_rounds()  # Questions 1a and 1b
+    plot_consistency_over_rounds(data_cache)  # Questions 1a and 1b
 
     # Questions 2a/2b: Opponent effect
-    plot_opponent_effect_heatmap(target_round=1)  # Question 2a
-    plot_opponent_effect_heatmap(target_round=15)  # Question 2b
+    plot_opponent_effect_heatmap(data_cache, target_round=1)  # Question 2a
+    plot_opponent_effect_heatmap(data_cache, target_round=15)  # Question 2b
