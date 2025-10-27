@@ -15,7 +15,7 @@ from codeclash.analysis.metrics.elo import get_scores
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
-from codeclash.utils.log import get_logger
+from codeclash.utils.log import add_file_handler, get_logger
 
 logger = get_logger("elo2")
 
@@ -297,50 +297,6 @@ class ScoreMatrixBuilder:
         boot_matrix["ALL"] = {k: [v[0], v[1]] for k, v in combined.items()}
         return boot_matrix
 
-    def get_parametric_bootstrap(
-        self, *, rng: np.random.Generator | None = None
-    ) -> dict[str, dict[tuple[str, str], list[float]]]:
-        """Return a parametric bootstrap sample based on a Bernoulli model.
-
-        For each matchup, we estimate the win probability p = w1/(w1+w2) and then
-        sample n = w1+w2 Bernoulli trials with that probability to get new counts.
-        """
-        if self.all_normalization_scheme != "none":
-            raise NotImplementedError("get_nonparametric_bootstrap supports all_normalization_scheme='none' only")
-        if self.score_type != "per_tournament_boolean_drop_draws":
-            raise NotImplementedError(
-                "get_nonparametric_bootstrap supports score_type='per_tournament_boolean_drop_draws' only"
-            )
-        if rng is None:
-            rng = np.random.default_rng()
-
-        boot_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
-            lambda: defaultdict(lambda: [0.0, 0.0])
-        )
-
-        for game_name, matchups in self.win_matrix.items():
-            if game_name == "ALL":
-                continue
-            for pair, (w1, w2) in matchups.items():
-                n = int(w1 + w2)
-                if n == 0:
-                    boot_matrix[game_name][pair] = [0.0, 0.0]
-                    continue
-                p = w1 / (w1 + w2)
-                w1_new = float(rng.binomial(n, p))
-                w2_new = float(n - w1_new)
-                boot_matrix[game_name][pair] = [w1_new, w2_new]
-
-        # Build combined 'ALL' game by summing
-        combined: dict[tuple[str, str], list[float]] = defaultdict(lambda: [0.0, 0.0])
-        for matchups in boot_matrix.values():
-            for pair, (w1, w2) in matchups.items():
-                combined[pair][0] += w1
-                combined[pair][1] += w2
-
-        boot_matrix["ALL"] = {k: [v[0], v[1]] for k, v in combined.items()}
-        return boot_matrix
-
     def print_matrix(self) -> None:
         for game, matchups in sorted(self.win_matrix.items()):
             print(f"\n{game}:")
@@ -489,6 +445,41 @@ class BradleyTerryFitter:
             out["elo_std"] = elo_std
         self.result = out
         return out
+
+    def get_parametric_bootstrap(self, *, rng: np.random.Generator | None = None) -> dict[tuple[str, str], list[float]]:
+        """Return a parametric bootstrap sample based on the fitted Bradley-Terry model.
+
+        Uses the fitted strengths to compute win probabilities P(i beats j) = sigmoid(s_i - s_j),
+        then samples new win counts from binomial distributions with those probabilities.
+        This is a true parametric bootstrap, unlike a semi-parametric approach that uses empirical win rates.
+        """
+        if self.result is None:
+            raise RuntimeError("Must call fit() before get_parametric_bootstrap()")
+        if rng is None:
+            rng = np.random.default_rng()
+
+        players = self.result["players"]
+        strengths = self.result["strengths"]
+        player_to_idx = {p: i for i, p in enumerate(players)}
+
+        boot_matrix: dict[tuple[str, str], list[float]] = {}
+
+        for pair, (w1, w2) in self.matchups.items():
+            n = int(w1 + w2)
+            if n == 0:
+                boot_matrix[pair] = [0.0, 0.0]
+                continue
+
+            p1, p2 = pair
+            i, j = player_to_idx[p1], player_to_idx[p2]
+            diff = strengths[i] - strengths[j]
+            p = self._sigmoid(diff)
+
+            w1_new = float(rng.binomial(n, p))
+            w2_new = float(n - w1_new)
+            boot_matrix[pair] = [w1_new, w2_new]
+
+        return boot_matrix
 
 
 class BradleyTerryFitterPlots:
@@ -685,7 +676,7 @@ class BradleyTerryFitterPlots:
                 # Plot
                 ax.plot(strength_range, neg_lls, "b-", linewidth=2)
                 ax.axvline(optimal_strength, color="r", linestyle="--", label="Optimal", linewidth=2)
-                ax.axhline(min_neg_ll, color="r", linestyle=":", alpha=0.5, linewidth=1)
+                ax.axhline(min_neg_ll, color="r", linestyle=":", alpha=0.5, linewidth=1, label="Min NLL")
 
                 # Add text annotation with minimum NLL and optimal strength
                 text_str = f"Min NLL: {min_neg_ll:.2f}\nBT Strength: {optimal_strength:.3f}"
@@ -702,7 +693,7 @@ class BradleyTerryFitterPlots:
                 ax.set_xlabel("BT Strength", fontsize=10)
                 ax.set_ylabel("Negative Log-Likelihood", fontsize=10)
                 ax.set_title(f"{player}", fontsize=11, fontweight="bold")
-                ax.legend(fontsize=8)
+                ax.legend(fontsize=8, loc="upper right")
                 ax.grid(True, alpha=0.3)
 
             # Hide unused subplots
@@ -882,12 +873,17 @@ class BootStrapRankStability:
         base_pos = self._positions(baseline_ranking)
 
         rng = np.random.default_rng(42)
+        baseline_fitter = BradleyTerryFitter(
+            self.builder.win_matrix[game], regularization=self.regularization, compute_uncertainties=False
+        )
         for _ in tqdm(range(self.n_bootstrap), desc="Bootstrap samples"):
             if self.bootstrap_type == "nonparametric":
                 boot = self.builder.get_nonparametric_bootstrap(rng=rng)
+                res = self._fit_on_matrix(boot[game])
             else:
-                boot = self.builder.get_parametric_bootstrap(rng=rng)
-            res = self._fit_on_matrix(boot[game])
+                baseline_fitter.fit()
+                boot_matrix = baseline_fitter.get_parametric_bootstrap(rng=rng)
+                res = self._fit_on_matrix(boot_matrix)
             elos = self._elos_from_result(res)
             ranking = self._ranking_from_elos(elos)
             pos = self._positions(ranking)
@@ -928,29 +924,27 @@ class BootStrapRankStability:
         top1_consistency = top1_match / self.n_bootstrap if self.n_bootstrap > 0 else float("nan")
         pairwise_agreement = (pair_agree / (self.n_bootstrap * total_pairs)) if total_pairs > 0 else float("nan")
 
-        lines = []
-        lines.append("\nRank stability (bootstrap)")
-        lines.append(f"Game: {game}")
-        lines.append(f"Bootstraps: {self.n_bootstrap}")
-        lines.append(f"Bootstrap type: {self.bootstrap_type}")
-        lines.append("")
-        lines.append(f"{'Metric':<28} {'Value':>10}")
-        lines.append("-" * 40)
-        lines.append(f"{'Kendall tau (avg)':<28} {mean_tau:>10.3f}")
-        lines.append(f"{'Spearman rho (avg)':<28} {mean_rho:>10.3f}")
-        lines.append(f"{'Footrule (avg, norm)':<28} {mean_foot:>10.3f}")
-        lines.append(f"{'Top-1 consistency':<28} {top1_consistency:>10.3f}")
-        lines.append(f"{'Pairwise order agree':<28} {pairwise_agreement:>10.3f}")
+        logger.info("\nRank stability (bootstrap)")
+        logger.info(f"Game: {game}")
+        logger.info(f"Bootstraps: {self.n_bootstrap}")
+        logger.info(f"Bootstrap type: {self.bootstrap_type}")
+        logger.info("")
+        logger.info(f"{'Metric':<28} {'Value':>10}")
+        logger.info("-" * 40)
+        logger.info(f"{'Kendall tau (avg)':<28} {mean_tau:>10.3f}")
+        logger.info(f"{'Spearman rho (avg)':<28} {mean_rho:>10.3f}")
+        logger.info(f"{'Footrule (avg, norm)':<28} {mean_foot:>10.3f}")
+        logger.info(f"{'Top-1 consistency':<28} {top1_consistency:>10.3f}")
+        logger.info(f"{'Pairwise order agree':<28} {pairwise_agreement:>10.3f}")
         for k in topks:
-            lines.append(f"{f'Top-{k} overlap (avg)':<28} {float(np.mean(topk_overlap[k])):>10.3f}")
-        for ln in lines:
-            logger.info(ln)
+            logger.info(f"{f'Top-{k} overlap (avg)':<28} {float(np.mean(topk_overlap[k])):>10.3f}")
 
         header = f"\n{'Model':<30} {'BaseElo':>8} {'StdElo':>8} {'MeanRank':>9} {'StdRank':>8} " + " ".join(
             [f"P@{k:>2}" for k in topks]
         )
         logger.info(header)
-        logger.info("-" * max(40, len(header)))
+        separator = "-" * max(40, len(header))
+        logger.info(separator)
         for p in players:
             ranks = np.array(rank_samples[p], dtype=float)
             elos_arr = np.array(elo_samples[p], dtype=float)
@@ -961,10 +955,10 @@ class BootStrapRankStability:
             probs = []
             for k in topks:
                 probs.append(np.mean(ranks <= k))
-            logger.info(
-                f"{p:<30} {base_elo:8.0f} {std_elo:8.0f} {mean_r:9.2f} {std_r:8.2f} "
-                + " ".join([f"{float(pr):>5.2f}" for pr in probs])
+            player_line = f"{p:<30} {base_elo:8.0f} {std_elo:8.0f} {mean_r:9.2f} {std_r:8.2f} " + " ".join(
+                [f"{float(pr):>5.2f}" for pr in probs]
             )
+            logger.info(player_line)
 
         if self.output_dir is not None:
             bootstrap_dir = self.output_dir / "bootstrap"
@@ -1205,19 +1199,18 @@ def print_results(results: dict[str, dict]) -> None:
 
     Args:
         results: Dictionary mapping game name to fit results
-        regularization: L2 regularization strength used in fitting
     """
     for game_name in sorted(results.keys()):
         result = results[game_name]
-        print(f"\n{game_name}:")
-        print(f"Log-likelihood: {result['log_likelihood']:.2f}")
+        logger.info(f"\n{game_name}:")
+        logger.info(f"Log-likelihood: {result['log_likelihood']:.2f}")
         has_sigma = "elo_std" in result
         if has_sigma:
-            print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s} {'±1σ':>8s}")
-            print("-" * 62)
+            logger.info(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s} {'±1σ':>8s}")
+            logger.info("-" * 62)
         else:
-            print(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
-            print("-" * 52)
+            logger.info(f"\n{'Player':<30s} {'BT Strength':>12s} {'Elo':>8s}")
+            logger.info("-" * 52)
 
         # Sort by strength descending
         indices = np.argsort(result["strengths"])[::-1]
@@ -1228,9 +1221,9 @@ def print_results(results: dict[str, dict]) -> None:
             sigma = result.get("elo_std")
             if sigma is not None:
                 s = sigma[idx]
-                print(f"  {player:<30s} {strength:12.3f} {elo:8.0f} {s:8.0f}")
+                logger.info(f"  {player:<30s} {strength:12.3f} {elo:8.0f} {s:8.0f}")
             else:
-                print(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
+                logger.info(f"  {player:<30s} {strength:12.3f} {elo:8.0f}")
 
 
 def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
@@ -1370,8 +1363,15 @@ if __name__ == "__main__":
         )
         results[game_name] = fitter.fit()
 
-    print(f"\nRegularization λ = {args.regularization}")
-    print(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
+    # Add file handler to logger to save all output
+    if args.output_dir:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        add_file_handler(logger, args.output_dir / "elo_results.log")
+
+    # Print ELO results
+    logger.info(f"\nRegularization λ = {args.regularization}")
+    logger.info(f"Elo conversion: R = {ELO_BASE} + ({ELO_SLOPE}/ln(10)) * s")
+
     print_results(results)
 
     plotter = BradleyTerryFitterPlots(results, builder.win_matrix)
@@ -1383,7 +1383,7 @@ if __name__ == "__main__":
         for bootstrap_type in ["nonparametric", "parametric"]:
             BootStrapRankStability(
                 builder,
-                n_bootstrap=200,
+                n_bootstrap=1000,
                 game="ALL",
                 regularization=args.regularization,
                 topks=None,
