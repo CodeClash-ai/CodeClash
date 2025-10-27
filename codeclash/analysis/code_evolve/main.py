@@ -10,6 +10,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
+from cdifflib import CSequenceMatcher
 from tqdm.auto import tqdm
 from unidiff import PatchSet
 
@@ -18,7 +19,7 @@ from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.games import ARENAS
 
 MODELS_PATH = Path("configs/models.yaml")
-TARGET_ROUNDS = [1, 5, 10, 15]
+TARGET_ROUNDS = [1, 15, 5, 10]
 
 
 def get_model_arena_logs(model: str | list[str], arena: str | list[str]) -> list[Path]:
@@ -77,6 +78,7 @@ def _compute_code_sim_difflib(diff1: PatchSet, diff2: PatchSet) -> float:
     """Compute similarity score between two diffs using edit distance (0.0 = different, 1.0 = identical)."""
     diff1_str = "\n".join(str(f) for f in diff1)
     diff2_str = "\n".join(str(f) for f in diff2)
+    difflib.SequenceMatcher = CSequenceMatcher
     seq_matcher = difflib.SequenceMatcher(None, diff1_str, diff2_str, autojunk=False)
     return seq_matcher.ratio()
 
@@ -320,6 +322,36 @@ def plot_opponent_effect_heatmap(data_cache: str, target_round: int, output_path
         for j, opponent in enumerate(opponents):
             if opponent in opponent_matrix[model]:
                 matrix[i, j] = opponent_matrix[model][opponent]
+
+    # Calculate row averages (model consistency)
+    row_means = np.nanmean(matrix, axis=1)
+    model_stats = [(models[i], row_means[i]) for i in range(n_models)]
+    model_stats_sorted = sorted(model_stats, key=lambda x: x[1], reverse=True)
+
+    # Calculate column averages (opponent effect)
+    col_means = np.nanmean(matrix, axis=0)
+    opponent_stats = [(opponents[i], col_means[i]) for i in range(n_opponents)]
+    opponent_stats_sorted = sorted(opponent_stats, key=lambda x: x[1], reverse=True)
+
+    print(f"\n{'=' * 60}")
+    print(f"Model Consistency Statistics (Round {target_round}):")
+    print(f"{'=' * 60}")
+    print(f"{'Model':<25} {'Avg Similarity'}")
+    print(f"{'-' * 60}")
+    for model, avg_sim in model_stats_sorted:
+        display = MODEL_TO_DISPLAY_NAME.get(model, model)
+        print(f"{display:<25} {avg_sim:.3f}")
+    print(f"{'=' * 60}")
+
+    print(f"\n{'=' * 60}")
+    print(f"Opponent Effect Statistics (Round {target_round}):")
+    print(f"{'=' * 60}")
+    print(f"{'Opponent':<25} {'Avg Similarity'}")
+    print(f"{'-' * 60}")
+    for opp, avg_sim in opponent_stats_sorted:
+        display = MODEL_TO_DISPLAY_NAME.get(opp, opp)
+        print(f"{display:<25} {avg_sim:.3f}")
+    print(f"{'=' * 60}\n")
 
     # Create heatmap with blue-white-red colormap like win_rates
     FONT_BOLD.set_size(14)
