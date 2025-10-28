@@ -12,7 +12,7 @@ from scipy.optimize import minimize
 from scipy.stats import kendalltau, spearmanr
 from tqdm import tqdm
 
-from codeclash.analysis.metrics.elo import get_scores
+from codeclash.analysis.metrics.elo_broken import get_scores
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
@@ -1334,6 +1334,47 @@ def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
     logger.info(f"Saved LaTeX table: {output_file}")
 
 
+def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
+    """Write results in JSON format for website consumption.
+
+    Creates a leaderboard JSON with rankings per arena and overall.
+    Format:
+    {
+        "ArenaName": [
+            {"rank": 1, "model": "model_name", "elo": 1500},
+            ...
+        ],
+        "Overall": [...]
+    }
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / "leaderboard.json"
+
+    leaderboard = {}
+
+    for game_name, game_result in results.items():
+        players = game_result["players"]
+        strengths = game_result["strengths"]
+
+        # Convert Bradley-Terry strengths to Elo ratings
+        elos = {p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(players, strengths)}
+
+        # Sort by Elo (descending)
+        sorted_players = sorted(elos.items(), key=lambda x: x[1], reverse=True)
+
+        # Create leaderboard entries
+        leaderboard[game_name] = [
+            {"rank": rank + 1, "model": MODEL_TO_DISPLAY_NAME.get(player, player), "elo": round(elo, 1)}
+            for rank, (player, elo) in enumerate(sorted_players)
+        ]
+
+    # Write to file
+    with open(output_file, "w") as f:
+        json.dump(leaderboard, f, indent=2)
+
+    logger.info(f"Saved leaderboard JSON: {output_file}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build win matrix and fit Bradley-Terry model")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
@@ -1406,6 +1447,7 @@ if __name__ == "__main__":
     plotter.create_validation_plots(args.output_dir, regularization=args.regularization)
     plotter.create_elo_plots(args.output_dir)
     write_latex_table(results, args.output_dir)
+    write_website_results(results, args.output_dir)
 
     if uncertainties_supported:
         for bootstrap_type in ["nonparametric", "parametric"]:
