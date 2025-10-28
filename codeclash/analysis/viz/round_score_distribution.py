@@ -5,9 +5,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
-from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.games import BattleCodeGame, DummyGame
 from codeclash.utils.log import get_logger
@@ -88,79 +89,79 @@ def plot_stratified(
     data_by_category: dict[str, list[float]], output_path: Path, *, title: str, by_model: bool = False
 ) -> None:
     """Plot normalized scores stratified by category (game or model)."""
-    all_scores = [s for scores in data_by_category.values() for s in scores]
-
     # Determine category order
     if by_model:
-        category_names = sorted(data_by_category.keys(), key=lambda m: MODEL_TO_DISPLAY_NAME.get(m, m))
+        # Sort by full model name (including prefix), then strip prefix for display
+        category_names = sorted(data_by_category.keys())
     else:
         category_names = sorted(data_by_category.keys())
 
-    # Create subplots: 1 for all + 1 per category
-    n_plots = 1 + len(category_names)
-    n_cols = 2
+    # Create subplots: 3 columns, no "All" plot
+    n_plots = len(category_names)
+    n_cols = 3
     n_rows = (n_plots + n_cols - 1) // n_cols
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
+    # Use 4x4 for all plots
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 4 * n_rows))
     axes = axes.flatten() if n_plots > 1 else [axes]
 
     bins = np.linspace(0, 1, 51)
 
-    # Plot all combined
-    ax = axes[0]
-    ax.hist(all_scores, bins=bins, edgecolor="black", alpha=0.7)
-    ax.set_xlabel("Normalized Score", fontsize=10, fontweight="bold")
-    ax.set_ylabel("Frequency", fontsize=10, fontweight="bold")
-    ax.set_title("All Models" if by_model else "All Games", fontsize=12, fontweight="bold")
-    ax.set_xlim(0, 1)
-    ax.grid(True, alpha=0.3, axis="y")
-
-    mean_score = np.mean(all_scores)
-    median_score = np.median(all_scores)
-    stats_text = f"Mean: {mean_score:.3f}\nMedian: {median_score:.3f}\nN: {len(all_scores)}"
-    ax.text(
-        0.98,
-        0.98,
-        stats_text,
-        transform=ax.transAxes,
-        verticalalignment="top",
-        horizontalalignment="right",
-        fontsize=9,
-        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
-    )
-
     # Plot per category
-    for idx, category_name in enumerate(category_names, start=1):
+    for idx, category_name in enumerate(category_names):
         ax = axes[idx]
         scores = data_by_category[category_name]
 
-        ax.hist(scores, bins=bins, edgecolor="black", alpha=0.7)
-        ax.set_xlabel("Normalized Score", fontsize=10, fontweight="bold")
-        ax.set_ylabel("Frequency", fontsize=10, fontweight="bold")
-        display_name = MODEL_TO_DISPLAY_NAME.get(category_name, category_name) if by_model else category_name
-        ax.set_title(display_name, fontsize=12, fontweight="bold")
-        ax.set_xlim(0, 1)
-        ax.grid(True, alpha=0.3, axis="y")
+        ax.hist(scores, bins=bins, edgecolor="black", alpha=0.7, density=True)
+        ax.set_xlabel("Normalized Score", fontproperties=FONT_BOLD, fontsize=12)
+        ax.set_ylabel("Density", fontproperties=FONT_BOLD, fontsize=12)
 
-        mean_score = np.mean(scores)
-        median_score = np.median(scores)
-        stats_text = f"Mean: {mean_score:.3f}\nMedian: {median_score:.3f}\nN: {len(scores)}"
-        ax.text(
-            0.98,
-            0.98,
-            stats_text,
-            transform=ax.transAxes,
-            verticalalignment="top",
-            horizontalalignment="right",
-            fontsize=9,
-            bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
-        )
+        # Set tick labels to also use bold font
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(FONT_BOLD)
+
+        if by_model:
+            display_name = MODEL_TO_DISPLAY_NAME.get(category_name, category_name)
+        else:
+            display_name = category_name.replace("Halite", "Poker")
+        ax.set_title(display_name, fontproperties=FONT_BOLD, fontsize=14)
+        ax.set_xlim(0, 1)
+
+        # Add minor ticks on both axes
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+        # Show ticks on all sides
+        ax.tick_params(top=True, right=True, which="both")
+
+        # Add gridlines for both x and y
+        ax.grid(True, alpha=0.3, axis="both", which="major")
+
+        # Add dashed black line at 50%
+        ax.axvline(0.5, color="black", linestyle="--", linewidth=1.5, alpha=0.7)
+
+        # Add stats text only for by_model plots
+        if by_model:
+            mean_score = np.mean(scores)
+            median_score = np.median(scores)
+            stats_text = f"Mean: {mean_score:.3f}    Median: {median_score:.3f}"
+            ax.text(
+                0.5,
+                0.93,
+                stats_text,
+                transform=ax.transAxes,
+                verticalalignment="top",
+                horizontalalignment="center",
+                fontproperties=FONT_BOLD,
+                fontsize=10,
+                bbox=dict(boxstyle="square", facecolor="white", edgecolor="black", linewidth=1),
+            )
 
     # Hide unused subplots
     for idx in range(n_plots, len(axes)):
         axes[idx].set_visible(False)
 
-    plt.suptitle(title, fontsize=14, fontweight="bold")
+    plt.suptitle(title, fontproperties=FONT_BOLD, fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
 
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
@@ -169,7 +170,7 @@ def plot_stratified(
     plt.close()
 
 
-def main(log_dir: Path, output_by_game: Path, output_by_model: Path) -> None:
+def main(log_dir: Path) -> None:
     """Calculate normalized scores and plot histograms stratified by game and by model."""
     logger.info(f"Processing tournaments from {log_dir}")
 
@@ -205,6 +206,7 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path) -> None:
     )
 
     # Plot by game
+    output_by_game = ASSETS_DIR / "round_score_distribution_by_game.pdf"
     plot_stratified(
         scores_by_game,
         output_by_game,
@@ -213,6 +215,7 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path) -> None:
     )
 
     # Plot by model
+    output_by_model = ASSETS_DIR / "round_score_distribution_by_model.pdf"
     plot_stratified(
         scores_by_model,
         output_by_model,
@@ -224,18 +227,6 @@ def main(log_dir: Path, output_by_game: Path, output_by_model: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot distribution of normalized player scores (valid rounds only)")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR, help="Path to log directory")
-    parser.add_argument(
-        "--output_by_game",
-        type=Path,
-        default=Path("assets/round_score_distribution_by_game.pdf"),
-        help="Output path for by-game plot",
-    )
-    parser.add_argument(
-        "--output_by_model",
-        type=Path,
-        default=Path("assets/round_score_distribution_by_model.pdf"),
-        help="Output path for by-model plot",
-    )
     args = parser.parse_args()
 
-    main(args.log_dir, args.output_by_game, args.output_by_model)
+    main(args.log_dir)

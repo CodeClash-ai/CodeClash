@@ -871,7 +871,7 @@ class BootStrapRankStability:
         self._save_plot(output_dir, f"{self.game}_elo_violin_{self.bootstrap_type}")
         plt.close()
 
-    def run(self) -> None:
+    def run(self) -> dict:
         game = self.game
         assert game in self.builder.win_matrix, f"Game '{game}' not found in win matrix"
 
@@ -987,6 +987,15 @@ class BootStrapRankStability:
             bootstrap_dir.mkdir(parents=True, exist_ok=True)
             self._create_rank_matrix_plot(players, rank_samples, bootstrap_dir)
             self._create_elo_violin_plot(players, elo_samples, baseline_elos, bootstrap_dir)
+
+        return {
+            "kendall_tau": mean_tau,
+            "spearman_rho": mean_rho,
+            "footrule": mean_foot,
+            "top1_consistency": top1_consistency,
+            "pairwise_agreement": pairwise_agreement,
+            "topk_overlap": {k: float(np.mean(topk_overlap[k])) for k in topks},
+        }
 
 
 class EloVsMaxRounds:
@@ -1375,6 +1384,123 @@ def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
     logger.info(f"Saved leaderboard JSON: {output_file}")
 
 
+def write_bootstrap_metrics_table(bootstrap_results: dict[str, dict], output_dir: Path, game: str = "ALL") -> None:
+    """Write LaTeX table comparing bootstrap metrics between methods.
+
+    Args:
+        bootstrap_results: Dictionary mapping bootstrap type to metrics dict
+        output_dir: Directory to save the LaTeX file
+        game: Game name for the table caption
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / "bootstrap_metrics.tex"
+
+    lines = []
+    lines.append(r"\begin{tabular}{lcc}")
+    lines.append(r"\toprule")
+    lines.append(r"Metric & Nonparametric & Parametric \\")
+    lines.append(r"\midrule")
+
+    if "nonparametric" in bootstrap_results and "parametric" in bootstrap_results:
+        nonparam = bootstrap_results["nonparametric"]
+        param = bootstrap_results["parametric"]
+
+        metrics = [
+            ("Kendall's $\\tau$", "kendall_tau"),
+            ("Spearman's $\\rho$", "spearman_rho"),
+            ("Footrule (normalized)", "footrule"),
+            ("Top-1 consistency", "top1_consistency"),
+            ("Pairwise order agreement", "pairwise_agreement"),
+        ]
+
+        for display_name, key in metrics:
+            nonparam_val = nonparam.get(key, float("nan"))
+            param_val = param.get(key, float("nan"))
+            lines.append(rf"{display_name} & {nonparam_val:.3f} & {param_val:.3f} \\")
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+
+    output_file.write_text("\n".join(lines) + "\n")
+    logger.info(f"Saved bootstrap metrics table: {output_file}")
+
+
+def write_latex_table_plain(results: dict[str, dict], output_dir: Path) -> None:
+    """Write LaTeX table with plain ELO scores and uncertainties (no bar charts).
+
+    Args:
+        results: Dictionary mapping game name to fit results
+        output_dir: Directory to save the LaTeX file
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / "elo_table_plain.tex"
+
+    single_arena_games = ["BattleSnake", "CoreWar", "Halite", "HuskyBench", "RoboCode", "RobotRumble"]
+    games_in_table = [g for g in single_arena_games if g in results]
+
+    if "ALL" not in results:
+        logger.warning("No 'ALL' game found in results, skipping LaTeX table generation")
+        return
+
+    all_result = results["ALL"]
+    all_players = all_result["players"]
+    all_strengths = all_result["strengths"]
+    all_elos = {p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(all_players, all_strengths)}
+    sorted_players = sorted(all_elos.items(), key=lambda x: x[1], reverse=True)
+
+    has_uncertainties = "elo_std" in all_result
+
+    lines = []
+    lines.append(r"\begin{table}[t]")
+    lines.append(r"\centering")
+    lines.append(r"\caption{ELO ratings" + (" with uncertainties" if has_uncertainties else "") + r"}")
+    lines.append(r"\label{tab:elo_ratings}")
+    lines.append(r"\begin{tabular}{l" + "r" * len(games_in_table) + "r}")
+    lines.append(r"\toprule")
+
+    display_names = [g.replace("HuskyBench", "Poker") for g in games_in_table]
+    header_parts = ["Model"] + display_names + ["All"]
+    lines.append(" & ".join(header_parts) + r" \\")
+    lines.append(r"\midrule")
+
+    for player, all_elo in sorted_players:
+        display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+        row_parts = [display_name.replace("_", r"\_")]
+
+        for game_name in games_in_table:
+            if game_name in results:
+                game_result = results[game_name]
+                if player in game_result["players"]:
+                    idx = game_result["players"].index(player)
+                    strength = game_result["strengths"][idx]
+                    elo = BradleyTerryFitter.bt_to_elo(strength)
+                    if has_uncertainties and "elo_std" in game_result:
+                        sigma = game_result["elo_std"][idx]
+                        row_parts.append(rf"${int(elo)} \pm {int(sigma)}$")
+                    else:
+                        row_parts.append(str(int(elo)))
+                else:
+                    row_parts.append("--")
+            else:
+                row_parts.append("--")
+
+        if has_uncertainties:
+            all_idx = all_result["players"].index(player)
+            all_sigma = all_result["elo_std"][all_idx]
+            row_parts.append(rf"$\mathbf{{{int(all_elo)} \pm {int(all_sigma)}}}$")
+        else:
+            row_parts.append(rf"$\mathbf{{{int(all_elo)}}}$")
+
+        lines.append(" & ".join(row_parts) + r" \\")
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+    lines.append(r"\end{table}")
+
+    output_file.write_text("\n".join(lines) + "\n")
+    logger.info(f"Saved plain LaTeX table: {output_file}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build win matrix and fit Bradley-Terry model")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
@@ -1448,10 +1574,12 @@ if __name__ == "__main__":
     plotter.create_elo_plots(args.output_dir)
     write_latex_table(results, args.output_dir)
     write_website_results(results, args.output_dir)
+    write_latex_table_plain(results, args.output_dir)
 
     if uncertainties_supported:
+        bootstrap_results = {}
         for bootstrap_type in ["nonparametric", "parametric"]:
-            BootStrapRankStability(
+            bootstrap_results[bootstrap_type] = BootStrapRankStability(
                 builder,
                 n_bootstrap=1000,
                 game="ALL",
@@ -1460,6 +1588,7 @@ if __name__ == "__main__":
                 bootstrap_type=bootstrap_type,
                 output_dir=args.output_dir,
             ).run()
+        write_bootstrap_metrics_table(bootstrap_results, args.output_dir, game="ALL")
 
     logger.info("Running EloVsMaxRounds analysis")
     EloVsMaxRounds(
