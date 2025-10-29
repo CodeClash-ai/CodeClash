@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 from collections import defaultdict
 from pathlib import Path
@@ -6,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from codeclash.analysis.viz.utils import MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import FONT_BOLD, FONT_REG, MODEL_TO_DISPLAY_NAME
 
 
 class GroundingValidationPlotter:
@@ -14,11 +16,12 @@ class GroundingValidationPlotter:
 
     # Styling parameters
     title_fontsize = 16
-    title_pad = 10
+    title_pad = 45
     legend_fontsize = 14
+    legend_title_fontsize = 12
     label_fontsize = 14
-    ytick_label_fontsize = 14
-    xtick_label_fontsize = 12
+    ytick_label_fontsize = 15
+    xtick_label_fontsize = 14
     in_bar_number_fontsize = 12
     in_bar_number_fontweight = "bold"
     total_number_fontsize = 12
@@ -26,7 +29,6 @@ class GroundingValidationPlotter:
 
     # Spacing parameters
     bar_height = 0.8  # Height of each bar (higher = less space between bars)
-    figure_height_per_model = 0.8  # Figure height scaling factor per model
 
     # Color parameters - each as list of (color, alpha) tuples
     # Plot 1: Grounding (logs, insights)
@@ -68,17 +70,16 @@ class GroundingValidationPlotter:
         # Add hallucination category column
         self.df["hal_cat1"] = self.df.apply(self._get_l_reason_breakdown, axis=1)
 
-        # Sort models alphabetically by display name
+        # Sort models alphabetically by display name (reversed)
         models = [m for m in df["model_name"].unique() if isinstance(m, str)]
         model_display_pairs = [(m, MODEL_TO_DISPLAY_NAME.get(m, m)) for m in models]
-        model_display_pairs.sort(key=lambda x: x[1].lower())
+        model_display_pairs.sort(key=lambda x: x[1].lower(), reverse=True)
         self.models = [m for m, _ in model_display_pairs]
         self.display_names = [d for _, d in model_display_pairs]
         self.n_models = len(self.models)
 
         # Create figure with 3 subplots sharing y-axis
-        fig_height = self.n_models * self.figure_height_per_model
-        self.fig, self.axes = plt.subplots(1, 3, figsize=(13, fig_height), sharey=True)
+        self.fig, self.axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
         self.y_positions = np.arange(self.n_models)
 
     def _get_l_reason_breakdown(self, row) -> str:
@@ -109,12 +110,13 @@ class GroundingValidationPlotter:
                     x_pos = left[i] + val / 2
                     # Determine text color based on segment index or value
                     text_color = "white" if segment_idx < len(stacked_values) - 1 else "black"
+                    font_in_bar = FONT_BOLD.copy()
+                    font_in_bar.set_size(self.in_bar_number_fontsize)
                     ax.text(
                         x_pos,
                         self.y_positions[i],
                         f"{val:.0f}%",
-                        fontsize=self.in_bar_number_fontsize,
-                        fontweight=self.in_bar_number_fontweight,
+                        fontproperties=font_in_bar,
                         ha="center",
                         va="center",
                         color=text_color,
@@ -131,12 +133,13 @@ class GroundingValidationPlotter:
         """
         for i, total in enumerate(totals):
             if total > 0:
+                font_total = FONT_BOLD.copy()
+                font_total.set_size(self.total_number_fontsize)
                 ax.text(
                     total + x_offset,
                     self.y_positions[i],
                     f"{total:.0f}%",
-                    fontsize=self.total_number_fontsize,
-                    fontweight=self.total_number_fontweight,
+                    fontproperties=font_total,
                     ha="left",
                     va="center",
                 )
@@ -194,18 +197,39 @@ class GroundingValidationPlotter:
         totals = [logs + insights for logs, insights in zip(motivated_by_logs, motivated_by_insights_not_logs)]
         self._add_total_bar_labels(ax, totals)
 
-        ax.set_title(
-            "(a) Groundedness of edits",
-            fontsize=self.title_fontsize,
-            fontweight="bold",
-            pad=self.title_pad,
+        # Titles
+        font_title = FONT_BOLD.copy()
+        font_title.set_size(self.title_fontsize)
+        ax.set_title("(a) Groundedness of edits", fontproperties=font_title, pad=self.title_pad)
+
+        # Legend
+        font_legend = FONT_REG.copy()
+        font_legend.set_size(self.legend_fontsize)
+        leg = ax.legend(
+            frameon=False,
+            prop=font_legend,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.25),
+            borderaxespad=0.0,
         )
-        ax.legend(loc="upper right", bbox_to_anchor=(1.2, 1), fontsize=self.legend_fontsize, frameon=False)
+        leg.set_in_layout(False)
+
+        # Y-axis
         ax.set_yticks(self.y_positions)
-        ax.set_yticklabels(self.display_names, fontsize=self.ytick_label_fontsize)
-        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
+        font_ytick = FONT_REG.copy()
+        font_ytick.set_size(self.ytick_label_fontsize)
+        ax.set_yticklabels(self.display_names, fontproperties=font_ytick)
+
+        # X-axis
+        font_label = FONT_REG.copy()
+        font_label.set_size(self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
+        font_xtick = FONT_REG.copy()
+        font_xtick.set_size(self.xtick_label_fontsize)
+        for label in ax.get_xticklabels():
+            label.set_fontproperties(font_xtick)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -252,7 +276,7 @@ class GroundingValidationPlotter:
             self.y_positions,
             tested_both,
             self.bar_height,
-            label="Sim. + unittests",
+            label="Sim + tests",
             alpha=alpha_both,
             color=color_both,
         )
@@ -261,7 +285,7 @@ class GroundingValidationPlotter:
             tested_unit_only,
             self.bar_height,
             left=tested_both,
-            label="Unittests only",
+            label="Tests",
             alpha=alpha_unit,
             color=color_unit,
         )
@@ -270,7 +294,7 @@ class GroundingValidationPlotter:
             tested_sim_only,
             self.bar_height,
             left=np.array(tested_both) + np.array(tested_unit_only),
-            label="Simulations only",
+            label="Sim.",
             alpha=alpha_sim,
             color=color_sim,
         )
@@ -280,16 +304,36 @@ class GroundingValidationPlotter:
         totals = [both + sim + unit for both, sim, unit in zip(tested_both, tested_sim_only, tested_unit_only)]
         self._add_total_bar_labels(ax, totals)
 
-        ax.set_title(
-            "(c) Validation of edits",
-            fontsize=self.title_fontsize,
-            fontweight="bold",
-            pad=self.title_pad,
+        # Titles
+        font_title = FONT_BOLD.copy()
+        font_title.set_size(self.title_fontsize)
+        ax.set_title("(c) Validation of edits", fontproperties=font_title, pad=self.title_pad)
+
+        # Legend
+        font_legend = FONT_REG.copy()
+        font_legend.set_size(self.legend_fontsize)
+        leg = ax.legend(
+            frameon=False,
+            prop=font_legend,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.25),
+            borderaxespad=0.0,
+            ncol=2,
+            columnspacing=0.6,
+            handletextpad=0.4,
         )
-        ax.legend(loc="upper right", bbox_to_anchor=(1.15, 1), fontsize=self.legend_fontsize, frameon=False)
-        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
+        leg.set_in_layout(False)
+
+        # X-axis
+        font_label = FONT_REG.copy()
+        font_label.set_size(self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
+        font_xtick = FONT_REG.copy()
+        font_xtick.set_size(self.xtick_label_fontsize)
+        for label in ax.get_xticklabels():
+            label.set_fontproperties(font_xtick)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -298,66 +342,82 @@ class GroundingValidationPlotter:
         """Plot: Hallucinated/Unproven Loss Causality Claims."""
         ax = self.axes[1]
 
-        category_order = ["logs/analysis", "docs/tests/other", "no source"]
-
-        # Collect data for each model
-        model_data = []
+        # Combine categories into two: misinterpretation (logs/analysis + docs/tests/other) and no source
+        misinterpretation = []
+        no_source = []
         for model in self.models:
             model_df = self.df[self.df["model_name"] == model]
             total_rounds = len(model_df)
-            category_values = []
 
-            for category in category_order:
-                count = (model_df["hal_cat1"] == category).sum()
-                pct = (count / total_rounds * 100) if total_rounds > 0 else 0
-                category_values.append(pct)
+            mis_count = ((model_df["hal_cat1"] == "logs/analysis") | (model_df["hal_cat1"] == "docs/tests/other")).sum()
+            no_src_count = (model_df["hal_cat1"] == "no source").sum()
 
-            model_data.append(category_values)
+            misinterpretation.append((mis_count / total_rounds * 100) if total_rounds > 0 else 0)
+            no_source.append((no_src_count / total_rounds * 100) if total_rounds > 0 else 0)
 
         # Plot stacked bars
         left = np.zeros(self.n_models)
 
-        for cat_idx, category in enumerate(category_order):
-            values = [model_data[model_idx][cat_idx] for model_idx in range(self.n_models)]
-            color, alpha = self.hallucination_colors[cat_idx]
+        # Colors: use first for misinterpretation, third for no source
+        color_mis, alpha_mis = self.hallucination_colors[0]
+        color_no, alpha_no = self.hallucination_colors[2]
 
-            ax.barh(
-                self.y_positions,
-                values,
-                self.bar_height,
-                left=left,
-                label=category,
-                alpha=alpha,
-                color=color,
-            )
-            left = left + np.array(values)
+        ax.barh(
+            self.y_positions,
+            misinterpretation,
+            self.bar_height,
+            left=left,
+            label="Misinterpreted source",
+            alpha=alpha_mis,
+            color=color_mis,
+        )
+        left = left + np.array(misinterpretation)
+        ax.barh(
+            self.y_positions,
+            no_source,
+            self.bar_height,
+            left=left,
+            label="No source",
+            alpha=alpha_no,
+            color=color_no,
+        )
 
         # Add labels
-        stacked_values = [
-            [model_data[model_idx][cat_idx] for model_idx in range(self.n_models)]
-            for cat_idx in range(len(category_order))
-        ]
+        stacked_values = [misinterpretation, no_source]
         self._add_stacked_bar_labels(ax, stacked_values, min_value_to_show=3.0)
-        totals = [sum(model_data[i]) for i in range(self.n_models)]
+        totals = [misinterpretation[i] + no_source[i] for i in range(self.n_models)]
         self._add_total_bar_labels(ax, totals)
 
-        ax.set_title(
-            "(b) Hallucinated Loss Causality",
-            fontsize=self.title_fontsize,
-            fontweight="bold",
-            pad=self.title_pad,
-        )
-        ax.legend(
-            loc="center right",
-            bbox_to_anchor=(1.15, 0.55),
-            fontsize=self.legend_fontsize,
+        # Titles
+        font_title = FONT_BOLD.copy()
+        font_title.set_size(self.title_fontsize)
+        ax.set_title("(b) Hallucinated Loss Causality", fontproperties=font_title, pad=self.title_pad)
+
+        # Legend
+        font_legend = FONT_REG.copy()
+        font_legend.set_size(self.legend_fontsize)
+        leg = ax.legend(
             frameon=False,
-            title="Hallucinated claims based on",
-            title_fontsize=12,
+            prop=font_legend,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 1.25),
+            borderaxespad=0.0,
+            ncol=1,
+            columnspacing=0.6,
+            handletextpad=0.4,
         )
-        ax.set_xlabel("Percentage of rounds", fontsize=self.label_fontsize)
+        leg.set_in_layout(False)
+
+        # X-axis
+        font_label = FONT_REG.copy()
+        font_label.set_size(self.label_fontsize)
+        ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
+        font_xtick = FONT_REG.copy()
+        font_xtick.set_size(self.xtick_label_fontsize)
+        for label in ax.get_xticklabels():
+            label.set_fontproperties(font_xtick)
         ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
