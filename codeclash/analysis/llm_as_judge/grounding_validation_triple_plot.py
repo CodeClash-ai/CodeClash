@@ -276,7 +276,7 @@ class GroundingValidationPlotter:
             self.y_positions,
             tested_both,
             self.bar_height,
-            label="Sim + tests",
+            label="Arena + Tests",
             alpha=alpha_both,
             color=color_both,
         )
@@ -294,7 +294,7 @@ class GroundingValidationPlotter:
             tested_sim_only,
             self.bar_height,
             left=np.array(tested_both) + np.array(tested_unit_only),
-            label="Sim.",
+            label="Arena",
             alpha=alpha_sim,
             color=color_sim,
         )
