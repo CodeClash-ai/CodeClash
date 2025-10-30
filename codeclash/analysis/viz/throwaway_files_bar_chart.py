@@ -193,6 +193,10 @@ def plot_throwaway_files_bar_chart(throwaway_df: pd.DataFrame):
             total + 0.3, i, f"{total:.1f}", ha="left", va="center", fontproperties=FONT_BOLD, fontsize=14, color="black"
         )
 
+    # Set xlim to give 10% extra space for the numbers
+    max_total = max(r + nr for r, nr in zip(root_values, non_root_values))
+    plt.xlim(0, max_total * 1.15)
+
     # Styling
     plt.xlabel("Throwaway Files per Tournament", fontproperties=FONT_BOLD, fontsize=18)
     plt.yticks(y_pos, models, fontproperties=FONT_BOLD, fontsize=14)

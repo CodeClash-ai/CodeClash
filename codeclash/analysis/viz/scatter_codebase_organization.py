@@ -567,7 +567,7 @@ def plot_filename_redundancy_over_rounds(redundancy_df: pd.DataFrame):
     )
 
     # Figure styling to match other viz
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(3.5, 6))
 
     # Plot one line per model with consistent color & legend label
     seen_labels = set()
