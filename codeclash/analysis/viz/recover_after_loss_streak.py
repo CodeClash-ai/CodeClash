@@ -74,14 +74,26 @@ def load_tournament_data(log_dir: Path) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def calculate_streak_probabilities(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def calculate_streak_probabilities(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Calculate comeback and falldown probabilities after i consecutive losses/wins."""
     model_comeback_stats = defaultdict(lambda: defaultdict(lambda: {"opportunities": 0, "successes": 0}))
     model_falldown_stats = defaultdict(lambda: defaultdict(lambda: {"opportunities": 0, "successes": 0}))
+    model_overall_stats = defaultdict(lambda: {"total_rounds": 0, "wins": 0})
 
     for _, row in df.iterrows():
         model_a = row["model_a"]
         model_b = row["model_b"]
+
+        for round_num in range(1, 16):
+            winner_current = row[f"round_{round_num}_winner"]
+
+            # Track overall win rates
+            model_overall_stats[model_a]["total_rounds"] += 1
+            model_overall_stats[model_b]["total_rounds"] += 1
+            if winner_current == model_a:
+                model_overall_stats[model_a]["wins"] += 1
+            elif winner_current == model_b:
+                model_overall_stats[model_b]["wins"] += 1
 
         for round_num in range(2, 16):
             winner_current = row[f"round_{round_num}_winner"]
@@ -171,10 +183,21 @@ def calculate_streak_probabilities(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.D
 
     falldown_prob_df = pd.DataFrame(falldown_prob_data).set_index("model")
 
-    return comeback_prob_df, falldown_prob_df
+    # Create overall win rate dataframe
+    overall_win_rate_data = []
+    for model in model_overall_stats:
+        if model_overall_stats[model]["total_rounds"] > 0:
+            win_rate = model_overall_stats[model]["wins"] / model_overall_stats[model]["total_rounds"]
+            overall_win_rate_data.append({"model": model, "win_rate": win_rate})
+
+    overall_win_rate_df = pd.DataFrame(overall_win_rate_data).set_index("model")
+
+    return comeback_prob_df, falldown_prob_df, overall_win_rate_df
 
 
-def plot_comeback_probabilities(comeback_prob_df: pd.DataFrame, output_file: Path) -> None:
+def plot_comeback_probabilities(
+    comeback_prob_df: pd.DataFrame, overall_win_rate_df: pd.DataFrame, output_file: Path
+) -> None:
     """Plot probability of winning after i consecutive losses."""
     fig, ax = plt.subplots(figsize=(6, 6))
     label_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
@@ -186,6 +209,7 @@ def plot_comeback_probabilities(comeback_prob_df: pd.DataFrame, output_file: Pat
     for idx, model in enumerate(sorted_models):
         x_values = []
         y_values = []
+
         for i in range(1, 15):
             col = f"comeback_prob_after_{i}_losses"
             if pd.notna(comeback_prob_df.loc[model, col]):
@@ -194,6 +218,12 @@ def plot_comeback_probabilities(comeback_prob_df: pd.DataFrame, output_file: Pat
 
         if x_values:
             display_name = MODEL_TO_DISPLAY_NAME.get(model, model)
+
+            # Add overall win rate to legend
+            if model in overall_win_rate_df.index:
+                win_rate_pct = overall_win_rate_df.loc[model, "win_rate"] * 100
+                display_name = f"{display_name} ({win_rate_pct:.0f}%)"
+
             color = MODEL_TO_COLOR.get(model, None)
             marker = MARKERS[idx % len(MARKERS)]
             ax.plot(
@@ -214,6 +244,10 @@ def plot_comeback_probabilities(comeback_prob_df: pd.DataFrame, output_file: Pat
     ax.grid(True, alpha=0.3)
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.xaxis.set_minor_locator(NullLocator())
+
+    # Set x-axis to show integer ticks
+    ax.set_xticks(range(1, 15))
+    ax.set_xlim(0.5, max(ax.get_xlim()[1], 14.5))
     for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontproperties(FontProperties(fname=FONT_BOLD.get_file(), size=14))
     plt.tight_layout()
@@ -221,7 +255,9 @@ def plot_comeback_probabilities(comeback_prob_df: pd.DataFrame, output_file: Pat
     print(f"Saved comeback probability plot to {output_file}")
 
 
-def plot_falldown_probabilities(falldown_prob_df: pd.DataFrame, output_file: Path) -> None:
+def plot_falldown_probabilities(
+    falldown_prob_df: pd.DataFrame, overall_win_rate_df: pd.DataFrame, output_file: Path
+) -> None:
     """Plot probability of losing after i consecutive wins."""
     fig, ax = plt.subplots(figsize=(6, 6))
     label_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
@@ -233,6 +269,7 @@ def plot_falldown_probabilities(falldown_prob_df: pd.DataFrame, output_file: Pat
     for idx, model in enumerate(sorted_models):
         x_values = []
         y_values = []
+
         for i in range(1, 15):
             col = f"falldown_prob_after_{i}_wins"
             if pd.notna(falldown_prob_df.loc[model, col]):
@@ -241,6 +278,12 @@ def plot_falldown_probabilities(falldown_prob_df: pd.DataFrame, output_file: Pat
 
         if x_values:
             display_name = MODEL_TO_DISPLAY_NAME.get(model, model)
+
+            # Add overall loss rate to legend
+            if model in overall_win_rate_df.index:
+                loss_rate_pct = (1 - overall_win_rate_df.loc[model, "win_rate"]) * 100
+                display_name = f"{display_name} ({loss_rate_pct:.0f}%)"
+
             color = MODEL_TO_COLOR.get(model, None)
             marker = MARKERS[idx % len(MARKERS)]
             ax.plot(
@@ -261,6 +304,10 @@ def plot_falldown_probabilities(falldown_prob_df: pd.DataFrame, output_file: Pat
     ax.grid(True, alpha=0.3)
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.xaxis.set_minor_locator(NullLocator())
+
+    # Set x-axis to show integer ticks
+    ax.set_xticks(range(1, 15))
+    ax.set_xlim(0.5, max(ax.get_xlim()[1], 14.5))
     for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontproperties(FontProperties(fname=FONT_BOLD.get_file(), size=14))
     plt.tight_layout()
@@ -277,10 +324,10 @@ def main(log_dir: Path | None = None) -> None:
     df = load_tournament_data(log_dir)
     print(f"Loaded {len(df)} tournaments")
 
-    comeback_prob_df, falldown_prob_df = calculate_streak_probabilities(df)
+    comeback_prob_df, falldown_prob_df, overall_win_rate_df = calculate_streak_probabilities(df)
 
-    plot_comeback_probabilities(comeback_prob_df, ASSETS_DIR / "comeback_probabilities.pdf")
-    plot_falldown_probabilities(falldown_prob_df, ASSETS_DIR / "falldown_probabilities.pdf")
+    plot_comeback_probabilities(comeback_prob_df, overall_win_rate_df, ASSETS_DIR / "comeback_probabilities.pdf")
+    plot_falldown_probabilities(falldown_prob_df, overall_win_rate_df, ASSETS_DIR / "falldown_probabilities.pdf")
 
 
 if __name__ == "__main__":
