@@ -12,6 +12,8 @@ from pathlib import Path
 import pandas as pd
 
 from codeclash.analysis.llm_as_judge.categorize_actions import _all_categories as ACTION_CATEGORIES
+from codeclash.analysis.llm_as_judge.hallucination import claim_categories as CLAIM_CATEGORIES
+from codeclash.analysis.llm_as_judge.hallucination import source_categories as SOURCE_CATEGORIES
 from codeclash.analysis.llm_as_judge.utils import Instance
 from codeclash.utils.log import get_logger
 
@@ -20,6 +22,10 @@ logger = get_logger("AggregateResults", emoji="📊")
 # Version constants for specific data_ids
 BIG_QUESTIONS_VERSION = 7
 ACTION_CATEGORIES_VERSION = 3
+HALLUCINATION_VERSION = 17
+
+# Generate all hallucination category combinations
+HALLUCINATION_CATEGORIES = [f"{claim}__{source}" for claim in CLAIM_CATEGORIES for source in SOURCE_CATEGORIES]
 
 
 class ResultsAggregator:
@@ -28,6 +34,7 @@ class ResultsAggregator:
     def __init__(self):
         self.big_questions_data_id = f"big_questions_v{BIG_QUESTIONS_VERSION}"
         self.action_categories_data_id = f"action_categories_v{ACTION_CATEGORIES_VERSION}"
+        self.hallucination_data_id = f"hallucination_v{HALLUCINATION_VERSION}"
 
     def aggregate_results_to_dataframe(self, input_dir: Path) -> pd.DataFrame:
         """Aggregate all llm_as_judge.json results from the input directory into a DataFrame.
@@ -55,7 +62,11 @@ class ResultsAggregator:
                 # Process each data_id and instance
                 for data_id, instances in file_data.items():
                     # Only process allowed data_ids
-                    if data_id not in [self.action_categories_data_id, self.big_questions_data_id]:
+                    if data_id not in [
+                        self.action_categories_data_id,
+                        self.big_questions_data_id,
+                        self.hallucination_data_id,
+                    ]:
                         continue
 
                     for instance_id, instance_data in instances.items():
@@ -78,6 +89,7 @@ class ResultsAggregator:
         # Count instances for each data_id source
         action_categories_count = 0
         big_questions_count = 0
+        hallucination_count = 0
 
         for row in rows:
             data_ids = row.get("data_ids", [])
@@ -85,10 +97,16 @@ class ResultsAggregator:
                 action_categories_count += 1
             if self.big_questions_data_id in data_ids:
                 big_questions_count += 1
+            if self.hallucination_data_id in data_ids:
+                hallucination_count += 1
 
         logger.info(f"Created DataFrame with {len(df)} rows and {len(df.columns)} columns")
         logger.info(f"Instances with {self.action_categories_data_id}: {action_categories_count}")
         logger.info(f"Instances with {self.big_questions_data_id}: {big_questions_count}")
+        logger.info(f"Instances with {self.hallucination_data_id}: {hallucination_count}")
+
+        sorted_columns = "\n".join(sorted(df.columns.tolist()))
+        logger.info(f"DataFrame columns (sorted): {sorted_columns}")
 
         return df
 
@@ -112,7 +130,11 @@ class ResultsAggregator:
 
         # Initialize all action category counts to NaN (will be overwritten if action categories data exists)
         for category in ACTION_CATEGORIES:
-            row[f"category_count_{category}"] = pd.NA
+            row[f"c_{category}"] = pd.NA
+
+        # Initialize all hallucination category counts to NaN (will be overwritten if hallucination data exists)
+        for category in HALLUCINATION_CATEGORIES:
+            row[f"h_{category}"] = pd.NA
 
         return row
 
@@ -128,42 +150,62 @@ class ResultsAggregator:
             self._add_action_categories_results(row, instance_data)
         elif data_id == self.big_questions_data_id:
             self._add_big_questions_results(row, instance_data)
+        elif data_id == self.hallucination_data_id:
+            self._add_hallucination_results(row, instance_data)
         # Ignore other data_ids that are not handled
 
     def _add_action_categories_results(self, row: dict, instance_data: dict) -> None:
-        """Add action categories results to the row."""
-        if "result" in instance_data:
-            result_data = instance_data["result"]
+        """Add action categories counts to the row."""
+        if "result" not in instance_data:
+            return
 
-            # Handle action category counts specially
-            categories = result_data.get("categories", [])
-            self._add_action_category_counts(row, categories)
+        result_data = instance_data["result"]
 
-            # Add all other result data without prefix
-            for key, value in result_data.items():
-                row[key] = value
-
-    def _add_big_questions_results(self, row: dict, instance_data: dict) -> None:
-        """Add big questions results to the row."""
-        if "result" in instance_data:
-            result_data = instance_data["result"]
-
-            # Add all result data without prefix
-            for key, value in result_data.items():
-                row[key] = value
-
-    def _add_action_category_counts(self, row: dict, categories: list) -> None:
-        """Add category counts to the row for action categories data."""
         # Initialize all category counts to 0 (this ensures missing categories are 0, not NaN)
         for category in ACTION_CATEGORIES:
             row[f"c_{category}"] = 0
 
         # Count occurrences of each category
+        categories = result_data.get("categories", [])
         if categories:
             category_counts = Counter(cat.get("category") for cat in categories if cat.get("category"))
             for category, count in category_counts.items():
                 if category in ACTION_CATEGORIES:
                     row[f"c_{category}"] = count
+
+    def _add_big_questions_results(self, row: dict, instance_data: dict) -> None:
+        """Add big questions results to the row."""
+        if "result" not in instance_data:
+            return
+
+        result_data = instance_data["result"]
+
+        # Add all result data without prefix
+        for key, value in result_data.items():
+            row[key] = value
+
+    def _add_hallucination_results(self, row: dict, instance_data: dict) -> None:
+        """Add hallucination counts to the row."""
+        if "result" not in instance_data:
+            return
+
+        result_data = instance_data["result"]
+
+        # Initialize all hallucination counts to 0 (this ensures missing categories are 0, not NaN)
+        for category in HALLUCINATION_CATEGORIES:
+            row[f"h_{category}"] = 0
+
+        # Count occurrences of each claim/source combination
+        items = result_data.get("items", [])
+        for item in items:
+            claim_category = item.get("claim_category")
+            source_category = item.get("source_category")
+            if not claim_category or not source_category:
+                continue
+
+            combination = f"{claim_category}__{source_category}"
+            if combination in HALLUCINATION_CATEGORIES:
+                row[f"h_{combination}"] += 1
 
 
 def aggregate_results_to_dataframe(input_dir: Path) -> pd.DataFrame:
