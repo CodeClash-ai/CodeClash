@@ -7,7 +7,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 
 
@@ -99,16 +99,18 @@ def main(log_dir: Path):
 
     # Create line chart of win rate progression per player
     plt.figure(figsize=(6, 6))
+    idx = 0
     for pid, win_rates in lines.items():
         plt.plot(
             range(1, 16),
             win_rates,
-            marker="o",
+            marker=MARKERS[idx % len(MARKERS)],
             label=MODEL_TO_DISPLAY_NAME[pid],
             linewidth=1,
             markersize=6,
             color=MODEL_TO_COLOR[pid],
         )
+        idx += 1
 
     # plt.title("Win Rate Progression per Round", fontsize=16, fontweight="bold")
     plt.xlabel("Round", fontsize=20, fontproperties=FONT_BOLD)
