@@ -14,7 +14,7 @@ from cdifflib import CSequenceMatcher
 from tqdm.auto import tqdm
 from unidiff import PatchSet
 
-from codeclash.analysis.viz.utils import FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.games import ARENAS
 
@@ -302,9 +302,6 @@ def plot_opponent_effect_heatmap(data_cache: str, target_round: int, output_path
     Plot heatmap showing how model consistency varies by opponent.
     Answers questions 2a (round 1) and 2b (round 15).
     """
-    if output_path is None:
-        output_path = f"assets/heatmap_code_evolution_per_opponent_r{target_round}.png"
-
     results = load_cached_results(data_cache)
     models, opponent_matrix = compute_opponent_effect_matrix(results, target_round)
 
@@ -391,7 +388,7 @@ def plot_opponent_effect_heatmap(data_cache: str, target_round: int, output_path
     print(f"Saved heatmap to {output_path}")
 
 
-def plot_consistency_over_rounds(data_cache: str, output_path: str = "assets/line_chart_code_evolution.png"):
+def plot_consistency_over_rounds(data_cache: str, output_path: str):
     """
     Plot line graph: x-axis = round, y-axis = code similarity, one line per model.
     Answers questions 1a (early round consistency) and 1b (evolution over time).
@@ -448,8 +445,11 @@ if __name__ == "__main__":
     )
 
     # Questions 1a/1b: Consistency over rounds
-    plot_consistency_over_rounds(data_cache)  # Questions 1a and 1b
+    output_path = ASSETS_DIR / f"line_chart_code_evolution_{args.arena}.png"
+    plot_consistency_over_rounds(data_cache, output_path=output_path)  # Questions 1a and 1b
 
     # Questions 2a/2b: Opponent effect
-    plot_opponent_effect_heatmap(data_cache, target_round=1)  # Question 2a
-    plot_opponent_effect_heatmap(data_cache, target_round=15)  # Question 2b
+    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r1_{args.arena}.png"
+    plot_opponent_effect_heatmap(data_cache, target_round=1, output_path=output_path)  # Question 2a
+    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r15_{args.arena}.png"
+    plot_opponent_effect_heatmap(data_cache, target_round=15, output_path=output_path)  # Question 2b
