@@ -12,10 +12,8 @@ from tqdm import tqdm
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = ASSETS_DIR / "heatmap_win_rates.png"
 
-
-def main(log_dir: Path):
+def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "heatmap_win_rates.png"):
     print(f"Creating win rate heatmap from logs in {log_dir}...")
 
     # Track round-level wins: (model1, model2) -> [wins, total_rounds]
@@ -33,6 +31,7 @@ def main(log_dir: Path):
                 continue
 
             # Process each round (skip round 0)
+            tracker = defaultdict(int)
             for round_id, round_data in metadata["round_stats"].items():
                 if round_id == "0":
                     continue
@@ -42,9 +41,19 @@ def main(log_dir: Path):
                     winner_model = p2m[winner]
                     loser_model = next(m for m in p2m.values() if m != winner_model)
 
-                    results[(winner_model, loser_model)][0] += 1  # win
-                    results[(winner_model, loser_model)][1] += 1  # total
-                    results[(loser_model, winner_model)][1] += 1  # total for loser
+                    if unit == "rounds":
+                        results[(winner_model, loser_model)][0] += 1  # win
+                        results[(winner_model, loser_model)][1] += 1  # total
+                        results[(loser_model, winner_model)][1] += 1  # total for loser
+                    elif unit == "tournaments":
+                        tracker[winner_model] += 1
+
+            if unit == "tournaments":
+                winner = max(tracker, key=tracker.get)
+                loser = min(tracker, key=tracker.get)
+                results[(winner, loser)][0] += 1  # win
+                results[(winner, loser)][1] += 1  # total
+                results[(loser, winner)][1] += 1  # total for loser
         except:
             continue
 
@@ -89,12 +98,19 @@ def main(log_dir: Path):
 
     # plt.colorbar(im, label="Win Rate")
     plt.tight_layout()
-    plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
-    print(f"Heatmap saved to {OUTPUT_FILE}")
+    if unit == "tournaments":
+        suffix = output_file.suffix or ".png"
+        output_file = output_file.with_name(f"{output_file.stem}_tournaments{suffix}")
+    plt.savefig(output_file, dpi=300, bbox_inches="tight")
+    print(f"Heatmap saved to {output_file}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create model win rate heatmap")
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR, help="Path to logs")
+    parser.add_argument("-u", "--unit", type=str, default="rounds", help="Unit of analysis: rounds or tournaments")
+    parser.add_argument(
+        "-o", "--output_file", type=Path, default=ASSETS_DIR / "heatmap_win_rates.png", help="Output file path"
+    )
     args = parser.parse_args()
-    main(args.log_dir)
+    main(**vars(args))

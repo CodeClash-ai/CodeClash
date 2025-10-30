@@ -14,7 +14,7 @@ from cdifflib import CSequenceMatcher
 from tqdm.auto import tqdm
 from unidiff import PatchSet
 
-from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.games import ARENAS
 
@@ -402,12 +402,22 @@ def plot_consistency_over_rounds(data_cache: str, output_path: str = "assets/lin
     plt.figure(figsize=(6, 6))
 
     # Plot one line per model
+    idx = 0
     for model, round_data in sorted(model_consistency.items()):
         rounds = sorted(round_data.keys())
         similarities = [round_data[r] for r in rounds]
         display = MODEL_TO_DISPLAY_NAME.get(model, model)
         color = MODEL_TO_COLOR.get(model, None)
-        plt.plot(rounds, similarities, marker="o", label=display, linewidth=1.5, markersize=6, color=color)
+        plt.plot(
+            rounds,
+            similarities,
+            marker=MARKERS[idx % len(MARKERS)],
+            label=display,
+            linewidth=1.5,
+            markersize=6,
+            color=color,
+        )
+        idx += 1
 
     plt.xlabel("Round", fontsize=18, fontproperties=FONT_BOLD)
     plt.ylabel("Mean Code Similarity", fontsize=18, fontproperties=FONT_BOLD)
