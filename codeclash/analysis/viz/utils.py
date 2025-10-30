@@ -41,3 +41,5 @@ MODEL_TO_COLOR = {
 ASSETS_DIR = REPO_DIR / "assets"
 FONT_REG = fm.FontProperties(fname=ASSETS_DIR / "texgyrepagella-regular.otf")
 FONT_BOLD = fm.FontProperties(fname=ASSETS_DIR / "texgyrepagella-bold.otf")
+
+MARKERS = ["o", "s", "^", "v", "D", "p", "*", "h", "H", "+", "x", "<", ">", "d"]

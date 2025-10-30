@@ -11,8 +11,9 @@ from matplotlib.font_manager import FontProperties
 from codeclash.analysis.viz.scatter_codebase_organization import (
     ASSETS_SUBFOLDER,
     DATA_CACHE,
+    analyze_filename_redundancy_over_rounds,
 )
-from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 
 
 def calculate_file_counts_by_extension_at_round(data: list, target_round: int = 15) -> pd.DataFrame:
@@ -107,12 +108,13 @@ def filter_outlier_tournaments_by_total_files_99p(created_files_df: pd.DataFrame
     return created_files_df.merge(valid_pairs, on=["player", "tournament"], how="inner")
 
 
-def plot_total_created_files_over_rounds(created_files_df: pd.DataFrame):
+def plot_total_created_files_over_rounds(created_files_df: pd.DataFrame, redundancy_at_r15: dict[str, float]):
     """Line plot showing cumulative total created files over rounds per model.
 
     - X: Round number
     - Y: Total number of files created (cumulative, mean across tournaments)
     - One line per model, colored consistently
+    - Legend includes filename redundancy ratio at round 15
     """
     # Aggregate by player and round (mean across all tournaments)
     print("------")
@@ -129,15 +131,20 @@ def plot_total_created_files_over_rounds(created_files_df: pd.DataFrame):
     # Figure styling to match other viz
     plt.figure(figsize=(6, 6))
 
-    # Plot one line per model with consistent color & legend label
+    # Plot one line per model with consistent color, marker & legend label
     seen_labels = set()
-    for player in sorted(agg_created["player"].unique()):
+    for idx, player in enumerate(sorted(agg_created["player"].unique())):
         player_data = agg_created[agg_created["player"] == player]
         color = MODEL_TO_COLOR.get(player, "#333333")
         label = MODEL_TO_DISPLAY_NAME.get(player, player)
+        marker = MARKERS[idx % len(MARKERS)]
+
+        # Get redundancy ratio for this player
+        redundancy_pct = redundancy_at_r15.get(player, 0) * 100
+        label_with_redundancy = f"{label} ($R={redundancy_pct:.0f}\\%$)"
 
         # Avoid duplicate legend entries
-        plot_label = label if label not in seen_labels else None
+        plot_label = label_with_redundancy if label not in seen_labels else None
         if plot_label:
             seen_labels.add(label)
 
@@ -146,6 +153,8 @@ def plot_total_created_files_over_rounds(created_files_df: pd.DataFrame):
             player_data["total_files"],
             color=color,
             linewidth=2.5,
+            marker=marker,
+            markersize=8,
             label=plot_label,
             alpha=0.9,
         )
@@ -187,8 +196,15 @@ def main():
     # Apply 99% per-player filtering (mirrors bar chart logic)
     created_files_df = filter_outlier_tournaments_by_total_files_99p(created_files_df)
 
+    print("\n=== Calculating Filename Redundancy at Round 15 ===")
+    redundancy_df = analyze_filename_redundancy_over_rounds(data)
+    redundancy_at_r15 = (
+        redundancy_df[redundancy_df["round"] == 15].groupby("player")["redundancy_ratio"].mean().to_dict()
+    )
+    print(redundancy_at_r15)
+
     print("\n=== Plotting Total Created Files Over Rounds ===")
-    plot_total_created_files_over_rounds(created_files_df)
+    plot_total_created_files_over_rounds(created_files_df, redundancy_at_r15)
 
 
 if __name__ == "__main__":
