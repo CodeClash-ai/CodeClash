@@ -3,9 +3,8 @@
 """Get instances based on specific pattern."""
 
 import argparse
-from pathlib import Path
 from collections import defaultdict
-from pyexpat import model
+from pathlib import Path
 
 from codeclash.analysis.llm_as_judge.utils import InstanceBatch, get_instances
 
@@ -16,14 +15,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     SELECTED_ROUNDS = [1, 2, 3, 5, 10, 12, 14, 15]
-    SELECTED_GAME = "BattleSnake"
-    NUMBER_OF_INDEPENDENT_GAMES = 3
+    SELECTED_GAMES = ["BattleSnake"]  # Set to None to select all games
+    NUMBER_OF_TOURNAMENTS = 3
 
     # first get all instances, then filter
     instances = sorted(get_instances(args.input_dir), key=lambda x: x.instance_id)
     print(f"Found {len(instances)} instances")
-    instances = [instance for instance in instances if SELECTED_GAME in instance.tournament_name]
-    print(f"Filtered to {len(instances)} instances because of game name")
+    if SELECTED_GAMES is not None:
+        instances = [
+            instance for instance in instances if any(game in instance.tournament_name for game in SELECTED_GAMES)
+        ]
+        print(f"Filtered to {len(instances)} instances because of game name")
+    else:
+        print("No game filtering applied (SELECTED_GAMES is None)")
     instances = [instance for instance in instances if instance.round_number in SELECTED_ROUNDS]
     print(f"Filtered to {len(instances)} instances because of round number")
 
@@ -34,17 +38,19 @@ if __name__ == "__main__":
             continue
         key = (model_name_player, model_name_opponent, instance.round_number)
         grouped[key].append(instance)
-    
+
     selected_instances = []
     for key, instance_list in grouped.items():
-        if len(instance_list) < NUMBER_OF_INDEPENDENT_GAMES:
-            print(f"Warning: Only found {len(instance_list)} instances for {key}, need {NUMBER_OF_INDEPENDENT_GAMES}")
-        selected_count = min(len(instance_list), NUMBER_OF_INDEPENDENT_GAMES)
+        if len(instance_list) < NUMBER_OF_TOURNAMENTS:
+            print(f"Warning: Only found {len(instance_list)} instances for {key}, need {NUMBER_OF_TOURNAMENTS}")
+        selected_count = min(len(instance_list), NUMBER_OF_TOURNAMENTS)
         selected_instances.extend(instance_list[:selected_count])
-    
+
     instances = selected_instances
-    unique_models = set([instance.get_lm_name_self_opponent()[0] for instance in instances])
-    print(f"Filtered to {len(instances)} instances after keeping {NUMBER_OF_INDEPENDENT_GAMES} for game repetitions for {len(unique_models)} unique model matchups")
+    unique_models = {instance.get_lm_name_self_opponent()[0] for instance in instances}
+    print(
+        f"Filtered to {len(instances)} instances after keeping {NUMBER_OF_TOURNAMENTS} for game repetitions for {len(unique_models)} unique model matchups"
+    )
 
     batch = InstanceBatch(instances=instances)
     args.output_file.write_text(batch.model_dump_json())
