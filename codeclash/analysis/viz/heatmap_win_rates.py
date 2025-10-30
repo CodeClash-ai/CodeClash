@@ -13,7 +13,7 @@ from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY
 from codeclash.constants import LOCAL_LOG_DIR
 
 
-def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "heatmap_win_rates.png"):
+def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "heatmap_win_rates.pdf"):
     print(f"Creating win rate heatmap from logs in {log_dir}...")
 
     # Track round-level wins: (model1, model2) -> [wins, total_rounds]
@@ -71,7 +71,8 @@ def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "
     # Plot
     FONT_BOLD.set_size(18)
     _, ax = plt.subplots(figsize=(10, 8))
-    cmap = mcolors.LinearSegmentedColormap.from_list("br", ["#e74c3c", "#ffffff", "#3498db"])
+    cmap = mcolors.LinearSegmentedColormap.from_list("rg", ["#f44336", "#ffffff", "#4caf50"])  # Red-Green
+
     masked = np.ma.masked_where(np.isnan(matrix), matrix)
     ax.imshow(masked, cmap=cmap, vmin=0, vmax=1)
 
@@ -79,27 +80,28 @@ def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "
     for i in range(n):
         for j in range(n):
             if not np.isnan(matrix[i, j]):
-                color = "white" if abs(matrix[i, j] - 0.5) > 0.3 else "black"
                 ax.text(
                     j,
                     i,
                     f"{matrix[i, j]:.0%}",
                     ha="center",
                     va="center",
-                    color=color,
+                    color="black",
                     fontweight="bold",
                     fontproperties=FONT_BOLD,
+                    fontsize=FONT_BOLD.get_size() + 2,
                 )
 
     ax.set_xticks(range(n))
     ax.set_yticks(range(n))
     ax.set_xticklabels(clean_names, rotation=45, ha="right", fontproperties=FONT_BOLD)
     ax.set_yticklabels(clean_names, fontproperties=FONT_BOLD)
+    ax.tick_params(length=0)
 
     # plt.colorbar(im, label="Win Rate")
     plt.tight_layout()
     if unit == "tournaments":
-        suffix = output_file.suffix or ".png"
+        suffix = output_file.suffix or ".pdf"
         output_file = output_file.with_name(f"{output_file.stem}_tournaments{suffix}")
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"Heatmap saved to {output_file}")
@@ -110,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR, help="Path to logs")
     parser.add_argument("-u", "--unit", type=str, default="rounds", help="Unit of analysis: rounds or tournaments")
     parser.add_argument(
-        "-o", "--output_file", type=Path, default=ASSETS_DIR / "heatmap_win_rates.png", help="Output file path"
+        "-o", "--output_file", type=Path, default=ASSETS_DIR / "heatmap_win_rates.pdf", help="Output file path"
     )
     args = parser.parse_args()
     main(**vars(args))

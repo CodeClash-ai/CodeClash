@@ -201,7 +201,6 @@ def plot_comeback_probabilities(
     """Plot probability of winning after i consecutive losses."""
     fig, ax = plt.subplots(figsize=(6, 6))
     label_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
-    title_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
     legend_font = FontProperties(fname=FONT_BOLD.get_file(), size=14)
 
     sorted_models = sorted(comeback_prob_df.index)
@@ -239,7 +238,6 @@ def plot_comeback_probabilities(
 
     ax.set_xlabel("Number of Consecutive Rounds Lost", fontproperties=label_font)
     ax.set_ylabel("Probability of winning next round", fontproperties=label_font)
-    ax.set_title("Comeback probability after loss streak", fontproperties=title_font)
     ax.legend(loc="upper right", prop=legend_font)
     ax.grid(True, alpha=0.3)
     ax.yaxis.set_minor_locator(AutoMinorLocator())
@@ -261,7 +259,6 @@ def plot_falldown_probabilities(
     """Plot probability of losing after i consecutive wins."""
     fig, ax = plt.subplots(figsize=(6, 6))
     label_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
-    title_font = FontProperties(fname=FONT_BOLD.get_file(), size=18)
     legend_font = FontProperties(fname=FONT_BOLD.get_file(), size=14)
 
     sorted_models = sorted(falldown_prob_df.index)
@@ -299,7 +296,6 @@ def plot_falldown_probabilities(
 
     ax.set_xlabel("Number of Consecutive Rounds Won", fontproperties=label_font)
     ax.set_ylabel("Probability of losing next round", fontproperties=label_font)
-    ax.set_title("Falldown probability after win streak", fontproperties=title_font)
     ax.legend(loc="upper right", prop=legend_font)
     ax.grid(True, alpha=0.3)
     ax.yaxis.set_minor_locator(AutoMinorLocator())

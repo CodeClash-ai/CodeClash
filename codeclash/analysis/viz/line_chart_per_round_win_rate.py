@@ -100,7 +100,8 @@ def main(log_dir: Path):
     # Create line chart of win rate progression per player
     plt.figure(figsize=(6, 6))
     idx = 0
-    for pid, win_rates in lines.items():
+    # Sort lines by model name to get consistent legend order
+    for pid, win_rates in sorted(lines.items()):
         plt.plot(
             range(1, 16),
             win_rates,
@@ -122,28 +123,22 @@ def main(log_dir: Path):
         fontproperties=FONT_BOLD,
         fontsize=14,
     )
+    plt.gca().set_yticks([i / 20 for i in range(2, 21)], minor=True)
     plt.ylim(0.1, 1)
     FONT_BOLD.set_size(14)
-    # Get handles and labels, then sort by label alphabetically
-    handles, labels = plt.gca().get_legend_handles_labels()
-    sorted_pairs = sorted(zip(handles, labels), key=lambda x: x[1])
-    sorted_handles, sorted_labels = zip(*sorted_pairs)
-
     plt.legend(
-        sorted_handles,
-        sorted_labels,
         bbox_to_anchor=(1, 1),
         loc="upper right",
         ncol=2,
         prop=FONT_BOLD,
         handletextpad=0.3,
         borderpad=0.3,
-        handlelength=0.5,
+        handlelength=1.5,
     )
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(ASSETS_DIR / "line_chart_per_round_win_rate.png", dpi=300, bbox_inches="tight")
-    print("Win rate progression chart saved to line_chart_per_round_win_rate.png")
+    plt.savefig(ASSETS_DIR / "line_chart_per_round_win_rate.pdf", dpi=300, bbox_inches="tight")
+    print("Win rate progression chart saved to line_chart_per_round_win_rate.pdf")
 
     # Print summary statistics
     print("\n" + "=" * 50)
