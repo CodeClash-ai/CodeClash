@@ -17,6 +17,7 @@ MODEL_TO_DISPLAY_NAME = {
     "gpt-5": "GPT-5",
     "gpt-5-mini": "GPT-5 Mini",
     "qwen3-coder-plus-2025-09-23": "Qwen3 Coder",
+    "dashscope/qwen3-coder-plus-2025-09-23": "Qwen3 Coder",
     "o3": "o3",
 }
 

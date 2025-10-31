@@ -70,12 +70,9 @@ class GroundingValidationPlotter:
         # Add hallucination category column
         self.df["hal_cat1"] = self.df.apply(self._get_l_reason_breakdown, axis=1)
 
-        # Sort models alphabetically by display name (reversed)
-        models = [m for m in df["model_name"].unique() if isinstance(m, str)]
-        model_display_pairs = [(m, MODEL_TO_DISPLAY_NAME.get(m, m)) for m in models]
-        model_display_pairs.sort(key=lambda x: x[1].lower(), reverse=True)
-        self.models = [m for m, _ in model_display_pairs]
-        self.display_names = [d for _, d in model_display_pairs]
+        # Sort models alphabetically (reversed) - models are already display names
+        models = sorted(df["model_name"].unique(), key=lambda x: x.lower(), reverse=True)
+        self.models = models
         self.n_models = len(self.models)
 
         # Create figure with 3 subplots sharing y-axis
@@ -123,14 +120,17 @@ class GroundingValidationPlotter:
                     )
             left = left + np.array(values)
 
-    def _add_total_bar_labels(self, ax, totals: list[float], x_offset: float = 1):
+    def _add_total_bar_labels(self, ax, totals: list[float], x_offset_fraction: float = 0.02):
         """Add total value labels at the end of bars.
 
         Args:
             ax: The matplotlib axis
             totals: List of total values for each bar
-            x_offset: Horizontal offset from the end of the bar
+            x_offset_fraction: Horizontal offset as fraction of xlim span from the end of the bar
         """
+        xlim = ax.get_xlim()
+        x_offset = (xlim[1] - xlim[0]) * x_offset_fraction
+
         for i, total in enumerate(totals):
             if total > 0:
                 font_total = FONT_BOLD.copy()
@@ -218,7 +218,7 @@ class GroundingValidationPlotter:
         ax.set_yticks(self.y_positions)
         font_ytick = FONT_REG.copy()
         font_ytick.set_size(self.ytick_label_fontsize)
-        ax.set_yticklabels(self.display_names, fontproperties=font_ytick)
+        ax.set_yticklabels(self.models, fontproperties=font_ytick)
 
         # X-axis
         font_label = FONT_REG.copy()
@@ -447,13 +447,34 @@ def main():
     df = pd.read_parquet(args.datafile)
 
     # Process model name and filter
-    df["model_name"] = df["model_name"].str.split("/").str[1]
     df = df.query("model_name != opponent_model_name").copy()
 
-    # Create and save plot
+    # Map model names to display names
+    df["model_name"] = df["model_name"].map(lambda x: MODEL_TO_DISPLAY_NAME.get(x, x))
+
+    # Extract game name from tournament_name
+    df["game_name"] = df["tournament_name"].str.split(".").str[1]
+
+    # Get unique games
+    games = sorted(df["game_name"].unique())
+
+    # Create overall plot (all games combined)
     plotter = GroundingValidationPlotter(df)
     plotter.create_plot()
     plotter.save(Path(args.output))
+
+    # Create per-game plots
+    output_path = Path(args.output)
+    output_stem = output_path.stem
+    output_dir = output_path.parent
+
+    for game_name in games:
+        game_df = df[df["game_name"] == game_name].copy()
+        game_output = output_dir / f"{output_stem}_{game_name}.pdf"
+
+        plotter = GroundingValidationPlotter(game_df)
+        plotter.create_plot()
+        plotter.save(game_output)
 
 
 if __name__ == "__main__":
