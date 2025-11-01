@@ -209,13 +209,7 @@ class CodeGame(ABC):
             if current_url.startswith("https://") and "@" not in current_url:
                 new_url = current_url.replace("https://", f"https://{github_token}@")
                 assert_zero_exit_code(
-                    environment.execute(
-                        f"git remote set-url origin {new_url} && "
-                        f"git fetch --all && "
-                        f"git pull && "
-                        f"git branch {branch_name} && "
-                        f"git checkout {branch_name}"
-                    )
+                    environment.execute(f"git remote set-url origin {new_url} && git fetch --all && git pull")
                 )
             else:
                 self.logger.warning("Remote origin URL is not https://, won't be able to set token and pull.")
