@@ -47,9 +47,11 @@ class Player(ABC):
             "agent_stats": {},  # mapping round -> agent stats
         }
 
-        if "branch_init" in config:
-            self.logger.info(f"Initializing codebase from branch {config['branch_init']}")
-            assert_zero_exit_code(self.environment.execute(f"git checkout {config['branch_init']}"), logger=self.logger)
+        self.logger.info(f"Pulling latest changes from origin for {self.name}")
+        assert_zero_exit_code(self.environment.execute("git pull origin"), logger=self.logger)
+        if branch := config.get("branch_init"):
+            self.logger.info(f"Checkout out branch {branch}")
+            assert_zero_exit_code(self.environment.execute(f"git checkout {branch}"), logger=self.logger)
 
         if self.push:
             self.logger.info("Will push agent gameplay as branch to remote repository after each round")
