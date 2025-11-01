@@ -212,6 +212,7 @@ class CodeGame(ABC):
                     environment.execute(
                         f"git remote set-url origin {new_url} && "
                         f"git fetch --all && "
+                        f"git branch {branch_name} && "
                         f"git checkout {branch_name} && "
                         f"git pull origin"
                     )
