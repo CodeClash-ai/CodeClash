@@ -16,7 +16,7 @@ players:
         temperature: 0.2
         max_tokens: 4096
 - agent: dummy
-  name: human
+  name: gigachad
   branch_init: human/gigachad
 prompts:
   game_description: |
