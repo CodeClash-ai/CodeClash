@@ -1,5 +1,5 @@
 tournament:
-  rounds: 2
+  rounds: 15
 game:
   name: RobotRumble
   sims_per_round: 250
