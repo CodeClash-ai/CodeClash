@@ -211,7 +211,7 @@ class CodeGame(ABC):
                 assert_zero_exit_code(
                     environment.execute(
                         f"git remote set-url origin {new_url} && "
-                        f"git fetch --all origin && "
+                        f"git fetch --all && "
                         f"git checkout {branch_name} && "
                         f"git pull origin"
                     )
