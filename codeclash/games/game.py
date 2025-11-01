@@ -199,13 +199,23 @@ class CodeGame(ABC):
             run_args=run_args,
         )
 
-        # Manually set URL with github token and git pull
+        branch_name = self.game_id if branch_name is None else branch_name
+
+        # Manually set URL with github token and git fetch/pull everything
+        # We won't raise an error if the token is not set or the URL doesn't have the right format.
         if github_token := os.getenv("GITHUB_TOKEN"):
             result = assert_zero_exit_code(environment.execute("git remote get-url origin"))
             current_url = result["output"].strip()
             if current_url.startswith("https://") and "@" not in current_url:
                 new_url = current_url.replace("https://", f"https://{github_token}@")
-                assert_zero_exit_code(environment.execute(f"git remote set-url origin {new_url} && git fetch origin"))
+                assert_zero_exit_code(
+                    environment.execute(
+                        f"git remote set-url origin {new_url} && "
+                        f"git fetch --all origin && "
+                        f"git checkout {branch_name} && "
+                        f"git pull origin"
+                    )
+                )
             else:
                 self.logger.warning("Remote origin URL is not https://, won't be able to set token and pull.")
         else:
@@ -213,8 +223,6 @@ class CodeGame(ABC):
 
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")
-        # Ensure all future branches occur against branch
-        branch_name = self.game_id if branch_name is None else branch_name
         for cmd in [
             f"git branch {branch_name}",
             f"git checkout {branch_name}",
