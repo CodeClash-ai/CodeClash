@@ -15,16 +15,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     SELECTED_ROUNDS = [1, 2, 3, 5, 10, 12, 14, 15]
-    SELECTED_GAMES = ["BattleSnake"]  # Set to None to select all games
-    NUMBER_OF_TOURNAMENTS = 3
+    SELECTED_GAMES = None  # ["BattleSnake"]  # Set to None to select all games
+    NUMBER_OF_TOURNAMENTS = 1
 
     # first get all instances, then filter
     instances = sorted(get_instances(args.input_dir), key=lambda x: x.instance_id)
     print(f"Found {len(instances)} instances")
     if SELECTED_GAMES is not None:
-        instances = [
-            instance for instance in instances if any(game in instance.tournament_name for game in SELECTED_GAMES)
-        ]
+        instances = [instance for instance in instances if instance.game_name in SELECTED_GAMES]
         print(f"Filtered to {len(instances)} instances because of game name")
     else:
         print("No game filtering applied (SELECTED_GAMES is None)")
@@ -36,7 +34,7 @@ if __name__ == "__main__":
         model_name_player, model_name_opponent = instance.get_lm_name_self_opponent()
         if model_name_player == model_name_opponent:
             continue
-        key = (model_name_player, model_name_opponent, instance.round_number)
+        key = (instance.game_name, model_name_player, model_name_opponent, instance.round_number)
         grouped[key].append(instance)
 
     selected_instances = []

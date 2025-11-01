@@ -31,6 +31,10 @@ class Instance(BaseModel):
     trajectory_path: Path
 
     @property
+    def game_name(self) -> str:
+        return self.tournament_name.split(".")[1]
+
+    @property
     def instance_id(self) -> str:
         return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
 
@@ -78,11 +82,12 @@ def parse_trajectory_name(trajectory_path: Path) -> Instance:
     except:
         print(trajectory_path)
         raise
+    tournament_name = trajectory_path.parent.parent.parent.name
     return Instance(
         trajectory_path=trajectory_path,
         player_name=trajectory_path.parent.name,
         round_number=round_number,
-        tournament_name=trajectory_path.parent.parent.parent.name,
+        tournament_name=tournament_name,
     )
 
 
