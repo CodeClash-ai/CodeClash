@@ -14,7 +14,7 @@ import pandas as pd
 from codeclash.analysis.llm_as_judge.categorize_actions import _all_categories as ACTION_CATEGORIES
 from codeclash.analysis.llm_as_judge.hallucination import claim_categories as CLAIM_CATEGORIES
 from codeclash.analysis.llm_as_judge.hallucination import source_categories as SOURCE_CATEGORIES
-from codeclash.analysis.llm_as_judge.utils import Instance
+from codeclash.analysis.llm_as_judge.utils import Instance, InstanceBatch
 from codeclash.utils.log import get_logger
 
 logger = get_logger("AggregateResults", emoji="📊")
@@ -36,8 +36,12 @@ class ResultsAggregator:
         self.action_categories_data_id = f"action_categories_v{ACTION_CATEGORIES_VERSION}"
         self.hallucination_data_id = f"hallucination_v{HALLUCINATION_VERSION}"
 
-    def aggregate_results_to_dataframe(self, input_dir: Path) -> pd.DataFrame:
+    def aggregate_results_to_dataframe(self, input_dir: Path, *, instance_ids: set[str] | None = None) -> pd.DataFrame:
         """Aggregate all llm_as_judge.json results from the input directory into a DataFrame.
+
+        Args:
+            input_dir: Directory containing llm_as_judge.json files
+            instance_ids: If provided, only include results for these instance IDs
 
         Returns:
             DataFrame with flattened structure containing all evaluation data merged by instance_id
@@ -47,6 +51,8 @@ class ResultsAggregator:
         llm_judge_files = list(input_dir.rglob("llm_as_judge.json"))
 
         logger.info(f"Found {len(llm_judge_files)} llm_as_judge.json files")
+        if instance_ids is not None:
+            logger.info(f"Filtering to {len(instance_ids)} specific instances")
 
         for file_path in llm_judge_files:
             logger.debug(f"Processing {file_path}")
@@ -70,6 +76,10 @@ class ResultsAggregator:
                         continue
 
                     for instance_id, instance_data in instances.items():
+                        # Skip if we're filtering and this instance isn't in the filter set
+                        if instance_ids is not None and instance_id not in instance_ids:
+                            continue
+
                         # Initialize instance data if not seen before
                         if instance_id not in instance_data_dict:
                             instance_data_dict[instance_id] = self._initialize_instance_row(instance_data)
@@ -81,6 +91,15 @@ class ResultsAggregator:
                 logger.error(f"Failed to parse JSON in {file_path}: {e}")
             except Exception as e:
                 logger.error(f"Error processing {file_path}: {e}", exc_info=True)
+
+        # Check if all expected instances were found
+        if instance_ids is not None:
+            found_instance_ids = set(instance_data_dict.keys())
+            missing_instance_ids = instance_ids - found_instance_ids
+            if missing_instance_ids:
+                raise ValueError(
+                    f"Could not find {len(missing_instance_ids)} instances in llm_as_judge.json files: {sorted(missing_instance_ids)}"
+                )
 
         # Convert to list of rows for DataFrame
         rows = list(instance_data_dict.values())
@@ -220,15 +239,29 @@ def main() -> None:
     parser.add_argument(
         "-o", "--output-file", type=Path, help="Path to the output Parquet file", default="aggregated_results.parquet"
     )
+    parser.add_argument(
+        "--instance-file",
+        type=Path,
+        help="Path to instances.json file (output of get_instances.py) to filter to specific instances",
+    )
     args = parser.parse_args()
 
     if not args.input_dir.exists():
         logger.error(f"Input directory does not exist: {args.input_dir}")
         return
 
+    # Load instance filter if provided
+    instance_ids = None
+    if args.instance_file is not None:
+        if not args.instance_file.exists():
+            raise FileNotFoundError(f"Instance file does not exist: {args.instance_file}")
+        instance_batch = InstanceBatch.model_validate_json(args.instance_file.read_text())
+        instance_ids = {instance.instance_id for instance in instance_batch.instances}
+        logger.info(f"Loaded {len(instance_ids)} instances from {args.instance_file}")
+
     logger.info(f"Aggregating results from {args.input_dir}")
     aggregator = ResultsAggregator()
-    df = aggregator.aggregate_results_to_dataframe(args.input_dir)
+    df = aggregator.aggregate_results_to_dataframe(args.input_dir, instance_ids=instance_ids)
 
     df.to_parquet(args.output_file, compression="snappy", index=False)
     logger.info(f"Wrote aggregated results to {args.output_file}")

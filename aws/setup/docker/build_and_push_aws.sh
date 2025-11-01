@@ -55,6 +55,16 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
     exit 1
 fi
 
+# Verify AWS account identity
+echo -e "${YELLOW}Checking AWS account identity...${NC}"
+CURRENT_ACCOUNT=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "unknown")
+EXPECTED_ACCOUNT=$(echo $ECR_REGISTRY | cut -d'.' -f1)
+if [ "$CURRENT_ACCOUNT" != "$EXPECTED_ACCOUNT" ]; then
+    echo -e "${RED}ERROR: Your current AWS account ($CURRENT_ACCOUNT) does NOT match the target ECR account ($EXPECTED_ACCOUNT)!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ AWS account matches target ECR account${NC}"
+
 # Build the Docker image
 echo -e "${YELLOW}Building Docker image...${NC}"
 FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"

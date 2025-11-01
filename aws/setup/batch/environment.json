@@ -13,10 +13,10 @@
     "type": "EC2",
     "allocationStrategy": "BEST_FIT_PROGRESSIVE",
     "minvCpus": 0,
-    "maxvCpus": 200,
-    "desiredvCpus": 0,
+    "maxvCpus": 1000,
+    "desiredvCpus": 400,
     "instanceTypes": [
-      "m5.xlarge"
+      "m5.4xlarge"
     ],
     "subnets": [
       "subnet-02f03254ff2613e05",

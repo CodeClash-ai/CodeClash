@@ -2,8 +2,9 @@ import fcntl
 import json
 from pathlib import Path
 
-from codeclash.analysis.metrics.elo import get_scores
 from pydantic import BaseModel
+
+from codeclash.analysis.metrics.elo_broken import get_scores
 
 
 class FileLock:
@@ -30,13 +31,17 @@ class Instance(BaseModel):
     trajectory_path: Path
 
     @property
+    def game_name(self) -> str:
+        return self.tournament_name.split(".")[1]
+
+    @property
     def instance_id(self) -> str:
         return f"{self.tournament_name}__{self.player_name}__r{self.round_number}"
-    
+
     @property
     def tournament_path(self) -> Path:
         return self.trajectory_path.parent.parent.parent
-    
+
     @property
     def metadata_path(self) -> Path:
         return self.tournament_path / "metadata.json"
@@ -46,8 +51,10 @@ class Instance(BaseModel):
         player_configs = metadata["config"]["players"]
         player_config = [pc for pc in player_configs if pc["name"] == self.player_name][0]
         other_player_config = [pc for pc in player_configs if pc["name"] != self.player_name][0]
-        return player_config["config"]["model"]["model_name"].removeprefix("@"), other_player_config["config"]["model"]["model_name"].removeprefix("@")
-    
+        return player_config["config"]["model"]["model_name"].removeprefix("@"), other_player_config["config"]["model"][
+            "model_name"
+        ].removeprefix("@")
+
     def get_current_next_round_win_rate(self) -> tuple[float | None, float | None]:
         metadata = json.loads(self.metadata_path.read_text())
         current_round_stats = metadata["round_stats"].get(str(self.round_number))
@@ -75,11 +82,12 @@ def parse_trajectory_name(trajectory_path: Path) -> Instance:
     except:
         print(trajectory_path)
         raise
+    tournament_name = trajectory_path.parent.parent.parent.name
     return Instance(
         trajectory_path=trajectory_path,
         player_name=trajectory_path.parent.name,
         round_number=round_number,
-        tournament_name=trajectory_path.parent.parent.parent.name,
+        tournament_name=tournament_name,
     )
 
 
