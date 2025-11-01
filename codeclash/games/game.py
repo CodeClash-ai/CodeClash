@@ -214,7 +214,7 @@ class CodeGame(ABC):
                         f"git fetch --all && "
                         f"git branch {branch_name} && "
                         f"git checkout {branch_name} && "
-                        f"git pull origin"
+                        f"git pull origin {branch_name}"
                     )
                 )
             else:
