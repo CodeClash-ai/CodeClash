@@ -445,11 +445,11 @@ if __name__ == "__main__":
     )
 
     # Questions 1a/1b: Consistency over rounds
-    output_path = ASSETS_DIR / f"line_chart_code_evolution_{args.arena}.png"
+    output_path = ASSETS_DIR / f"line_chart_code_evolution_{args.arena}.pdf"
     plot_consistency_over_rounds(data_cache, output_path=output_path)  # Questions 1a and 1b
 
     # Questions 2a/2b: Opponent effect
-    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r1_{args.arena}.png"
+    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r1_{args.arena}.pdf"
     plot_opponent_effect_heatmap(data_cache, target_round=1, output_path=output_path)  # Question 2a
-    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r15_{args.arena}.png"
+    output_path = ASSETS_DIR / f"heatmap_code_evolution_per_opponent_r15_{args.arena}.pdf"
     plot_opponent_effect_heatmap(data_cache, target_round=15, output_path=output_path)  # Question 2b

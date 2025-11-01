@@ -232,5 +232,5 @@ if __name__ == "__main__":
     ax.grid(axis="y", alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig(ASSETS_DIR / "bar_chart_temporal_opponent_access.png", dpi=300, bbox_inches="tight")
-    print(f"\nSaved visualization to {ASSETS_DIR / 'bar_chart_temporal_opponent_access.png'}")
+    plt.savefig(ASSETS_DIR / "bar_chart_temporal_opponent_access.pdf", dpi=300, bbox_inches="tight")
+    print(f"\nSaved visualization to {ASSETS_DIR / 'bar_chart_temporal_opponent_access.pdf'}")

@@ -151,7 +151,7 @@ Lead change rate:
         label.set_fontproperties(FONT_BOLD)
 
     plt.tight_layout()
-    output_file = ASSETS_DIR / "win_change_rate_comparison.png"
+    output_file = ASSETS_DIR / "win_change_rate_comparison.pdf"
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"\nVisualization saved to: {output_file}")
     plt.close()
