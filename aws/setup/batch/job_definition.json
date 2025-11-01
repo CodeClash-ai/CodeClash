@@ -17,11 +17,11 @@
     "ulimits": [],
     "resourceRequirements": [
       {
-        "value": "4",
+        "value": "16",
         "type": "VCPU"
       },
       {
-        "value": "14000",
+        "value": "60000",
         "type": "MEMORY"
       }
     ],
