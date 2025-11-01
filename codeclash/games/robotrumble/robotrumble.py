@@ -10,6 +10,12 @@ from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
 
+MAP_EXT_TO_HEADER = {
+    "js": "function robot(state, unit) {",
+    "py": "def robot(state, unit):",
+}
+ROBOTRUMBLE_HIDDEN_EXEC = ".codeclash_exec"
+
 
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
@@ -51,7 +57,10 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
 
     def execute_round(self, agents: list[Player]):
         self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")
-        args = [f"/{agent.name}/{self.submission}" for agent in agents]
+        args = []
+        for agent in agents:
+            executable = agent.environment.execute(f"cat {ROBOTRUMBLE_HIDDEN_EXEC}")["output"].strip()
+            args.append(f"/{agent.name}/{executable}")
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
@@ -131,21 +140,33 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if self.submission not in agent.environment.execute("ls")["output"]:
-            return False, f"There should be a `{self.submission}` file"
-        if "function robot(state, unit) {" not in agent.environment.execute(f"cat {self.submission}")["output"]:
+        # Determine if robot.js or robot.py exists
+        ext, exists = None, False
+        for possible_ext in MAP_EXT_TO_HEADER.keys():
+            exists_output = agent.environment.execute(f"test -f robot.{possible_ext} && echo 'exists'")["output"]
+            if "exists" == exists_output.strip():
+                ext = possible_ext
+                exists = True
+                break
+        if not exists:
+            return False, "There should be a `robot.js` or `robot.py` file"
+        agent.environment.execute(f'echo "robot.{ext}" > {ROBOTRUMBLE_HIDDEN_EXEC}')
+
+        # Check that the robot function is defined
+        header = MAP_EXT_TO_HEADER[ext]
+        if header not in agent.environment.execute(f"cat robot.{ext}")["output"]:
             return (
                 False,
-                f"{self.submission} does not contain the required robot function. It should be defined as 'function robot(state, unit) {{ ... }}'.",
+                f"robot.{ext} does not contain the required robot function. It should be defined as '{header}'.",
             )
-        test_run_cmd = f"{self.run_cmd_round} {self.submission} {self.submission} -t 1"
+        test_run_cmd = f"{self.run_cmd_round} robot.{ext} robot.{ext} -t 1"
         try:
-            test_run = agent.environment.execute(test_run_cmd, timeout=60)["output"]
+            test_run = agent.environment.execute(test_run_cmd, timeout=10)["output"]
         except subprocess.TimeoutExpired:
             return (
                 False,
-                f"Running {self.submission} (with `{test_run_cmd}`) timed out (60 seconds). Please ensure your code runs efficiently.",
+                f"Running robot.{ext} (with `{test_run_cmd}`) timed out (10 seconds). Please ensure your code runs efficiently.",
             )
         if "Some errors occurred:" in test_run:
-            return False, f"Running {self.submission} (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
+            return False, f"Running robot.{ext} (with `{test_run_cmd}`) resulted in errors:\n{test_run}"
         return True, None

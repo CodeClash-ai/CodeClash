@@ -68,6 +68,13 @@ def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "
             if i != j and results[(m1, m2)][1] > 0:
                 matrix[i, j] = results[(m1, m2)][0] / results[(m1, m2)][1]
 
+    # Print out average win rate per model
+    for m1 in models:
+        total_wins = sum(results[(m1, m2)][0] for m2 in models if m1 != m2)
+        total_matches = sum(results[(m1, m2)][1] for m2 in models if m1 != m2)
+        avg_win_rate = total_wins / total_matches if total_matches > 0 else 0
+        print(f"{MODEL_TO_DISPLAY_NAME[m1.split('/')[-1]]}: {avg_win_rate:.2%} win rate over {total_matches} matches")
+
     # Plot
     FONT_BOLD.set_size(18)
     _, ax = plt.subplots(figsize=(10, 8))

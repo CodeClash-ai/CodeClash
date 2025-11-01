@@ -131,6 +131,7 @@ def analyze_temporal_opponent_access(folder_list):
 
 
 if __name__ == "__main__":
+    # `normal` is all 1v1 Halite games from main results
     normal = sorted(
         [
             x.parent
