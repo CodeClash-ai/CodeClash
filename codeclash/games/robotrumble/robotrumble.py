@@ -19,7 +19,7 @@ ROBOTRUMBLE_HIDDEN_EXEC = ".codeclash_exec"
 
 class RobotRumbleGame(CodeGame):
     name: str = "RobotRumble"
-    description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python to move, attack, and outmaneuver your opponent on a grid.
+    description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python or JavaScript to move, attack, and outmaneuver your opponent on a grid.
 Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match.
 NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code that exceeds this run time will automatically forfeit the round."""
     default_args: dict = {"raw": True}
