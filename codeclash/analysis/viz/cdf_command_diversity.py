@@ -44,7 +44,7 @@ from tqdm.auto import tqdm
 from codeclash.analysis.viz.utils import ASSETS_DIR, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = ASSETS_DIR / "cdf_command_diversity.png"
+OUTPUT_FILE = ASSETS_DIR / "cdf_command_diversity.pdf"
 DATA_CACHE = ASSETS_DIR / "cdf_command_diversity.json"
 
 

@@ -308,6 +308,8 @@ def main(log_dir: Path) -> None:
     win_margins_by_model = {}
 
     for metadata_path in tqdm(list(log_dir.rglob("metadata.json"))):
+        if "human" in str(metadata_path):
+            continue
         try:
             game_name, game_wins, model_wins = get_player_win_counts(metadata_path)
             if game_name:

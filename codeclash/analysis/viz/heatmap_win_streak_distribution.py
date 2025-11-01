@@ -12,7 +12,7 @@ from tqdm import tqdm
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = ASSETS_DIR / "heatmap_win_streak_distribution.png"
+OUTPUT_FILE = ASSETS_DIR / "heatmap_win_streak_distribution.pdf"
 
 
 def main(log_dir: Path, xlim: int = 15):

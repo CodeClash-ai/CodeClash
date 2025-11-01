@@ -9,7 +9,7 @@ from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, 
 from codeclash.constants import LOCAL_LOG_DIR
 
 ROUNDS = 15
-OUTPUT_FILE = ASSETS_DIR / "line_chart_thought_length_per_round.png"
+OUTPUT_FILE = ASSETS_DIR / "line_chart_thought_length_per_round.pdf"
 DATA_CACHE = ASSETS_DIR / "line_chart_thought_length_per_round.json"
 
 

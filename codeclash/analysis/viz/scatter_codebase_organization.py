@@ -409,7 +409,7 @@ def plot_organization_metrics(file_reuse_df: pd.DataFrame, root_clutter_df: pd.D
     # plt.legend(loc="lower center", prop=FONT_BOLD, ncol=2)
 
     plt.tight_layout()
-    OUTPUT_FILE = ASSETS_SUBFOLDER / "scatter_codebase_organization.png"
+    OUTPUT_FILE = ASSETS_SUBFOLDER / "scatter_codebase_organization.pdf"
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
     print(f"Saved scatter plot to {OUTPUT_FILE}")
 
@@ -600,7 +600,7 @@ def plot_filename_redundancy_over_rounds(redundancy_df: pd.DataFrame):
     plt.legend(loc="best", prop=FONT_BOLD)
 
     plt.tight_layout()
-    OUTPUT_FILE = ASSETS_SUBFOLDER / "line_chart_filename_redundancy_over_rounds.png"
+    OUTPUT_FILE = ASSETS_SUBFOLDER / "line_chart_filename_redundancy_over_rounds.pdf"
     plt.savefig(OUTPUT_FILE, dpi=300, bbox_inches="tight")
     print(f"Saved filename redundancy plot to {OUTPUT_FILE}")
 

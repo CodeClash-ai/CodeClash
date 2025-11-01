@@ -147,7 +147,7 @@ def main(logs: Path):
     # plt.xlabel('Arena', fontproperties=FONT_BOLD, fontsize=18)
     # plt.ylabel('Model', fontproperties=FONT_BOLD, fontsize=18)
     plt.tight_layout()
-    plt.savefig(ASSETS_DIR / "heatmap_returncode.png", dpi=300, bbox_inches="tight")
+    plt.savefig(ASSETS_DIR / "heatmap_returncode.pdf", dpi=300, bbox_inches="tight")
     plt.show()
 
 
