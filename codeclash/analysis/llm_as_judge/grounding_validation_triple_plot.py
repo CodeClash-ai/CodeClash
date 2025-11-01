@@ -7,8 +7,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import AutoMinorLocator
 
-from codeclash.analysis.viz.utils import FONT_BOLD, FONT_REG, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_DISPLAY_NAME
 
 
 class GroundingValidationPlotter:
@@ -51,8 +52,10 @@ class GroundingValidationPlotter:
         ("forestgreen", 0.3),  # Simulations only
     ]
 
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame, *, fix_xlim: bool = False, title: str | None = None):
         self.df = df
+        self.fix_xlim = fix_xlim
+        self.title = title
 
         # Aggregate hallucination columns by claim
         h_cols = [col for col in self.df.columns if col.startswith("h_")]
@@ -70,29 +73,26 @@ class GroundingValidationPlotter:
         # Add hallucination category column
         self.df["hal_cat1"] = self.df.apply(self._get_l_reason_breakdown, axis=1)
 
-        # Sort models alphabetically by display name (reversed)
-        models = [m for m in df["model_name"].unique() if isinstance(m, str)]
-        model_display_pairs = [(m, MODEL_TO_DISPLAY_NAME.get(m, m)) for m in models]
-        model_display_pairs.sort(key=lambda x: x[1].lower(), reverse=True)
-        self.models = [m for m, _ in model_display_pairs]
-        self.display_names = [d for _, d in model_display_pairs]
+        # Sort models alphabetically (reversed) - models are already display names
+        models = sorted(df["model_name"].unique(), key=lambda x: x.lower(), reverse=True)
+        self.models = models
         self.n_models = len(self.models)
 
         # Create figure with 3 subplots sharing y-axis
-        self.fig, self.axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
+        fig_height = 4.5 if self.title else 4
+        self.fig, self.axes = plt.subplots(1, 3, figsize=(12, fig_height), sharey=True)
         self.y_positions = np.arange(self.n_models)
 
     def _get_l_reason_breakdown(self, row) -> str:
         """Categorize loss reason hallucinations."""
+        if row["h_loss_reason"] == 0:
+            return ""
+        if row["h_loss_reason"] == row["h_loss_reason__none"]:
+            return "no source"
         c0 = ["h_loss_reason__log", "h_loss_reason__execution_output.analysis"]
         if any([row[c] > 0 for c in c0]):
             return "logs/analysis"
-        elif row["h_loss_reason__none"] > 0:
-            if row["h_loss_reason"] > row["h_loss_reason__none"]:
-                # There's other cols that are also > 0
-                return "docs/tests/other"
-            return "no source"
-        return ""
+        return "other"
 
     def _add_stacked_bar_labels(self, ax, stacked_values: list[list[float]], min_value_to_show: float = 5.0):
         """Add percentage labels inside stacked bars.
@@ -123,14 +123,17 @@ class GroundingValidationPlotter:
                     )
             left = left + np.array(values)
 
-    def _add_total_bar_labels(self, ax, totals: list[float], x_offset: float = 1):
+    def _add_total_bar_labels(self, ax, totals: list[float], x_offset_fraction: float = 0.02):
         """Add total value labels at the end of bars.
 
         Args:
             ax: The matplotlib axis
             totals: List of total values for each bar
-            x_offset: Horizontal offset from the end of the bar
+            x_offset_fraction: Horizontal offset as fraction of xlim span from the end of the bar
         """
+        xlim = ax.get_xlim()
+        x_offset = (xlim[1] - xlim[0]) * x_offset_fraction
+
         for i, total in enumerate(totals):
             if total > 0:
                 font_total = FONT_BOLD.copy()
@@ -203,7 +206,7 @@ class GroundingValidationPlotter:
         ax.set_title("(a) Groundedness of edits", fontproperties=font_title, pad=self.title_pad)
 
         # Legend
-        font_legend = FONT_REG.copy()
+        font_legend = FONT_BOLD.copy()
         font_legend.set_size(self.legend_fontsize)
         leg = ax.legend(
             frameon=False,
@@ -216,21 +219,23 @@ class GroundingValidationPlotter:
 
         # Y-axis
         ax.set_yticks(self.y_positions)
-        font_ytick = FONT_REG.copy()
+        font_ytick = FONT_BOLD.copy()
         font_ytick.set_size(self.ytick_label_fontsize)
-        ax.set_yticklabels(self.display_names, fontproperties=font_ytick)
+        ax.set_yticklabels(self.models, fontproperties=font_ytick)
 
         # X-axis
-        font_label = FONT_REG.copy()
+        font_label = FONT_BOLD.copy()
         font_label.set_size(self.label_fontsize)
         ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
-        font_xtick = FONT_REG.copy()
+        font_xtick = FONT_BOLD.copy()
         font_xtick.set_size(self.xtick_label_fontsize)
         for label in ax.get_xticklabels():
             label.set_fontproperties(font_xtick)
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        if self.fix_xlim:
+            ax.set_xlim(0, 100)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
@@ -310,7 +315,7 @@ class GroundingValidationPlotter:
         ax.set_title("(c) Validation of edits", fontproperties=font_title, pad=self.title_pad)
 
         # Legend
-        font_legend = FONT_REG.copy()
+        font_legend = FONT_BOLD.copy()
         font_legend.set_size(self.legend_fontsize)
         leg = ax.legend(
             frameon=False,
@@ -325,16 +330,18 @@ class GroundingValidationPlotter:
         leg.set_in_layout(False)
 
         # X-axis
-        font_label = FONT_REG.copy()
+        font_label = FONT_BOLD.copy()
         font_label.set_size(self.label_fontsize)
         ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
-        font_xtick = FONT_REG.copy()
+        font_xtick = FONT_BOLD.copy()
         font_xtick.set_size(self.xtick_label_fontsize)
         for label in ax.get_xticklabels():
             label.set_fontproperties(font_xtick)
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        if self.fix_xlim:
+            ax.set_xlim(0, 100)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
@@ -349,7 +356,7 @@ class GroundingValidationPlotter:
             model_df = self.df[self.df["model_name"] == model]
             total_rounds = len(model_df)
 
-            mis_count = ((model_df["hal_cat1"] == "logs/analysis") | (model_df["hal_cat1"] == "docs/tests/other")).sum()
+            mis_count = ((model_df["hal_cat1"] == "logs/analysis") | (model_df["hal_cat1"] == "other")).sum()
             no_src_count = (model_df["hal_cat1"] == "no source").sum()
 
             misinterpretation.append((mis_count / total_rounds * 100) if total_rounds > 0 else 0)
@@ -394,7 +401,7 @@ class GroundingValidationPlotter:
         ax.set_title("(b) Hallucinated Loss Causality", fontproperties=font_title, pad=self.title_pad)
 
         # Legend
-        font_legend = FONT_REG.copy()
+        font_legend = FONT_BOLD.copy()
         font_legend.set_size(self.legend_fontsize)
         leg = ax.legend(
             frameon=False,
@@ -409,16 +416,18 @@ class GroundingValidationPlotter:
         leg.set_in_layout(False)
 
         # X-axis
-        font_label = FONT_REG.copy()
+        font_label = FONT_BOLD.copy()
         font_label.set_size(self.label_fontsize)
         ax.set_xlabel("Percentage of rounds", fontproperties=font_label)
         ax.tick_params(axis="y", length=0)
         ax.tick_params(axis="x", labelsize=self.xtick_label_fontsize)
-        font_xtick = FONT_REG.copy()
+        font_xtick = FONT_BOLD.copy()
         font_xtick.set_size(self.xtick_label_fontsize)
         for label in ax.get_xticklabels():
             label.set_fontproperties(font_xtick)
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        if self.fix_xlim:
+            ax.set_xlim(0, 50)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
@@ -427,6 +436,12 @@ class GroundingValidationPlotter:
         self.plot_grounding_analysis()
         self.plot_hallucination_categories()
         self.plot_validation_feedback()
+
+        if self.title:
+            font_suptitle = FONT_BOLD.copy()
+            font_suptitle.set_size(18)
+            self.fig.suptitle(self.title, fontproperties=font_suptitle, y=0.95)
+
         self.fig.tight_layout()
 
     def save(self, output_path: Path):
@@ -447,13 +462,35 @@ def main():
     df = pd.read_parquet(args.datafile)
 
     # Process model name and filter
-    df["model_name"] = df["model_name"].str.split("/").str[1]
     df = df.query("model_name != opponent_model_name").copy()
 
-    # Create and save plot
+    # Map model names to display names
+    df["model_name"] = df["model_name"].map(lambda x: MODEL_TO_DISPLAY_NAME.get(x, x))
+
+    # Extract game name from tournament_name
+    df["game_name"] = df["tournament_name"].str.split(".").str[1]
+
+    # Get unique games
+    games = sorted(df["game_name"].unique())
+
+    # Create overall plot (all games combined)
     plotter = GroundingValidationPlotter(df)
     plotter.create_plot()
     plotter.save(Path(args.output))
+
+    # Create per-game plots
+    output_path = Path(args.output)
+    output_stem = output_path.stem
+    output_dir = output_path.parent
+
+    for game_name in games:
+        game_df = df[df["game_name"] == game_name].copy()
+        game_output = output_dir / f"{output_stem}_{game_name}.pdf"
+
+        display_title = "Poker" if game_name == "HuskyBench" else game_name
+        plotter = GroundingValidationPlotter(game_df, fix_xlim=True, title=display_title)
+        plotter.create_plot()
+        plotter.save(game_output)
 
 
 if __name__ == "__main__":
