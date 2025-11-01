@@ -26,7 +26,7 @@ from codeclash.constants import LOCAL_LOG_DIR
 
 ROUNDS = 15
 DATA_CACHE = ASSETS_DIR / "line_chart_per_round_changes.json"
-OUTPUT_PNG = ASSETS_DIR / "line_chart_per_round_changes.png"
+OUTPUT_PNG = ASSETS_DIR / "line_chart_per_round_changes.pdf"
 
 
 def _lines_changed_from_patch_text(patch_text: str) -> int:

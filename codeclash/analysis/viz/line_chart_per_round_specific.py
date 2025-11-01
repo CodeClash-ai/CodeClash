@@ -32,8 +32,8 @@ from codeclash.games import ARENAS
 
 ROUNDS = 15
 DATA_CACHE = ASSETS_DIR / "line_chart_per_round_specific.json"
-OUTPUT_PNG_README = ASSETS_DIR / "line_chart_per_round_changes_readme.png"
-OUTPUT_PNG_SUBMISSION = ASSETS_DIR / "line_chart_per_round_changes_submission.png"
+OUTPUT_PNG_README = ASSETS_DIR / "line_chart_per_round_changes_readme.pdf"
+OUTPUT_PNG_SUBMISSION = ASSETS_DIR / "line_chart_per_round_changes_submission.pdf"
 
 MAP_GAME_TO_SUBMISSION_FILE = {a.name: a.submission for a in ARENAS}
 

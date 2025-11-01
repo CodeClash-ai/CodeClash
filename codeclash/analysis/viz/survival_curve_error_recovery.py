@@ -45,7 +45,7 @@ from tqdm.auto import tqdm
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = ASSETS_DIR / "survival_curve_error_recovery.png"
+OUTPUT_FILE = ASSETS_DIR / "survival_curve_error_recovery.pdf"
 DATA_CACHE = ASSETS_DIR / "survival_curve_error_recovery.json"
 
 

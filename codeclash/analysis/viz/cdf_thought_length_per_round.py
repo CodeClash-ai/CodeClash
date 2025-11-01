@@ -8,7 +8,7 @@ from tqdm.auto import tqdm
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, FONT_REG, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR
 
-OUTPUT_FILE = ASSETS_DIR / "cdf_thought_length_per_round.png"
+OUTPUT_FILE = ASSETS_DIR / "cdf_thought_length_per_round.pdf"
 DATA_CACHE = ASSETS_DIR / "cdf_thought_length_per_round.json"
 
 

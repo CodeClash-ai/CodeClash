@@ -40,7 +40,7 @@ DEFICIT_RANGES = [
     (50, 100),  # 50%+ deficit
 ]
 
-OUTPUT_FILE = ASSETS_DIR / "line_chart_model_resiliency.png"
+OUTPUT_FILE = ASSETS_DIR / "line_chart_model_resiliency.pdf"
 
 
 def load_tournament_metadata(metadata_path):
