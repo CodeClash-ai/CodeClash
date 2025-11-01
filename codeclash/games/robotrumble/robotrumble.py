@@ -4,8 +4,6 @@ import subprocess
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from tqdm.auto import tqdm
-
 from codeclash.agents.player import Player
 from codeclash.constants import RESULT_TIE
 from codeclash.games.game import CodeGame, RoundStats
@@ -64,7 +62,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
-        with ThreadPoolExecutor(5) as executor:
+        with ThreadPoolExecutor(8) as executor:
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)
@@ -72,8 +70,11 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
             ]
 
             # Collect results as they complete
-            for future in tqdm(as_completed(futures), total=len(futures)):
+            i_completed = 0
+            for future in as_completed(futures):
                 future.result()
+                i_completed += 1
+                self.logger.info(f"Completed {i_completed} of {len(futures)} simulations")
 
     def _get_winner_txt(self, output_file: str, agents: list[Player]) -> str:
         try:
