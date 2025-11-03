@@ -20,9 +20,9 @@ RUN ARCH=$(dpkg --print-architecture) && \
 
 # Inject GitHub token for private repo access
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/BattleSnake.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/BattleSnake.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/BattleSnake.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleSnake.git \
     && unset GITHUB_TOKEN
 
 WORKDIR /workspace

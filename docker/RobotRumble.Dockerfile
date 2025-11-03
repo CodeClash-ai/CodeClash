@@ -10,9 +10,9 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/RobotRumble.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/RobotRumble.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/RobotRumble.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/RobotRumble.git \
     && unset GITHUB_TOKEN
 
 WORKDIR /workspace

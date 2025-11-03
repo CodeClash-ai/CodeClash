@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/BattleCode.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/BattleCode.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/BattleCode.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleCode.git \
     && unset GITHUB_TOKEN
 WORKDIR /workspace
 

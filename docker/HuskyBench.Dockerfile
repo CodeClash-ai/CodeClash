@@ -12,9 +12,9 @@ lsof \
 && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/HuskyBench.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/HuskyBench.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/HuskyBench.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/HuskyBench.git \
     && unset GITHUB_TOKEN
 
 WORKDIR /workspace

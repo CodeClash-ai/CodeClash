@@ -18,9 +18,9 @@ RUN apt update && apt install -y \
  && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/RoboCode.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/RoboCode.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/RoboCode.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/RoboCode.git \
     && unset GITHUB_TOKEN
 
 WORKDIR /workspace

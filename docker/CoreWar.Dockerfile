@@ -6,9 +6,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/emagedoc/CoreWar.git /workspace \
+RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/CoreWar.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/emagedoc/CoreWar.git \
+    && git remote set-url origin https://github.com/CodeClash-ai/CoreWar.git \
     && unset GITHUB_TOKEN
 
 WORKDIR /workspace

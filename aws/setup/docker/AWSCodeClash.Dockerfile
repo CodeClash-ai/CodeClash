@@ -37,7 +37,7 @@ WORKDIR /app
 
 # Clone repository (you'll pass GITHUB_TOKEN as env var)
 ARG GITHUB_TOKEN
-RUN git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git . \
+RUN git clone https://klieret:${GITHUB_TOKEN}@github.com/CodeClash-ai/CodeClash.git . \
     && python3.11 -m venv .venv \
     && . .venv/bin/activate \
     && pip install -e '.[dev]'
