@@ -227,5 +227,7 @@ __marimo__/
 
 # >>>>>>>>> CUSTOM THINGS ON TOP OF FILE <<<<<<<<<
 assets/*.json
+assets/*.jsonl
 assets/*.png
 assets/code_org
+assets/elo2_plots

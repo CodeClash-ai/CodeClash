@@ -2,6 +2,7 @@
 import argparse
 import json
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Literal, TypeAlias, get_args
 
@@ -14,7 +15,7 @@ from tqdm import tqdm
 
 from codeclash.analysis.metrics.elo_broken import get_scores
 from codeclash.analysis.significance import calculate_p_value
-from codeclash.analysis.viz.utils import FONT_BOLD, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import add_file_handler, get_logger
 
@@ -1350,20 +1351,21 @@ def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
     Format:
     {
         "ArenaName": [
-            {"rank": 1, "model": "model_name", "elo": 1500},
+            {"rank": 1, "model": "model_name", "elo": 1500, "elo_std": 50},
             ...
         ],
         "Overall": [...]
     }
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / "leaderboard.json"
+    output_file = output_dir / "leaderboards.json"
 
     leaderboard = {}
 
     for game_name, game_result in results.items():
         players = game_result["players"]
         strengths = game_result["strengths"]
+        elo_std = game_result.get("elo_std")
 
         # Convert Bradley-Terry strengths to Elo ratings
         elos = {p: BradleyTerryFitter.bt_to_elo(s) for p, s in zip(players, strengths)}
@@ -1372,10 +1374,19 @@ def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
         sorted_players = sorted(elos.items(), key=lambda x: x[1], reverse=True)
 
         # Create leaderboard entries
-        leaderboard[game_name] = [
-            {"rank": rank + 1, "model": MODEL_TO_DISPLAY_NAME.get(player, player), "elo": round(elo, 1)}
-            for rank, (player, elo) in enumerate(sorted_players)
-        ]
+        board = []
+        for rank, (player, elo) in enumerate(sorted_players):
+            entry = {"rank": rank + 1, "model": MODEL_TO_DISPLAY_NAME.get(player, player), "elo": int(round(elo))}
+            # Add confidence interval if available
+            if elo_std is not None:
+                player_idx = players.index(player)
+                entry["elo_std"] = int(round(elo_std[player_idx]))
+            board.append(entry)
+
+        leaderboard[game_name] = {
+            "board": board,
+            "last_updated": datetime.utcnow().isoformat() + "Z",
+        }
 
     # Write to file
     with open(output_file, "w") as f:
@@ -1530,8 +1541,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("elo2_plots"),
-        help="Directory to save plots (default: elo2_plots)",
+        default=ASSETS_DIR / "elo2_plots",
+        help="Directory to save plots (default: assets/elo2_plots)",
     )
     args = parser.parse_args()
 
