@@ -215,6 +215,8 @@ class ScoreMatrixBuilder:
     def build(self, log_dir: Path) -> None:
         for metadata_path in tqdm(list(log_dir.rglob("metadata.json"))):
             try:
+                if ".human." in str(metadata_path):
+                    continue
                 self._process_tournament(metadata_path)
             except Exception as e:
                 logger.error(f"Error processing {metadata_path}: {e}", exc_info=True)
@@ -1383,7 +1385,7 @@ def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
                 entry["elo_std"] = int(round(elo_std[player_idx]))
             board.append(entry)
 
-        leaderboard[game_name] = {
+        leaderboard[game_name.lower()] = {
             "board": board,
             "last_updated": datetime.utcnow().isoformat() + "Z",
         }
