@@ -62,13 +62,15 @@
                     </button>
                 </span>
             </div>
-            <button id="clear-filters" onclick="clearFilters()" title="Clear all filters" {% if is_static %}disabled{% endif %}>
+            <button id="clear-filters" onclick="clearFilters()" title="Clear all filters">
                 <i class="bi bi-x-circle"></i> Clear Filters
             </button>
             <div class="filter-spacer"></div>
-            <button class="bulk-actions-button" onclick="openBulkActionsModal()" {% if is_static %}disabled title="Not available in static mode"{% endif %}>
+            {% if not is_static %}
+            <button class="bulk-actions-button" onclick="openBulkActionsModal()">
                 <i class="bi bi-lightning-charge"></i> Bulk Actions
             </button>
+            {% endif %}
         </div>
 
         <div id="runs-status" class="runs-status"></div>
@@ -151,6 +153,7 @@
         {% endif %}
     </main>
 
+    {% if not is_static %}
     <!-- Bulk Actions Modal -->
     <div id="bulk-actions-modal" class="modal-overlay" onclick="closeBulkActionsModalOnOverlay(event)" style="display: none;">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -167,6 +170,7 @@
                 <button class="modal-action-btn" onclick="fillTextareaWithFoldernames()">
                     <i class="bi bi-tag"></i> Folder Names
                 </button>
+                {% if not is_static %}
                 <button class="modal-action-btn" onclick="fillTextareaWithS3RmCommands()">
                     <i class="bi bi-trash"></i> S3 rm
                 </button>
@@ -179,6 +183,7 @@
                 <button class="modal-action-btn" onclick="fillTextareaWithAWSSubmitCommands()">
                     <i class="bi bi-cloud-upload"></i> Guess AWS submit cmd
                 </button>
+                {% endif %}
             </div>
             <div id="modal-warning" class="modal-warning">
                 <i class="bi bi-exclamation-triangle"></i>
@@ -192,6 +197,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Keyboard Shortcuts Help Modal -->
     <div class="modal fade" id="help-modal" tabindex="-1" aria-labelledby="help-modal-label" aria-hidden="true">

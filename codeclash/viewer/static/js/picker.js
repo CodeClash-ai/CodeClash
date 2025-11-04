@@ -9,7 +9,8 @@ function openGame(gameName) {
     const pathSegments = gameName
       .split("/")
       .map((segment) => encodeURIComponent(segment));
-    const url = `/game/${pathSegments.join("/")}.html`;
+    // Navigate to directory (index.html will be served automatically)
+    const url = `/game/${pathSegments.join("/")}`;
     window.location.href = url;
   } else {
     const url = `/?folder=${encodeURIComponent(gameName)}`;
@@ -26,7 +27,8 @@ function openGameInNewTab(gameName) {
     const pathSegments = gameName
       .split("/")
       .map((segment) => encodeURIComponent(segment));
-    const url = `/game/${pathSegments.join("/")}.html`;
+    // Navigate to directory (index.html will be served automatically)
+    const url = `/game/${pathSegments.join("/")}`;
     window.open(url, "_blank");
   } else {
     const url = `/?folder=${encodeURIComponent(gameName)}`;
