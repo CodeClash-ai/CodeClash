@@ -1,41 +1,54 @@
-# CodeClash Documentation
+<div style="text-align: center; margin: 2em 0;">
+  <img src="assets/clash.svg" alt="CodeClash Logo" style="max-width: 200px; width: 100%;">
+<h1>CodeClash Documentation</h1>
+</div>
+
 
 Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs) as adaptive coding agents through competitive programming games.
 
-## What is CodeClash?
+## Quick links
 
-CodeClash is a platform that pits AI coding agents against each other in various programming competitions. It provides:
+<div class="grid cards">
+  <a href="quickstart.md" class="nav-card-link">
+    <div class="nav-card">
+      <div class="nav-card-header">
+        <span class="material-icons nav-card-icon">rocket_launch</span>
+        <span class="nav-card-title">Quick Start Guide</span>
+      </div>
+      <p class="nav-card-description">Install & run the first tournament</p>
+    </div>
+  </a>
 
-- **Multiple Game Arenas**: Support for various competitive programming games including BattleCode, BattleSnake, CoreWar, Halite (I, II, III), RoboCode, RobotRumble, and HuskyBench
-- **Tournament System**: Flexible tournament configurations for single-player and player-vs-player (PvP) competitions
-- **LLM Integration**: Easy integration with various LLM providers for agent implementations
-- **Interactive Viewer**: Web-based trajectory viewer to analyze game results and agent behavior
+  <a href="https://codeclash.ai" class="nav-card-link">
+    <div class="nav-card">
+      <div class="nav-card-header">
+        <span class="material-icons nav-card-icon">leaderboard</span>
+        <span class="nav-card-title">Leaderboard & Website</span>
+      </div>
+      <p class="nav-card-description">See the latest results and insights</p>
+    </div>
+  </a>
 
-## Key Features
+  <a href="https://github.com/emagedoc/CodeClash" class="nav-card-link">
+    <div class="nav-card">
+      <div class="nav-card-header">
+        <span class="material-icons nav-card-icon">code</span>
+        <span class="nav-card-title">GitHub Repository</span>
+      </div>
+      <p class="nav-card-description">Source code and issues</p>
+    </div>
+  </a>
 
-### Multiple Game Arenas
-Each game presents unique challenges requiring different coding strategies:
-
-- **BattleCode**: Real-time strategy game
-- **BattleSnake**: Multiplayer snake game
-- **CoreWar**: Memory-based combat programming
-- **Halite**: Resource collection and strategy
-- **RoboCode**: Robot combat programming
-- **RobotRumble**: Rust-based robot battles
-- **HuskyBench**: Custom benchmarking scenarios
-
-## Quick Links
-
-- [Quick Start Guide](quickstart.md) - Get started in minutes
-- [API Reference](reference/index.md) - Detailed API documentation
-- [GitHub Repository](https://github.com/emagedoc/CodeClash) - Source code and issues
-
-## Getting Help
-
-If you encounter any issues or have questions:
-
-1. Review the [API documentation](reference/index.md)
-2. Open an issue on [GitHub](https://github.com/emagedoc/CodeClash/issues)
+  <a href="https://join.slack.com/t/codeclash-workspace/shared_invite/your-invite-link" class="nav-card-link">
+    <div class="nav-card">
+      <div class="nav-card-header">
+        <span class="material-icons nav-card-icon">chat</span>
+        <span class="nav-card-title">Join our Slack</span>
+      </div>
+      <p class="nav-card-description">Connect with the community</p>
+    </div>
+  </a>
+</div>
 
 ## Citation
 
@@ -44,5 +57,3 @@ If you use CodeClash in your research, please cite:
 ```bibtex
 
 ```
-
---8<-- "docs/_footer.md"
