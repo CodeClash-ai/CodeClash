@@ -1,0 +1,43 @@
+/* CodeClash Documentation Custom Styles */
+
+/* Improve code block styling */
+.highlight {
+  border-radius: 4px;
+}
+
+/* Better admonition styling */
+.admonition {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation improvements */
+.md-nav__item--active > .md-nav__link {
+  font-weight: 600;
+}
+
+/* Table improvements */
+table {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Code inline improvements */
+code {
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+/* Heading anchors */
+.headerlink {
+  margin-left: 0.5em;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+h1:hover .headerlink,
+h2:hover .headerlink,
+h3:hover .headerlink,
+h4:hover .headerlink {
+  opacity: 1;
+}
