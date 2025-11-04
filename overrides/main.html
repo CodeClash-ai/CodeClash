@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+{{ super() }}
+
+<!-- Floating Bubbles -->
+<div class="floating-bubbles">
+<div class="floating-bubbles-title">Our projects</div>
+  <a href="https://swe-agent.com/" class="bubble" title="SWE-agent">
+    <img src="{{ 'assets/sweagent_logo.svg' | url }}" alt="SWE-agent">
+    <span class="bubble-tooltip">SWE-agent</span>
+  </a>
+  <a href="https://swe-rex.com/" class="bubble" title="SWE-rex">
+    <img src="{{ 'assets/swerex_logo.svg' | url }}" alt="SWE-rex">
+    <span class="bubble-tooltip">SWE-ReX</span>
+  </a>
+  <a href="https://swesmith.com" class="bubble" title="SWE-smith">
+    <img src="{{ 'assets/swesmith_logo.png' | url }}" alt="SWE-smith">
+    <span class="bubble-tooltip">SWE-smith</span>
+  </a>
+  <a href="https://swebench.com" class="bubble" title="SWE-bench">
+    <img src="{{ 'assets/swebench_logo.png' | url }}" alt="SWE-bench">
+    <span class="bubble-tooltip">SWE-bench</span>
+  </a>
+  <a href="https://www.swebench.com/sb-cli/" class="bubble" title="sb-cli">
+    <img src="{{ 'assets/sbcli_logo.svg' | url }}" alt="sb-cli">
+    <span class="bubble-tooltip">sb-cli</span>
+  </a>
+  <a href="https://join.slack.com/t/codeclash-workspace/shared_invite/your-invite-link" class="bubble bubble-divider" title="Join our Slack">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack">
+    <span class="bubble-tooltip">Join our Slack</span>
+  </a>
+</div>
+{% endblock %}
