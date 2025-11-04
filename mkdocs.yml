@@ -1,0 +1,115 @@
+site_name: CodeClash Documentation
+
+site_url: https://codeclash.io/docs
+
+repo_url: https://github.com/emagedoc/CodeClash
+repo_name: emagedoc/CodeClash
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+    annotation: material/chevron-right-circle
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - scheme: default
+      accent: deep orange
+      media: "(prefers-color-scheme: light)"
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      accent: deep orange
+      media: "(prefers-color-scheme: dark)"
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.indexes
+    - navigation.top
+    - content.action.edit
+    - navigation.footer
+    - content.code.copy
+    - content.footnote.tooltips
+    - header.autohide
+    - announce.dismiss
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences
+  - pymdownx.magiclink
+  - footnotes
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Getting Started:
+    - "Overview": index.md
+    - "Quick Start": quickstart.md
+  - API Reference:
+    - "reference/index.md"
+    - Arenas:
+      - "CodeGame (Abstract)": "reference/arenas/game.md"
+      - "BattleCode": "reference/arenas/battlecode.md"
+      - "BattleSnake": "reference/arenas/battlesnake.md"
+      - "CoreWar": "reference/arenas/corewar.md"
+      - "Halite": "reference/arenas/halite.md"
+      - "Halite II": "reference/arenas/halite2.md"
+      - "Halite III": "reference/arenas/halite3.md"
+      - "HuskyBench": "reference/arenas/huskybench.md"
+      - "RoboCode": "reference/arenas/robocode.md"
+      - "RobotRumble": "reference/arenas/robotrumble.md"
+      - "DummyGame": "reference/arenas/dummy.md"
+    - Player:
+      - "Player (Abstract)": "reference/player/player.md"
+      - "MiniSWEAgent": "reference/player/minisweagent.md"
+      - "DummyAgent": "reference/player/dummy.md"
+    - Tournament:
+      - "AbstractTournament": "reference/tournament/tournament.md"
+      - "PvP": "reference/tournament/pvp.md"
+      - "SinglePlayer": "reference/tournament/single_player.md"
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [.]
+          options:
+            merge_init_into_class: true
+            summary: false
+            show_root_heading: true
+            heading_level: 2
+            docstring_style: google
+            show_if_no_docstring: true
+            show_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            separate_signature: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            filters:
+              - "!^_"
+
+extra_css:
+  - assets/custom.css
+
+extra:
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with your Google Analytics ID

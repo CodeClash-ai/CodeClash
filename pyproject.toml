@@ -47,6 +47,12 @@ dev = [
 aws = [
     "boto3",
 ]
+docs = [
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mkdocs-glightbox",
+    "mkdocs-include-markdown-plugin",
+]
 
 [tool.setuptools.packages.find]
 include = ["codeclash*"]
