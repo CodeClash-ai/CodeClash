@@ -8,6 +8,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: assets/clash.svg
+  favicon: assets/clash.svg
   icon:
     repo: fontawesome/brands/github
     annotation: material/chevron-right-circle
@@ -17,13 +19,15 @@ theme:
         icon: material/brightness-auto
         name: Switch to light mode
     - scheme: default
-      accent: deep orange
+      primary: green
+      accent: light green
       media: "(prefers-color-scheme: light)"
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - scheme: slate
-      accent: deep orange
+      primary: green
+      accent: light green
       media: "(prefers-color-scheme: dark)"
       toggle:
         icon: material/weather-sunny
