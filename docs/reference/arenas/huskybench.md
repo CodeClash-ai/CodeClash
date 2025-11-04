@@ -16,3 +16,5 @@ Huskybench is an implementation of Husky Hold'em
     options:
       show_root_heading: true
       heading_level: 2
+
+--8<-- "docs/_footer.md"

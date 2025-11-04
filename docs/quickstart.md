@@ -141,3 +141,5 @@ Use the trajectory viewer to step through each round and see:
 - [Learn about tournaments](usage/tournaments.md)
 - [Explore the API](reference/index.md)
 - [Build custom agents](reference/player/player.md)
+
+--8<-- "docs/_footer.md"

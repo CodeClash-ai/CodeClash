@@ -32,3 +32,5 @@ players:
   - name: TestAgent
     model: gpt-4
 ```
+
+--8<-- "docs/_footer.md"

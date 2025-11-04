@@ -44,3 +44,5 @@ If you use CodeClash in your research, please cite:
 ```bibtex
 
 ```
+
+--8<-- "docs/_footer.md"

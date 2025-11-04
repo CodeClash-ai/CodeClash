@@ -53,3 +53,5 @@ Each game runs in its own Docker container with:
     options:
       show_root_heading: true
       heading_level: 3
+
+--8<-- "docs/_footer.md"

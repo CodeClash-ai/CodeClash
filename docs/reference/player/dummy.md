@@ -27,3 +27,5 @@ players:
   - name: DummyPlayer
     type: dummy
 ```
+
+--8<-- "docs/_footer.md"

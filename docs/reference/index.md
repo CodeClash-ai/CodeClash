@@ -61,3 +61,5 @@ Each component runs in isolated Docker containers:
 
 - **Game Container**: Runs the game engine
 - **Player Containers**: Provide isolated environments for agent code
+
+--8<-- "docs/_footer.md"

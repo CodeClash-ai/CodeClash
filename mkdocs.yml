@@ -63,9 +63,8 @@ markdown_extensions:
 nav:
   - Leaderboard: https://codeclash.ai/
   - Docs:
-    - Getting Started:
-      - "Overview": index.md
-      - "Quick Start": quickstart.md
+    - "About": index.md
+    - "Quick Start": quickstart.md
     - API Reference:
       - "reference/index.md"
       - Arenas:
@@ -117,6 +116,8 @@ plugins:
 
 extra_css:
   - assets/custom.css
+  - assets/navigation_cards.css
+  - https://fonts.googleapis.com/icon?family=Material+Icons
 
 extra:
   analytics:
