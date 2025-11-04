@@ -1,0 +1,82 @@
+{# Template for rendering a single message in static mode #}
+{% set message_role_upper = message.role[0]|upper + message.role[1:] if message.role else 'Unknown' %}
+<div class="message-block {{ message.role }}">
+    <span class="message-role-badge">
+        {{ message_role_upper }} #{{ loop.index }}
+    </span>
+    <div class="message-content">
+        {% if message.content is string %}
+            {# Simple string content #}
+            {% set line_count = message.content.count('\n') + 1 %}
+            {% if line_count <= 5 %}
+                {# Short message: show in full #}
+                <div class="message-content-full">
+                    <div class="message-text">
+                        <pre>{{ message.content }}</pre>
+                    </div>
+                </div>
+            {% else %}
+                {# Long message: show preview with expand #}
+                {% set lines_list = message.content.split('\n') %}
+                {% set preview_lines = lines_list[:5] %}
+                {% set preview = preview_lines | join('\n') %}
+                {% set more_lines = line_count - 5 %}
+                <div class="message-preview-short clickable-message" title="Click to expand ({{ more_lines }} more lines)">
+                    <div class="message-text">
+                        <pre>{{ preview }}</pre>
+                    </div>
+                    <div class="expand-indicator">▼ {{ more_lines }} more lines</div>
+                </div>
+                <div class="message-content-full" style="display: none;" title="Content expanded - click collapse button below to hide">
+                    <div class="message-text">
+                        <pre>{{ message.content }}</pre>
+                    </div>
+                    <div class="collapse-indicator clickable-message" title="Click to collapse">▲ Click to collapse</div>
+                </div>
+            {% endif %}
+        {% elif message.content is iterable and message.content is not string %}
+            {# Complex content (e.g., user messages with multiple parts) #}
+            <div class="message-content-full">
+                {% for part in message.content %}
+                    {% if part.type == 'text' %}
+                        {% set part_line_count = part.text.count('\n') + 1 %}
+                        {% if part_line_count <= 5 %}
+                            <div class="message-text">
+                                <pre>{{ part.text }}</pre>
+                            </div>
+                        {% else %}
+                            {% set part_lines_list = part.text.split('\n') %}
+                            {% set part_preview_lines = part_lines_list[:5] %}
+                            {% set part_preview = part_preview_lines | join('\n') %}
+                            {% set part_more_lines = part_line_count - 5 %}
+                            <div class="message-preview-short clickable-message" title="Click to expand ({{ part_more_lines }} more lines)">
+                                <div class="message-text">
+                                    <pre>{{ part_preview }}</pre>
+                                </div>
+                                <div class="expand-indicator">▼ {{ part_more_lines }} more lines</div>
+                            </div>
+                            <div class="message-content-expanded" style="display: none;" title="Content expanded - click collapse button below to hide">
+                                <div class="message-text">
+                                    <pre>{{ part.text }}</pre>
+                                </div>
+                                <div class="collapse-indicator clickable-message" title="Click to collapse">▲ Click to collapse</div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="message-part">
+                            <strong>{{ part.type[0]|upper + part.type[1:] }}:</strong>
+                            <pre>{{ part | tojson(indent=2) }}</pre>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            {# Fallback for other content types #}
+            <div class="message-content-full">
+                <div class="message-text">
+                    <pre>{{ message.content | tojson(indent=2) }}</pre>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>

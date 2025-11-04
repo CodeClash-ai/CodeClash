@@ -26,7 +26,7 @@
         {% endif %}
     </div>
 
-    <!-- Messages Foldout inside the same container (lazy loaded) -->
+    <!-- Messages Foldout inside the same container -->
     <details class="trajectory-messages-foldout trajectory-details-foldout"
              data-player="{{ trajectory.player_id }}"
              data-round="{{ trajectory.round_num }}">
@@ -34,95 +34,173 @@
             <i class="bi bi-chat"></i> Trajectory
         </summary>
         <div class="trajectory-content">
-            <div class="trajectory-load-placeholder">
-                <button class="btn btn-primary load-trajectory-btn"
-                        data-player="{{ trajectory.player_id }}"
-                        data-round="{{ trajectory.round_num }}">
-                    <i class="bi bi-download"></i> Load Trajectory Messages
-                </button>
-            </div>
-            <div class="trajectory-loading-spinner" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+            {% if is_static and trajectory.messages %}
+                {# Static mode: render messages directly #}
+                <div class="trajectory-details-content">
+                    <div class="trajectory-header-info" style="margin-bottom: 1rem;">
+                        <span style="color: var(--muted-text);">{{ trajectory.messages | length }} messages</span>
+                    </div>
+                    <div class="messages-container">
+                        {% for message in trajectory.messages %}
+                            {% include 'includes/message.html' %}
+                        {% endfor %}
+                    </div>
                 </div>
-                <span class="ms-2">Loading trajectory data...</span>
-            </div>
-            <div class="trajectory-details-content" style="display: none;">
-                <div class="trajectory-header-info" style="margin-bottom: 1rem;">
-                    <!-- Will be populated with file path and buttons -->
-                </div>
-                <div class="messages-container">
-                    <!-- Messages will be loaded here dynamically -->
-                </div>
-                <div class="collapse-messages-button">
-                    <button class="btn-collapse-messages">
-                        ▲ Collapse Messages
+            {% else %}
+                {# Dynamic mode: lazy load messages #}
+                <div class="trajectory-load-placeholder">
+                    <button class="btn btn-primary load-trajectory-btn"
+                            data-player="{{ trajectory.player_id }}"
+                            data-round="{{ trajectory.round_num }}">
+                        <i class="bi bi-download"></i> Load Trajectory Messages
                     </button>
                 </div>
-            </div>
+                <div class="trajectory-loading-spinner" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading trajectory data...</span>
+                </div>
+                <div class="trajectory-details-content" style="display: none;">
+                    <div class="trajectory-header-info" style="margin-bottom: 1rem;">
+                        <!-- Will be populated with file path and buttons -->
+                    </div>
+                    <div class="messages-container">
+                        <!-- Messages will be loaded here dynamically -->
+                    </div>
+                    <div class="collapse-messages-button">
+                        <button class="btn-collapse-messages">
+                            ▲ Collapse Messages
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </details>
 
-    <!-- Diff Foldout inside the same container (lazy loaded) -->
+    <!-- Diff Foldout inside the same container -->
     <details class="trajectory-messages-foldout trajectory-diffs-foldout"
              data-player="{{ trajectory.player_id }}"
              data-round="{{ trajectory.round_num }}">
         <summary><i class="bi bi-file-diff"></i> Diff (Full)</summary>
         <div class="trajectory-content">
-            <div class="diff-load-placeholder">
-                <button class="btn btn-primary load-diffs-btn"
-                        data-player="{{ trajectory.player_id }}"
-                        data-round="{{ trajectory.round_num }}">
-                    <i class="bi bi-download"></i> Load Diff Data
-                </button>
-            </div>
-            <div class="diff-loading-spinner" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+            {% if is_static and trajectory.diff_by_files %}
+                {# Static mode: render diff directly #}
+                <div class="diff-content">
+                    {% if trajectory.diff_by_files %}
+                        {% for file_path, file_diff in trajectory.diff_by_files.items() %}
+                        <details class="file-diff-foldout" open>
+                            <summary class="file-diff-header">
+                                <i class="bi bi-file-text"></i> {{ file_path }}
+                            </summary>
+                            <div class="diff-content-wrapper">
+                                <pre><code class="diff">{{ file_diff }}</code></pre>
+                            </div>
+                        </details>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-diff-message">No diff available</div>
+                    {% endif %}
                 </div>
-                <span class="ms-2">Loading diff data...</span>
-            </div>
-            <div class="diff-content" style="display: none;">
-                <!-- Content will be loaded dynamically -->
-            </div>
+            {% else %}
+                {# Dynamic mode: lazy load diffs #}
+                <div class="diff-load-placeholder">
+                    <button class="btn btn-primary load-diffs-btn"
+                            data-player="{{ trajectory.player_id }}"
+                            data-round="{{ trajectory.round_num }}">
+                        <i class="bi bi-download"></i> Load Diff Data
+                    </button>
+                </div>
+                <div class="diff-loading-spinner" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading diff data...</span>
+                </div>
+                <div class="diff-content" style="display: none;">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            {% endif %}
         </div>
     </details>
 
-    <!-- Incremental Diff Foldout inside the same container (lazy loaded) -->
+    <!-- Incremental Diff Foldout inside the same container -->
     <details class="trajectory-messages-foldout trajectory-incremental-diffs-foldout"
              data-player="{{ trajectory.player_id }}"
              data-round="{{ trajectory.round_num }}">
         <summary><i class="bi bi-arrow-repeat"></i> Incremental Diff</summary>
         <div class="trajectory-content">
-            <div class="incremental-diff-load-placeholder">
-                <button class="btn btn-primary load-diffs-btn"
-                        data-player="{{ trajectory.player_id }}"
-                        data-round="{{ trajectory.round_num }}">
-                    <i class="bi bi-download"></i> Load Diff Data
-                </button>
-            </div>
-            <div class="incremental-diff-content" style="display: none;">
-                <!-- Content will be loaded dynamically -->
-            </div>
+            {% if is_static and trajectory.incremental_diff_by_files %}
+                {# Static mode: render incremental diff directly #}
+                <div class="incremental-diff-content">
+                    {% if trajectory.incremental_diff_by_files %}
+                        {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
+                        <details class="file-diff-foldout" open>
+                            <summary class="file-diff-header">
+                                <i class="bi bi-file-text"></i> {{ file_path }}
+                            </summary>
+                            <div class="diff-content-wrapper">
+                                <pre><code class="diff">{{ file_diff }}</code></pre>
+                            </div>
+                        </details>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-diff-message">No incremental diff available</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                {# Dynamic mode: lazy load diffs #}
+                <div class="incremental-diff-load-placeholder">
+                    <button class="btn btn-primary load-diffs-btn"
+                            data-player="{{ trajectory.player_id }}"
+                            data-round="{{ trajectory.round_num }}">
+                        <i class="bi bi-download"></i> Load Diff Data
+                    </button>
+                </div>
+                <div class="incremental-diff-content" style="display: none;">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            {% endif %}
         </div>
     </details>
 
-    <!-- Modified Files Foldout inside the same container (lazy loaded) -->
+    <!-- Modified Files Foldout inside the same container -->
     <details class="trajectory-messages-foldout trajectory-modified-files-foldout"
              data-player="{{ trajectory.player_id }}"
              data-round="{{ trajectory.round_num }}">
         <summary><i class="bi bi-file-text"></i> Modified Files</summary>
         <div class="trajectory-content">
-            <div class="modified-files-load-placeholder">
-                <button class="btn btn-primary load-diffs-btn"
-                        data-player="{{ trajectory.player_id }}"
-                        data-round="{{ trajectory.round_num }}">
-                    <i class="bi bi-download"></i> Load Diff Data
-                </button>
-            </div>
-            <div class="modified-files-content" style="display: none;">
-                <!-- Content will be loaded dynamically -->
-            </div>
+            {% if is_static and trajectory.modified_files %}
+                {# Static mode: render modified files directly #}
+                <div class="modified-files-content">
+                    {% if trajectory.modified_files %}
+                        {% for file_path, file_content in trajectory.modified_files.items() %}
+                        <details class="file-content-foldout">
+                            <summary class="file-content-header">
+                                <i class="bi bi-file-code"></i> {{ file_path }}
+                            </summary>
+                            <div class="file-content-wrapper">
+                                <pre><code>{{ file_content }}</code></pre>
+                            </div>
+                        </details>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-files-message">No modified files available</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                {# Dynamic mode: lazy load modified files #}
+                <div class="modified-files-load-placeholder">
+                    <button class="btn btn-primary load-diffs-btn"
+                            data-player="{{ trajectory.player_id }}"
+                            data-round="{{ trajectory.round_num }}">
+                        <i class="bi bi-download"></i> Load Diff Data
+                    </button>
+                </div>
+                <div class="modified-files-content" style="display: none;">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            {% endif %}
         </div>
     </details>
 
@@ -130,34 +208,56 @@
 </div>
 
 
-<!-- Submission (lazy loaded) -->
+<!-- Submission -->
 <details class="foldout trajectory-submission-foldout"
          data-player="{{ trajectory.player_id }}"
          data-round="{{ trajectory.round_num }}">
     <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
     <div class="log-content">
-        <div class="submission-placeholder">
-            <!-- Will be populated when messages are loaded -->
-            <em>Load trajectory messages above to see submission</em>
-        </div>
-        <div class="submission-content" style="display: none;">
-            <pre><code></code></pre>
-        </div>
+        {% if is_static %}
+            {# Static mode: render submission directly #}
+            {% if trajectory.submission %}
+                <div class="submission-content">
+                    <pre><code>{{ trajectory.submission }}</code></pre>
+                </div>
+            {% else %}
+                <em>No submission data</em>
+            {% endif %}
+        {% else %}
+            {# Dynamic mode: lazy load submission #}
+            <div class="submission-placeholder">
+                <em>Load trajectory messages above to see submission</em>
+            </div>
+            <div class="submission-content" style="display: none;">
+                <pre><code></code></pre>
+            </div>
+        {% endif %}
     </div>
 </details>
 
-<!-- Memory (lazy loaded) -->
+<!-- Memory -->
 <details class="foldout trajectory-memory-foldout"
          data-player="{{ trajectory.player_id }}"
          data-round="{{ trajectory.round_num }}">
     <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
     <div class="log-content">
-        <div class="memory-placeholder">
-            <!-- Will be populated when messages are loaded -->
-            <em>Load trajectory messages above to see memory</em>
-        </div>
-        <div class="memory-content" style="display: none;">
-            <pre><code></code></pre>
-        </div>
+        {% if is_static %}
+            {# Static mode: render memory directly #}
+            {% if trajectory.memory %}
+                <div class="memory-content">
+                    <pre><code>{{ trajectory.memory }}</code></pre>
+                </div>
+            {% else %}
+                <em>No memory data</em>
+            {% endif %}
+        {% else %}
+            {# Dynamic mode: lazy load memory #}
+            <div class="memory-placeholder">
+                <em>Load trajectory messages above to see memory</em>
+            </div>
+            <div class="memory-content" style="display: none;">
+                <pre><code></code></pre>
+            </div>
+        {% endif %}
     </div>
 </details>

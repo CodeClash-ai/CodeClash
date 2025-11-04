@@ -1032,12 +1032,17 @@ def _render_game_viewer_impl(folder_path: Path, selected_folder: str) -> str:
     parser = LogParser(folder_path)
     metadata = parser.parse_game_metadata()
 
-    # Group trajectories by round (without loading diffs)
+    # Group trajectories by round
+    # In static mode, load all data (messages and diffs)
+    # In dynamic mode, don't load (will be lazy-loaded)
+    load_all_data = STATIC_MODE
     trajectories_by_round = {}
     for player_name, round_num in parser.get_available_trajectories():
         if round_num not in trajectories_by_round:
             trajectories_by_round[round_num] = []
-        trajectory = parser.parse_trajectory(player_name, round_num, load_diffs=False)
+        trajectory = parser.parse_trajectory(
+            player_name, round_num, load_diffs=load_all_data, load_messages=load_all_data
+        )
         if trajectory:
             trajectories_by_round[round_num].append(trajectory)
 
@@ -1135,6 +1140,10 @@ def game_picker():
 @app.route("/delete-experiment", methods=["POST"])
 def delete_experiment():
     """Delete an experiment folder"""
+    # Don't allow deletions in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     try:
         data = request.get_json()
         folder_path = data.get("folder_path")
@@ -1179,6 +1188,10 @@ def _analyze_line_counts_impl(folder_path: Path):
 @print_timing
 def analysis_line_counts():
     """Get line count analysis data for the current game"""
+    # Don't allow analysis in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     selected_folder = request.args.get("folder")
 
     if not selected_folder:
@@ -1204,6 +1217,10 @@ def analysis_line_counts():
 @app.route("/download-file")
 def download_file():
     """Download a file with proper security checks"""
+    # Don't allow file downloads in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     file_path = request.args.get("path")
 
     if not file_path:
@@ -1237,6 +1254,10 @@ def download_file():
 @app.route("/load-log")
 def load_log():
     """Load log file content on demand"""
+    # Don't allow log loading in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     file_path = request.args.get("path")
 
     if not file_path:
@@ -1272,6 +1293,10 @@ def load_log():
 @print_timing
 def load_trajectory_details():
     """Load trajectory details (messages, submission, memory) on demand"""
+    # Don't allow trajectory loading in static mode (already embedded) - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     selected_folder = request.args.get("folder")
     player_name = request.args.get("player")
     round_num = request.args.get("round")
@@ -1316,6 +1341,10 @@ def load_trajectory_details():
 @print_timing
 def load_trajectory_diffs():
     """Load trajectory diff data on demand"""
+    # Don't allow diff loading in static mode (already embedded) - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     selected_folder = request.args.get("folder")
     player_name = request.args.get("player")
     round_num = request.args.get("round")
@@ -1361,6 +1390,10 @@ def load_trajectory_diffs():
 @print_timing
 def batch_monitor():
     """AWS Batch job monitor page"""
+    # Don't show batch monitor in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     return render_template("batch.html")
 
 
@@ -1380,6 +1413,10 @@ def batch_api_jobs():
 
     Concurrent requests are coalesced to prevent multiple simultaneous AWS API calls.
     """
+    # Don't show batch API in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     try:
         hours_back = request.args.get("hours_back", default=24, type=int)
         force_refresh = request.args.get("force_refresh", default="false", type=str).lower() == "true"
@@ -1413,6 +1450,10 @@ def batch_api_jobs():
 @print_timing
 def guess_config_names():
     """Guess config file names based on metadata.json files"""
+    # Don't allow config guessing in static mode - skip freezing
+    if STATIC_MODE:
+        return redirect(url_for("index"))
+
     try:
         data = request.get_json()
         folder_paths = data.get("folder_paths", [])

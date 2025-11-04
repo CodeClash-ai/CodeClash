@@ -17,7 +17,9 @@
     {% include 'includes/header.html' %}
 
     <main class="container-fluid main-content">
+        {% if not is_static %}
         {% include 'includes/storage.html' %}
+        {% endif %}
         {% include 'includes/setup.html' %}
         {% include 'includes/overview.html' %}
         {% include 'includes/analysis.html' %}

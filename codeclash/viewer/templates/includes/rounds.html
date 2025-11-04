@@ -8,8 +8,8 @@
         <!-- Round Anchor for Navigation -->
         <div id="round-{{ round_num }}" class="round-anchor"></div>
 
-        <!-- Player Trajectories for this round -->
-        {% if round_num in trajectories_by_round %}
+        <!-- Player Trajectories for this round (skip round 0 - warmup only) -->
+        {% if round_num > 0 and round_num in trajectories_by_round %}
             {% for trajectory in trajectories_by_round[round_num] %}
                 {% include 'includes/trajectory.html' %}
             {% endfor %}
