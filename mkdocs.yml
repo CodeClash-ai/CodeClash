@@ -8,6 +8,7 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: docs/overrides
   logo: assets/clash.svg
   favicon: assets/clash.svg
   icon:
@@ -117,6 +118,7 @@ plugins:
 extra_css:
   - assets/custom.css
   - assets/navigation_cards.css
+  - assets/bubbles.css
   - https://fonts.googleapis.com/icon?family=Material+Icons
 
 extra:
