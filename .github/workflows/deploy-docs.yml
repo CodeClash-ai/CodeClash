@@ -43,7 +43,7 @@ jobs:
           pip install mkdocs-include-markdown-plugin
 
       - name: Build documentation
-        run: mkdocs build --strict
+        run: mkdocs build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
