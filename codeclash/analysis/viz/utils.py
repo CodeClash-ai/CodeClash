@@ -39,7 +39,7 @@ MODEL_TO_COLOR = {
     "o3": "#5E7CE2",
 }
 
-ASSETS_DIR = REPO_DIR / "assets"
+ASSETS_DIR = REPO_DIR / "docs" / "visualization"
 FONT_REG = fm.FontProperties(fname=ASSETS_DIR / "texgyrepagella-regular.otf")
 FONT_BOLD = fm.FontProperties(fname=ASSETS_DIR / "texgyrepagella-bold.otf")
 
