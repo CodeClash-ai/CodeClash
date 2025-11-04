@@ -30,6 +30,7 @@ theme:
         name: Switch to light mode
   features:
     - navigation.indexes
+    - navigation.tabs
     - navigation.top
     - content.action.edit
     - navigation.footer
@@ -56,31 +57,35 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-  - Getting Started:
-    - "Overview": index.md
-    - "Quick Start": quickstart.md
-  - API Reference:
-    - "reference/index.md"
-    - Arenas:
-      - "CodeGame (Abstract)": "reference/arenas/game.md"
-      - "BattleCode": "reference/arenas/battlecode.md"
-      - "BattleSnake": "reference/arenas/battlesnake.md"
-      - "CoreWar": "reference/arenas/corewar.md"
-      - "Halite": "reference/arenas/halite.md"
-      - "Halite II": "reference/arenas/halite2.md"
-      - "Halite III": "reference/arenas/halite3.md"
-      - "HuskyBench": "reference/arenas/huskybench.md"
-      - "RoboCode": "reference/arenas/robocode.md"
-      - "RobotRumble": "reference/arenas/robotrumble.md"
-      - "DummyGame": "reference/arenas/dummy.md"
-    - Player:
-      - "Player (Abstract)": "reference/player/player.md"
-      - "MiniSWEAgent": "reference/player/minisweagent.md"
-      - "DummyAgent": "reference/player/dummy.md"
-    - Tournament:
-      - "AbstractTournament": "reference/tournament/tournament.md"
-      - "PvP": "reference/tournament/pvp.md"
-      - "SinglePlayer": "reference/tournament/single_player.md"
+  - Leaderboard: https://codeclash.ai/
+  - Docs:
+    - Getting Started:
+      - "Overview": index.md
+      - "Quick Start": quickstart.md
+    - API Reference:
+      - "reference/index.md"
+      - Arenas:
+        - "CodeGame (Abstract)": "reference/arenas/game.md"
+        - "BattleCode": "reference/arenas/battlecode.md"
+        - "BattleSnake": "reference/arenas/battlesnake.md"
+        - "CoreWar": "reference/arenas/corewar.md"
+        - "Halite": "reference/arenas/halite.md"
+        - "Halite II": "reference/arenas/halite2.md"
+        - "Halite III": "reference/arenas/halite3.md"
+        - "HuskyBench": "reference/arenas/huskybench.md"
+        - "RoboCode": "reference/arenas/robocode.md"
+        - "RobotRumble": "reference/arenas/robotrumble.md"
+        - "DummyGame": "reference/arenas/dummy.md"
+      - Player:
+        - "Player (Abstract)": "reference/player/player.md"
+        - "MiniSWEAgent": "reference/player/minisweagent.md"
+        - "DummyAgent": "reference/player/dummy.md"
+      - Tournament:
+        - "AbstractTournament": "reference/tournament/tournament.md"
+        - "PvP": "reference/tournament/pvp.md"
+        - "SinglePlayer": "reference/tournament/single_player.md"
+  - Insights: https://codeclash.ai/insights/
+  - Team: https://codeclash.ai/team/
 
 plugins:
   - search
