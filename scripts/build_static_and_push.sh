@@ -6,7 +6,7 @@ set -euo pipefail
 # START AT MAIN REPO ROOT
 rm -rf build
 echo "Building static site..."
-python freeze_viewer.py
+python scripts/freeze_viewer.py
 echo "Copying README..."
 cp codeclash/viewer/_STATIC_README.md build/README.md
 echo "Size of build directory:"

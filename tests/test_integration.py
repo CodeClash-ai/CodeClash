@@ -16,7 +16,7 @@ def test_pvp_battlesnake():
 
 
 def test_single_player_battlesnake():
-    from main_single_player import main_cli
+    from scripts.main_single_player import main_cli
 
     config_path = CONFIG_DIR / "test" / "battlesnake_single_player_test.yaml"
     main_cli(["-c", str(config_path)])
