@@ -1717,7 +1717,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metadata file already exists: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metadata file already exists: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">cleanup_on_end</span> <span class="o">=</span> <span class="n">cleanup</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="p">:</span> <span class="n">CodeGame</span> <span class="o">=</span> <span class="n">get_game</span><span class="p">(</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="p">:</span> <span class="n">CodeArena</span> <span class="o">=</span> <span class="n">get_game</span><span class="p">(</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
         <span class="n">tournament_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tournament_id</span><span class="p">,</span>
         <span class="n">local_output_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_output_dir</span><span class="p">,</span>
@@ -1774,7 +1774,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">game</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.games.game.CodeGame" href="../../arenas/game/#codeclash.games.game.CodeGame">CodeGame</a></span> <span class="o">=</span> <span class="n"><span title="codeclash.games.get_game">get_game</span></span><span class="p">(</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).config">config</span></span><span class="p">,</span> <span class="n"><span title="codeclash.games.get_game(tournament_id)">tournament_id</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).tournament_id">tournament_id</span></span><span class="p">,</span> <span class="n"><span title="codeclash.games.get_game(local_output_dir)">local_output_dir</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).local_output_dir">local_output_dir</span></span><span class="p">,</span> <span class="n"><span title="codeclash.games.get_game(keep_containers)">keep_containers</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(keep_containers)">keep_containers</span></span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">game</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.arenas.arena.CodeArena" href="../../arenas/game/#codeclash.arenas.arena.CodeArena">CodeArena</a></span> <span class="o">=</span> <span class="n"><span title="codeclash.arenas.get_game">get_game</span></span><span class="p">(</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).config">config</span></span><span class="p">,</span> <span class="n"><span title="codeclash.arenas.get_game(tournament_id)">tournament_id</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).tournament_id">tournament_id</span></span><span class="p">,</span> <span class="n"><span title="codeclash.arenas.get_game(local_output_dir)">local_output_dir</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(self).local_output_dir">local_output_dir</span></span><span class="p">,</span> <span class="n"><span title="codeclash.arenas.get_game(keep_containers)">keep_containers</span></span><span class="o">=</span><span class="n"><span title="codeclash.tournaments.pvp.PvpTournament(keep_containers)">keep_containers</span></span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2293,7 +2293,7 @@
     <img src="../../../assets/sbcli_logo.svg" alt="sb-cli">
     <span class="bubble-tooltip">sb-cli</span>
   </a>
-  <a href="https://join.slack.com/t/codeclash-workspace/shared_invite/your-invite-link" class="bubble bubble-divider" title="Join our Slack">
+  <a href="https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ" class="bubble bubble-divider" title="Join our Slack">
     <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack">
     <span class="bubble-tooltip">Join our Slack</span>
   </a>
