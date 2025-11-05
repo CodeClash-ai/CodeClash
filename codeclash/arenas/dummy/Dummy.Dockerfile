@@ -12,10 +12,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Inject GitHub token for private repo access
-ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/DummyGame.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/DummyArena.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/DummyGame.git \
-    && unset GITHUB_TOKEN
+    && git remote set-url origin https://github.com/CodeClash-ai/DummyArena.git
 
 WORKDIR /workspace

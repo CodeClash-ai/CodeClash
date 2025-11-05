@@ -144,7 +144,7 @@ class CodeArena(ABC):
         result = subprocess.run(
             (
                 "export $(cat .env | xargs);"
-                f"docker build --no-cache --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f {folder_path}/{self.name}.Dockerfile ."
+                f"docker build --no-cache -t {self.image_name} -f {folder_path}/{self.name}.Dockerfile ."
             ),
             shell=True,
             capture_output=True,
@@ -205,21 +205,6 @@ class CodeArena(ABC):
         )
 
         branch_name = self.game_id if branch_name is None else branch_name
-
-        # Manually set URL with github token and git fetch/pull everything
-        # We won't raise an error if the token is not set or the URL doesn't have the right format.
-        if github_token := os.getenv("GITHUB_TOKEN"):
-            result = assert_zero_exit_code(environment.execute("git remote get-url origin"))
-            current_url = result["output"].strip()
-            if current_url.startswith("https://") and "@" not in current_url:
-                new_url = current_url.replace("https://", f"https://{github_token}@")
-                assert_zero_exit_code(
-                    environment.execute(f"git remote set-url origin {new_url} && git fetch --all && git pull")
-                )
-            else:
-                self.logger.warning("Remote origin URL is not https://, won't be able to set token and pull.")
-        else:
-            self.logger.warning("GITHUB_TOKEN environment variable is not set, won't be able to pull.")
 
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")

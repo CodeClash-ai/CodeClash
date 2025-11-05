@@ -17,10 +17,8 @@ RUN apt update && apt install -y \
  && ln -sf /usr/bin/pip3 /usr/bin/pip \
  && rm -rf /var/lib/apt/lists/*
 
-ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/RoboCode.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/RoboCode.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/RoboCode.git \
-    && unset GITHUB_TOKEN
+    && git remote set-url origin https://github.com/CodeClash-ai/RoboCode.git
 
 WORKDIR /workspace

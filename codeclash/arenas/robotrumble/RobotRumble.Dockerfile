@@ -9,10 +9,8 @@ RUN apt-get update \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
  && rm -rf /var/lib/apt/lists/*
 
-ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/RobotRumble.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/RobotRumble.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/RobotRumble.git \
-    && unset GITHUB_TOKEN
+    && git remote set-url origin https://github.com/CodeClash-ai/RobotRumble.git
 
 WORKDIR /workspace

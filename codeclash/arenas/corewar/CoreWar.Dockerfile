@@ -5,12 +5,9 @@ RUN apt-get update \
        curl ca-certificates wget git build-essential jq curl locales \
     && rm -rf /var/lib/apt/lists/*
 
-ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/CoreWar.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/CoreWar.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/CoreWar.git \
-    && unset GITHUB_TOKEN
-
+    && git remote set-url origin https://github.com/CodeClash-ai/CoreWar.git
 WORKDIR /workspace
 
 RUN cd src/ && make CFLAGS="-O -DEXT94 -DPERMUTATE -DRWLIMIT" LIB=""

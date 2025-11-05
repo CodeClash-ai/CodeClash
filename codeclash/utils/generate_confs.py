@@ -22,7 +22,6 @@ import yaml
 from codeclash.arenas import (
     ARENAS,
     CodeArena,
-    DummyGame,
     RoboCodeArena,
 )
 
@@ -124,8 +123,6 @@ def main(models, arenas, rounds: int, simulations: int, record_ratio: float, out
 
     tracking_dict = {}
     arenas_list = ARENAS if arenas == "all" else [a for a in ARENAS if a.name in arenas.split(",")]
-    if DummyGame in arenas_list:
-        arenas_list.remove(DummyGame)  # Skip DummyGame for config generation
     if not arenas_list:
         print(f"No valid arenas found from {arenas}. Choose from {[a.name for a in ARENAS]}.")
         return  # Stop execution if no valid arenas are found

@@ -19,12 +19,9 @@ RUN ARCH=$(dpkg --print-architecture) && \
     rm /tmp/go.tar.gz
 
 # Inject GitHub token for private repo access
-ARG GITHUB_TOKEN
-RUN git clone https://${GITHUB_TOKEN}@github.com/CodeClash-ai/BattleSnake.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/BattleSnake.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/BattleSnake.git \
-    && unset GITHUB_TOKEN
-
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleSnake.git
 WORKDIR /workspace
 
 RUN cd game && go build -o battlesnake ./cli/battlesnake/main.go
