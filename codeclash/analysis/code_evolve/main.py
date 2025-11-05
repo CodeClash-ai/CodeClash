@@ -15,8 +15,8 @@ from tqdm.auto import tqdm
 from unidiff import PatchSet
 
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MARKERS, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.arenas import ARENAS
 from codeclash.constants import LOCAL_LOG_DIR
-from codeclash.games import ARENAS
 
 MODELS_PATH = Path("configs/models.yaml")
 TARGET_ROUNDS = [1, 15, 5, 10]

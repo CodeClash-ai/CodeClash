@@ -1,7 +1,7 @@
-from codeclash.games.halite.halite import HaliteGame
+from codeclash.arenas.halite.halite import HaliteArena
 
 
-class Halite2Game(HaliteGame):
+class Halite2Arena(HaliteArena):
     name: str = "Halite-II"
     description: str = ""
     default_args: dict = {}

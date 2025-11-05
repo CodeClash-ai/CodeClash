@@ -8,11 +8,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
-from codeclash.games.game import CodeGame, RoundStats
 
 
-class BattleSnakeGame(CodeGame):
+class BattleSnakeArena(CodeArena):
     name: str = "BattleSnake"
     submission: str = "main.py"
     description: str = """Your bot (`main.py`) controls a snake on a grid-based board.

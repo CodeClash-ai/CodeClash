@@ -13,13 +13,12 @@ from scipy.optimize import minimize
 from scipy.stats import kendalltau, spearmanr
 from tqdm import tqdm
 
-from codeclash.analysis.metrics.elo_broken import get_scores
 from codeclash.analysis.significance import calculate_p_value
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import add_file_handler, get_logger
 
-logger = get_logger("elo2")
+logger = get_logger("elo")
 
 # Bradley-Terry to Elo conversion constants
 ELO_SLOPE = 400
@@ -215,7 +214,7 @@ class ScoreMatrixBuilder:
     def build(self, log_dir: Path) -> None:
         for metadata_path in tqdm(list(log_dir.rglob("metadata.json"))):
             try:
-                if ".human." in str(metadata_path):
+                if any([f".{x}." in str(metadata_path) for x in ["human", "seven-of-nine"]]):
                     continue
                 self._process_tournament(metadata_path)
             except Exception as e:
@@ -1234,6 +1233,36 @@ class EloOnlyAtRound:
             plt.close()
 
 
+def get_scores(stats: dict) -> dict[str, float]:
+    valid_submits = sum(
+        [x["valid_submit"] for x in stats["player_stats"].values() if x.get("valid_submit") is not None]
+    )
+
+    ties = stats["scores"].get(RESULT_TIE, 0)
+    sims = sum(stats["scores"].values())
+    assert sims >= ties
+
+    player2score = {}
+    for k, v in stats["player_stats"].items():
+        if k != RESULT_TIE:
+            if v["score"] is None:
+                # Not sure why this happens, but just skip it
+                # Kilian: This is probably when we skip a round (might have fixed this, but probably in old logs)
+                continue
+            if valid_submits == 1:
+                # FOR BACKWARDS COMPATIBILITY: If only one player submitted, give them full point
+                if v["valid_submit"]:
+                    _score = 1.0
+                else:
+                    _score = 0.0
+            elif sims > 0:
+                _score = (v["score"] + 0.5 * ties) * 1.0 / sims
+            else:
+                continue
+            player2score[k] = _score
+    return player2score
+
+
 def print_results(results: dict[str, dict]) -> None:
     """Print fitted strengths and Elo ratings for all games.
 
@@ -1543,8 +1572,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=ASSETS_DIR / "elo2_plots",
-        help="Directory to save plots (default: assets/elo2_plots)",
+        default=ASSETS_DIR / "elo_plots",
+        help="Directory to save plots (default: assets/elo_plots)",
     )
     args = parser.parse_args()
 

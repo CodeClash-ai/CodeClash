@@ -5,8 +5,8 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from codeclash.agents.player import Player
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
-from codeclash.games.game import CodeGame, RoundStats
 
 MAP_EXT_TO_HEADER = {
     "js": "function robot(state, unit) {",
@@ -15,7 +15,7 @@ MAP_EXT_TO_HEADER = {
 ROBOTRUMBLE_HIDDEN_EXEC = ".codeclash_exec"
 
 
-class RobotRumbleGame(CodeGame):
+class RobotRumbleArena(CodeArena):
     name: str = "RobotRumble"
     description: str = """RobotRumble is a turn-based coding battle where you program a team of robots in Python or JavaScript to move, attack, and outmaneuver your opponent on a grid.
 Every decision is driven by your code, and victory comes from crafting logic that positions robots smartly, times attacks well, and adapts over the 100-turn match.

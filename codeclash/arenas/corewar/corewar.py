@@ -2,12 +2,12 @@ import re
 import shlex
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundStats
+from codeclash.arenas.arena import CodeArena, RoundStats
 
 COREWAR_LOG = "sim.log"
 
 
-class CoreWarGame(CodeGame):
+class CoreWarArena(CodeArena):
     name: str = "CoreWar"
     description: str = """CoreWar is a programming battle where you write "warriors" in an assembly-like language called Redcode to compete within a virtual machine (MARS), aiming to eliminate your rivals by making their code self-terminate.
 Victory comes from crafting clever tactics—replicators, scanners, bombers—that exploit memory layout and instruction timing to control the core."""

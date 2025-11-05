@@ -8,8 +8,8 @@ from threading import Lock, Thread
 
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.utils import GameContext
+from codeclash.arenas import get_game
 from codeclash.constants import DIR_WORK
-from codeclash.games import get_game
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.atomic_write import atomic_write
 from codeclash.utils.log import add_root_file_handler, get_logger

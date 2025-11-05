@@ -9,8 +9,8 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
+from codeclash.arenas import BattleCodeArena, DummyGame
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
-from codeclash.games import BattleCodeGame, DummyGame
 from codeclash.utils.log import get_logger
 
 logger = get_logger("win_rate_distribution")
@@ -33,7 +33,7 @@ def get_player_win_counts(metadata_path: Path) -> tuple[str | None, dict[str, li
     if len(players) != 2:
         return None, {}, {}
 
-    if game_name in {DummyGame.name, BattleCodeGame.name}:
+    if game_name in {DummyGame.name, BattleCodeArena.name}:
         return None, {}, {}
 
     # Map player names to models
@@ -176,7 +176,7 @@ def get_tournament_wins_by_model(metadata_path: Path) -> dict[str, tuple[bool, i
     if len(players) != 2:
         return {}
 
-    if game_name in {DummyGame.name, BattleCodeGame.name}:
+    if game_name in {DummyGame.name, BattleCodeArena.name}:
         return {}
 
     # Map player names to models

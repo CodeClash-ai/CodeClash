@@ -1,14 +1,14 @@
 import re
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundStats
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.utils.environment import assert_zero_exit_code
 
 DUMMY_LOG = "result.log"
 
 
-class DummyGame(CodeGame):
-    name: str = "DummyGame"
+class DummyArena(CodeArena):
+    name: str = "Dummy"
     description: str = """WARNING: This is a dummy game meant for testing the CodeClash infrastructure. It does not represent a real game."""
     submission: str = "main.py"
 

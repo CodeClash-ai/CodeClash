@@ -3,11 +3,8 @@ from pathlib import Path
 
 import yaml
 
+from codeclash.arenas import ARENAS, DummyGame
 from codeclash.constants import DIR_WORK, OPPONENT_CODEBASES_DIR_NAME
-from codeclash.games import (
-    ARENAS,
-    DummyGame,
-)
 from codeclash.utils.generate_confs import clean_config, get_config, get_name
 
 

@@ -1,3 +1,4 @@
+import inspect
 import os
 import random
 import subprocess
@@ -63,14 +64,14 @@ class RoundStats:
         }
 
 
-class CodeGame(ABC):
+class CodeArena(ABC):
     name: str
     description: str
     default_args: dict = {}
     submission: str
 
     def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path, keep_containers: bool = False):
-        """The CodeGame class is responsible for running games, i.e., taking a list of code
+        """The CodeArena class is responsible for running games, i.e., taking a list of code
         from different agents/players and running them against each other.
         It also provides the environments for the game and agents to run in.
 
@@ -136,10 +137,14 @@ class CodeGame(ABC):
         self.logger.info(
             f"Building Docker image {self.image_name}. This may take 1-5 minutes and only work on Linux for some games."
         )
+
+        # NOTE: Assuming Dockerfile is declared in same directory as the arena.
+        arena_file = Path(inspect.getfile(self.__class__))
+        folder_path = arena_file.parent
         result = subprocess.run(
             (
                 "export $(cat .env | xargs);"
-                f"docker build --no-cache --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f docker/{self.name}.Dockerfile ."
+                f"docker build --no-cache --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {self.image_name} -f {folder_path}/{self.name}.Dockerfile ."
             ),
             shell=True,
             capture_output=True,

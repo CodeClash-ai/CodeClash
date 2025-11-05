@@ -19,11 +19,11 @@ from pathlib import Path
 
 import yaml
 
-from codeclash.games import (
+from codeclash.arenas import (
     ARENAS,
-    CodeGame,
+    CodeArena,
     DummyGame,
-    RoboCodeGame,
+    RoboCodeArena,
 )
 
 
@@ -68,7 +68,7 @@ All of your commands will be executed in the {{{{working_dir}}}} directory (see 
     return LiteralString(content)
 
 
-def get_config(rounds: int, simulations: int, arena: CodeGame, players: list[dict], prompt_func=prompt_game_desc):
+def get_config(rounds: int, simulations: int, arena: CodeArena, players: list[dict], prompt_func=prompt_game_desc):
     return {
         "tournament": {
             "rounds": rounds,
@@ -135,7 +135,7 @@ def main(models, arenas, rounds: int, simulations: int, record_ratio: float, out
         for pair in pairs:
             config = get_config(rounds, simulations, arena, pair)
 
-            if arena == RoboCodeGame:
+            if arena == RoboCodeArena:
                 robocode_adjustments(config, record_ratio)
 
             pair_names = "__".join(sorted([get_name(pair[0]), get_name(pair[1])]))

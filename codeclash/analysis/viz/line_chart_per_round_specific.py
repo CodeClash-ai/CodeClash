@@ -27,8 +27,8 @@ from tqdm.auto import tqdm
 from unidiff import PatchSet
 
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_COLOR, MODEL_TO_DISPLAY_NAME
+from codeclash.arenas import ARENAS
 from codeclash.constants import LOCAL_LOG_DIR
-from codeclash.games import ARENAS
 
 ROUNDS = 15
 DATA_CACHE = ASSETS_DIR / "line_chart_per_round_specific.json"

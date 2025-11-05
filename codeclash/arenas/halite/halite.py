@@ -8,8 +8,8 @@ from pathlib import Path
 from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
-from codeclash.games.game import CodeGame, RoundStats
 
 HALITE_LOG = "sim_{idx}.log"
 HALITE_HIDDEN_EXEC = ".codeclash_exec"
@@ -33,7 +33,7 @@ MAP_FILE_TYPE_TO_RUN = {
 }
 
 
-class HaliteGame(CodeGame):
+class HaliteArena(CodeArena):
     name: str = "Halite"
     description: str = """Halite is a multi-player turn-based strategy game where bots compete on a rectangular grid to capture territory and accumulate strength.
 Players control pieces that can move across the map to conquer neutral and enemy territory, with each cell providing production that increases the strength of pieces occupying it.

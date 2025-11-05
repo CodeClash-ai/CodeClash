@@ -9,14 +9,14 @@ from pathlib import Path
 from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
-from codeclash.games.game import CodeGame, RoundStats
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.utils.environment import create_file_in_container
 
 RC_FILE = Path("MyTank.java")
 SIMS_PER_RUN = 10
 
 
-class RoboCodeGame(CodeGame):
+class RoboCodeArena(CodeArena):
     name: str = "RoboCode"
     description: str = f"""Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
 Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots.

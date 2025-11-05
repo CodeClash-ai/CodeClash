@@ -10,9 +10,9 @@ from codeclash.agents import get_agent
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
+from codeclash.arenas import get_game
+from codeclash.arenas.arena import CodeArena
 from codeclash.constants import DIR_WORK, FILE_RESULTS
-from codeclash.games import get_game
-from codeclash.games.game import CodeGame
 from codeclash.tournaments.tournament import AbstractTournament
 from codeclash.tournaments.utils.git_utils import filter_git_diff
 from codeclash.utils.atomic_write import atomic_write
@@ -24,7 +24,7 @@ class SinglePlayerTraining(AbstractTournament):
     def __init__(self, config: dict, *, output_dir: Path, cleanup: bool = False, keep_containers: bool = False):
         super().__init__(config, name="SinglePlayerTraining", output_dir=output_dir)
         self.cleanup_on_end = cleanup
-        self.game: CodeGame = get_game(
+        self.game: CodeArena = get_game(
             self.config,
             tournament_id=self.tournament_id,
             local_output_dir=self.local_output_dir,

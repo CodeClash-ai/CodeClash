@@ -6,15 +6,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import DIR_WORK, RESULT_TIE
-from codeclash.games.game import CodeGame, RoundStats
 
 BC_LOG = "sim_{idx}.log"
 BC_FOLDER = "mysubmission"
 BC_TIE = "Reason: The winning team won arbitrarily (coin flip)."
 
 
-class BattleCodeGame(CodeGame):
+class BattleCodeArena(CodeArena):
     name: str = "BattleCode"
     description: str = """Battlecode 25 throws you into a real-time strategy showdown where your Python bot pilots a team of specialized robots—Soldiers, Moppers, Splashers—alongside towers that spawn units or generate resources.
 Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating cleanups, area cover, and tower-building through tight bytecode budgets and clever unit synergy."""

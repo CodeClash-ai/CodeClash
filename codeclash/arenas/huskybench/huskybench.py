@@ -2,8 +2,8 @@ import re
 import subprocess
 
 from codeclash.agents.player import Player
+from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import DIR_WORK
-from codeclash.games.game import CodeGame, RoundStats
 from codeclash.utils.environment import create_file_in_container
 
 HB_LOG_ENGINE = "engine.log"
@@ -13,7 +13,7 @@ HB_SCRIPT = "run_game.sh"
 HB_BOT_TIMEOUT = 10  # Max time (seconds) for a bot to run a single round
 
 
-class HuskyBenchGame(CodeGame):
+class HuskyBenchArena(CodeArena):
     name: str = "HuskyBench"
     description: str = f"""In this game, you will write code to control a poker-playing bot, aiming to outsmart your opponents and win chips.
 Victory comes from crafting clever strategies—bluffing, reading opponents, and managing your chip stack effectively.

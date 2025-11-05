@@ -3,10 +3,7 @@ from pathlib import Path
 
 import yaml
 
-from codeclash.games import (
-    ARENAS,
-    DummyGame,
-)
+from codeclash.arenas import ARENAS
 from codeclash.utils.generate_confs import clean_config, get_config
 
 
@@ -17,8 +14,6 @@ def main(models: str, arenas: str, rounds: int, simulations: int, record_ratio: 
 
     # Get arenas
     arenas_list = ARENAS if arenas == "all" else [a for a in ARENAS if a.name in arenas.split(",")]
-    if DummyGame in arenas_list:
-        arenas_list.remove(DummyGame)  # Skip DummyGame for config generation
     if not arenas_list:
         print(f"No valid arenas found from {arenas}. Choose from {[a.name for a in ARENAS]}.")
         return  # Stop execution if no valid arenas are found

@@ -230,4 +230,4 @@ docs/visualization/*.json
 docs/visualization/*.jsonl
 docs/visualization/*.png
 docs/visualization/code_org
-docs/visualization/elo2_plots
+docs/visualization/elo_plots
