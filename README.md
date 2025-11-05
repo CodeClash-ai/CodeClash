@@ -20,20 +20,26 @@
 
 ## 👋 Overview
 
-CodeClash is a benchmark for evaluating AI systems on goal-oriented software engineering.
+CodeClash is a benchmark for evaluating AI systems on **goal-oriented software engineering**.
 
-Today's AI coding evaluations are largely *task*-oriented (e.g., HumanEval, SWE-bench).
-Models are given explicit instructions and evaluated on their ability to write correct implementations.
+Today's AI coding evals are *task*-oriented (e.g., HumanEval, SWE-bench).
+Models are given explicit instructions.
+We then verify implementations with unit tests.
 
-But software is fundamentally driven by goals ("improve user retention", "reduce costs", "increase revenue").
-To enable *goal*-oriented SWE evaluation of Language Models (LMs) as SWE-agents, we introduce CodeClash!
+But building software is fundamentally driven by goals ("improve user retention", "reduce costs", "increase revenue").
+Reaching our goals is a self-directed, iterative, and often competitive process.
+To capture this dynamism of real software development, we introduce CodeClash!
+
+Check out our [arXiv paper](https://arxiv.org/abs/2511.00839) and [website](https://codeclash.ai/) for the full details!
+
+## ⚔️ How It Works
 
 <p align="center">
   <img src="docs/assets/flowchart.jpg" style="width: 70%" />
 </p>
 
-In CodeClash, 2+ LM agents compete in a code arena.
-Across a multi-round tournament, agents iteratively improve a codebase to win a high level objective (e.g., accumulate resources, survive the longest, etc).
+In CodeClash, 2+ LM agents compete in a **code arena** over the course of a multi-round tournament.
+For the duration of the tournament, each agent is iteratively improving their own codebase to win a high-level, competitive objective (e.g., accumulate resources, survive the longest, etc).
 Each round consists of two phases:
 
 * Edit phase: LM agents make whatever changes they want to their codebase.
@@ -54,10 +60,17 @@ $ python main.py configs/test/battlesnake.yaml
 ```
 
 Once this works, you should be set up to run a real tournament!
-To pit Claude Sonnet 4.5 against o3 in the BattleSnake arena, run:
+To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 rounds* and *1000 competition simulations* per round, run:
 ```bash
-$ python main.py configs/examples/
+$ python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 ```
+
+And that's it, you're good to go!
+
+Where to next?
+- Check out our [docs](https://codeclash.ai/docs/) for more details on running different arenas, configuring tournaments, etc.
+- Explore our [contribution guide](CONTRIBUTING.md) to see what we're excited about!
+- Have a big idea? Let's hear it! Open an issue, and let's turn it into an [insight](https://codeclash.ai/insights/)!
 
 ## 💫 Contributions
 We're actively working on several follow ups!
