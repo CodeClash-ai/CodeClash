@@ -159,15 +159,26 @@ def main():
         folder_path = game_folder["name"]
         print(f"  [{i}/{len(game_folders)}] Generating page for: {folder_path}")
 
-        # Create the output directory structure
-        game_output_dir = output_dir / "game" / folder_path
-        game_output_dir.mkdir(parents=True, exist_ok=True)
+        # Create the output directory structure if needed (for nested paths)
+        game_dir = output_dir / "game"
+        game_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate the HTML for this game
+        # If folder_path contains subdirectories, create them
+        if "/" in folder_path or "\\" in folder_path:
+            folder_path_normalized = folder_path.replace("\\", "/")
+            parts = folder_path_normalized.rsplit("/", 1)
+            if len(parts) > 1:
+                parent_dir = game_dir / parts[0]
+                parent_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate the HTML for this game as a direct .html file
         with app.test_request_context(f"/game/{folder_path}"):
             try:
                 html = game_view(folder_path)
-                output_file = game_output_dir / "index.html"
+                # Replace directory separators with safe characters for filenames
+                safe_folder_path = folder_path.replace("\\", "/")
+                output_file = game_dir / f"{safe_folder_path}.html"
+                output_file.parent.mkdir(parents=True, exist_ok=True)
                 output_file.write_text(html)
                 print(f"    ✓ Generated: {output_file.relative_to(output_dir)}")
             except Exception as e:

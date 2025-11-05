@@ -230,24 +230,3 @@
     {% endif %}
 
 </div>
-
-
-<!-- Submission -->
-{% if trajectory.submission %}
-<details class="foldout">
-    <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
-    <div class="log-content">
-        <pre><code>{{ trajectory.submission }}</code></pre>
-    </div>
-</details>
-{% endif %}
-
-<!-- Memory -->
-{% if trajectory.memory %}
-<details class="foldout">
-    <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
-    <div class="log-content">
-        <pre><code>{{ trajectory.memory }}</code></pre>
-    </div>
-</details>
-{% endif %}
