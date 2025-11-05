@@ -12,7 +12,7 @@ Halite III returns to the resource collection mechanics with new twists.
 
 ## Implementation
 
-::: codeclash.games.halite3.halite3.Halite3Game
+::: codeclash.arenas.halite3.halite3.Halite3Arena
     options:
       show_root_heading: true
       heading_level: 2

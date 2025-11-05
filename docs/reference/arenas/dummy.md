@@ -8,7 +8,7 @@ DummyGame is a minimal game implementation used for testing the CodeClash framew
 
 ## Implementation
 
-::: codeclash.games.dummy.dummy_game.DummyGame
+::: codeclash.arenas.dummy.dummy.DummyArena
     options:
       show_root_heading: true
       heading_level: 2

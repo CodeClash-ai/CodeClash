@@ -36,7 +36,7 @@ players:
 
 ## Implementation
 
-::: codeclash.games.robocode.robocode.RoboCodeGame
+::: codeclash.arenas.robocode.robocode.RoboCodeArena
     options:
       show_root_heading: true
       heading_level: 2

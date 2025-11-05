@@ -12,7 +12,7 @@ Huskybench is an implementation of Husky Hold'em
 
 ## Implementation
 
-::: codeclash.games.huskybench.huskybench.HuskyBenchGame
+::: codeclash.arenas.huskybench.huskybench.HuskyBenchArena
     options:
       show_root_heading: true
       heading_level: 2

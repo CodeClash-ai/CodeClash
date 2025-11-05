@@ -35,7 +35,7 @@ players:
 
 ## Implementation
 
-::: codeclash.games.corewar.corewar.CoreWarGame
+::: codeclash.arenas.corewar.corewar.CoreWarArena
     options:
       show_root_heading: true
       heading_level: 2

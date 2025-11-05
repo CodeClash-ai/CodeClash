@@ -45,7 +45,7 @@ players:
 
 ## Implementation
 
-::: codeclash.games.battlesnake.battlesnake.BattleSnakeGame
+::: codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena
     options:
       show_root_heading: true
       heading_level: 2

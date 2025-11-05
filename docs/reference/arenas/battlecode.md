@@ -12,7 +12,7 @@ BattleCode is a programming competition where players write Java code to control
 
 ## Implementation
 
-::: codeclash.games.battlecode.battlecode.BattleCodeGame
+::: codeclash.arenas.battlecode.battlecode.BattleCodeArena
     options:
       show_root_heading: true
       heading_level: 2

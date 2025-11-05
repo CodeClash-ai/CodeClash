@@ -32,7 +32,7 @@ players:
 
 ## Implementation
 
-::: codeclash.games.robotrumble.robotrumble.RobotRumbleGame
+::: codeclash.arenas.robotrumble.robotrumble.RobotRumbleArena
     options:
       show_root_heading: true
       heading_level: 2

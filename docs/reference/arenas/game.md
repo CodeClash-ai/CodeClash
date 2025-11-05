@@ -1,10 +1,10 @@
-# CodeGame (Abstract Base)
+# CodeArena (Abstract Base)
 
-The `CodeGame` class is the abstract base class for all game arenas in CodeClash.
+The `CodeArena` class is the abstract base class for all game arenas in CodeClash.
 
 ## Overview
 
-Every game in CodeClash extends `CodeGame` and implements three key methods:
+Every game in CodeClash extends `CodeArena` and implements three key methods:
 
 1. `validate_code()`: Verify that player submissions are valid
 2. `execute_round()`: Run the actual game
@@ -33,7 +33,7 @@ Each game runs in its own Docker container with:
 
 ## Class Reference
 
-::: codeclash.games.game.CodeGame
+::: codeclash.arenas.arena.CodeArena
     options:
       show_root_heading: true
       heading_level: 2
@@ -42,14 +42,14 @@ Each game runs in its own Docker container with:
 
 ### PlayerStats
 
-::: codeclash.games.game.PlayerStats
+::: codeclash.arenas.arena.PlayerStats
     options:
       show_root_heading: true
       heading_level: 3
 
 ### RoundStats
 
-::: codeclash.games.game.RoundStats
+::: codeclash.arenas.arena.RoundStats
     options:
       show_root_heading: true
       heading_level: 3

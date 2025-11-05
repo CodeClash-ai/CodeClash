@@ -12,7 +12,7 @@ Halite II introduces planetary docking, combat, and more complex strategies.
 
 ## Implementation
 
-::: codeclash.games.halite2.halite2.Halite2Game
+::: codeclash.arenas.halite2.halite2.Halite2Arena
     options:
       show_root_heading: true
       heading_level: 2

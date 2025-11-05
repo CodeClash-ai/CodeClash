@@ -36,7 +36,7 @@ players:
 
 ## Implementation
 
-::: codeclash.games.halite.halite.HaliteGame
+::: codeclash.arenas.halite.halite.HaliteArena
     options:
       show_root_heading: true
       heading_level: 2
