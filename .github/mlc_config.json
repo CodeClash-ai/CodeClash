@@ -13,6 +13,12 @@
       "pattern": ".*localhost.*"
     },
     {
+      "pattern": "http://127\\.0\\.0\\.1:8000"
+    },
+    {
+      "pattern": "https://docs\\.codeclash\\.io"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {
