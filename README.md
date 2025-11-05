@@ -1,80 +1,59 @@
-# CodeClash: Evaluating LMs as Adaptive Coding Agents
-John Yang, Kilian Lieret
+<p align="center">
+  <a href="https://codeclash.ai/">
+    <img src="docs/assets/banner.png" style="height: 10em" />
+  </a>
+</p>
 
-## Setup
+<br>
 
-To install the codebase, run the following:
-```bash
-conda create -n codeclash python=3.10 -y
-conda activate codeclash
-pip install -e '.[dev]'
-pre-commit install
+<div align="center">
+<a href="https://www.python.org/">
+  <img alt="Build" src="https://img.shields.io/badge/Python-3.10+-1f425f.svg?color=purple">
+</a>
+<a href="https://copyright.princeton.edu/policy">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-blue">
+</a>
+<a href="https://arxiv.org/abs/2511.00839">
+  <img src="https://img.shields.io/badge/arXiv-2511.00839-b31b1b.svg">
+</a>
+</div>
+
+<hr />
+
+
+## 💫 Contributions
+We're actively working on several follow ups!
+Check out the [Contributing Guide](CONTRIBUTING.md) for more.
+
+Contact Person: [John Yang](https://john-b-yang.github.io/), [Kilian Lieret](https://lieret.net)
+(Email: [johnby@stanford.edu](mailto:johnby@stanford.edu), [kl5675@princeton.edu](mailto:kl5675@princeton.edu))
+
+## 🪪 License
+MIT. Check `LICENSE` for more information.
+
+## ✍️ Citation
+
+```bibtex
+@misc{yang2025codeclashbenchmarkinggoalorientedsoftware,
+    title={CodeClash: Benchmarking Goal-Oriented Software Engineering},
+    author={John Yang and Kilian Lieret and Joyce Yang and Carlos E. Jimenez and Ofir Press and Ludwig Schmidt and Diyi Yang},
+    year={2025},
+    eprint={2511.00839},
+    archivePrefix={arXiv},
+    primaryClass={cs.SE},
+    url={https://arxiv.org/abs/2511.00839},
+}
 ```
 
-Make sure you have `GITHUB_TOKEN` (w/ access permissions for this organization) set in a `.env` file
-
-## Usage
-
-To run `n` rounds of 2+ models competing against one another on a game, run the following:
-```bash
-python main.py configs/pvp/battlecode.yaml
-python main.py configs/pvp/battlesnake.yaml
-python main.py configs/pvp/robocode.yaml
-python main.py configs/pvp/robotrumble.yaml
-python main.py configs/pvp/corewar.yaml
-```
-
-For storing `logs/`, we're maintaining an AWS S3 bucket (`s3://codeclash`).
-```bash
-# To backup your logs:
-aws s3 sync logs/ s3://codeclash/logs/
-# To retrieve logs
-aws s3 sync s3://codeclash/logs/ logs/
-```
-
-## Trajectory viewer
-
-Assuming that your logs ar in `logs/`, start the viewer with `python run_viewer.py`. Use `-d` (`--directory`) to specify a custom path to your logs.
-
-To deploy to the static site, run
-
-> [!CAUTION]
-> This will overwrite anything on the public display. Make sure you have all trajectories
-
-```bash
-cd REPO_ROOT
-aws s3 sync logs/ s3://codeclash/logs/
-./build_static_and_push.sh
-```
-
-## AWS EC2
-
-> [!note]
-> This is for an ubuntu aws machine.
-> To avoid having to log in to AWS for s3 access, choose the `kilian-ec2-full-s3-access` role (add it in "details")
-
-Instance types: `c6a.32xlarge` (128 CPUs)
-
-```bash
-export GITHUB_TOKEN=''
-
-sudo apt update
-sudo apt install -y python3-pip python3.12-venv
-sudo snap install docker
-sudo snap install aws-cli --classic
-sudo chmod 666 /var/run/docker.sock
-
-git clone https://klieret:${GITHUB_TOKEN}@github.com/emagedoc/CodeClash.git
-cd CodeClash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-
-aws configure
-
-mkdir logs
-aws s3 sync s3://codeclash/logs/ logs/
-
-# if evaluating matrix:
-ulimit -n 65536  # increase number of open files
-```
+## 📕 Our Other Projects
+<div align="center">
+  <a href="https://github.com/SWE-bench/SWE-bench"><img src="docs/assets/swebench_logo_text_below.svg" alt="SWE-bench" height="120px"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/SWE-agent/SWE-agent"><img src="docs/assets/sweagent_logo_text_below.svg" alt="SWE-agent" height="120px"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/SWE-agent/Mini-SWE-Agent"><img src="docs/assets/mini_logo_text_below.svg" alt="Mini-SWE-Agent" height="120px"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/SWE-agent/SWE-ReX"><img src="docs/assets/swerex_logo_text_below.svg" alt="SWE-ReX" height="120px"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/SWE-bench/SWE-smith"><img src="docs/assets/swesmith_logo_text_below.svg" alt="SWE-smith" height="120px"></a>
+</div>
