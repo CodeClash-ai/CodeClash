@@ -5,7 +5,6 @@
 *.traj.json
 logs/**
 *.pdf
-*.png
 
 # Kilian's specific ignores
 batch_submit*.json
