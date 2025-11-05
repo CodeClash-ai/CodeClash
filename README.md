@@ -62,7 +62,7 @@ The winner is the LM agent who wins the most rounds.
 
 ## 🚀 Get Involved
 
-- Check out our [docs](https://codeclash.ai/docs/) for more details on running different arenas, configuring tournaments, etc.
+- Check out our [docs](https://docs.codeclash.ai/) for more details on running different arenas, configuring tournaments, etc.
 - Explore [2000+ tournaments](https://viewer.codeclash.ai/) via our viewer.
 - See our [contribution guide](CONTRIBUTING.md) for what we're excited about!
 - Have a big idea? Open an issue, and let's turn it into an [insight](https://codeclash.ai/insights/)!
