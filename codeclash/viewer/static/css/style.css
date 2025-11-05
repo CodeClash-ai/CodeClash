@@ -90,6 +90,38 @@ body {
   color: var(--accent-color);
   font-size: 1.75rem;
   font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.header-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.header-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+
+.header-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.header-link:hover {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+.header-link-separator {
+  color: var(--text-muted);
+  user-select: none;
+  opacity: 0.5;
 }
 
 .controls {
@@ -926,6 +958,15 @@ details summary {
   .header-content {
     flex-direction: column;
     text-align: center;
+  }
+
+  .header-title-section {
+    align-items: center;
+    text-align: center;
+  }
+
+  .header-links {
+    justify-content: center;
   }
 
   .controls {

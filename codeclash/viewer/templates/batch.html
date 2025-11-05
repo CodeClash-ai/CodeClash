@@ -42,11 +42,42 @@
             margin-bottom: 2rem;
         }
 
+        .batch-header-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
         .batch-header h1 {
             margin: 0;
             font-size: 1.75rem;
             color: var(--accent-color);
             font-weight: 600;
+        }
+
+        .batch-header-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.875rem;
+        }
+
+        .batch-header-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .batch-header-link:hover {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .batch-header-link-separator {
+            color: var(--text-muted);
+            user-select: none;
+            opacity: 0.5;
         }
 
         .back-link {
@@ -657,7 +688,20 @@
 <body>
     <div class="batch-container">
         <div class="batch-header">
-            <h1><i class="bi bi-cloud"></i> AWS Batch Job Monitor</h1>
+            <div class="batch-header-title-section">
+                <h1><i class="bi bi-cloud"></i> AWS Batch Job Monitor</h1>
+                <div class="batch-header-links">
+                    <a href="https://codeclash.ai/" target="_blank" rel="noopener noreferrer" class="batch-header-link">Leaderboard</a>
+                    <span class="batch-header-link-separator">•</span>
+                    <a href="https://github.com/codeclash-ai/codeclash" target="_blank" rel="noopener noreferrer" class="batch-header-link">GitHub</a>
+                    <span class="batch-header-link-separator">•</span>
+                    <a href="https://docs.codeclash.ai/" target="_blank" rel="noopener noreferrer" class="batch-header-link">Docs</a>
+                    <span class="batch-header-link-separator">•</span>
+                    <a href="https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ" target="_blank" rel="noopener noreferrer" class="batch-header-link">Slack</a>
+                    <span class="batch-header-link-separator">•</span>
+                    <a href="https://codeclash.ai/team/" target="_blank" rel="noopener noreferrer" class="batch-header-link">Team</a>
+                </div>
+            </div>
             <a href="{{ url_for('game_picker') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i> Back to Picker
             </a>
