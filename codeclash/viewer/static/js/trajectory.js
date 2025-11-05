@@ -61,14 +61,6 @@ function loadTrajectoryDetails(playerName, roundNum) {
           data.trajectory_file_path,
         );
 
-        // Populate submission and memory
-        updateSubmissionAndMemory(
-          playerName,
-          roundNum,
-          data.submission,
-          data.memory,
-        );
-
         // Hide spinner, show content
         spinner.style.display = "none";
         content.style.display = "block";
@@ -266,44 +258,6 @@ function createComplexContentHTML(contentParts) {
 
   html += "</div>";
   return html;
-}
-
-function updateSubmissionAndMemory(playerName, roundNum, submission, memory) {
-  // Update submission
-  const submissionFoldout = document.querySelector(
-    `.trajectory-submission-foldout[data-player="${playerName}"][data-round="${roundNum}"]`,
-  );
-  if (submissionFoldout) {
-    const placeholder = submissionFoldout.querySelector(
-      ".submission-placeholder",
-    );
-    const content = submissionFoldout.querySelector(".submission-content");
-
-    if (submission) {
-      placeholder.style.display = "none";
-      content.style.display = "block";
-      content.querySelector("code").textContent = submission;
-    } else {
-      placeholder.innerHTML = "<em>No submission data</em>";
-    }
-  }
-
-  // Update memory
-  const memoryFoldout = document.querySelector(
-    `.trajectory-memory-foldout[data-player="${playerName}"][data-round="${roundNum}"]`,
-  );
-  if (memoryFoldout) {
-    const placeholder = memoryFoldout.querySelector(".memory-placeholder");
-    const content = memoryFoldout.querySelector(".memory-content");
-
-    if (memory) {
-      placeholder.style.display = "none";
-      content.style.display = "block";
-      content.querySelector("code").textContent = memory;
-    } else {
-      placeholder.innerHTML = "<em>No memory data</em>";
-    }
-  }
 }
 
 function escapeHtml(text) {

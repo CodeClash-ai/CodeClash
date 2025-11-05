@@ -125,6 +125,7 @@
     </details>
 
     <!-- Incremental Diff Foldout inside the same container -->
+    {% if not is_static or (trajectory.incremental_diff_by_files and trajectory.incremental_diff_by_files|length > 0) %}
     <details class="trajectory-messages-foldout trajectory-incremental-diffs-foldout"
              data-player="{{ trajectory.player_id }}"
              data-round="{{ trajectory.round_num }}">
@@ -133,20 +134,16 @@
             {% if is_static and trajectory.incremental_diff_by_files %}
                 {# Static mode: render incremental diff directly #}
                 <div class="incremental-diff-content">
-                    {% if trajectory.incremental_diff_by_files %}
-                        {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
-                        <details class="file-diff-foldout" open>
-                            <summary class="file-diff-header">
-                                <i class="bi bi-file-text"></i> {{ file_path }}
-                            </summary>
-                            <div class="diff-content-wrapper">
-                                <pre><code class="diff">{{ file_diff }}</code></pre>
-                            </div>
-                        </details>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-diff-message">No incremental diff available</div>
-                    {% endif %}
+                    {% for file_path, file_diff in trajectory.incremental_diff_by_files.items() %}
+                    <details class="file-diff-foldout" open>
+                        <summary class="file-diff-header">
+                            <i class="bi bi-file-text"></i> {{ file_path }}
+                        </summary>
+                        <div class="diff-content-wrapper">
+                            <pre><code class="diff">{{ file_diff }}</code></pre>
+                        </div>
+                    </details>
+                    {% endfor %}
                 </div>
             {% else %}
                 {# Dynamic mode: lazy load diffs #}
@@ -163,6 +160,7 @@
             {% endif %}
         </div>
     </details>
+    {% endif %}
 
     <!-- Modified Files Foldout inside the same container -->
     <details class="trajectory-messages-foldout trajectory-modified-files-foldout"
@@ -206,58 +204,3 @@
 
 
 </div>
-
-
-<!-- Submission -->
-<details class="foldout trajectory-submission-foldout"
-         data-player="{{ trajectory.player_id }}"
-         data-round="{{ trajectory.round_num }}">
-    <summary>📤 Player {{ trajectory.player_id }} Round {{ round_num }} - Submission</summary>
-    <div class="log-content">
-        {% if is_static %}
-            {# Static mode: render submission directly #}
-            {% if trajectory.submission %}
-                <div class="submission-content">
-                    <pre><code>{{ trajectory.submission }}</code></pre>
-                </div>
-            {% else %}
-                <em>No submission data</em>
-            {% endif %}
-        {% else %}
-            {# Dynamic mode: lazy load submission #}
-            <div class="submission-placeholder">
-                <em>Load trajectory messages above to see submission</em>
-            </div>
-            <div class="submission-content" style="display: none;">
-                <pre><code></code></pre>
-            </div>
-        {% endif %}
-    </div>
-</details>
-
-<!-- Memory -->
-<details class="foldout trajectory-memory-foldout"
-         data-player="{{ trajectory.player_id }}"
-         data-round="{{ trajectory.round_num }}">
-    <summary>🧠 Player {{ trajectory.player_id }} Round {{ round_num }} - Memory</summary>
-    <div class="log-content">
-        {% if is_static %}
-            {# Static mode: render memory directly #}
-            {% if trajectory.memory %}
-                <div class="memory-content">
-                    <pre><code>{{ trajectory.memory }}</code></pre>
-                </div>
-            {% else %}
-                <em>No memory data</em>
-            {% endif %}
-        {% else %}
-            {# Dynamic mode: lazy load memory #}
-            <div class="memory-placeholder">
-                <em>Load trajectory messages above to see memory</em>
-            </div>
-            <div class="memory-content" style="display: none;">
-                <pre><code></code></pre>
-            </div>
-        {% endif %}
-    </div>
-</details>
