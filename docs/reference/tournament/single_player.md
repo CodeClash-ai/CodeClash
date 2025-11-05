@@ -30,7 +30,7 @@ players:
 ## Running a SinglePlayer Tournament
 
 ```bash
-python main_single_player.py configs/single_player/config.yaml
+python main_single_player.py configs/examples/battlesnake_single_player.yaml
 ```
 
 ## Implementation
