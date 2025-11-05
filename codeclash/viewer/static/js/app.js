@@ -295,10 +295,28 @@ function scrollToElement(selector) {
 function initializeFloatingToc() {
   const tocMenu = document.getElementById("toc-menu");
   const tocClose = document.getElementById("toc-close");
+  const tocToggle = document.getElementById("toc-toggle");
 
-  if (!tocMenu || !tocClose) {
+  if (!tocMenu || !tocClose || !tocToggle) {
     return;
   }
+
+  // Check if we're on mobile
+  const isMobile = window.innerWidth <= 768;
+
+  // Hide menu by default on mobile
+  if (isMobile) {
+    tocMenu.classList.add("hidden");
+  }
+
+  // Set initial visibility state
+  updateTocVisibility();
+
+  // Toggle button click
+  tocToggle.addEventListener("click", function (e) {
+    e.stopPropagation();
+    toggleTocMenu();
+  });
 
   // Close TOC menu
   tocClose.addEventListener("click", function (e) {
@@ -311,20 +329,67 @@ function initializeFloatingToc() {
     e.stopPropagation();
   });
 
+  // Handle window resize to update mobile state
+  window.addEventListener("resize", function () {
+    const isMobileNow = window.innerWidth <= 768;
+    if (isMobileNow && !tocMenu.classList.contains("hidden")) {
+      // On mobile, ensure proper visibility class
+      updateTocVisibility();
+    }
+  });
+
   // TOC keyboard shortcuts are now handled in the main keyboard handler
 }
 
 function toggleTocMenu() {
   const tocMenu = document.getElementById("toc-menu");
-  if (tocMenu) {
-    tocMenu.classList.toggle("hidden");
+  const tocToggle = document.getElementById("toc-toggle");
+
+  if (tocMenu && tocToggle) {
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+      // On mobile, use 'visible' class to override default hidden state
+      tocMenu.classList.toggle("visible");
+      tocMenu.classList.toggle("hidden");
+    } else {
+      // On desktop, use 'hidden' class
+      tocMenu.classList.toggle("hidden");
+    }
+
+    updateTocVisibility();
   }
 }
 
 function closeTocMenu() {
   const tocMenu = document.getElementById("toc-menu");
-  if (tocMenu) {
+  const tocToggle = document.getElementById("toc-toggle");
+
+  if (tocMenu && tocToggle) {
+    const isMobile = window.innerWidth <= 768;
+
     tocMenu.classList.add("hidden");
+    if (isMobile) {
+      tocMenu.classList.remove("visible");
+    }
+
+    updateTocVisibility();
+  }
+}
+
+function updateTocVisibility() {
+  const tocMenu = document.getElementById("toc-menu");
+  const tocToggle = document.getElementById("toc-toggle");
+
+  if (!tocMenu || !tocToggle) return;
+
+  const isMenuHidden = tocMenu.classList.contains("hidden");
+
+  // Show toggle button when menu is hidden, hide it when menu is shown
+  if (isMenuHidden) {
+    tocToggle.classList.remove("hidden");
+  } else {
+    tocToggle.classList.add("hidden");
   }
 }
 

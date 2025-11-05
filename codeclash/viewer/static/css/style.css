@@ -1500,6 +1500,37 @@ summary:focus {
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
 }
 
+.toc-toggle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  background-color: var(--accent-color);
+  color: #000000;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.2s ease;
+  z-index: 1001;
+}
+
+.toc-toggle:hover {
+  background-color: var(--accent-hover);
+  transform: scale(1.05);
+}
+
+.toc-toggle.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .toc-menu {
   position: absolute;
   bottom: 0;
@@ -1623,6 +1654,19 @@ summary:focus {
   .toc-menu {
     width: 14rem;
     max-height: 20rem;
+  }
+
+  /* Hide TOC menu by default on mobile, but keep toggle button visible */
+  .toc-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(1rem);
+  }
+
+  .toc-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
 }
 
