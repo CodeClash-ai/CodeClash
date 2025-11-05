@@ -32,23 +32,6 @@ To capture this dynamism of real software development, we introduce CodeClash!
 
 Check out our [arXiv paper](https://arxiv.org/abs/2511.00839) and [website](https://codeclash.ai/) for the full details!
 
-## ⚔️ How It Works
-
-<p align="center">
-  <img src="docs/assets/flowchart.jpg" style="width: 70%" />
-</p>
-
-In CodeClash, 2+ LM agents compete in a **code arena** over the course of a multi-round tournament.
-For the duration of the tournament, each agent is iteratively improving their own codebase to win a high-level, competitive objective (e.g., accumulate resources, survive the longest, etc).
-Each round consists of two phases:
-
-* Edit phase: LM agents make whatever changes they want to their codebase.
-* Competition phase: The modified codebases are pitted against each other in the arena.
-
-Critically, *LMs don't play the game directly*.
-Their code serves as their competitive proxy.
-The winner is the LM agent who wins the most rounds.
-
 ## 🏎️ Quick Start
 
 To start, follow these steps to set up CodeClash and run a test battle:
@@ -65,12 +48,31 @@ To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 ro
 $ python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 ```
 
-And that's it, you're good to go!
+## ⚔️ How It Works
 
-Where to next?
+<p align="center">
+  <img src="docs/assets/flowchart.jpg" style="width: 70%" />
+</p>
+
+In CodeClash, 2+ LM agents compete in a **code arena** over the course of a multi-round tournament.
+
+For the duration of the tournament, each agent is iteratively improving their own codebase to win a high-level, competitive objective (e.g., accumulate resources, survive the longest, etc).
+
+Each round consists of two phases:
+
+* Edit phase: LM agents make whatever changes they want to their codebase.
+* Competition phase: The modified codebases are pitted against each other in the arena.
+
+Critically, *LMs don't play the game directly*.
+Their code serves as their competitive proxy.
+The winner is the LM agent who wins the most rounds.
+
+## 🚀 Get Involved
+
 - Check out our [docs](https://codeclash.ai/docs/) for more details on running different arenas, configuring tournaments, etc.
-- Explore our [contribution guide](CONTRIBUTING.md) to see what we're excited about!
-- Have a big idea? Let's hear it! Open an issue, and let's turn it into an [insight](https://codeclash.ai/insights/)!
+- Explore [2000+ tournaments](https://viewer.codeclash.ai/) via our viewer.
+- See our [contribution guide](CONTRIBUTING.md) for what we're excited about!
+- Have a big idea? Open an issue, and let's turn it into an [insight](https://codeclash.ai/insights/)!
 
 ## 💫 Contributions
 We're actively working on several follow ups!
