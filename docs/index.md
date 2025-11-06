@@ -9,7 +9,7 @@ Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs
 ## Quick links
 
 <div class="grid cards">
-  <a href="quickstart.md" class="nav-card-link">
+  <a href="quickstart/" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
         <span class="material-icons nav-card-icon">rocket_launch</span>
@@ -55,5 +55,13 @@ Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs
 If you use CodeClash in your research, please cite:
 
 ```bibtex
-
+@misc{yang2025codeclashbenchmarkinggoalorientedsoftware,
+    title={CodeClash: Benchmarking Goal-Oriented Software Engineering},
+    author={John Yang and Kilian Lieret and Joyce Yang and Carlos E. Jimenez and Ofir Press and Ludwig Schmidt and Diyi Yang},
+    year={2025},
+    eprint={2511.00839},
+    archivePrefix={arXiv},
+    primaryClass={cs.SE},
+    url={https://arxiv.org/abs/2511.00839},
+}
 ```
