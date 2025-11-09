@@ -39,7 +39,7 @@ Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs
     </div>
   </a>
 
-  <a href="https://join.slack.com/t/codeclash-workspace/shared_invite/your-invite-link" class="nav-card-link">
+  <a href="https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
         <span class="material-icons nav-card-icon">chat</span>
