@@ -362,24 +362,14 @@ class PvPMatrixEvaluator:
                     if result and "scores" in result:
                         scores = result["scores"]
 
-                        # Find the actual agent names used (they have round suffixes like "p1_r0")
-                        # We need to match player names from the base names
-                        player1_actual = None
-                        player2_actual = None
+                        # Directly construct expected agent names (format: "player_rN")
+                        player1_actual = f"{player1}_r{i}"
+                        player2_actual = f"{player2}_r{j}"
 
-                        for score_key in scores.keys():
-                            if score_key == RESULT_TIE:
-                                continue
-                            # Match based on prefix (e.g., "p1_r0" starts with "p1")
-                            if score_key.startswith(player1 + "_"):
-                                player1_actual = score_key
-                            elif score_key.startswith(player2 + "_"):
-                                player2_actual = score_key
-
-                        # Only calculate win rate if we found both players
-                        if player1_actual and player2_actual:
-                            player1_score = scores.get(player1_actual, 0)
-                            player2_score = scores.get(player2_actual, 0)
+                        # Only calculate win rate if both players exist in scores
+                        if player1_actual in scores and player2_actual in scores:
+                            player1_score = scores[player1_actual]
+                            player2_score = scores[player2_actual]
                             total_games = player1_score + player2_score + scores.get(RESULT_TIE, 0)
                             if total_games > 0:
                                 win_rate_matrix[i, j] = player1_score / total_games
