@@ -38,6 +38,7 @@ $ python main.py configs/test/battlesnake.yaml
 
 > [!TIP]
 > CodeClash requires Docker to create execution environments. CodeClash was developed and tested on Ubuntu 22.04.4 LTS.
+> The same instructions should work for Mac. If not, check out [#81](https://github.com/CodeClash-ai/CodeClash/issues/81) for an alternative solution.
 
 Once this works, you should be set up to run a real tournament!
 To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 rounds* and *1000 competition simulations* per round, run:
