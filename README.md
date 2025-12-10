@@ -5,8 +5,10 @@
 </p>
 
 <div align="center">
-<a href="https://www.python.org/"><img alt="Build" src="https://img.shields.io/badge/Python-3.10+-1f425f.svg?color=purple"></a>
-<a href="https://copyright.princeton.edu/policy"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue"></a> <a href="https://arxiv.org/abs/2511.00839"><img src="https://img.shields.io/badge/arXiv-2511.00839-b31b1b.svg"></a>
+<a href="https://www.python.org/"><img alt="Build" src="https://img.shields.io/badge/Python-3.11+-1f425f.svg?color=purple"></a>
+<a href="https://copyright.princeton.edu/policy"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue"></a>
+<a href="https://arxiv.org/abs/2511.00839"><img src="https://img.shields.io/badge/arXiv-2511.00839-b31b1b.svg"></a>
+<a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/uv-package%20manager-blueviolet"></a>
 </div>
 
 <hr />
@@ -28,22 +30,50 @@ Check out our [arXiv paper](https://arxiv.org/abs/2511.00839) and [website](http
 
 ## 🏎️ Quick Start
 
-To start, follow these steps to set up CodeClash and run a test battle:
+### Prerequisites
+
+- **Python 3.11+**
+- **[uv](https://docs.astral.sh/uv/)** - Fast Python package manager
+- **Docker** - For running games in containers
+- **Git**
+
+### Installation
+
 ```bash
-$ git clone git@github.com:CodeClash-ai/CodeClash.git
-$ cd CodeClash
-$ pip install -e '.[dev]'
-$ python main.py configs/test/battlesnake.yaml
+# Clone the repository
+git clone https://github.com/CodeClash-ai/CodeClash.git
+cd CodeClash
+
+# Install uv (if you haven't already)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install dependencies and create virtual environment
+uv sync --extra dev
+
+# Set up your environment variables
+cp .env.example .env  # Then edit .env with your GITHUB_TOKEN
+
+# Run a test battle
+uv run python main.py configs/test/battlesnake.yaml
 ```
 
 > [!TIP]
 > CodeClash requires Docker to create execution environments. CodeClash was developed and tested on Ubuntu 22.04.4 LTS.
 > The same instructions should work for Mac. If not, check out [#81](https://github.com/CodeClash-ai/CodeClash/issues/81) for an alternative solution.
 
+<details>
+<summary>Alternative: Using pip (not recommended)</summary>
+
+```bash
+pip install -e '.[dev]'
+python main.py configs/test/battlesnake.yaml
+```
+</details>
+
 Once this works, you should be set up to run a real tournament!
 To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 rounds* and *1000 competition simulations* per round, run:
 ```bash
-$ python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 ```
 
 ## ⚔️ How It Works
