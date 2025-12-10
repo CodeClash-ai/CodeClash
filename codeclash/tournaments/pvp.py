@@ -11,7 +11,7 @@ from pathlib import Path
 from codeclash.agents import get_agent
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.arenas import get_game
+from codeclash.arenas import get_arena
 from codeclash.arenas.arena import CodeArena
 from codeclash.constants import DIR_LOGS, DIR_WORK, FILE_RESULTS, OPPONENT_CODEBASES_DIR_NAME
 from codeclash.tournaments.tournament import AbstractTournament
@@ -35,7 +35,7 @@ class PvpTournament(AbstractTournament):
             self.logger.critical(f"Metadata file already exists: {self.metadata_file}")
             raise FileExistsError(f"Metadata file already exists: {self.metadata_file}")
         self.cleanup_on_end = cleanup
-        self.game: CodeArena = get_game(
+        self.game: CodeArena = get_arena(
             self.config,
             tournament_id=self.tournament_id,
             local_output_dir=self.local_output_dir,

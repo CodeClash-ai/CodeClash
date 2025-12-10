@@ -1,7 +1,7 @@
 tournament:
   rounds: 3
 game:
-  name: Halite-II
+  name: Halite2
   sims_per_round: 250
 players:
 - agent: dummy
@@ -10,9 +10,10 @@ players:
   name: p2
 prompts:
   game_description: |
-    You are a software developer ({{player_id}}) competing in an arena called Halite.
-    In this game, you will write code to control ships that gather resources, build structures, and compete for dominance on a grid-based map.
-    Victory is achieved by outmaneuvering opponents, optimizing resource collection, and strategically expanding your territory.
+    You are a software developer ({{player_id}}) competing in an arena called Halite2.
+    In this game, you will write code to control fleets of spaceships across a continuous space-themed universe.
+    Players command ships to mine planets for halite, use that resource to build additional ships, and expand control across the map.
+    Victory depends on efficient resource gathering, fleet management, and strategic expansion to outcompete rival bots for dominance.
 
     The game is played in {{rounds}} rounds. For every round, you (and your competitor) edit program code that controls your bot. This is round {{round}}.
     After you and your competitor finish editing your codebases, the game is run automatically.
