@@ -5,8 +5,7 @@ from codeclash.arenas.corewar.corewar import CoreWarArena
 from codeclash.arenas.dummy.dummy import DummyArena
 from codeclash.arenas.halite.halite import HaliteArena
 from codeclash.arenas.halite2.halite2 import Halite2Arena
-
-# from codeclash.games.halite3.halite3 import Halite3Game # WIP
+from codeclash.arenas.halite3.halite3 import Halite3Arena
 from codeclash.arenas.huskybench.huskybench import HuskyBenchArena
 from codeclash.arenas.robocode.robocode import RoboCodeArena
 from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
@@ -18,6 +17,7 @@ ARENAS = [
     DummyArena,
     HaliteArena,
     Halite2Arena,
+    Halite3Arena,
     HuskyBenchArena,
     RoboCodeArena,
     RobotRumbleArena,

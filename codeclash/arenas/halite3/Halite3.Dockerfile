@@ -19,9 +19,9 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN apt-get update && apt-get install -y ocaml ocamlbuild
 
 # Clone Halite repository
-RUN git clone https://github.com/CodeClash-ai/Halite-III.git /workspace \
+RUN git clone https://github.com/CodeClash-ai/Halite3.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/Halite-III.git
+    && git remote set-url origin https://github.com/CodeClash-ai/Halite3.git
 WORKDIR /workspace
 
 RUN cd game_engine && cmake . && make
