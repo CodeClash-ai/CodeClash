@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://docs.codeclash.ai/usage/tournaments/">
+        <link rel="canonical" href="https://docs.codeclash.ai/usage/codebase-tour/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Running Tournaments - CodeClash Documentation</title>
+        <title>Codebase Tour - CodeClash Documentation</title>
       
     
     
@@ -98,7 +98,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-tournaments" class="md-skip">
+        <a href="#codebase-tour" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Running Tournaments
+              Codebase Tour
             
           </span>
         </div>
@@ -1350,22 +1350,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-reference" class="md-nav__link">
+  <a href="#high-level-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Reference
+        High-Level Architecture
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CLI Reference">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Modules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Modules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#arguments" class="md-nav__link">
+  <a href="#entry-point-mainpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Arguments
+        Entry Point: main.py
       
     </span>
   </a>
@@ -1373,10 +1395,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
+  <a href="#tournaments-codeclashtournaments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Options
+        Tournaments: codeclash/tournaments/
       
     </span>
   </a>
@@ -1384,10 +1406,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#arenas-codeclasharenas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Examples
+        Arenas: codeclash/arenas/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agents-codeclashagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agents: codeclash/agents/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utilities-codeclashutils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utilities: codeclash/utils/
       
     </span>
   </a>
@@ -1400,22 +1444,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-anatomy" class="md-nav__link">
+  <a href="#extension-points" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Anatomy
+        Extension Points
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Anatomy">
+    <nav class="md-nav" aria-label="Extension Points">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-include-directive" class="md-nav__link">
+  <a href="#adding-a-new-arena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The !include Directive
+        Adding a New Arena
       
     </span>
   </a>
@@ -1423,10 +1467,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tournament-section" class="md-nav__link">
+  <a href="#adding-a-new-agent-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tournament Section
+        Adding a New Agent Type
       
     </span>
   </a>
@@ -1434,66 +1478,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#game-section" class="md-nav__link">
+  <a href="#adding-analysis-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Game Section
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Game Section">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#arena-specific-args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Arena-Specific Args
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#players-section" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Players Section
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Players Section">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#model-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Model Configuration
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prompts-section" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prompts Section
+        Adding Analysis Tools
       
     </span>
   </a>
@@ -1506,22 +1494,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-variables" class="md-nav__link">
+  <a href="#first-steps-for-contributors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment Variables
+        First Steps for Contributors
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment Variables">
+    <nav class="md-nav" aria-label="First Steps for Contributors">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#required" class="md-nav__link">
+  <a href="#1-run-the-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Required
+        1. Run the tests
       
     </span>
   </a>
@@ -1529,10 +1517,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#llm-providers" class="md-nav__link">
+  <a href="#2-try-a-test-tournament" class="md-nav__link">
     <span class="md-ellipsis">
       
-        LLM Providers
+        2. Try a test tournament
       
     </span>
   </a>
@@ -1540,10 +1528,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#optional" class="md-nav__link">
+  <a href="#3-explore-an-existing-arena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional
+        3. Explore an existing arena
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-trace-a-tournament-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Trace a tournament run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-check-the-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Check the viewer
       
     </span>
   </a>
@@ -1556,121 +1566,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-structure" class="md-nav__link">
+  <a href="#code-style" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Output Structure
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output Structure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#folder-naming-convention" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Folder Naming Convention
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#key-output-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Output Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-recipes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Recipes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick Recipes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reproduce-a-paper-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reproduce a paper result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#run-all-arenas-for-a-matchup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run all arenas for a matchup
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#debug-a-failing-agent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Debug a failing agent
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#quick-ab-test-with-custom-suffix" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick A/B test with custom suffix
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#batch-run-with-different-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Batch run with different models
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#viewing-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Viewing Results
+        Code Style
       
     </span>
   </a>
@@ -1678,10 +1577,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#common-tasks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Common Tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
       
     </span>
   </a>
@@ -1706,7 +1616,7 @@
 
 
   
-    <a href="https://github.com/emagedoc/CodeClash/edit/main/docs/usage/tournaments.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/emagedoc/CodeClash/edit/main/docs/usage/codebase-tour.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1714,465 +1624,360 @@
   
 
 
-<h1 id="running-tournaments">Running Tournaments</h1>
-<p>This guide covers everything you need to know about running CodeClash tournaments: CLI options, configuration files, environment variables, and output structure.</p>
-<h2 id="cli-reference">CLI Reference</h2>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>&lt;config_path&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<h1 id="codebase-tour">Codebase Tour</h1>
+<p>This guide helps contributors understand the CodeClash architecture. Whether you're adding a new arena, implementing an agent, or fixing a bug, this tour will orient you to the key modules and extension points.</p>
+<h2 id="high-level-architecture">High-Level Architecture</h2>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────────┐
+│                          main.py                                 │
+│                    (CLI entry point)                             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    tournaments/pvp.py                            │
+│                  (Tournament orchestration)                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   arenas/       │  │   agents/       │  │   utils/        │
+│  (Game logic)   │  │ (LLM agents)    │  │  (Docker, Git)  │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
 </code></pre></div>
-<h3 id="arguments">Arguments</h3>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>config_path</code></td>
-<td>Path to the tournament YAML config file (required)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="options">Options</h3>
-<table>
-<thead>
-<tr>
-<th>Flag</th>
-<th>Short</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--cleanup</code></td>
-<td><code>-c</code></td>
-<td>Clean up game environment after running</td>
-</tr>
-<tr>
-<td><code>--push</code></td>
-<td><code>-p</code></td>
-<td>Push each agent's final codebase to a new GitHub repository</td>
-</tr>
-<tr>
-<td><code>--output-dir PATH</code></td>
-<td><code>-o PATH</code></td>
-<td>Custom output directory (default: <code>logs/&lt;username&gt;/</code>)</td>
-</tr>
-<tr>
-<td><code>--suffix TEXT</code></td>
-<td><code>-s TEXT</code></td>
-<td>Suffix to append to the output folder name</td>
-</tr>
-<tr>
-<td><code>--keep-containers</code></td>
-<td><code>-k</code></td>
-<td>Keep Docker containers after games/agents finish (useful for debugging)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="examples">Examples</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Basic run</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
-
-<span class="c1"># Keep containers for debugging</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
-
-<span class="c1"># Custom output directory with suffix</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-o<span class="w"> </span>./my_experiments<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-s<span class="w"> </span>experiment1
-
-<span class="c1"># Push final codebases to GitHub</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span>-p
+<h2 id="directory-structure">Directory Structure</h2>
+<div class="highlight"><pre><span></span><code>codeclash/
+├── __init__.py           # Package init, defines PACKAGE_DIR, CONFIG_DIR
+├── constants.py          # Global constants (LOG_DIR, etc.)
+│
+├── agents/               # AI agent implementations
+│   ├── __init__.py       # Agent registry and get_agent()
+│   ├── player.py         # Abstract Player base class
+│   ├── minisweagent.py   # MiniSWEAgent implementation
+│   └── dummy_agent.py    # Dummy agent for testing
+│
+├── arenas/               # Game arena implementations
+│   ├── __init__.py       # Arena registry and get_game()
+│   ├── arena.py          # Abstract CodeArena base class
+│   ├── battlesnake/      # BattleSnake arena
+│   ├── battlecode/       # BattleCode arena
+│   ├── corewar/          # CoreWar arena
+│   ├── halite/           # Halite arena
+│   ├── robocode/         # RoboCode arena
+│   ├── robotrumble/      # RobotRumble arena
+│   ├── huskybench/       # HuskyBench arena
+│   └── dummy/            # Dummy arena for testing
+│
+├── tournaments/          # Tournament orchestration
+│   ├── __init__.py
+│   ├── tournament.py     # Abstract tournament base class
+│   ├── pvp.py            # PvP tournament implementation
+│   └── single_player.py  # Single-player tournament
+│
+├── analysis/             # Post-tournament analysis
+│   ├── metrics/          # ELO, TrueSkill calculations
+│   ├── viz/              # Visualization generation
+│   ├── llm_as_judge/     # LLM-based code analysis
+│   └── bootstrap/        # Statistical analysis
+│
+├── viewer/               # Web-based result viewer
+│   ├── app.py            # Flask application
+│   └── templates/        # Jinja2 templates
+│
+└── utils/                # Shared utilities
+    ├── environment.py    # Docker container management
+    ├── git_utils.py      # Git operations
+    ├── yaml_utils.py     # Config parsing with !include
+    ├── aws.py            # AWS Batch integration
+    └── log.py            # Custom logging
 </code></pre></div>
-<h2 id="configuration-anatomy">Configuration Anatomy</h2>
-<p>Tournament configs are YAML files with four main sections:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># 1. Tournament settings</span>
-<span class="nt">tournament</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">                    </span><span class="c1"># Number of edit+compete rounds</span>
-<span class="w">  </span><span class="nt">transparent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">           </span><span class="c1"># If true, agents can see opponent&#39;s code</span>
-
-<span class="c1"># 2. Game/Arena settings</span>
-<span class="nt">game</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BattleSnake</span><span class="w">            </span><span class="c1"># Arena name (must match registered arena)</span>
-<span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">         </span><span class="c1"># Number of game simulations per round</span>
-<span class="w">  </span><span class="nt">args</span><span class="p">:</span><span class="w">                        </span><span class="c1"># Arena-specific arguments</span>
-<span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span>
-<span class="w">    </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span>
-<span class="w">    </span><span class="nt">browser</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-
-<span class="c1"># 3. Player/Agent definitions</span>
-<span class="nt">players</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mini</span><span class="w">                  </span><span class="c1"># Agent type: &quot;mini&quot; or &quot;dummy&quot;</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-sonnet-4-5</span><span class="w">      </span><span class="c1"># Display name (used in logs)</span>
-<span class="w">  </span><span class="nt">config</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="kt">!include</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mini/default.yaml</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;@anthropic/claude-sonnet-4-5-20250929&#39;</span>
-<span class="w">      </span><span class="nt">model_kwargs</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span>
-<span class="w">        </span><span class="nt">max_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span>
-
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mini</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">o3</span>
-<span class="w">  </span><span class="nt">config</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="kt">!include</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mini/default.yaml</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;@openai/o3&#39;</span>
-
-<span class="c1"># 4. Prompts for agents</span>
-<span class="nt">prompts</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">game_description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">You are a software developer competing in BattleSnake...</span>
+<h2 id="key-modules">Key Modules</h2>
+<h3 id="entry-point-mainpy">Entry Point: <code>main.py</code></h3>
+<p>The CLI entry point. Parses arguments, loads config, and starts a tournament:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># main.py (simplified)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">config_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+    <span class="n">tournament</span> <span class="o">=</span> <span class="n">PvpTournament</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=...</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="n">cleanup</span><span class="p">)</span>
+    <span class="n">tournament</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
-<h3 id="the-include-directive">The <code>!include</code> Directive</h3>
-<p>CodeClash supports <code>!include</code> for reusing config fragments:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># In your tournament config</span>
-<span class="nt">config</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="kt">!include</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mini/default.yaml</span><span class="w">    </span><span class="c1"># Includes configs/mini/default.yaml</span>
-<span class="w">  </span><span class="nt">model</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;@anthropic/claude-sonnet-4-5-20250929&#39;</span>
+<p><strong>When to modify:</strong> Adding new CLI flags or changing tournament initialization.</p>
+<h3 id="tournaments-codeclashtournaments">Tournaments: <code>codeclash/tournaments/</code></h3>
+<p>Orchestrates the multi-round edit+compete loop.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># tournaments/pvp.py (simplified)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PvpTournament</span><span class="p">(</span><span class="n">AbstractTournament</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">round_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rounds</span><span class="p">):</span>
+            <span class="c1"># Edit phase: agents modify their code</span>
+            <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+                <span class="n">agent</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span>
+
+            <span class="c1"># Compete phase: run game simulations</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">run_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_results</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 </code></pre></div>
-<p>This is especially useful for:</p>
+<p><strong>Key classes:</strong></p>
 <ul>
-<li>Sharing agent configurations across tournaments</li>
-<li>Keeping model-specific settings in one place</li>
-<li>Reducing config duplication</li>
+<li><code>AbstractTournament</code> - Base class with common logic</li>
+<li><code>PvpTournament</code> - Multi-player competitive tournaments</li>
+<li><code>SinglePlayerTournament</code> - Single agent improvement tracking</li>
 </ul>
-<p>Include paths are relative to the <code>configs/</code> directory.</p>
-<h3 id="tournament-section">Tournament Section</h3>
+<p><strong>When to modify:</strong> Adding new tournament types or changing the round loop.</p>
+<h3 id="arenas-codeclasharenas">Arenas: <code>codeclash/arenas/</code></h3>
+<p>Game implementations that run competitions between agent codebases.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># arenas/arena.py (simplified)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CodeArena</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># e.g., &quot;BattleSnake&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RoundStats</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute one round of the game (concrete method).&quot;&quot;&quot;</span>
+        <span class="c1"># Calls execute_round() and get_results() internally</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Game-specific execution logic.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if agent&#39;s code compiles/runs.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine winner based on game output.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</code></pre></div>
+<p><strong>Arena registry</strong> (<code>arenas/__init__.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">ARENAS</span> <span class="o">=</span> <span class="p">[</span><span class="n">BattleCodeArena</span><span class="p">,</span> <span class="n">BattleSnakeArena</span><span class="p">,</span> <span class="n">CoreWarArena</span><span class="p">,</span> <span class="n">HaliteArena</span><span class="p">,</span>
+          <span class="n">HuskyBenchArena</span><span class="p">,</span> <span class="n">RoboCodeArena</span><span class="p">,</span> <span class="n">RobotRumbleArena</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_game</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CodeArena</span><span class="p">:</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ARENAS</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;game&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">game</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>When to modify:</strong> Adding new games or changing game mechanics.</p>
+<h3 id="agents-codeclashagents">Agents: <code>codeclash/agents/</code></h3>
+<p>AI agents that modify code during the edit phase.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># agents/player.py (simplified)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Player</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute agent&#39;s code improvement strategy.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pre_run_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup before round execution.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_run_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cleanup and metadata after round.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</code></pre></div>
+<p><strong>Agent registry</strong> (<code>agents/__init__.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_agent</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">game_context</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">push</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Player</span><span class="p">:</span>
+    <span class="n">agents</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="n">Dummy</span><span class="p">,</span> <span class="s2">&quot;mini&quot;</span><span class="p">:</span> <span class="n">MiniSWEAgent</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">agents</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;agent&quot;</span><span class="p">]](</span><span class="n">config</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">game_context</span><span class="p">,</span> <span class="n">push</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>When to modify:</strong> Adding new agent types or changing agent behavior.</p>
+<h3 id="utilities-codeclashutils">Utilities: <code>codeclash/utils/</code></h3>
+<p>Shared helper functions:</p>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
+<th>Module</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>rounds</code></td>
-<td>int</td>
-<td>Number of tournament rounds (edit + compete cycles)</td>
+<td><code>environment.py</code></td>
+<td>Docker container lifecycle management</td>
 </tr>
 <tr>
-<td><code>transparent</code></td>
-<td>bool</td>
-<td>If true, agents can see opponent's code changes</td>
+<td><code>git_utils.py</code></td>
+<td>Git clone, commit, push operations</td>
+</tr>
+<tr>
+<td><code>yaml_utils.py</code></td>
+<td>Config parsing with <code>!include</code> directive</td>
+</tr>
+<tr>
+<td><code>aws.py</code></td>
+<td>AWS Batch and ECR integration</td>
+</tr>
+<tr>
+<td><code>log.py</code></td>
+<td>Custom logging with emoji prefixes</td>
 </tr>
 </tbody>
 </table>
-<h3 id="game-section">Game Section</h3>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>name</code></td>
-<td>string</td>
-<td>Arena name (BattleSnake, CoreWar, Halite, etc.)</td>
-</tr>
-<tr>
-<td><code>sims_per_round</code></td>
-<td>int</td>
-<td>Number of game simulations per round</td>
-</tr>
-<tr>
-<td><code>args</code></td>
-<td>dict</td>
-<td>Arena-specific arguments</td>
-</tr>
-</tbody>
-</table>
-<h4 id="arena-specific-args">Arena-Specific Args</h4>
-<p><strong>BattleSnake:</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">args</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span><span class="w">          </span><span class="c1"># Board width</span>
-<span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span><span class="w">         </span><span class="c1"># Board height</span>
-<span class="w">  </span><span class="nt">browser</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">     </span><span class="c1"># Open browser for visualization</span>
+<h2 id="extension-points">Extension Points</h2>
+<h3 id="adding-a-new-arena">Adding a New Arena</h3>
+<ol>
+<li>
+<p><strong>Create arena directory:</strong>
+   <div class="highlight"><pre><span></span><code>codeclash/arenas/myarena/
+├── __init__.py
+├── myarena.py
+└── Dockerfile  # (if needed)
 </code></pre></div></p>
-<p><strong>CoreWar:</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">args</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">core_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span><span class="w">    </span><span class="c1"># Memory size</span>
-<span class="w">  </span><span class="nt">max_cycles</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80000</span><span class="w">  </span><span class="c1"># Maximum execution cycles</span>
+</li>
+<li>
+<p><strong>Implement the arena class:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># codeclash/arenas/myarena/myarena.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">codeclash.arenas.arena</span><span class="w"> </span><span class="kn">import</span> <span class="n">CodeArena</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyArena</span><span class="p">(</span><span class="n">CodeArena</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;MyArena&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Game-specific execution logic</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="c1"># Check if code compiles/runs</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">round_num</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="c1"># Determine winner based on game output</span>
+        <span class="k">pass</span>
 </code></pre></div></p>
-<h3 id="players-section">Players Section</h3>
-<p>Each player entry defines an AI agent:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>agent</code></td>
-<td>string</td>
-<td>Agent type: <code>mini</code> (MiniSWEAgent) or <code>dummy</code></td>
-</tr>
-<tr>
-<td><code>name</code></td>
-<td>string</td>
-<td>Display name for logs and results</td>
-</tr>
-<tr>
-<td><code>config</code></td>
-<td>dict</td>
-<td>Agent-specific configuration</td>
-</tr>
-<tr>
-<td><code>config.model</code></td>
-<td>dict</td>
-<td>LLM model settings</td>
-</tr>
-<tr>
-<td><code>config.agent</code></td>
-<td>dict</td>
-<td>Agent behavior settings</td>
-</tr>
-</tbody>
-</table>
-<h4 id="model-configuration">Model Configuration</h4>
-<div class="highlight"><pre><span></span><code><span class="nt">model</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;@anthropic/claude-sonnet-4-5-20250929&#39;</span>
-<span class="w">  </span><span class="nt">model_kwargs</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span>
-<span class="w">    </span><span class="nt">max_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span>
-</code></pre></div>
-<p>Model names use the <code>@provider/model</code> format from <a href="https://docs.litellm.ai/docs/providers">LiteLLM</a>.</p>
-<h3 id="prompts-section">Prompts Section</h3>
-<p>The <code>prompts</code> section defines what agents see:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>game_description</code></td>
-<td>Main prompt describing the game and task</td>
-</tr>
-<tr>
-<td><code>system</code></td>
-<td>(Optional) System prompt for the LLM</td>
-</tr>
-</tbody>
-</table>
-<p>Prompts support template variables:</p>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>{{player_id}}</code></td>
-<td>Agent's identifier</td>
-</tr>
-<tr>
-<td><code>{{round}}</code></td>
-<td>Current round number</td>
-</tr>
-<tr>
-<td><code>{{rounds}}</code></td>
-<td>Total number of rounds</td>
-</tr>
-<tr>
-<td><code>{{working_dir}}</code></td>
-<td>Path to agent's codebase</td>
-</tr>
-</tbody>
-</table>
-<h2 id="environment-variables">Environment Variables</h2>
-<h3 id="required">Required</h3>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>GITHUB_TOKEN</code></td>
-<td>GitHub token for cloning game starter repos</td>
-</tr>
-</tbody>
-</table>
-<h3 id="llm-providers">LLM Providers</h3>
-<p>Set API keys for the providers you're using:</p>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Provider</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>OPENAI_API_KEY</code></td>
-<td>OpenAI (GPT-4, o3, etc.)</td>
-</tr>
-<tr>
-<td><code>ANTHROPIC_API_KEY</code></td>
-<td>Anthropic (Claude)</td>
-</tr>
-<tr>
-<td><code>GOOGLE_API_KEY</code></td>
-<td>Google (Gemini)</td>
-</tr>
-<tr>
-<td><code>GROQ_API_KEY</code></td>
-<td>Groq</td>
-</tr>
-</tbody>
-</table>
-<h3 id="optional">Optional</h3>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PORTKEY_API_KEY</code></td>
-<td>Portkey for LLM request management</td>
-</tr>
-<tr>
-<td><code>AWS_ACCESS_KEY_ID</code></td>
-<td>AWS credentials (for AWS Batch)</td>
-</tr>
-<tr>
-<td><code>AWS_SECRET_ACCESS_KEY</code></td>
-<td>AWS credentials</td>
-</tr>
-<tr>
-<td><code>AWS_DEFAULT_REGION</code></td>
-<td>AWS region (default: us-east-1)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="output-structure">Output Structure</h2>
-<p>Tournament logs are saved to <code>logs/&lt;username&gt;/&lt;tournament_folder&gt;/</code>:</p>
-<div class="highlight"><pre><span></span><code>logs/
-└── &lt;username&gt;/
-    └── PvpTournament.BattleSnake.r5.s1000.p2.claude-sonnet-4-5.o3.241210143022/
-        ├── config.yaml              # Copy of tournament config
-        ├── tournament_metadata.json # Tournament summary
-        ├── round_1/
-        │   ├── game_results.json    # Game outcomes for this round
-        │   ├── claude-sonnet-4-5/
-        │   │   ├── changes.json     # Code changes made by agent
-        │   │   ├── trajectory.json  # Agent&#39;s action history
-        │   │   └── codebase/        # Snapshot of agent&#39;s code
-        │   └── o3/
-        │       ├── changes.json
-        │       ├── trajectory.json
-        │       └── codebase/
-        ├── round_2/
-        │   └── ...
-        └── round_5/
-            └── ...
-</code></pre></div>
-<h3 id="folder-naming-convention">Folder Naming Convention</h3>
-<div class="highlight"><pre><span></span><code>PvpTournament.&lt;Game&gt;.r&lt;rounds&gt;.s&lt;sims&gt;.p&lt;players&gt;.&lt;player_names&gt;.&lt;timestamp&gt;
-</code></pre></div>
-<p>Example: <code>PvpTournament.BattleSnake.r5.s1000.p2.claude-sonnet-4-5.o3.241210143022</code></p>
-<h3 id="key-output-files">Key Output Files</h3>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Contents</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>config.yaml</code></td>
-<td>Complete tournament configuration</td>
-</tr>
-<tr>
-<td><code>tournament_metadata.json</code></td>
-<td>Overall results, win counts, final scores</td>
-</tr>
-<tr>
-<td><code>round_N/game_results.json</code></td>
-<td>Per-round game outcomes</td>
-</tr>
-<tr>
-<td><code>round_N/&lt;agent&gt;/changes.json</code></td>
-<td>Code diffs made by agent</td>
-</tr>
-<tr>
-<td><code>round_N/&lt;agent&gt;/trajectory.json</code></td>
-<td>LLM conversation/action log</td>
-</tr>
-</tbody>
-</table>
-<h2 id="quick-recipes">Quick Recipes</h2>
-<h3 id="reproduce-a-paper-result">Reproduce a paper result</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># BattleSnake: Claude Sonnet 4.5 vs o3 (15 rounds)</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
-</code></pre></div>
-<h3 id="run-all-arenas-for-a-matchup">Run all arenas for a matchup</h3>
-<div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span>arena<span class="w"> </span><span class="k">in</span><span class="w"> </span>BattleSnake<span class="w"> </span>CoreWar<span class="w"> </span>Halite<span class="w"> </span>RoboCode<span class="w"> </span>RobotRumble<span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<span class="w">    </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span><span class="s2">&quot;configs/main/</span><span class="si">${</span><span class="nv">arena</span><span class="si">}</span><span class="s2">__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml&quot;</span>
-<span class="k">done</span>
-</code></pre></div>
-<h3 id="debug-a-failing-agent">Debug a failing agent</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Keep containers for inspection</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
+</li>
+<li>
+<p><strong>Register the arena:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># codeclash/arenas/__init__.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">codeclash.arenas.myarena.myarena</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyArena</span>
 
-<span class="c1"># Then inspect the container</span>
-docker<span class="w"> </span>ps<span class="w"> </span>-a<span class="w">  </span><span class="c1"># Find container ID</span>
-docker<span class="w"> </span>logs<span class="w"> </span>&lt;container_id&gt;
-docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container_id&gt;<span class="w"> </span>/bin/bash
-</code></pre></div>
-<h3 id="quick-ab-test-with-custom-suffix">Quick A/B test with custom suffix</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Run variant A</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/my_config.yaml<span class="w"> </span>-s<span class="w"> </span>variantA
+<span class="n">ARENAS</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">MyArena</span><span class="p">]</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Add documentation:</strong></p>
+</li>
+<li>Create <code>docs/reference/arenas/myarena.md</code></li>
+<li>
+<p>Add to <code>mkdocs.yml</code> navigation</p>
+</li>
+<li>
+<p><strong>Create example configs:</strong></p>
+</li>
+<li><code>configs/test/myarena.yaml</code> (dummy agents)</li>
+<li><code>configs/examples/MyArena__model1__model2__r5__s100.yaml</code></li>
+</ol>
+<h3 id="adding-a-new-agent-type">Adding a New Agent Type</h3>
+<ol>
+<li>
+<p><strong>Create agent file:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># codeclash/agents/myagent.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">codeclash.agents.player</span><span class="w"> </span><span class="kn">import</span> <span class="n">Player</span>
 
-<span class="c1"># Run variant B (modified config)</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/my_config_b.yaml<span class="w"> </span>-s<span class="w"> </span>variantB
-</code></pre></div>
-<h3 id="batch-run-with-different-models">Batch run with different models</h3>
-<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
-<span class="nv">models</span><span class="o">=(</span><span class="s2">&quot;claude-sonnet-4-5-20250929&quot;</span><span class="w"> </span><span class="s2">&quot;gpt-5&quot;</span><span class="w"> </span><span class="s2">&quot;gemini-2.5-pro&quot;</span><span class="o">)</span>
-<span class="k">for</span><span class="w"> </span>model<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">models</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<span class="w">    </span><span class="nv">config</span><span class="o">=</span><span class="s2">&quot;configs/main/BattleSnake__</span><span class="si">${</span><span class="nv">model</span><span class="si">}</span><span class="s2">__o3__r15__s1000.yaml&quot;</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$config</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">        </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$config</span><span class="s2">&quot;</span>
-<span class="w">    </span><span class="k">fi</span>
-<span class="k">done</span>
-</code></pre></div>
-<h2 id="viewing-results">Viewing Results</h2>
-<p>After tournaments complete:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Start the viewer</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_viewer.py
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">Player</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Your code improvement logic</span>
+        <span class="k">pass</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Register the agent:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># codeclash/agents/__init__.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">codeclash.agents.myagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyAgent</span>
 
-<span class="c1"># Or specify a log directory</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_viewer.py<span class="w"> </span>-d<span class="w"> </span>logs/&lt;username&gt;/PvpTournament.BattleSnake...
+<span class="k">def</span><span class="w"> </span><span class="nf">get_agent</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="n">agents</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="n">Dummy</span><span class="p">,</span> <span class="s2">&quot;mini&quot;</span><span class="p">:</span> <span class="n">MiniSWEAgent</span><span class="p">,</span> <span class="s2">&quot;my&quot;</span><span class="p">:</span> <span class="n">MyAgent</span><span class="p">}</span>
+    <span class="o">...</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Add documentation:</strong></p>
+</li>
+<li>Create <code>docs/reference/player/myagent.md</code></li>
+</ol>
+<h3 id="adding-analysis-tools">Adding Analysis Tools</h3>
+<p>Analysis modules live in <code>codeclash/analysis/</code>. Common patterns:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># codeclash/analysis/mymetric/compute.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_metric</span><span class="p">(</span><span class="n">tournament_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute custom metric from tournament results.&quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">tournament_dir</span> <span class="o">/</span> <span class="s2">&quot;tournament_metadata.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+    <span class="c1"># Your analysis logic</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
 </code></pre></div>
-<p>See <a href="https://viewer.codeclash.ai/">2000+ tournament results</a> from the paper.</p>
-<h2 id="next-steps">Next Steps</h2>
+<h2 id="first-steps-for-contributors">First Steps for Contributors</h2>
+<h3 id="1-run-the-tests">1. Run the tests</h3>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest
+</code></pre></div>
+<h3 id="2-try-a-test-tournament">2. Try a test tournament</h3>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+</code></pre></div>
+<h3 id="3-explore-an-existing-arena">3. Explore an existing arena</h3>
+<p>Read through <code>codeclash/arenas/battlesnake/battlesnake.py</code> to understand:</p>
 <ul>
-<li><a href="../codebase-tour/">Codebase Tour</a> - Understand the architecture</li>
-<li><a href="../../reference/">API Reference</a> - Detailed class documentation</li>
-<li><a href="../../quickstart/">Quick Start</a> - Back to basics</li>
+<li>How Docker images are built</li>
+<li>How games are executed</li>
+<li>How results are parsed</li>
+</ul>
+<h3 id="4-trace-a-tournament-run">4. Trace a tournament run</h3>
+<p>Add some print statements or use a debugger:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pdb<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+</code></pre></div>
+<h3 id="5-check-the-viewer">5. Check the viewer</h3>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_viewer.py<span class="w"> </span>-d<span class="w"> </span>logs/*/PvpTournament.*
+</code></pre></div>
+<h2 id="code-style">Code Style</h2>
+<ul>
+<li><strong>Formatting:</strong> Ruff (Black-compatible)</li>
+<li><strong>Linting:</strong> Ruff</li>
+<li><strong>Type hints:</strong> Encouraged but not required everywhere</li>
+<li><strong>Docstrings:</strong> Google style</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># Format and lint</span>
+uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>format<span class="w"> </span>.
+uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix
+</code></pre></div>
+<h2 id="common-tasks">Common Tasks</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add CLI flag</td>
+<td><code>main.py:main_cli()</code></td>
+</tr>
+<tr>
+<td>Change tournament flow</td>
+<td><code>tournaments/pvp.py</code></td>
+</tr>
+<tr>
+<td>Add new game</td>
+<td><code>arenas/&lt;game&gt;/&lt;game&gt;.py</code></td>
+</tr>
+<tr>
+<td>Add new agent</td>
+<td><code>agents/&lt;agent&gt;.py</code></td>
+</tr>
+<tr>
+<td>Add new metric</td>
+<td><code>analysis/metrics/</code></td>
+</tr>
+<tr>
+<td>Change Docker behavior</td>
+<td><code>utils/environment.py</code></td>
+</tr>
+<tr>
+<td>Modify config parsing</td>
+<td><code>utils/yaml_utils.py</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="getting-help">Getting Help</h2>
+<ul>
+<li><strong>Issues:</strong> <a href="https://github.com/CodeClash-ai/CodeClash/issues">GitHub Issues</a></li>
+<li><strong>Discussions:</strong> Open an issue to discuss ideas</li>
+<li><strong>Contact:</strong> John Yang (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#111;&#104;&#110;&#98;&#121;&#64;&#115;&#116;&#97;&#110;&#102;&#111;&#114;&#100;&#46;&#101;&#100;&#117;">&#106;&#111;&#104;&#110;&#98;&#121;&#64;&#115;&#116;&#97;&#110;&#102;&#111;&#114;&#100;&#46;&#101;&#100;&#117;</a>), Kilian Lieret (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#107;&#108;&#53;&#54;&#55;&#53;&#64;&#112;&#114;&#105;&#110;&#99;&#101;&#116;&#111;&#110;&#46;&#101;&#100;&#117;">&#107;&#108;&#53;&#54;&#55;&#53;&#64;&#112;&#114;&#105;&#110;&#99;&#101;&#116;&#111;&#110;&#46;&#101;&#100;&#117;</a>)</li>
 </ul>
 <div class="grid cards">
   <a href="https://github.com/emagedoc/CodeClash/issues/new" class="nav-card-link">
