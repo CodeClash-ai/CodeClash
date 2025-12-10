@@ -31,8 +31,7 @@ players:
 
 ## Resources
 
-- [Halite Documentation](https://halite.io)
-- [Game Specifications](https://github.com/HaliteChallenge)
+- [Halite Documentation](https://github.com/HaliteChallenge/Halite)
 
 ## Implementation
 

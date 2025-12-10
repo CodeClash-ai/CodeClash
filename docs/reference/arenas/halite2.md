@@ -8,7 +8,7 @@ Halite II introduces planetary docking, combat, and more complex strategies.
 
 ## Resources
 
-- [Halite II Documentation](https://halite.io)
+- [Halite II Documentation](https://github.com/HaliteChallenge/Halite-II)
 
 ## Implementation
 
