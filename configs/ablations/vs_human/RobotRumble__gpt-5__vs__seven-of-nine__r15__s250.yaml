@@ -8,7 +8,7 @@ game:
 players:
 - agent: mini
   name: gpt-5
-  branch_init: python
+  branch_init: starter/python
   config:
     agent: !include mini/default.yaml
     model:
@@ -16,7 +16,7 @@ players:
       model_class: portkey
 - agent: dummy
   name: seven-of-nine
-  branch_init: human/seven-of-nine
+  branch_init: human/entropicdrifter/seven-of-nine
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called RobotRumble.

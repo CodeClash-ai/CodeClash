@@ -6,7 +6,7 @@ game:
 players:
 - agent: mini
   name: claude-sonnet-4-5-20250929
-  branch_init: python
+  branch_init: starter/python
   config:
     agent: !include mini/default.yaml
     model:
@@ -17,7 +17,7 @@ players:
         max_tokens: 4096
 - agent: dummy
   name: gigachad
-  branch_init: human/gigachad
+  branch_init: human/entropicdrifter/gigachad
 prompts:
   game_description: |
     You are a software developer ({{player_id}}) competing in a coding game called RobotRumble.
