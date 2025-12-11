@@ -1,1 +1,0 @@
-"""Bridge game server logic."""

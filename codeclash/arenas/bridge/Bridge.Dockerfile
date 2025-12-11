@@ -9,9 +9,10 @@ RUN apt-get update \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace
+RUN git clone https://github.com/CodeClash-ai/Bridge.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/Bridge.git
 
-# Copy Bridge game server code (game logic, deck management, scoring)
-COPY codeclash/arenas/bridge/game_server /workspace/game_server
+WORKDIR /workspace
 
 # No additional dependencies needed - game logic is pure Python

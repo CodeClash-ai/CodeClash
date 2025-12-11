@@ -68,9 +68,10 @@ game_state is a dict containing:
 
     def _run_single_simulation(self, agents: list[Player], idx: int):
         """Run a single Bridge game simulation."""
+        game_server_path = str(Path(self.environment.config.cwd) / "game_server")
         try:
-            # Import BridgeGame from game_server
-            sys.path.insert(0, str(Path(self.environment.config.cwd) / "game_server"))
+            # Import BridgeGame from game_server (cloned from CodeClash-ai/Bridge repo)
+            sys.path.insert(0, game_server_path)
             from game import BridgeGame
 
             # Create game with random seed for reproducibility
@@ -167,8 +168,8 @@ game_state is a dict containing:
             self.logger.error(f"Simulation {idx} failed with error: {e}")
         finally:
             # Clean up sys.path
-            if str(Path(self.environment.config.cwd) / "game_server") in sys.path:
-                sys.path.remove(str(Path(self.environment.config.cwd) / "game_server"))
+            if game_server_path in sys.path:
+                sys.path.remove(game_server_path)
 
     def execute_round(self, agents: list[Player]):
         """Execute a round of Bridge games."""
