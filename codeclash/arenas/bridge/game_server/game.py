@@ -1,8 +1,8 @@
 """Core Bridge game logic."""
 import uuid
 
-from .deck import compare_cards, get_suit, shuffle_and_deal
-from .scoring import calculate_contract_score, get_declarer_team, normalize_to_vp
+from deck import compare_cards, get_suit, shuffle_and_deal
+from scoring import calculate_contract_score, get_declarer_team, normalize_to_vp
 
 
 class BridgeGame:
