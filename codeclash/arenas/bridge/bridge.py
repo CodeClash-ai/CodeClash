@@ -1,9 +1,10 @@
 """Bridge Arena for CodeClash."""
 
 import json
-import sys
+import shlex
+import subprocess
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 
 from tqdm.auto import tqdm
 
@@ -42,6 +43,7 @@ game_state is a dict containing:
         if num_players != 4:
             raise ValueError(f"Bridge requires exactly 4 players, got {num_players}")
         super().__init__(config, **kwargs)
+        self.run_cmd = "python3 /workspace/run_game.py"
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         """Validate agent code has required functions."""
@@ -66,120 +68,44 @@ game_state is a dict containing:
 
         return True, None
 
-    def _run_single_simulation(self, agents: list[Player], idx: int):
+    def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str):
         """Run a single Bridge game simulation."""
-        game_server_path = str(Path(self.environment.config.cwd) / "game_server")
+        full_cmd = f"{cmd} -o {self.log_env / f'sim_{idx}.json'}"
+
         try:
-            # Import BridgeGame from game_server (cloned from CodeClash-ai/Bridge repo)
-            sys.path.insert(0, game_server_path)
-            from game import BridgeGame
+            response = self.environment.execute(full_cmd, timeout=60)
+        except subprocess.TimeoutExpired:
+            self.logger.warning(f"Bridge simulation {idx} timed out")
+            return ""
 
-            # Create game with random seed for reproducibility
-            game = BridgeGame(seed=idx, dealer=idx % 4)
-
-            # Add players at positions 0-3 (North, East, South, West)
-            for position, agent in enumerate(agents):
-                game.add_player(position, agent.name)
-
-            # Start game (deals cards)
-            if not game.start_game():
-                self.logger.error(f"Simulation {idx}: Failed to start game")
-                return
-
-            # Import agent modules dynamically
-            agent_modules = []
-            for agent in agents:
-                agent_path = Path(agent.environment.config.cwd) / self.submission
-                spec = __import__(
-                    'importlib.util'
-                ).util.spec_from_file_location(f"agent_{agent.name}", agent_path)
-                module = __import__('importlib.util').util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                agent_modules.append(module)
-
-            # Bidding phase
-            while game.phase == 'bidding':
-                current_pos = game.current_player
-                state = game.get_state(current_pos)
-
-                # Prepare game_state for agent
-                agent_state = {
-                    'position': current_pos,
-                    'hand': state.get('hand', game.hands.get(current_pos, [])),
-                    'bids': state['bids'],
-                    'legal_bids': game.get_legal_bids(current_pos),
-                    'dealer': state['dealer'],
-                    'vulnerability': state['vulnerability'],
-                }
-
-                # Get bid from agent
-                try:
-                    bid = agent_modules[current_pos].get_bid(agent_state)
-                except Exception as e:
-                    self.logger.error(f"Simulation {idx}: Agent {agents[current_pos].name} error in get_bid: {e}")
-                    bid = "PASS"
-
-                # Make bid
-                if not game.make_bid(current_pos, bid):
-                    self.logger.warning(
-                        f"Simulation {idx}: Invalid bid '{bid}' from {agents[current_pos].name}, defaulting to PASS"
-                    )
-                    game.make_bid(current_pos, "PASS")
-
-            # Playing phase
-            while game.phase == 'playing':
-                current_pos = game.current_player
-                state = game.get_state(current_pos)
-
-                # Prepare game_state for agent
-                agent_state = {
-                    'position': current_pos,
-                    'hand': state.get('hand', game.hands.get(current_pos, [])),
-                    'current_trick': state['current_trick'],
-                    'legal_cards': game.get_legal_cards(current_pos),
-                    'contract': state['contract'],
-                    'tricks_won': state['tricks_won'],
-                }
-
-                # Get card from agent
-                try:
-                    card = agent_modules[current_pos].play_card(agent_state)
-                except Exception as e:
-                    self.logger.error(f"Simulation {idx}: Agent {agents[current_pos].name} error in play_card: {e}")
-                    legal = game.get_legal_cards(current_pos)
-                    card = legal[0] if legal else "AS"
-
-                # Play card
-                if not game.play_card(current_pos, card):
-                    self.logger.warning(
-                        f"Simulation {idx}: Invalid card '{card}' from {agents[current_pos].name}, using first legal card"
-                    )
-                    legal = game.get_legal_cards(current_pos)
-                    if legal:
-                        game.play_card(current_pos, legal[0])
-
-            # Save result to JSON log
-            result = game.get_result()
-            log_file = self.log_env / f"sim_{idx}.json"
-            with open(log_file, 'w') as f:
-                json.dump(result, f, indent=2)
-
-        except Exception as e:
-            self.logger.error(f"Simulation {idx} failed with error: {e}")
-        finally:
-            # Clean up sys.path
-            if game_server_path in sys.path:
-                sys.path.remove(game_server_path)
+        if response["returncode"] != 0:
+            self.logger.warning(
+                f"Bridge simulation {idx} failed with exit code {response['returncode']}:\n{response['output']}"
+            )
+        return response["output"]
 
     def execute_round(self, agents: list[Player]):
         """Execute a round of Bridge games."""
-        sims = self.game_config['sims_per_round']
+        sims = self.game_config.get('sims_per_round', 10)
         self.logger.info(f"Running {sims} Bridge simulations with 4 players")
 
+        # Build agent paths for the command
+        agent_paths = []
+        for agent in agents:
+            agent_paths.append(f"/{agent.name}/{self.submission}")
+
+        # Build base command
+        cmd = f"{self.run_cmd} {shlex.join(agent_paths)}"
+
         # Run simulations in parallel
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             futures = [
-                executor.submit(self._run_single_simulation, agents, idx)
+                executor.submit(
+                    self._run_single_simulation,
+                    agents,
+                    idx,
+                    f"{cmd} --seed {idx} --dealer {idx % 4}"
+                )
                 for idx in range(sims)
             ]
             for future in tqdm(as_completed(futures), total=len(futures), desc="Bridge simulations"):
@@ -192,7 +118,7 @@ game_state is a dict containing:
         games_played = 0
 
         # Parse all simulation logs
-        for idx in range(self.game_config['sims_per_round']):
+        for idx in range(self.game_config.get('sims_per_round', 10)):
             log_file = self.log_round(round_num) / f"sim_{idx}.json"
 
             if not log_file.exists():
@@ -202,6 +128,11 @@ game_state is a dict containing:
             try:
                 with open(log_file) as f:
                     result = json.load(f)
+
+                # Check for error
+                if 'error' in result:
+                    self.logger.warning(f"Simulation {idx} had error: {result['error']}")
+                    continue
 
                 # Extract VP scores for each team
                 vp_scores = result.get('normalized_score', {})
