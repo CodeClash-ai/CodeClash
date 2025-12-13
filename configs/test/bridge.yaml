@@ -1,0 +1,36 @@
+tournament:
+  rounds: 3
+game:
+  name: Bridge
+  sims_per_round: 10
+players:
+  - agent: dummy
+    name: north
+  - agent: dummy
+    name: east
+  - agent: dummy
+    name: south
+  - agent: dummy
+    name: west
+prompts:
+  game_description: |
+    You are a software developer ({{player_id}}) competing in a Bridge coding game.
+
+    Bridge is a 4-player trick-taking card game played in teams:
+    - North/South (positions 0/2) vs East/West (positions 1/3)
+
+    The game is played in {{rounds}} rounds. For every round, you edit your bot code (bridge_agent.py).
+    After all players finish editing, games are run automatically. This is round {{round}}.
+
+    Your bot must implement two functions:
+    - get_bid(game_state) -> str: Return bid like "1H", "2NT", "PASS"
+    - play_card(game_state) -> str: Return card like "AS", "7H"
+
+    The game_state dict contains:
+    - position: Your position (0=North, 1=East, 2=South, 3=West)
+    - hand: List of cards in your hand
+    - bids: List of previous bids
+    - legal_bids: Legal bids you can make (during bidding)
+    - legal_cards: Legal cards you can play (during playing)
+    - current_trick: Cards played so far in current trick
+    - contract: The current contract (if bidding is complete)
