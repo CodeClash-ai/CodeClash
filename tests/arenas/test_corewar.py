@@ -106,16 +106,25 @@ class TestCoreWarResults:
 
     def _create_sim_log(self, round_dir, scores: list[tuple[str, str, int]]):
         """
-        Create a simulation log file.
+        Create simulation log files (one per agent).
 
         Args:
+            round_dir: Directory to create log files in
             scores: List of (warrior_name, author, score) tuples
         """
-        log_file = round_dir / COREWAR_LOG
-        lines = ["pMARS 0.8.6\n", "Starting simulation...\n"]
-        for warrior_name, author, score in scores:
-            lines.append(f"{warrior_name} by {author} scores {score}\n")
-        log_file.write_text("".join(lines))
+        # Create one sim_{idx}.log file per agent to match new logging structure
+        for idx in range(len(scores)):
+            log_file = round_dir / COREWAR_LOG.format(idx=idx)
+            # Rotate player order to match what _run_single_simulation does
+            rotated_scores = scores[idx:] + scores[:idx]
+
+            lines = []
+            for warrior_name, author, score in rotated_scores:
+                lines.append(f"{warrior_name} by {author} scores {score}\n")
+            # Results line: wins for each player, then ties (always 0)
+            wins = " ".join([str(score) for _, _, score in rotated_scores] + ["0"])
+            lines.append(f"Results: {wins}\n")
+            log_file.write_text("".join(lines))
 
     def test_parse_results_player1_wins(self, arena, tmp_log_dir):
         """Test parsing results when player 1 has higher score."""
@@ -136,8 +145,8 @@ class TestCoreWarResults:
         arena.get_results(agents, round_num=1, stats=stats)
 
         assert stats.winner == "Alice"
-        assert stats.scores["Alice"] == 150
-        assert stats.scores["Bob"] == 100
+        assert stats.scores["Alice"] == 300  # 150 per sim * 2 sims
+        assert stats.scores["Bob"] == 200  # 100 per sim * 2 sims
 
     def test_parse_results_player2_wins(self, arena, tmp_log_dir):
         """Test parsing results when player 2 has higher score."""
@@ -158,8 +167,8 @@ class TestCoreWarResults:
         arena.get_results(agents, round_num=1, stats=stats)
 
         assert stats.winner == "Bob"
-        assert stats.scores["Alice"] == 80
-        assert stats.scores["Bob"] == 200
+        assert stats.scores["Alice"] == 160  # 80 per sim * 2 sims
+        assert stats.scores["Bob"] == 400  # 200 per sim * 2 sims
 
     def test_parse_results_tie(self, arena, tmp_log_dir):
         """Test parsing results when scores are equal."""
@@ -179,9 +188,9 @@ class TestCoreWarResults:
 
         arena.get_results(agents, round_num=1, stats=stats)
 
-        # With equal scores, first player with max wins (implementation detail)
-        assert stats.scores["Alice"] == 150
-        assert stats.scores["Bob"] == 150
+        # With equal wins, result is determined by score tiebreaker
+        assert stats.scores["Alice"] == 300  # 150 per sim * 2 sims
+        assert stats.scores["Bob"] == 300  # 150 per sim * 2 sims
 
 
 class TestCoreWarConfig:
