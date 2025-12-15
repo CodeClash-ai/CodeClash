@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://docs.codeclash.ai/reference/arenas/battlesnake/">
+        <link rel="canonical" href="https://docs.codeclash.ai/reference/arenas/bridge/">
       
       
-        <link rel="prev" href="../battlecode/">
+        <link rel="prev" href="../battlesnake/">
       
       
-        <link rel="next" href="../bridge/">
+        <link rel="next" href="../corewar/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>BattleSnake - CodeClash Documentation</title>
+        <title>Bridge - CodeClash Documentation</title>
       
     
     
@@ -102,7 +102,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#battlesnake" class="md-skip">
+        <a href="#bridge" class="md-skip">
           Skip to content
         </a>
       
@@ -135,7 +135,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              BattleSnake
+              Bridge
             
           </span>
         </div>
@@ -715,6 +715,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../battlesnake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BattleSnake
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -734,7 +762,7 @@
   <span class="md-ellipsis">
     
   
-    BattleSnake
+    Bridge
   
 
     
@@ -752,7 +780,7 @@
   <span class="md-ellipsis">
     
   
-    BattleSnake
+    Bridge
   
 
     
@@ -789,10 +817,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#game-rules" class="md-nav__link">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Game Rules
+        Implementation
       
     </span>
   </a>
@@ -800,10 +828,154 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#submission-format" class="md-nav__link">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Submission Format
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BridgeArena
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" BridgeArena">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.submission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.default_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.run_cmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;run_cmd
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.validate_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.execute_round" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.get_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_bidgame_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_bid(game_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#play_cardgame_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        play_card(game_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Agent
       
     </span>
   </a>
@@ -822,10 +994,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resources" class="md-nav__link">
+  <a href="#teams" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resources
+        Teams
       
     </span>
   </a>
@@ -833,118 +1005,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
+  <a href="#scoring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implementation
+        Scoring
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BattleSnakeArena
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label=" BattleSnakeArena">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.submission" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.default_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.run_cmd_round" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;run_cmd_round
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.execute_round" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.get_results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.validate_code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -952,34 +1019,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bridge/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Bridge
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -1624,10 +1663,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#game-rules" class="md-nav__link">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Game Rules
+        Implementation
       
     </span>
   </a>
@@ -1635,10 +1674,154 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#submission-format" class="md-nav__link">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Submission Format
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BridgeArena
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" BridgeArena">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.submission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.default_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.run_cmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;run_cmd
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.validate_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.execute_round" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.bridge.bridge.BridgeArena.get_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_bidgame_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_bid(game_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#play_cardgame_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        play_card(game_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Agent
       
     </span>
   </a>
@@ -1657,10 +1840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resources" class="md-nav__link">
+  <a href="#teams" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resources
+        Teams
       
     </span>
   </a>
@@ -1668,118 +1851,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
+  <a href="#scoring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implementation
+        Scoring
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BattleSnakeArena
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label=" BattleSnakeArena">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.submission" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.default_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.run_cmd_round" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;run_cmd_round
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.execute_round" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.get_results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.validate_code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1801,7 +1879,7 @@
 
 
   
-    <a href="https://github.com/emagedoc/CodeClash/edit/main/docs/reference/arenas/battlesnake.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/emagedoc/CodeClash/edit/main/docs/reference/arenas/bridge.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1809,43 +1887,10 @@
   
 
 
-<h1 id="battlesnake">BattleSnake</h1>
-<p>Multiplayer snake game where snakes compete to be the last survivor.</p>
+<h1 id="bridge">Bridge</h1>
+<p>4-player trick-taking card game played in teams.</p>
 <h2 id="overview">Overview</h2>
-<p>BattleSnake is a multi-player version of the classic snake game. Players implement an HTTP server that responds to game state with movement decisions.</p>
-<h2 id="game-rules">Game Rules</h2>
-<ul>
-<li>Snakes move on a grid</li>
-<li>Eat food to grow longer</li>
-<li>Avoid walls and other snakes</li>
-<li>Last snake standing wins</li>
-</ul>
-<h2 id="submission-format">Submission Format</h2>
-<p>Players must implement an HTTP server with specific endpoints:</p>
-<ul>
-<li><code>GET /</code>: Return snake metadata</li>
-<li><code>POST /start</code>: Handle game start</li>
-<li><code>POST /move</code>: Return movement decision</li>
-<li><code>POST /end</code>: Handle game end</li>
-</ul>
-<h2 id="configuration-example">Configuration Example</h2>
-<div class="highlight"><pre><span></span><code><span class="nt">game</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BattleSnake</span>
-<span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
-<span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
-<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span>
-
-<span class="nt">players</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Snake1</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Snake2</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-3</span>
-</code></pre></div>
-<h2 id="resources">Resources</h2>
-<ul>
-<li><a href="https://play.battlesnake.com">BattleSnake Official Site</a></li>
-<li><a href="https://docs.battlesnake.com">API Documentation</a></li>
-</ul>
+<p>Bridge is a classic card game where North/South compete against East/West. Players bid to determine the contract, then play 13 tricks to fulfill or defeat it. The game combines strategic bidding with tactical card play.</p>
 <h2 id="implementation">Implementation</h2>
 
 
@@ -1853,12 +1898,12 @@
 
 
 
-<h2 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena</span>
+<h2 id="codeclash.arenas.bridge.bridge.BridgeArena" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">codeclash.arenas.bridge.bridge.BridgeArena</span>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">BattleSnakeArena</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">BridgeArena</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
@@ -1875,26 +1920,20 @@
 
 
                   <details class="mkdocstrings-source">
-                    <summary>Source code in <code>codeclash/arenas/battlesnake/battlesnake.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <summary>Source code in <code>codeclash/arenas/bridge/bridge.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># Validate player count before initializing (to avoid Docker build on invalid config)</span>
+    <span class="n">num_players</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;players&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">if</span> <span class="n">num_players</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bridge requires exactly 4 players, got </span><span class="si">{</span><span class="n">num_players</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">run_cmd_round</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./battlesnake play&quot;</span>
-    <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_args</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">run_cmd_round</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; --</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">run_cmd_round</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; --</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_failed_to_start_player</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">run_cmd</span> <span class="o">=</span> <span class="s2">&quot;python3 /workspace/run_game.py&quot;</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -1912,7 +1951,7 @@
 
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.name" class="doc doc-heading">
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.name" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">name</span>
 
 
@@ -1922,7 +1961,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;BattleSnake&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Bridge&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1935,7 +1974,7 @@
 
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.submission" class="doc doc-heading">
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.submission" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">submission</span>
 
 
@@ -1945,7 +1984,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">submission</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;main.py&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">submission</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;bridge_agent.py&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1958,7 +1997,7 @@
 
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.description" class="doc doc-heading">
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.description" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">description</span>
 
 
@@ -1968,7 +2007,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Your bot (`main.py`) controls a snake on a grid-based board.</span><span class="se">\n</span><span class="s1">Snakes collect food, avoid collisions, and try to outlast their opponents.&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Bridge is a 4-player trick-taking card game played in teams.</span><span class="se">\n\n</span><span class="s1">Teams: North/South (positions 0/2) vs East/West (positions 1/3)</span><span class="se">\n\n</span><span class="s1">Your bot (bridge_agent.py) must implement these functions:</span><span class="se">\n</span><span class="s1">- get_bid(game_state) -&gt; str: Make bidding decisions, return bid string like &quot;1H&quot;, &quot;2NT&quot;, &quot;PASS&quot;</span><span class="se">\n</span><span class="s1">- play_card(game_state) -&gt; str: Play a card, return card string like &quot;AS&quot;, &quot;7H&quot;</span><span class="se">\n\n</span><span class="s1">game_state is a dict containing:</span><span class="se">\n</span><span class="s1">- position: Your position (0=North, 1=East, 2=South, 3=West)</span><span class="se">\n</span><span class="s1">- hand: List of cards in your hand (e.g., [&quot;AS&quot;, &quot;KH&quot;, &quot;7D&quot;])</span><span class="se">\n</span><span class="s1">- bids: List of previous bids</span><span class="se">\n</span><span class="s1">- legal_bids: List of legal bids you can make (during bidding)</span><span class="se">\n</span><span class="s1">- legal_cards: List of legal cards you can play (during playing)</span><span class="se">\n</span><span class="s1">- current_trick: Cards played so far in current trick</span><span class="se">\n</span><span class="s1">- contract: The current contract (if bidding is complete)</span><span class="se">\n</span><span class="s1">&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1981,7 +2020,7 @@
 
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.default_args" class="doc doc-heading">
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.default_args" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">default_args</span>
 
 
@@ -1991,7 +2030,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">default_args</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="s1">&#39;browser&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">default_args</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sims_per_round&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2004,8 +2043,8 @@
 
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.run_cmd_round" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">run_cmd_round</span>
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.run_cmd" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">run_cmd</span>
 
 
   <span class="doc doc-labels">
@@ -2013,7 +2052,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">run_cmd_round</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;./battlesnake play&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">run_cmd</span> <span class="o">=</span> <span class="s1">&#39;python3 /workspace/run_game.py&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2028,7 +2067,74 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.execute_round" class="doc doc-heading">
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.validate_code" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">validate_code</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">validate_code</span><span class="p">(</span><span class="n">agent</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="tuple">tuple</span></span><span class="p">[</span><span class="n"><span title="bool">bool</span></span><span class="p">,</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validate agent code has required functions.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>codeclash/arenas/bridge/bridge.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate agent code has required functions.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">submission</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;ls&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2"> file found in root directory&quot;</span>
+
+    <span class="n">content</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cat </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Check for required function definitions</span>
+    <span class="n">required_functions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;def get_bid(&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;def play_card(&quot;</span>
+    <span class="p">]</span>
+
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">required_functions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">func</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Missing required functions: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.execute_round" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">execute_round</span>
 
 
@@ -2038,9 +2144,11 @@
 
     <div class="doc doc-contents ">
 
+        <p>Execute a round of Bridge games.</p>
+
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/battlesnake/battlesnake.py</code></summary>
+              <summary>Source code in <code>codeclash/arenas/bridge/bridge.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 87</span>
 <span class="normal"> 88</span>
 <span class="normal"> 89</span>
@@ -2066,9 +2174,57 @@
 <span class="normal">109</span>
 <span class="normal">110</span>
 <span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
+<span class="normal">112</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute a round of Bridge games.&quot;&quot;&quot;</span>
+    <span class="n">sims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sims_per_round&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">sims</span><span class="si">}</span><span class="s2"> Bridge simulations with 4 players&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build agent paths for the command</span>
+    <span class="n">agent_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
+        <span class="n">agent_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build base command</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_cmd</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">shlex</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">agent_paths</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Run simulations in parallel</span>
+    <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_simulation</span><span class="p">,</span>
+                <span class="n">agents</span><span class="p">,</span>
+                <span class="n">idx</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2"> --seed </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> --dealer </span><span class="si">{</span><span class="n">idx</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">4</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sims</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Bridge simulations&quot;</span><span class="p">):</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="codeclash.arenas.bridge.bridge.BridgeArena.get_results" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_results</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get_results</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.arenas.arena.RoundStats" href="../game/#codeclash.arenas.arena.RoundStats">RoundStats</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Parse results and determine winners.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>codeclash/arenas/bridge/bridge.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
 <span class="normal">117</span>
@@ -2087,76 +2243,9 @@
 <span class="normal">130</span>
 <span class="normal">131</span>
 <span class="normal">132</span>
-<span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">]):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_failed_to_start_player</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">agents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Battlesnake requires at least two players&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting game servers&quot;</span><span class="p">)</span>
-    <span class="n">player2port</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">agent</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">agents</span><span class="p">):</span>
-        <span class="n">port</span> <span class="o">=</span> <span class="mi">8001</span> <span class="o">+</span> <span class="n">idx</span>
-        <span class="n">player2port</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">port</span>
-        <span class="c1"># Surprisingly slow despite using &amp;</span>
-        <span class="c1"># Start server in background - just add &amp; to run in background!</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PORT=</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2"> python </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2"> &amp;&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Waiting for ports: </span><span class="si">{</span><span class="n">player2port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">available_ports</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_ports</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">player2port</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">available_ports</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All games failed to start&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_ports</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">missing_ports</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">player2port</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">available_ports</span><span class="p">)</span>
-        <span class="n">missing_player</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">player</span> <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">player2port</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">missing_ports</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Player </span><span class="si">{</span><span class="n">missing_player</span><span class="si">}</span><span class="s2"> failed to start&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_failed_to_start_player</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">missing_player</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_ports</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">agents</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_ports</span><span class="p">)</span><span class="si">}</span><span class="s2"> players started: </span><span class="si">{</span><span class="n">available_ports</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;All ports are ready&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running game with players: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">player2port</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Use ThreadPoolExecutor for parallel execution</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="c1"># Submit all simulations to the thread pool</span>
-            <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_single_simulation</span><span class="p">,</span> <span class="n">player2port</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="p">[</span><span class="s2">&quot;sims_per_round&quot;</span><span class="p">])</span>
-            <span class="p">]</span>
-
-            <span class="c1"># Collect results as they complete</span>
-            <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">)):</span>
-                <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="c1"># Kill all python servers when done</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pkill -f &#39;python </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&#39; || true&quot;</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.get_results" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_results</span>
-
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get_results</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.arenas.arena.RoundStats" href="../game/#codeclash.arenas.arena.RoundStats">RoundStats</a></span><span class="p">)</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/battlesnake/battlesnake.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
 <span class="normal">136</span>
 <span class="normal">137</span>
 <span class="normal">138</span>
@@ -2184,58 +2273,9 @@
 <span class="normal">160</span>
 <span class="normal">161</span>
 <span class="normal">162</span>
-<span class="normal">163</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="n">available_players</span> <span class="o">=</span> <span class="p">[</span><span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">agents</span> <span class="k">if</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_failed_to_start_player</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_players</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="c1"># We ran the game</span>
-        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="p">[</span><span class="s2">&quot;sims_per_round&quot;</span><span class="p">]):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;sim_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">.jsonl&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># Get the last line which contains the game result</span>
-                    <span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span> <span class="k">if</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;isDraw&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;winnerName&quot;</span><span class="p">]</span>
-                    <span class="n">scores</span><span class="p">[</span><span class="n">winner</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> not found, skipping&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is not a valid JSON, skipping&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Only one player (</span><span class="si">{</span><span class="n">available_players</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) started, giving them the win&quot;</span><span class="p">)</span>
-        <span class="c1"># We didn&#39;t run a game, so we just give the one player the win</span>
-        <span class="n">available_player</span> <span class="o">=</span> <span class="n">available_players</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span><span class="n">available_player</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="p">[</span><span class="s2">&quot;sims_per_round&quot;</span><span class="p">]}</span>
-
-    <span class="n">winner</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">scores</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
-    <span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span> <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">winner</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">winner</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">winner</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span>
-    <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">player</span> <span class="o">!=</span> <span class="n">RESULT_TIE</span><span class="p">:</span>
-            <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">player</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">score</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="codeclash.arenas.battlesnake.battlesnake.BattleSnakeArena.validate_code" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">validate_code</span>
-
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">validate_code</span><span class="p">(</span><span class="n">agent</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="tuple">tuple</span></span><span class="p">[</span><span class="n"><span title="bool">bool</span></span><span class="p">,</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/battlesnake/battlesnake.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">165</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
 <span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
@@ -2247,27 +2287,70 @@
 <span class="normal">174</span>
 <span class="normal">175</span>
 <span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">submission</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;ls&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2"> file found in the root directory&quot;</span>
-    <span class="c1"># note: no longer calling splitlines</span>
-    <span class="n">bot_content</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cat </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
-    <span class="n">error_msg</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="p">[</span>
-        <span class="s2">&quot;def info(&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;def start(&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;def end(&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;def move(&quot;</span><span class="p">,</span>
-    <span class="p">]:</span>
-        <span class="k">if</span> <span class="n">func</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bot_content</span><span class="p">:</span>
-            <span class="n">error_msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There should be a `</span><span class="si">{</span><span class="n">func</span><span class="si">}</span><span class="s2">` function implemented in `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Don&#39;t change the function signatures!&quot;</span><span class="p">])</span>
-    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+<span class="normal">177</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse results and determine winners.&quot;&quot;&quot;</span>
+    <span class="c1"># Initialize team scores</span>
+    <span class="n">team_scores</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;NS&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;EW&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+    <span class="n">games_played</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Parse all simulation logs</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sims_per_round&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;sim_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">.json&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Log file </span><span class="si">{</span><span class="n">log_file</span><span class="si">}</span><span class="s2"> not found, skipping&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="c1"># Check for error</span>
+            <span class="k">if</span> <span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> had error: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Extract VP scores for each team</span>
+            <span class="n">vp_scores</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;normalized_score&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="n">vp_scores</span><span class="p">:</span>
+                <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;NS&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vp_scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;NS&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;EW&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vp_scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EW&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="n">games_played</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing </span><span class="si">{</span><span class="n">log_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="n">games_played</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No valid game results found&quot;</span><span class="p">)</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span>
+        <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">scores</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Average the scores</span>
+    <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;NS&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">games_played</span>
+    <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;EW&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">games_played</span>
+
+    <span class="c1"># Determine winning team</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;NS&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;EW&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># Tie threshold</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span>
+    <span class="k">elif</span> <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;NS&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;EW&#39;</span><span class="p">]:</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">agents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">agents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Assign scores to individual players based on their team</span>
+    <span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">agent</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">agents</span><span class="p">):</span>
+        <span class="n">team</span> <span class="o">=</span> <span class="s1">&#39;NS&#39;</span> <span class="k">if</span> <span class="n">position</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;EW&#39;</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">team_scores</span><span class="p">[</span><span class="n">team</span><span class="p">]</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">scores</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">score</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Round </span><span class="si">{</span><span class="n">round_num</span><span class="si">}</span><span class="s2"> results - NS: </span><span class="si">{</span><span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;NS&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;EW: </span><span class="si">{</span><span class="n">team_scores</span><span class="p">[</span><span class="s1">&#39;EW&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, Winner: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">winner</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2280,7 +2363,76 @@
 
     </div>
 
-</div><div class="grid cards">
+</div><h2 id="agent-interface">Agent Interface</h2>
+<p>Your bot must be a Python file (<code>bridge_agent.py</code>) implementing two functions:</p>
+<h3 id="get_bidgame_state">get_bid(game_state)</h3>
+<p>Make a bidding decision during the bidding phase.</p>
+<p><strong>Parameters:</strong>
+- <code>game_state</code> (dict): Current game state including:
+  - <code>position</code>: Your position (0=North, 1=East, 2=South, 3=West)
+  - <code>hand</code>: List of cards in your hand (e.g., <code>["AS", "KH", "7D"]</code>)
+  - <code>bids</code>: List of previous bids
+  - <code>legal_bids</code>: List of legal bids you can make</p>
+<p><strong>Returns:</strong>
+- <code>str</code>: Bid string like <code>"1H"</code>, <code>"2NT"</code>, <code>"3S"</code>, or <code>"PASS"</code></p>
+<h3 id="play_cardgame_state">play_card(game_state)</h3>
+<p>Play a card during the playing phase.</p>
+<p><strong>Parameters:</strong>
+- <code>game_state</code> (dict): Current game state including:
+  - <code>position</code>: Your position
+  - <code>hand</code>: Cards currently in your hand
+  - <code>current_trick</code>: Cards played so far in current trick
+  - <code>legal_cards</code>: Legal cards you can play
+  - <code>contract</code>: The current contract (level, suit, declarer)
+  - <code>tricks_won</code>: Tricks won by each team</p>
+<p><strong>Returns:</strong>
+- <code>str</code>: Card string like <code>"AS"</code>, <code>"7H"</code>, <code>"KD"</code></p>
+<h2 id="example-agent">Example Agent</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bid</span><span class="p">(</span><span class="n">game_state</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple strategy: PASS 80% of the time.&quot;&quot;&quot;</span>
+    <span class="n">legal_bids</span> <span class="o">=</span> <span class="n">game_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;legal_bids&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;PASS&quot;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.8</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">legal_bids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;PASS&quot;</span>
+
+    <span class="n">non_pass_bids</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">legal_bids</span> <span class="k">if</span> <span class="n">b</span> <span class="o">!=</span> <span class="s2">&quot;PASS&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">non_pass_bids</span><span class="p">)</span> <span class="k">if</span> <span class="n">non_pass_bids</span> <span class="k">else</span> <span class="s2">&quot;PASS&quot;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">play_card</span><span class="p">(</span><span class="n">game_state</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Play a random legal card.&quot;&quot;&quot;</span>
+    <span class="n">legal_cards</span> <span class="o">=</span> <span class="n">game_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;legal_cards&quot;</span><span class="p">,</span> <span class="n">game_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hand&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">legal_cards</span><span class="p">)</span> <span class="k">if</span> <span class="n">legal_cards</span> <span class="k">else</span> <span class="s2">&quot;AS&quot;</span>
+</code></pre></div>
+<h2 id="configuration-example">Configuration Example</h2>
+<div class="highlight"><pre><span></span><code><span class="nt">tournament</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="nt">game</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bridge</span>
+<span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">players</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">north</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">east</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">south</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">west</span>
+</code></pre></div>
+<h2 id="teams">Teams</h2>
+<p>Bridge is played in fixed partnerships:
+- <strong>North/South (NS)</strong>: Positions 0 and 2
+- <strong>East/West (EW)</strong>: Positions 1 and 3</p>
+<p>Scores are calculated per team using Victory Points (VP) normalized to 0-1 scale.</p>
+<h2 id="scoring">Scoring</h2>
+<p>The game uses standard Contract Bridge scoring:
+- Contract made: Base points + overtricks + game/slam bonuses
+- Contract failed: Undertrick penalties
+- Vulnerability affects bonuses and penalties
+- Raw scores are converted to Victory Points (VP)</p>
+<div class="grid cards">
   <a href="https://github.com/emagedoc/CodeClash/issues/new" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
@@ -2368,7 +2520,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../battlecode/" class="md-footer__link md-footer__link--prev" aria-label="Previous: BattleCode">
+          <a href="../battlesnake/" class="md-footer__link md-footer__link--prev" aria-label="Previous: BattleSnake">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2378,20 +2530,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                BattleCode
+                BattleSnake
               </div>
             </div>
           </a>
         
         
           
-          <a href="../bridge/" class="md-footer__link md-footer__link--next" aria-label="Next: Bridge">
+          <a href="../corewar/" class="md-footer__link md-footer__link--next" aria-label="Next: CoreWar">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Bridge
+                CoreWar
               </div>
             </div>
             <div class="md-footer__button md-icon">
