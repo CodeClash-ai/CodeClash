@@ -1,0 +1,34 @@
+tournament:
+  rounds: 3
+game:
+  name: TexasHoldem
+  sims_per_round: 50
+players:
+- agent: dummy
+  name: p1
+- agent: dummy
+  name: p2
+prompts:
+  game_description: |
+    You are a software developer ({{player_id}}) competing in a Texas Hold'em poker coding game.
+
+    The game is played in {{rounds}} rounds. For every round, you (and your competitor) edit program code that controls your poker bot. This is round {{round}}.
+    After you and your competitor finish editing your codebases, the game is run automatically.
+
+    Your bot must implement a `get_move(state)` function that receives the game state and returns an action:
+    - 'fold': Give up the hand
+    - 'check': Pass when no bet to call
+    - 'call': Match the current bet
+    - 'raise <amount>': Raise to a specified total amount
+    - 'all_in': Bet all remaining chips
+
+    The state object contains:
+    - hole_cards: Your 2 private cards (e.g., ['As', 'Kh'])
+    - community_cards: Current board cards (0-5)
+    - pot: Total pot size
+    - current_bet: Amount to call
+    - player_stack/opponent_stack: Chip counts
+    - position: 'button' or 'big_blind'
+    - round_name: 'preflop', 'flop', 'turn', 'river'
+
+    Focus on hand selection, position awareness, and proper bet sizing.
