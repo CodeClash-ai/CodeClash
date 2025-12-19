@@ -18,19 +18,35 @@ prompts:
     Figgie is a card trading game invented at Jane Street that simulates open-outcry commodities trading.
 
     Game Rules:
-    - 4 players, each starting with $350 and 10 cards (40 cards total)
+    - 4 or 5 players, each starting with $350
+    - 4 players: $50 ante, 10 cards each
+    - 5 players: $40 ante, 8 cards each
+    - Pot is always $200
     - Deck: one 12-card suit, two 10-card suits, one 8-card suit
     - Goal suit: same color as 12-card suit, contains 8 or 10 cards (secret until end)
-    - Players ante $50 each to form a $200 pot
     - At end: $10 per goal suit card, remainder to player(s) with most goal suit cards
+
+    Trading Model (Simultaneous Tick):
+    - Each tick, ALL players are polled for their action
+    - Actions are executed in random order (simulates racing to the order book)
+    - Order books cleared after each trade (per official Figgie rules)
 
     Your bot (main.py) must implement:
         def get_action(state: dict) -> dict
 
+    state contains:
+    - position: your player index
+    - hand: dict of suit -> count of cards you hold
+    - money: your current money
+    - books: dict of suit -> {bid: {price, player} or None, ask: {price, player} or None, last_trade}
+    - trades: list of completed trades
+    - num_players: number of players (4 or 5)
+    - tick: current tick number
+
     Return one of:
     - {"type": "pass"}
     - {"type": "bid", "suit": "spades", "price": 5}
-    - {"type": "offer", "suit": "spades", "price": 10}
+    - {"type": "ask", "suit": "spades", "price": 10}
     - {"type": "buy", "suit": "spades"}
     - {"type": "sell", "suit": "spades"}
 
