@@ -28,7 +28,9 @@ Color: "black" or "white"
 
     def execute_round(self, agents: list[Player]) -> None:
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
-        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / GOMOKU_LOG};"
+        cmd = (
+            f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / GOMOKU_LOG};"
+        )
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))
 
@@ -75,7 +77,7 @@ Color: "black" or "white"
             return (
                 False,
                 f"{self.submission} must define a get_move(board, color) function. "
-                "See the game description for the required signature."
+                "See the game description for the required signature.",
             )
 
         return True, None

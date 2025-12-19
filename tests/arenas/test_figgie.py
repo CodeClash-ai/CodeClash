@@ -101,26 +101,16 @@ class TestFiggieRequirements:
         ]
 
         with pytest.raises(ValueError, match="Figgie requires 4 or 5 players"):
-            FiggieArena(
-                config,
-                tournament_id="test_tournament",
-                local_output_dir=tmp_log_dir
-            )
+            FiggieArena(config, tournament_id="test_tournament", local_output_dir=tmp_log_dir)
 
     def test_rejects_6_players(self, minimal_config, tmp_log_dir):
         """Test that Figgie rejects 6 players."""
         config = minimal_config.copy()
         config["game"]["name"] = "Figgie"
-        config["players"] = [
-            {"name": f"p{i}", "agent": "dummy"} for i in range(6)
-        ]
+        config["players"] = [{"name": f"p{i}", "agent": "dummy"} for i in range(6)]
 
         with pytest.raises(ValueError, match="Figgie requires 4 or 5 players"):
-            FiggieArena(
-                config,
-                tournament_id="test_tournament",
-                local_output_dir=tmp_log_dir
-            )
+            FiggieArena(config, tournament_id="test_tournament", local_output_dir=tmp_log_dir)
 
     def test_accepts_4_or_5_players(self):
         """Test that Figgie accepts 4 or 5 players by checking class properties."""
