@@ -8,6 +8,7 @@ from codeclash.agents.player import Player
 from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
 
+DEFAULT_SIMS = 100
 MAP_EXT_TO_HEADER = {
     "js": "function robot(state, unit) {",
     "py": "def robot(state, unit):",
@@ -66,7 +67,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)
-                for idx in range(self.game_config.get("sims_per_round", 100))
+                for idx in range(self.game_config.get("sims_per_round", DEFAULT_SIMS))
             ]
 
             # Collect results as they complete
@@ -74,7 +75,8 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
             for future in as_completed(futures):
                 future.result()
                 i_completed += 1
-                self.logger.info(f"Completed {i_completed} of {len(futures)} simulations")
+                if i_completed % 10 == 0:
+                    self.logger.info(f"Completed {i_completed} of {len(futures)} simulations")
 
     def _get_winner_txt(self, output_file: str, agents: list[Player]) -> str:
         try:
@@ -114,7 +116,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         winners = []
-        for idx in range(self.game_config.get("sims_per_round", 100)):
+        for idx in range(self.game_config.get("sims_per_round", DEFAULT_SIMS)):
             output_file = self.log_round(round_num) / f"sim_{idx}.{self.sim_ext}"
             if not output_file.exists():
                 self.logger.warning(f"Simulation {idx} not found, skipping")

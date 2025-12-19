@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import traceback
@@ -5,7 +6,7 @@ from pathlib import Path
 
 from codeclash.utils.aws import get_aws_metadata
 from codeclash.utils.environment import create_file_in_container
-from codeclash.utils.log import add_root_file_handler, get_logger
+from codeclash.utils.log import add_root_file_handler, get_logger, remove_file_handler
 
 
 class AbstractTournament:
@@ -22,7 +23,7 @@ class AbstractTournament:
             "aws": get_aws_metadata(),
         }
         self.logger = get_logger(self.name, log_path=self.local_output_dir / "tournament.log", emoji="🏆")
-        add_root_file_handler(self.local_output_dir / "everything.log")
+        self._root_file_handler = add_root_file_handler(self.local_output_dir / "everything.log")
 
     @property
     def local_output_dir(self) -> Path:
@@ -32,6 +33,17 @@ class AbstractTournament:
 
     def get_metadata(self) -> dict:
         return self._metadata
+
+    def cleanup_handlers(self) -> None:
+        """Close and remove file handlers to prevent file descriptor leaks."""
+        # Close the root file handler
+        remove_file_handler(logging.getLogger(), self._root_file_handler)
+
+        # Close logger's file handlers
+        for handler in self.logger.handlers[:]:  # Copy list to avoid modification during iteration
+            if isinstance(handler, logging.FileHandler):
+                self.logger.removeHandler(handler)
+                handler.close()
 
     def _copy_game_log_to_agent(self, agent, round_num: int, log_output: str, dest_path: str = None) -> None:
         """Copy round log to agent environment."""

@@ -49,7 +49,7 @@ Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating
     def execute_round(self, agents: list[Player]):
         for agent in agents:
             src, dest = f"/{agent.name}/src/{BC_FOLDER}/", str(DIR_WORK / "src" / agent.name)
-            self.environment.execute(f"cp -r {src} {dest}")
+            self.environment.execute(f"rm -rf {dest}; cp -r {src} {dest}")
         args = [f"--p{idx + 1}-dir src --p{idx + 1} {agent.name}" for idx, agent in enumerate(agents)]
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
@@ -69,8 +69,10 @@ Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating
         for idx in range(self.game_config["sims_per_round"]):
             with open(self.log_round(round_num) / BC_LOG.format(idx=idx)) as f:
                 lines = f.read().strip().split("\n")
+            if len(lines) < 3:
+                # Game likely crashed, skip this simulation
+                continue
             # Get the third-to-last line which contains the winner info
-            assert len(lines) >= 3, "Log file does not contain enough lines to determine winner"
             winner_line = lines[-3]
             reason_line = lines[-2]
             match = re.search(r"\s\((.*)\)\swins\s\(", winner_line)

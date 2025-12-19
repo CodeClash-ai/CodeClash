@@ -1,9 +1,13 @@
 import logging
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 from minisweagent.environments.docker import DockerEnvironment
+
+# Patterns to exclude when copying between containers
+COPY_EXCLUDE_PATTERNS = [".git", "__pycache__"]
 
 
 def assert_zero_exit_code(result: dict, *, logger: logging.Logger | None = None) -> dict:
@@ -48,6 +52,15 @@ def copy_between_containers(
             raise RuntimeError(
                 f"Failed to copy from {src_container.container_id} to local temp: {result_src.stdout}{result_src.stderr}"
             )
+
+        # Remove excluded patterns
+        for pattern in COPY_EXCLUDE_PATTERNS:
+            excluded_path = temp_path / pattern
+            if excluded_path.exists():
+                if excluded_path.is_dir():
+                    shutil.rmtree(excluded_path)
+                else:
+                    excluded_path.unlink()
 
         # Ensure destination folder exists
         assert_zero_exit_code(dest_container.execute(f"mkdir -p {Path(dest_path).parent}"))

@@ -1,6 +1,7 @@
 from codeclash.arenas.arena import CodeArena
 from codeclash.arenas.battlecode.battlecode import BattleCodeArena
 from codeclash.arenas.battlesnake.battlesnake import BattleSnakeArena
+from codeclash.arenas.bridge.bridge import BridgeArena
 from codeclash.arenas.corewar.corewar import CoreWarArena
 from codeclash.arenas.dummy.dummy import DummyArena
 from codeclash.arenas.gomoku.gomoku import GomokuArena
@@ -14,6 +15,7 @@ from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
 ARENAS = [
     BattleCodeArena,
     BattleSnakeArena,
+    BridgeArena,
     CoreWarArena,
     DummyArena,
     GomokuArena,

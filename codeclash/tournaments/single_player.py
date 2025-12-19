@@ -141,6 +141,7 @@ class SinglePlayerTraining(AbstractTournament):
         """Clean up game resources."""
         self._save()
         self.game.end(self.cleanup_on_end)
+        self.cleanup_handlers()
 
     def evaluate(self, n_repetitions: int = 3) -> None:
         """Evaluate the agent's performance by

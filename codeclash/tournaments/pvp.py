@@ -30,10 +30,11 @@ class PvpTournament(AbstractTournament):
         push: bool = False,
         keep_containers: bool = False,
     ):
+        metadata_file = output_dir / "metadata.json"
+        if metadata_file.exists():
+            raise FileExistsError(f"Metadata file already exists: {metadata_file}")
+
         super().__init__(config, name="PvpTournament", output_dir=output_dir)
-        if self.metadata_file.exists():
-            self.logger.critical(f"Metadata file already exists: {self.metadata_file}")
-            raise FileExistsError(f"Metadata file already exists: {self.metadata_file}")
         self.cleanup_on_end = cleanup
         self.game: CodeArena = get_arena(
             self.config,
@@ -213,3 +214,4 @@ class PvpTournament(AbstractTournament):
         """Save output files, clean up game resources and push agents if requested."""
         self._save()
         self.game.end(self.cleanup_on_end)
+        self.cleanup_handlers()

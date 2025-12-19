@@ -72,6 +72,7 @@ nav:
         - "CodeGame (Abstract)": "reference/arenas/game.md"
         - "BattleCode": "reference/arenas/battlecode.md"
         - "BattleSnake": "reference/arenas/battlesnake.md"
+        - "Bridge": "reference/arenas/bridge.md"
         - "CoreWar": "reference/arenas/corewar.md"
         - "Halite": "reference/arenas/halite.md"
         - "Halite II": "reference/arenas/halite2.md"
