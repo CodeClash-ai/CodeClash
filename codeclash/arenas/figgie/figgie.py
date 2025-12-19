@@ -29,6 +29,11 @@ Game Rules:
 - Goal suit: same color as 12-card suit, contains 8 or 10 cards
 - At end: $10 per goal suit card, remainder to player(s) with most goal suit cards
 
+Trading Model (Simultaneous Tick):
+- Each tick, ALL players are polled for their action
+- Actions are executed in random order (simulates racing to the order book)
+- Order books cleared after each trade (per official Figgie rules)
+
 Your bot (main.py) must implement:
 
     def get_action(state: dict) -> dict
@@ -37,16 +42,15 @@ state contains:
 - position: your player index (0-3 or 0-4)
 - hand: dict of suit -> count of cards you hold
 - money: your current money
-- bids: dict of suit -> {price, player} or None
-- offers: dict of suit -> {price, player} or None
+- books: dict of suit -> {bid: {price, player} or None, ask: {price, player} or None, last_trade}
 - trades: list of completed trades
 - num_players: number of players (4 or 5)
-- turn: current turn number
+- tick: current tick number
 
 Return one of:
 - {"type": "pass"}
 - {"type": "bid", "suit": "spades", "price": 5}
-- {"type": "offer", "suit": "spades", "price": 10}
+- {"type": "ask", "suit": "spades", "price": 10}
 - {"type": "buy", "suit": "spades"}
 - {"type": "sell", "suit": "spades"}
 
