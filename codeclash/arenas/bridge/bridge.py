@@ -3,7 +3,6 @@
 import json
 import shlex
 import subprocess
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm.auto import tqdm
@@ -53,10 +52,7 @@ game_state is a dict containing:
         content = agent.environment.execute(f"cat {self.submission}")["output"]
 
         # Check for required function definitions
-        required_functions = [
-            "def get_bid(",
-            "def play_card("
-        ]
+        required_functions = ["def get_bid(", "def play_card("]
 
         missing = []
         for func in required_functions:
@@ -86,7 +82,7 @@ game_state is a dict containing:
 
     def execute_round(self, agents: list[Player]):
         """Execute a round of Bridge games."""
-        sims = self.game_config.get('sims_per_round', 10)
+        sims = self.game_config.get("sims_per_round", 10)
         self.logger.info(f"Running {sims} Bridge simulations with 4 players")
 
         # Build agent paths for the command
@@ -100,12 +96,7 @@ game_state is a dict containing:
         # Run simulations in parallel
         with ThreadPoolExecutor(max_workers=8) as executor:
             futures = [
-                executor.submit(
-                    self._run_single_simulation,
-                    agents,
-                    idx,
-                    f"{cmd} --seed {idx} --dealer {idx % 4}"
-                )
+                executor.submit(self._run_single_simulation, agents, idx, f"{cmd} --seed {idx} --dealer {idx % 4}")
                 for idx in range(sims)
             ]
             for future in tqdm(as_completed(futures), total=len(futures), desc="Bridge simulations"):
@@ -114,11 +105,11 @@ game_state is a dict containing:
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         """Parse results and determine winners."""
         # Initialize team scores
-        team_scores = {'NS': 0.0, 'EW': 0.0}
+        team_scores = {"NS": 0.0, "EW": 0.0}
         games_played = 0
 
         # Parse all simulation logs
-        for idx in range(self.game_config.get('sims_per_round', 10)):
+        for idx in range(self.game_config.get("sims_per_round", 10)):
             log_file = self.log_round(round_num) / f"sim_{idx}.json"
 
             if not log_file.exists():
@@ -130,15 +121,15 @@ game_state is a dict containing:
                     result = json.load(f)
 
                 # Check for error
-                if 'error' in result:
+                if "error" in result:
                     self.logger.warning(f"Simulation {idx} had error: {result['error']}")
                     continue
 
                 # Extract VP scores for each team
-                vp_scores = result.get('normalized_score', {})
+                vp_scores = result.get("normalized_score", {})
                 if vp_scores:
-                    team_scores['NS'] += vp_scores.get('NS', 0.0)
-                    team_scores['EW'] += vp_scores.get('EW', 0.0)
+                    team_scores["NS"] += vp_scores.get("NS", 0.0)
+                    team_scores["EW"] += vp_scores.get("EW", 0.0)
                     games_played += 1
             except (json.JSONDecodeError, KeyError) as e:
                 self.logger.warning(f"Error parsing {log_file}: {e}")
@@ -153,20 +144,20 @@ game_state is a dict containing:
             return
 
         # Average the scores
-        team_scores['NS'] /= games_played
-        team_scores['EW'] /= games_played
+        team_scores["NS"] /= games_played
+        team_scores["EW"] /= games_played
 
         # Determine winning team
-        if abs(team_scores['NS'] - team_scores['EW']) < 0.01:  # Tie threshold
+        if abs(team_scores["NS"] - team_scores["EW"]) < 0.01:  # Tie threshold
             stats.winner = RESULT_TIE
-        elif team_scores['NS'] > team_scores['EW']:
+        elif team_scores["NS"] > team_scores["EW"]:
             stats.winner = f"{agents[0].name}/{agents[2].name}"
         else:
             stats.winner = f"{agents[1].name}/{agents[3].name}"
 
         # Assign scores to individual players based on their team
         for position, agent in enumerate(agents):
-            team = 'NS' if position % 2 == 0 else 'EW'
+            team = "NS" if position % 2 == 0 else "EW"
             score = team_scores[team]
             stats.scores[agent.name] = score
             stats.player_stats[agent.name].score = score

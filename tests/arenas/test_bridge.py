@@ -105,7 +105,6 @@ def get_bid(game_state):
         assert "def play_card(" in error
 
 
-
 class TestBridgeRequirements:
     """Test Bridge-specific requirements."""
 
@@ -119,11 +118,7 @@ class TestBridgeRequirements:
         ]
 
         with pytest.raises(ValueError, match="Bridge requires exactly 4 players"):
-            BridgeArena(
-                config,
-                tournament_id="test_tournament",
-                local_output_dir=tmp_log_dir
-            )
+            BridgeArena(config, tournament_id="test_tournament", local_output_dir=tmp_log_dir)
 
     def test_accepts_4_players(self):
         """Test that Bridge accepts exactly 4 players by checking class properties."""
