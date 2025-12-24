@@ -42,7 +42,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         """Run a single robotrumble simulation and return the output."""
         cmd = f"{cmd} > {self.log_env / f'sim_{idx}.{self.sim_ext}'}"
 
-        # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
+        # https://github.com/CodeClash-ai/CodeClash/issues/62 (timeouts)
         try:
             response = self.environment.execute(cmd, timeout=120)
         except subprocess.TimeoutExpired:

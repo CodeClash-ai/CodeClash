@@ -1,5 +1,5 @@
 <div class="grid cards">
-  <a href="https://github.com/emagedoc/CodeClash/issues/new" class="nav-card-link">
+  <a href="https://github.com/CodeClash-ai/CodeClash/issues/new" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
         <span class="material-icons nav-card-icon">bug_report</span>

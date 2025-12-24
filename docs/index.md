@@ -29,7 +29,7 @@ Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs
     </div>
   </a>
 
-  <a href="https://github.com/emagedoc/CodeClash" class="nav-card-link">
+  <a href="https://github.com/CodeClash-ai/CodeClash" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
         <span class="material-icons nav-card-icon">code</span>
