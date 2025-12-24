@@ -11,6 +11,7 @@ from codeclash.arenas.halite3.halite3 import Halite3Arena
 from codeclash.arenas.huskybench.huskybench import HuskyBenchArena
 from codeclash.arenas.robocode.robocode import RoboCodeArena
 from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
+from codeclash.arenas.texasholdem.texasholdem import ShortDeckHoldemArena, TexasHoldemArena
 
 ARENAS = [
     BattleCodeArena,
@@ -25,6 +26,8 @@ ARENAS = [
     HuskyBenchArena,
     RoboCodeArena,
     RobotRumbleArena,
+    ShortDeckHoldemArena,
+    TexasHoldemArena,
 ]
 
 
