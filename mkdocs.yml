@@ -2,8 +2,8 @@ site_name: CodeClash Documentation
 
 site_url: https://docs.codeclash.ai
 
-repo_url: https://github.com/emagedoc/CodeClash
-repo_name: emagedoc/CodeClash
+repo_url: https://github.com/CodeClash-ai/CodeClash
+repo_name: CodeClash-ai/CodeClash
 edit_uri: edit/main/docs/
 
 theme:
@@ -72,6 +72,7 @@ nav:
         - "CodeGame (Abstract)": "reference/arenas/game.md"
         - "BattleCode": "reference/arenas/battlecode.md"
         - "BattleSnake": "reference/arenas/battlesnake.md"
+        - "Bridge": "reference/arenas/bridge.md"
         - "CoreWar": "reference/arenas/corewar.md"
         - "Halite": "reference/arenas/halite.md"
         - "Halite II": "reference/arenas/halite2.md"

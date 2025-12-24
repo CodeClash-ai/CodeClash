@@ -18,11 +18,24 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install ocaml
 RUN apt-get update && apt-get install -y ocaml ocamlbuild
 
-# Clone Halite repository
-RUN git clone https://github.com/CodeClash-ai/Halite-II.git /workspace \
-    && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/Halite-II.git \
+# Install Haskell
+RUN apt-get update && apt-get install -y libgmp-dev \
+ && rm -rf /var/lib/apt/lists/*
 
+# Install GHCup non-interactively
+RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | \
+    BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_ADJUST_BASHRC=1 sh
+
+# Add ghcup to PATH
+ENV PATH="/root/.ghcup/bin:${PATH}"
+
+# Verify installation
+RUN ghc --version && cabal --version
+
+# Clone Halite repository
+RUN git clone https://github.com/CodeClash-ai/Halite2.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/Halite2.git
 WORKDIR /workspace
 
 RUN cd environment && cmake . && make

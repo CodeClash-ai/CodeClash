@@ -1,7 +1,7 @@
 tournament:
   rounds: 3
 game:
-  name: Halite-III
+  name: Halite3
   sims_per_round: 250
 players:
 - agent: dummy

@@ -132,7 +132,7 @@ fig, ax = plt.subplots(figsize=(12, 8))
 gap = 0.3
 y_positions = []
 model_positions = []
-for i, model in enumerate(models):
+for i in range(len(models)):
     base = i * (2 + gap)
     y_positions.extend([base, base + 1])
     model_positions.append(base + 0.5)
@@ -197,7 +197,7 @@ for y_pos, total in zip(y_positions, left):
     )
 
 # Add round labels on the left side of the plot
-for i, (y_late, y_early) in enumerate(zip(y_positions[::2], y_positions[1::2])):
+for y_late, y_early in zip(y_positions[::2], y_positions[1::2]):
     ax.text(-0.2, y_late, "round ≥8", fontsize=11, ha="right", va="center", color="gray", fontproperties=FONT_BOLD)
     ax.text(-0.2, y_early, "round ≤7", fontsize=11, ha="right", va="center", color="gray", fontproperties=FONT_BOLD)
 

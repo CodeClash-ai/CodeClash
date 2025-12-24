@@ -16,7 +16,9 @@ from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
 
 os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "90"
-os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str((REPO_DIR / "configs" / "litellm_custom_model_config.yaml").resolve())
+os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
+    (REPO_DIR / "configs" / "mini" / "litellm_custom_model_config.yaml").resolve()
+)
 
 
 class ClashAgent(DefaultAgent):

@@ -68,7 +68,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
 
         cmd = self.run_cmd_round + " " + " ".join(cmd_args) + f" -o {self.log_env / f'sim_{idx}.jsonl'}"
 
-        # https://github.com/emagedoc/CodeClash/issues/62 (timeouts)
+        # https://github.com/CodeClash-ai/CodeClash/issues/62 (timeouts)
         try:
             response = self.environment.execute(
                 cmd,

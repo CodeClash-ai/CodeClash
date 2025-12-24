@@ -13,11 +13,13 @@ from codeclash.constants import RESULT_TIE
 
 HALITE_LOG = "sim_{idx}.log"
 HALITE_HIDDEN_EXEC = ".codeclash_exec"
+HALITE_WIN_PATTERN = r"Player\s#(\d+),\s(.*),\scame\sin\srank\s#(\d+)"
 
 # Command to be run in each agent's `submission/` folder to compile agent
 MAP_FILE_TYPE_TO_COMPILE = {
-    ".cpp": "g++ -std=c++11 {path}.cpp -o {name}.o",
-    ".c": "gcc {path}.c -o {name}.o",
+    ".cpp": "g++ -std=c++11 {name}.cpp -o {name}.o",
+    ".c": "gcc {name}.c -o {name}.o",
+    ".hs": "ghc --make {name}.hs -O -v0 -rtsopts -outputdir dist",
     ".ml": "ocamlbuild -lib unix {name}.native",
     ".rs": "cargo build",
 }
@@ -26,6 +28,7 @@ MAP_FILE_TYPE_TO_COMPILE = {
 MAP_FILE_TYPE_TO_RUN = {
     ".c": "{path}/{name}.o",
     ".cpp": "{path}/{name}.o",
+    ".hs": "{path}/{name}",
     ".js": "node {path}/{name}.js",
     ".ml": "{path}/{name}.native",
     ".py": "python {path}/{name}.py",
@@ -50,10 +53,11 @@ You may include additional files as needed, but please ensure:
 """
     default_args: dict = {}
     submission: str = "submission"
+    executable: str = "./environment/halite"
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        self.run_cmd_round: str = f"./environment/halite --replaydirectory {self.log_env}"
+        self.run_cmd_round: str = f"{self.executable} --replaydirectory {self.log_env}"
         for arg, val in self.game_config.get("args", self.default_args).items():
             if isinstance(val, bool):
                 if val:
@@ -91,13 +95,18 @@ You may include additional files as needed, but please ensure:
             for future in tqdm(as_completed(futures), total=len(futures)):
                 future.result()
 
-    def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
+    def get_results(
+        self,
+        agents: list[Player],
+        round_num: int,
+        stats: RoundStats,
+        pattern: str = HALITE_WIN_PATTERN,
+    ):
         winners = []
-        pattern = r"Player\s#(\d+),\s(.*),\scame\sin\srank\s#(\d+)"
         for idx in range(self.game_config["sims_per_round"]):
             log_file = self.log_round(round_num) / HALITE_LOG.format(idx=idx)
             with open(log_file) as f:
-                lines = f.readlines()[-len(agents) - 1 :]
+                lines = f.readlines()[-len(agents) - 5 :]
                 for line in lines:
                     match = re.search(pattern, line)
                     if match:
@@ -120,7 +129,12 @@ You may include additional files as needed, but please ensure:
             if player != RESULT_TIE:
                 stats.player_stats[player].score = score
 
-    def validate_code(self, agent: Player) -> tuple[bool, str | None]:
+    def validate_code(
+        self,
+        agent: Player,
+        map_file_type_to_compile: dict = MAP_FILE_TYPE_TO_COMPILE,
+        map_file_type_to_run: dict = MAP_FILE_TYPE_TO_RUN,
+    ) -> tuple[bool, str | None]:
         # Check that the `submission/` folder exists
         exists_output = agent.environment.execute("test -d submission && echo 'exists'")["output"]
         if "exists" != exists_output.strip():
@@ -128,15 +142,25 @@ You may include additional files as needed, but please ensure:
 
         # Check that there is a *single* file called "main.<ext>" in the submission folder
         # and that <ext> is one of the supported file types
+        found_main = False
         sub_path = Path(agent.environment.config.cwd) / self.submission
-        ls_output = agent.environment.execute("ls", cwd=sub_path)["output"]
+        ls_output = agent.environment.execute("ls", cwd=sub_path)["output"].splitlines()
         main_files = [
-            fname
-            for fname in ls_output.splitlines()
-            if fname.startswith("main.") and Path(fname).suffix in MAP_FILE_TYPE_TO_RUN
+            fname for fname in ls_output if fname.startswith("main.") and Path(fname).suffix in map_file_type_to_run
         ]
-        supported_exts = "|".join(MAP_FILE_TYPE_TO_RUN.keys())
+
         if len(main_files) != 1:
+            # Check if src/main.rs exists for Rust projects
+            if "src" in ls_output:
+                src_ls_output = agent.environment.execute("ls src", cwd=sub_path)["output"].splitlines()
+                if "main.rs" in src_ls_output:
+                    main_files = ["src/main.rs"]
+                    found_main = True
+        else:
+            found_main = True
+
+        if not found_main:
+            supported_exts = "|".join(map_file_type_to_run.keys())
             return (
                 False,
                 f"Exactly one main.[{supported_exts}] file must be present in submission, found {len(main_files)}",
@@ -144,8 +168,8 @@ You may include additional files as needed, but please ensure:
         main_ext = Path(main_files[0]).suffix
 
         # Check that the submission compiles if necessary
-        if main_ext in MAP_FILE_TYPE_TO_COMPILE:
-            compile_cmd = MAP_FILE_TYPE_TO_COMPILE[main_ext].format(path="main", name="main")
+        if main_ext in map_file_type_to_compile:
+            compile_cmd = map_file_type_to_compile[main_ext].format(name="main")
             try:
                 compile_response = agent.environment.execute(compile_cmd, timeout=15, cwd=sub_path)
             except subprocess.TimeoutExpired:
@@ -157,8 +181,8 @@ You may include additional files as needed, but please ensure:
                 )
 
         # Check that submission runs in competition
-        executable = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=self.submission, name="main")
-        run_cmd = f"./environment/halite {shlex.join([executable, executable])}"
+        executable = map_file_type_to_run[main_ext].format(path=self.submission, name="main")
+        run_cmd = f"{self.executable} {shlex.join([executable, executable])}"
         try:
             run_response = agent.environment.execute(run_cmd, timeout=15)
         except subprocess.TimeoutExpired:
@@ -167,6 +191,6 @@ You may include additional files as needed, but please ensure:
             return False, f"Submission failed to run (ran {run_cmd}): {run_response['output']}"
 
         # Record command to run executable to hidden file
-        executable_comp = MAP_FILE_TYPE_TO_RUN[main_ext].format(path=f"/{agent.name}/{self.submission}", name="main")
+        executable_comp = map_file_type_to_run[main_ext].format(path=f"/{agent.name}/{self.submission}", name="main")
         agent.environment.execute(f'echo "{executable_comp}" > {HALITE_HIDDEN_EXEC}')
         return True, None

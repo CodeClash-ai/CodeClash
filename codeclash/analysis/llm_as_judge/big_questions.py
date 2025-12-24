@@ -6,7 +6,7 @@ import random
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import jinja2
 import yaml
@@ -23,7 +23,6 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
-from typing_extensions import Any
 
 from codeclash.analysis.llm_as_judge.utils import FileLock, Instance, InstanceBatch, get_instances
 from codeclash.utils.log import get_logger

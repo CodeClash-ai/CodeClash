@@ -64,8 +64,12 @@ class RichFormatter(logging.Formatter):
         return capture.get().rstrip()
 
 
-def add_file_handler(logger: logging.Logger, log_path: Path) -> None:
-    """Add a file handler to the logger with standard formatting."""
+def add_file_handler(logger: logging.Logger, log_path: Path) -> logging.FileHandler:
+    """Add a file handler to the logger with standard formatting.
+
+    Returns:
+        The FileHandler that was added (for later cleanup).
+    """
     log_path.parent.mkdir(parents=True, exist_ok=True)
     file_handler = logging.FileHandler(log_path)
     file_handler.setLevel(_FILE_LEVEL)
@@ -78,11 +82,23 @@ def add_file_handler(logger: logging.Logger, log_path: Path) -> None:
     file_handler.setFormatter(file_formatter)
 
     logger.addHandler(file_handler)
+    return file_handler
 
 
-def add_root_file_handler(log_path: Path) -> None:
-    """Add a file handler to the root logger to capture all log messages."""
-    add_file_handler(logging.getLogger(), log_path)
+def add_root_file_handler(log_path: Path) -> logging.FileHandler:
+    """Add a file handler to the root logger to capture all log messages.
+
+    Returns:
+        The FileHandler that was added (for later cleanup).
+    """
+    return add_file_handler(logging.getLogger(), log_path)
+
+
+def remove_file_handler(logger: logging.Logger, handler: logging.FileHandler) -> None:
+    """Remove and close a file handler from the logger."""
+    if handler in logger.handlers:
+        logger.removeHandler(handler)
+    handler.close()
 
 
 def get_logger(name: str, *, emoji: str = "", log_path: Path | None = None) -> logging.Logger:

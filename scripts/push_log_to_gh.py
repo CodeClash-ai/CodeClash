@@ -49,6 +49,21 @@ def main(cc_folder: Path):
         metadata = json.load(f)
     players = [x["name"] for x in metadata["config"]["players"]]
 
+    # Detect default branch name
+    default_branch = (
+        subprocess.run(
+            "git symbolic-ref refs/remotes/origin/HEAD",
+            shell=True,
+            check=True,
+            capture_output=True,
+            cwd=arena,
+        )
+        .stdout.decode("utf-8")
+        .strip()
+        .split("/")[-1]
+    )
+    print(f"Default branch detected: {default_branch}")
+
     # Push diffs for each player
     for player in players:
         player_log_folder = cc_folder / "players" / player
@@ -57,7 +72,7 @@ def main(cc_folder: Path):
             print(f"Branch {branch_name} already exists, skipping...")
             continue
         subprocess.run(
-            f"git checkout main; git branch {branch_name} -D; git checkout -b {branch_name}",
+            f"git checkout {default_branch}; git branch {branch_name} -D; git checkout -b {branch_name}",
             shell=True,
             check=True,
             cwd=arena,

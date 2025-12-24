@@ -8,7 +8,7 @@ Halite III returns to the resource collection mechanics with new twists.
 
 ## Resources
 
-- [Halite III Documentation](https://halite.io)
+- [Halite III Documentation](https://github.com/HaliteChallenge/Halite-III)
 
 ## Implementation
 

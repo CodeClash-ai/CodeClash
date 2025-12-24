@@ -10,7 +10,7 @@ from codeclash.agents import get_agent
 from codeclash.agents.dummy_agent import Dummy
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.arenas import get_game
+from codeclash.arenas import get_arena
 from codeclash.arenas.arena import CodeArena
 from codeclash.constants import DIR_WORK, FILE_RESULTS
 from codeclash.tournaments.tournament import AbstractTournament
@@ -24,7 +24,7 @@ class SinglePlayerTraining(AbstractTournament):
     def __init__(self, config: dict, *, output_dir: Path, cleanup: bool = False, keep_containers: bool = False):
         super().__init__(config, name="SinglePlayerTraining", output_dir=output_dir)
         self.cleanup_on_end = cleanup
-        self.game: CodeArena = get_game(
+        self.game: CodeArena = get_arena(
             self.config,
             tournament_id=self.tournament_id,
             local_output_dir=self.local_output_dir,
@@ -141,6 +141,7 @@ class SinglePlayerTraining(AbstractTournament):
         """Clean up game resources."""
         self._save()
         self.game.end(self.cleanup_on_end)
+        self.cleanup_handlers()
 
     def evaluate(self, n_repetitions: int = 3) -> None:
         """Evaluate the agent's performance by
