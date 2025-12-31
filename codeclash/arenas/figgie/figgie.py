@@ -65,9 +65,7 @@ Suits: "spades", "clubs", "hearts", "diamonds"
 
     def execute_round(self, agents: list[Player]) -> None:
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
-        cmd = (
-            f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / FIGGIE_LOG};"
-        )
+        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} -o {self.log_env} > {self.log_env / FIGGIE_LOG};"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))
 
