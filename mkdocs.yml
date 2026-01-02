@@ -80,7 +80,7 @@ nav:
         - "HuskyBench": "reference/arenas/huskybench.md"
         - "RoboCode": "reference/arenas/robocode.md"
         - "RobotRumble": "reference/arenas/robotrumble.md"
-        - "DummyGame": "reference/arenas/dummy.md"
+        - "DummyArena": "reference/arenas/dummy.md"
       - Player:
         - "Player (Abstract)": "reference/player/player.md"
         - "MiniSWEAgent": "reference/player/minisweagent.md"
