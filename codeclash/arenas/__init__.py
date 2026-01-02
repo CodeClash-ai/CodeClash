@@ -2,6 +2,7 @@ from codeclash.arenas.arena import CodeArena
 from codeclash.arenas.battlecode25.battlecode25 import BattleCode25Arena
 from codeclash.arenas.battlesnake.battlesnake import BattleSnakeArena
 from codeclash.arenas.bridge.bridge import BridgeArena
+from codeclash.arenas.chess.chess import ChessArena
 from codeclash.arenas.corewar.corewar import CoreWarArena
 from codeclash.arenas.dummy.dummy import DummyArena
 from codeclash.arenas.figgie.figgie import FiggieArena
@@ -17,6 +18,7 @@ ARENAS = [
     BattleCode25Arena,
     BattleSnakeArena,
     BridgeArena,
+    ChessArena,
     CoreWarArena,
     DummyArena,
     FiggieArena,
