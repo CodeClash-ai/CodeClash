@@ -1,8 +1,8 @@
 tournament:
   rounds: 3
 game:
-  name: BattleCode2025
-  sims_per_round: 20 # NOTE: Setting to > 1 does nothing for BattleCode2025, since each round is deterministic
+  name: BattleCode25
+  sims_per_round: 20 # NOTE: Setting to > 1 does nothing for BattleCode25, since each round is deterministic
   args:
     maps: quack
 players:
@@ -12,7 +12,7 @@ players:
   name: p2
 prompts:
   game_description: |
-    You are a software developer ({{player_id}}) competing in a coding game called BattleCode2025.
+    You are a software developer ({{player_id}}) competing in a coding game called BattleCode25.
     Battlecode2025 throws you into a real-time strategy showdown where your Python bot pilots a team of specialized robots—Soldiers, Moppers, Splashers—alongside towers that spawn units or generate resources.
     Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating cleanups, area cover, and tower-building through tight bytecode budgets and clever unit synergy.
 

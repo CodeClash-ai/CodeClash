@@ -1,10 +1,10 @@
-# DummyGame
+# DummyArena
 
 Simple test game for development and debugging.
 
 ## Overview
 
-DummyGame is a minimal game implementation used for testing the CodeClash framework.
+DummyArena is a minimal game implementation used for testing the CodeClash framework.
 
 ## Implementation
 
@@ -24,7 +24,7 @@ Useful for:
 
 ```yaml
 game:
-  name: DummyGame
+  name: DummyArena
   rounds: 3
   sims_per_round: 1
 
