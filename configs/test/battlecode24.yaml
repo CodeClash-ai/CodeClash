@@ -3,8 +3,6 @@ tournament:
 game:
   name: BattleCode24
   sims_per_round: 20
-  args:
-    maps: quack
 players:
 - agent: dummy
   name: p1
