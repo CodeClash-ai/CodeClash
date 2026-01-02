@@ -9,7 +9,7 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
-from codeclash.arenas import BattleCodeArena, DummyGame
+from codeclash.arenas import BattleCode2025Arena, DummyGame
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.utils.log import get_logger
 
@@ -32,7 +32,7 @@ def get_normalized_scores(metadata_path: Path) -> tuple[str | None, dict[str, li
     if len(players) != 2:
         return None, {}, {}
 
-    if game_name in {DummyGame.name, BattleCodeArena.name}:
+    if game_name in {DummyGame.name, BattleCode2025Arena.name}:
         return None, {}, {}
 
     # Map player names to models
