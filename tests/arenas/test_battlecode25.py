@@ -7,7 +7,7 @@ Tests validate_code() and get_results() methods without requiring Docker.
 import pytest
 
 from codeclash.arenas.arena import RoundStats
-from codeclash.arenas.battlecode.battlecode import BC_FOLDER, BC_LOG, BC_TIE, BattleCodeArena
+from codeclash.arenas.battlecode25.battlecode25 import BC_FOLDER, BC_LOG, BC_TIE, BattleCode25Arena
 
 from .conftest import MockPlayer
 
@@ -26,7 +26,7 @@ class TestBattleCodeValidation:
     @pytest.fixture
     def arena(self, tmp_log_dir, minimal_config):
         """Create BattleCodeArena instance with mocked environment."""
-        arena = BattleCodeArena.__new__(BattleCodeArena)
+        arena = BattleCode25Arena.__new__(BattleCode25Arena)
         arena.submission = f"src/{BC_FOLDER}"
         arena.log_local = tmp_log_dir
         arena.run_cmd_round = "python run.py run"
@@ -114,7 +114,7 @@ class TestBattleCodeResults:
         config = minimal_config.copy()
         config["game"]["name"] = "BattleCode"
         config["game"]["sims_per_round"] = 3
-        arena = BattleCodeArena.__new__(BattleCodeArena)
+        arena = BattleCode25Arena.__new__(BattleCode25Arena)
         arena.submission = f"src/{BC_FOLDER}"
         arena.log_local = tmp_log_dir
         arena.config = config
@@ -205,11 +205,11 @@ class TestBattleCodeConfig:
 
     def test_arena_name(self):
         """Test that arena has correct name."""
-        assert BattleCodeArena.name == "BattleCode"
+        assert BattleCode25Arena.name == "BattleCode25"
 
     def test_submission_path(self):
         """Test that submission path is correct."""
-        assert BattleCodeArena.submission == f"src/{BC_FOLDER}"
+        assert BattleCode25Arena.submission == f"src/{BC_FOLDER}"
 
     def test_bc_folder_name(self):
         """Test that BC folder name is mysubmission."""
@@ -217,8 +217,8 @@ class TestBattleCodeConfig:
 
     def test_default_args(self):
         """Test default arguments."""
-        assert BattleCodeArena.default_args.get("maps") == "quack"
+        assert BattleCode25Arena.default_args.get("maps") == "quack"
 
     def test_description_mentions_python(self):
         """Test that description mentions Python as the language."""
-        assert "python" in BattleCodeArena.description.lower()
+        assert "python" in BattleCode25Arena.description.lower()

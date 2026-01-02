@@ -1,3 +1,9 @@
+"""Figgie Arena for CodeClash.
+
+Figgie is a card trading game invented at Jane Street in 2013.
+It simulates open-outcry commodities trading.
+"""
+
 import re
 
 from codeclash.agents.player import Player
@@ -5,37 +11,66 @@ from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
 from codeclash.utils.environment import assert_zero_exit_code
 
-GOMOKU_LOG = "result.log"
+FIGGIE_LOG = "result.log"
 
 
-class GomokuArena(CodeArena):
-    name: str = "Gomoku"
+class FiggieArena(CodeArena):
+    name: str = "Figgie"
     submission: str = "main.py"
-    description: str = """Your bot (`main.py`) controls a Gomoku player on a 15x15 board.
-Players take turns placing stones. Win by connecting 5 stones in a row (horizontally, vertically, or diagonally).
-Black plays first.
+    description: str = """Figgie is a card trading game invented at Jane Street in 2013.
+It simulates open-outcry commodities trading where players buy and sell cards to accumulate the goal suit.
 
-Your bot must implement:
-    def get_move(board: list[list[int]], color: str) -> tuple[int, int]
+Game Rules:
+- 4 or 5 players, each starting with $350
+- 4 players: $50 ante, 10 cards each
+- 5 players: $40 ante, 8 cards each
+- Pot is always $200
+- Deck: one 12-card suit, two 10-card suits, one 8-card suit
+- Goal suit: same color as 12-card suit, contains 8 or 10 cards
+- At end: $10 per goal suit card, remainder to player(s) with most goal suit cards
 
-Board representation: 0=empty, 1=black, 2=white
-Color: "black" or "white"
+Trading Model (Simultaneous Tick):
+- Each tick, ALL players are polled for their action
+- Actions are executed in random order (simulates racing to the order book)
+- Order books cleared after each trade (per official Figgie rules)
+
+Your bot (main.py) must implement:
+
+    def get_action(state: dict) -> dict
+
+state contains:
+- position: your player index (0-3 or 0-4)
+- hand: dict of suit -> count of cards you hold
+- money: your current money
+- books: dict of suit -> {bid: {price, player} or None, ask: {price, player} or None, last_trade}
+- trades: list of completed trades
+- num_players: number of players (4 or 5)
+- tick: current tick number
+
+Return one of:
+- {"type": "pass"}
+- {"type": "bid", "suit": "spades", "price": 5}
+- {"type": "ask", "suit": "spades", "price": 10}
+- {"type": "buy", "suit": "spades"}
+- {"type": "sell", "suit": "spades"}
+
+Suits: "spades", "clubs", "hearts", "diamonds"
 """
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        assert len(config["players"]) == 2, "Gomoku is a two-player game"
+        num_players = len(config.get("players", []))
+        if num_players not in [4, 5]:
+            raise ValueError(f"Figgie requires 4 or 5 players, got {num_players}")
 
     def execute_round(self, agents: list[Player]) -> None:
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
-        cmd = (
-            f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} > {self.log_env / GOMOKU_LOG};"
-        )
+        cmd = f"python engine.py {' '.join(args)} -r {self.game_config['sims_per_round']} -o {self.log_env} > {self.log_env / FIGGIE_LOG};"
         self.logger.info(f"Running game: {cmd}")
         assert_zero_exit_code(self.environment.execute(cmd))
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
-        with open(self.log_round(round_num) / GOMOKU_LOG) as f:
+        with open(self.log_round(round_num) / FIGGIE_LOG) as f:
             round_log = f.read()
         lines = round_log.split("FINAL_RESULTS")[-1].splitlines()
 
@@ -73,10 +108,10 @@ Color: "black" or "white"
 
         bot_content = agent.environment.execute(f"cat {self.submission}")["output"]
 
-        if "def get_move(" not in bot_content:
+        if "def get_action(" not in bot_content:
             return (
                 False,
-                f"{self.submission} must define a get_move(board, color) function. "
+                f"{self.submission} must define a get_action(state) function. "
                 "See the game description for the required signature.",
             )
 
