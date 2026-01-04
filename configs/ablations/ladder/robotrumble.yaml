@@ -1,127 +1,140 @@
 tournament:
-  rounds: 0
+  rounds: 1
 game:
   name: RobotRumble
-  sims_per_round: 250
+  sims_per_round: 20
   args:
     raw: false
-players:
-- agent: dummy
-  branch_init: human/aaa/jippty5
-- agent: dummy
-  branch_init: human/aaoutkine/dark-knight
-- agent: dummy
-  branch_init: human/aaoutkine/school-bot
-- agent: dummy
-  branch_init: human/aaoutkine/silo34
-- agent: dummy
-  branch_init: human/aayyad/testbot
+player:
+  agent: mini
+  name: claude-sonnet-4-5-20250929
+  branch_init: human/anton/anton3000
+  config:
+    agent: !include mini/default.yaml
+    model:
+      model_name: '@anthropic/claude-sonnet-4-5-20250929'
+      model_class: portkey
+      model_kwargs:
+        temperature: 0.2
+        max_tokens: 4096
+  push: True
+prompts:
+  game_description: |-
+    RobotRumble ladder
+ladder:
 - agent: dummy
   branch_init: human/anton/anton3000
 - agent: dummy
-  branch_init: human/anton/anton4000
-- agent: dummy
-  branch_init: human/anton/om-om
+  branch_init: human/happysquid/test
 - agent: dummy
   branch_init: human/anton/wallifier
 - agent: dummy
-  branch_init: human/atl15/centerrr
+  branch_init: human/ldang/nessy
 - agent: dummy
-  branch_init: human/clay/diag-lattice
+  branch_init: human/ldang/nemo
 - agent: dummy
-  branch_init: human/devchris/black_magic
+  branch_init: human/navster8/bash-brothers
 - agent: dummy
-  branch_init: human/devchris/first_test
+  branch_init: human/aaoutkine/dark-knight
 - agent: dummy
-  branch_init: human/edward/flail
+  branch_init: human/mountain/neuralbot1-1h
 - agent: dummy
-  branch_init: human/entropicdrifter/gigachad
+  branch_init: human/sivecano/clouded-mind
 - agent: dummy
-  branch_init: human/entropicdrifter/glommer
-- agent: dummy
-  branch_init: human/entropicdrifter/glommerv2
-- agent: dummy
-  branch_init: human/entropicdrifter/seven-of-nine
-- agent: dummy
-  branch_init: human/entropicdrifter/we-are-borg
-- agent: dummy
-  branch_init: human/essickmango/fruity-test
-- agent: dummy
-  branch_init: human/essickmango/pickle-up
-- agent: dummy
-  branch_init: human/gerenuk/gere-ape
-- agent: dummy
-  branch_init: human/happysquid/test
-- agent: dummy
-  branch_init: human/jammyliu/sixty-nine-line
-- agent: dummy
-  branch_init: human/jay0jayjay/naivestarter
-- agent: dummy
-  branch_init: human/jiricodes/jiricodes-bot
+  branch_init: human/mountain/neuralbot2-6h
 - agent: dummy
   branch_init: human/kalkin/artemis
 - agent: dummy
   branch_init: human/kalkin/artemis2
 - agent: dummy
-  branch_init: human/kalkin/maxad
-- agent: dummy
-  branch_init: human/ketza/arthur
-- agent: dummy
-  branch_init: human/ketza/bob
-- agent: dummy
-  branch_init: human/lanity/sivuy
-- agent: dummy
-  branch_init: human/ldang/nemo
-- agent: dummy
-  branch_init: human/ldang/nessy
-- agent: dummy
-  branch_init: human/luisa/baselinegere
-- agent: dummy
-  branch_init: human/luisa/luisasrobot
-- agent: dummy
-  branch_init: human/mario31313/alpha_13
-- agent: dummy
-  branch_init: human/mee42/follow-bot
-- agent: dummy
-  branch_init: human/mitch84/crw_preempt
-- agent: dummy
-  branch_init: human/mitch84/retreat_walk2
-- agent: dummy
-  branch_init: human/mitch84/walk_retreat
-- agent: dummy
-  branch_init: human/mjburgess/rule99
-- agent: dummy
-  branch_init: human/mkap/test
-- agent: dummy
-  branch_init: human/mountain/neuralbot1-1h
-- agent: dummy
-  branch_init: human/mountain/neuralbot2-6h
-- agent: dummy
-  branch_init: human/mountain/neuralbot4-3h
-- agent: dummy
-  branch_init: human/mousetail/coward-bot
-- agent: dummy
-  branch_init: human/mousetail/genetic-robot
-- agent: dummy
-  branch_init: human/navster8/bash-brothers
-- agent: dummy
   branch_init: human/navster8/maginot-line
+- agent: dummy
+  branch_init: human/jiricodes/jiricodes-bot
 - agent: dummy
   branch_init: human/sbasu3/meek-bot
 - agent: dummy
-  branch_init: human/sivecano/clouded-mind
-- agent: dummy
-  branch_init: human/suddenlyseals/control-center
-- agent: dummy
-  branch_init: human/tabaxi3k/black-magic-1
+  branch_init: human/essickmango/fruity-test
 - agent: dummy
   branch_init: human/tabaxi3k/charles
 - agent: dummy
+  branch_init: human/devchris/first_test
+- agent: dummy
+  branch_init: human/aaa/jippty5
+- agent: dummy
+  branch_init: human/jay0jayjay/naivestarter
+- agent: dummy
+  branch_init: human/luisa/luisasrobot
+- agent: dummy
+  branch_init: human/luisa/baselinegere
+- agent: dummy
+  branch_init: human/anton/anton4000
+- agent: dummy
+  branch_init: human/aayyad/testbot
+- agent: dummy
+  branch_init: human/edward/flail
+- agent: dummy
+  branch_init: human/mousetail/genetic-robot
+- agent: dummy
+  branch_init: human/kalkin/maxad
+- agent: dummy
+  branch_init: human/mjburgess/rule99
+- agent: dummy
+  branch_init: human/ketza/bob
+- agent: dummy
+  branch_init: human/suddenlyseals/control-center
+- agent: dummy
+  branch_init: human/aaoutkine/school-bot
+- agent: dummy
   branch_init: human/thesmilingturtl/naivefaa
+- agent: dummy
+  branch_init: human/mario31313/alpha_13
 - agent: dummy
   branch_init: human/underscore/bot1
 - agent: dummy
+  branch_init: human/lanity/sivuy
+- agent: dummy
+  branch_init: human/mee42/follow-bot
+- agent: dummy
+  branch_init: human/anton/om-om
+- agent: dummy
+  branch_init: human/aaoutkine/silo34
+- agent: dummy
+  branch_init: human/mountain/neuralbot4-3h
+- agent: dummy
+  branch_init: human/ketza/arthur
+- agent: dummy
+  branch_init: human/mkap/test
+- agent: dummy
+  branch_init: human/essickmango/pickle-up
+- agent: dummy
   branch_init: human/wolfsleuth/simple
-prompts:
-  game_description: |-
-    RobotRumble ladder
+- agent: dummy
+  branch_init: human/gerenuk/gere-ape
+- agent: dummy
+  branch_init: human/clay/diag-lattice
+- agent: dummy
+  branch_init: human/atl15/centerrr
+- agent: dummy
+  branch_init: human/jammyliu/sixty-nine-line
+- agent: dummy
+  branch_init: human/mitch84/walk_retreat
+- agent: dummy
+  branch_init: human/tabaxi3k/black-magic-1
+- agent: dummy
+  branch_init: human/devchris/black_magic
+- agent: dummy
+  branch_init: human/mitch84/retreat_walk2
+- agent: dummy
+  branch_init: human/mitch84/crw_preempt
+- agent: dummy
+  branch_init: human/entropicdrifter/glommer
+- agent: dummy
+  branch_init: human/mousetail/coward-bot
+- agent: dummy
+  branch_init: human/entropicdrifter/glommerv2
+- agent: dummy
+  branch_init: human/entropicdrifter/we-are-borg
+- agent: dummy
+  branch_init: human/entropicdrifter/seven-of-nine
+- agent: dummy
+  branch_init: human/entropicdrifter/gigachad
