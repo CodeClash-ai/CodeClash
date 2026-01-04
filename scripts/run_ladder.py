@@ -11,18 +11,6 @@ from codeclash.tournaments.pvp import PvpTournament
 from codeclash.utils.yaml_utils import resolve_includes
 
 
-def win_condition(tournament_dir: Path, name: str) -> bool:
-    """Player must have won majority of rounds and the last round to continue ladder"""
-    metadata_path = tournament_dir / "metadata.json"
-    with open(metadata_path) as f:
-        metadata = yaml.safe_load(f)
-    round_winners = [r["winner"] for r in metadata["round_stats"].values()]
-
-    player_wins = sum(1 for w in round_winners if w == name)
-    player_won_last = round_winners[-1] == name
-    return player_wins > len(round_winners) // 2 and player_won_last
-
-
 def main(
     config_path: Path,
     *,
@@ -48,6 +36,7 @@ def main(
     parent_dir = LOCAL_LOG_DIR / getpass.getuser() / ladder_folder
 
     for idx, opponent in enumerate(ladder):
+        opponent_rank = len(ladder) - idx
         opponent["name"] = opponent["branch_init"].replace("human/", "").replace("/", "_")
         if "branch_init" in player and idx > 0:
             # After first opponent, remove branch_init so that player continues from previous tournament's codebase
@@ -75,13 +64,30 @@ def main(
         )
         tournament.run()
 
-        # If player lost tournament, ladder challenge ends
-        if not win_condition(tournament_dir, player["name"]):
+        # Get results
+        metadata_path = tournament_dir / "metadata.json"
+        with open(metadata_path) as f:
+            metadata = yaml.safe_load(f)
+        round_winners = [r["winner"] for r in metadata["round_stats"].values()]
+
+        # Player must have won majority of rounds and the last round to continue ladder
+        player_wins = sum(1 for w in round_winners if w == player["name"])
+        player_won_last = round_winners[-1] == player["name"]
+
+        if not player_wins > len(round_winners) // 2 or not player_won_last:
+            # If player lost tournament, ladder challenge ends
             break
 
-    rank = len(ladder) - idx
+        print("=" * 10)
+        print(
+            f"{player['name']} successfully beat {opponent['name']} (rank {opponent_rank}/{len(ladder)}) "
+            f"in {player_wins}/{len(round_winners)} rounds.\n"
+            "Ladder challenge continuing"
+        )
+        print("=" * 10)
+
     print(f"Ladder tournament complete. Logs saved to {parent_dir}")
-    print(f"Final opponent faced: {opponent['name']} (rank {rank}/{len(ladder)} in ladder)")
+    print(f"Final opponent faced: {opponent['name']} (rank {opponent_rank}/{len(ladder)} in ladder)")
 
 
 def main_cli(argv: list[str] | None = None):
