@@ -1,8 +1,8 @@
 tournament:
-  rounds: 1
+  rounds: 5
 game:
   name: RobotRumble
-  sims_per_round: 20
+  sims_per_round: 250
   args:
     raw: false
 player:
