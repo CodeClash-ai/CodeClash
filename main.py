@@ -18,7 +18,6 @@ def main(
     config_path: Path,
     *,
     cleanup: bool = False,
-    push: bool = False,
     output_dir: Path | None = None,
     suffix: str = "",
     keep_containers: bool = False,
@@ -62,9 +61,7 @@ def main(
 
     full_output_dir = get_output_path()
 
-    tournament = PvpTournament(
-        config, output_dir=full_output_dir, cleanup=cleanup, push=push, keep_containers=keep_containers
-    )
+    tournament = PvpTournament(config, output_dir=full_output_dir, cleanup=cleanup, keep_containers=keep_containers)
     tournament.run()
 
 
@@ -80,12 +77,6 @@ def main_cli(argv: list[str] | None = None):
         "--cleanup",
         action="store_true",
         help="If set, do not clean up the game environment after running.",
-    )
-    parser.add_argument(
-        "-p",
-        "--push",
-        action="store_true",
-        help="If set, push each agent's codebase to a new repository after running.",
     )
     parser.add_argument(
         "-o",

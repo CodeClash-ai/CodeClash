@@ -27,7 +27,6 @@ class PvpTournament(AbstractTournament):
         *,
         output_dir: Path,
         cleanup: bool = False,
-        push: bool = False,
         keep_containers: bool = False,
     ):
         metadata_file = output_dir / "metadata.json"
@@ -44,7 +43,7 @@ class PvpTournament(AbstractTournament):
         )
         self.agents: list[Player] = []
         for agent_conf in self.config["players"]:
-            self.agents.append(self.get_agent(agent_conf, self.config["prompts"], push=push))
+            self.agents.append(self.get_agent(agent_conf, self.config["prompts"]))
 
     @property
     def metadata_file(self) -> Path:
@@ -66,7 +65,7 @@ class PvpTournament(AbstractTournament):
             "agents": [agent.get_metadata() for agent in self.agents],
         }
 
-    def get_agent(self, agent_config: dict, prompts: dict, push: bool) -> Player:
+    def get_agent(self, agent_config: dict, prompts: dict) -> Player:
         """Create an agent with environment and game context."""
         environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
 
@@ -82,7 +81,7 @@ class PvpTournament(AbstractTournament):
             working_dir=str(DIR_WORK),
         )
 
-        return get_agent(agent_config, game_context, environment, push=push)
+        return get_agent(agent_config, game_context, environment)
 
     def run(self) -> None:
         """Main execution function that runs all rounds."""

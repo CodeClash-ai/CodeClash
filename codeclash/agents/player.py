@@ -22,7 +22,6 @@ class Player(ABC):
         config: dict,
         environment: DockerEnvironment,
         game_context: GameContext,
-        push: bool = False,
     ) -> None:
         self.config = config
         self.name = config["name"]
@@ -30,7 +29,7 @@ class Player(ABC):
         """Unique ID that doesn't clash even across multiple games. Used for git tags."""
         self.environment = environment
         self.game_context = game_context
-        self.push = push
+        self.push = config.get("push", False)
         self.logger = get_logger(
             self.name,
             log_path=self.game_context.log_local / "players" / self.name / "player.log",
