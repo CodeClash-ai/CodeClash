@@ -1,5 +1,5 @@
 tournament:
-  rounds: 1
+  rounds: 3
 game:
   name: BattleCode23
   sims_per_round: 1
