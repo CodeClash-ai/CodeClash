@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%post
+    apt-get update \
+    && apt-get install -y \
+        curl ca-certificates wget git build-essential jq locales \
+    && rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/CodeClash-ai/CoreWar.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/CoreWar.git
+
+    cd /workspace/src/ && make CFLAGS="-O -DEXT94 -DPERMUTATE -DRWLIMIT" LIB=""
+
+    cp /workspace/doc/examples/dwarf.red /home/dwarf.red
+
+%labels
+    Author CodeClash

@@ -1,0 +1,20 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%environment
+    export PYTHONDONTWRITEBYTECODE=1
+    export PYTHONUNBUFFERED=1
+
+%post
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential git curl && \
+        rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/CodeClash-ai/BattleCode2025.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleCode2025.git
+
+    cd /workspace && python run.py update
+
+%labels
+    Author CodeClash
