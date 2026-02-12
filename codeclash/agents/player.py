@@ -5,12 +5,11 @@ import uuid
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
-from minisweagent.environments.docker import DockerEnvironment
 
 from codeclash.agents.utils import GameContext
 from codeclash.constants import GH_ORG
 from codeclash.tournaments.utils.git_utils import extract_modified_code_file_paths_from_diff, filter_git_diff
-from codeclash.utils.environment import assert_zero_exit_code, create_file_in_container
+from codeclash.utils.environment import ContainerEnvironment, assert_zero_exit_code, create_file_in_container
 from codeclash.utils.log import get_logger
 
 load_dotenv()
@@ -20,7 +19,7 @@ class Player(ABC):
     def __init__(
         self,
         config: dict,
-        environment: DockerEnvironment,
+        environment: ContainerEnvironment,
         game_context: GameContext,
     ) -> None:
         self.config = config
@@ -170,7 +169,7 @@ class Player(ABC):
             self.environment.execute("git rev-parse HEAD"),
             logger=self.logger,
         )
-        return out["output"].strip()
+        return out["output"].strip().splitlines()[-1]  # take last line only to strip any Singularity warnings
 
     def _commit(self) -> None:
         """Commit changes to the agent's codebase."""
