@@ -147,7 +147,8 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         ext, exists = None, False
         for possible_ext in MAP_EXT_TO_HEADER.keys():
             exists_output = agent.environment.execute(f"test -f robot.{possible_ext} && echo 'exists'")["output"]
-            if "exists" == exists_output.strip().splitlines()[-1]:
+            lines = exists_output.strip().splitlines()
+            if lines and "exists" == lines[-1]:
                 ext = possible_ext
                 exists = True
                 break

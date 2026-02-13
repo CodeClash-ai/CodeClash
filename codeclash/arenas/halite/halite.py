@@ -137,7 +137,8 @@ You may include additional files as needed, but please ensure:
     ) -> tuple[bool, str | None]:
         # Check that the `submission/` folder exists
         exists_output = agent.environment.execute("test -d submission && echo 'exists'")["output"]
-        if "exists" != exists_output.strip().splitlines()[-1]:
+        lines = exists_output.strip().splitlines()
+        if not lines or "exists" != lines[-1]:
             return False, f"Submission folder `{self.submission}/` does not exist"
 
         # Check that there is a *single* file called "main.<ext>" in the submission folder
