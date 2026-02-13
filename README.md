@@ -34,7 +34,7 @@ Check out our [arXiv paper](https://arxiv.org/abs/2511.00839) and [website](http
 
 - **Python 3.11+**
 - **[uv](https://docs.astral.sh/uv/)** - Fast Python package manager
-- **Docker** - For running games in containers
+- **Docker** or **Singularity** - For running games in containers
 - **Git**
 
 ### Installation
@@ -58,8 +58,9 @@ uv run python main.py configs/test/battlesnake.yaml
 ```
 
 > [!TIP]
-> CodeClash requires Docker to create execution environments. CodeClash was developed and tested on Ubuntu 22.04.4 LTS.
+> CodeClash requires Docker or Singularity to create execution environments. CodeClash was developed and tested on Ubuntu 22.04.4 LTS.
 > The same instructions should work for Mac. If not, check out [#81](https://github.com/CodeClash-ai/CodeClash/issues/81) for an alternative solution.
+> To use Singularity instead of Docker, set the environment variable: `export CODECLASH_RUNTIME=singularity`
 
 <details>
 <summary>Alternative: Using pip (not recommended)</summary>
