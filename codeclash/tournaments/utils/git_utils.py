@@ -10,7 +10,6 @@ def filter_git_diff(diff: str) -> str:
     out: list[str] = []
     block: list[str] = []
     in_block = False
-    prelude_copied = False
 
     def is_binary_block(bl: list[str]) -> bool:
         for ln in bl:
@@ -41,14 +40,10 @@ def filter_git_diff(diff: str) -> str:
                 else:
                     out.extend(block)
                 block = []
-            else:
-                if not prelude_copied:
-                    prelude_copied = True
             in_block = True
         if in_block:
             block.append(ln)
-        else:
-            out.append(ln)
+
 
     if in_block and block:
         if is_binary_block(block):
@@ -124,15 +119,11 @@ def split_git_diff_by_files(diff: str) -> dict[str, str]:
     current_file = None
     current_block = []
 
-    # Store any prelude (content before first diff --git line)
-    prelude = []
-    found_first_diff = False
-
     for line in lines:
         if line.startswith("diff --git "):
             # Save previous file's diff if we have one
             if current_file and current_block:
-                files_diffs[current_file] = "".join(prelude + current_block)
+                files_diffs[current_file] = "".join(current_block)
                 current_block = []
 
             # Extract file path from the diff line
@@ -149,16 +140,12 @@ def split_git_diff_by_files(diff: str) -> dict[str, str]:
                     current_file = "unknown_file"
 
             current_block.append(line)
-            found_first_diff = True
-        else:
-            if found_first_diff and current_file:
-                current_block.append(line)
-            else:
-                # This is prelude content before any diff
-                prelude.append(line)
+        elif current_file:
+            current_block.append(line)
+
 
     # Handle the last file
     if current_file and current_block:
-        files_diffs[current_file] = "".join(prelude + current_block)
+        files_diffs[current_file] = "".join(current_block)
 
     return files_diffs
