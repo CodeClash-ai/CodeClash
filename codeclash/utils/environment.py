@@ -51,12 +51,14 @@ def copy_between_containers(
             shutil.copytree(
                 src_full,
                 actual_dest,
+                symlinks=True,
                 ignore=shutil.ignore_patterns(*COPY_EXCLUDE_PATTERNS),
             )
         else:
             shutil.copytree(
                 src_full,
                 dest_full,
+                symlinks=True,
                 ignore=shutil.ignore_patterns(*COPY_EXCLUDE_PATTERNS),
             )
         return
