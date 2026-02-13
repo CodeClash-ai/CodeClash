@@ -13,7 +13,8 @@ From: ubuntu:22.04
 
     cd /workspace/src/ && make CFLAGS="-O -DEXT94 -DPERMUTATE -DRWLIMIT" LIB=""
 
-    cp /workspace/doc/examples/dwarf.red /home/dwarf.red
+    # Use /opt as Singularity's --contain bind-mounts host /home, hiding container paths
+    cp /workspace/doc/examples/dwarf.red /opt/dwarf.red
 
 %labels
     Author CodeClash

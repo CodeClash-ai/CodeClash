@@ -3,6 +3,7 @@ From: eclipse-temurin:8-jdk
 
 %environment
     export JAVA_HOME=/opt/java/openjdk
+    export GRADLE_USER_HOME=/root/.gradle
 
 %post
     apt-get update && apt-get install -y --no-install-recommends \

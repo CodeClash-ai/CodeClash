@@ -4,6 +4,8 @@ From: ubuntu:22.04
 %environment
     export DEBIAN_FRONTEND=noninteractive
     export PATH="/root/.cargo/bin:/root/.ghcup/bin:${PATH}"
+    export RUSTUP_HOME=/root/.rustup
+    export CARGO_HOME=/root/.cargo
 
 %post
     export DEBIAN_FRONTEND=noninteractive

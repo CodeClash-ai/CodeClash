@@ -128,7 +128,8 @@ Islands are conquered by placing reality anchors on them, which are crafted at h
             return None
         
         # Save compiled classes outside build/ (gradle clean deletes build/)
-        classes_dir = f"/tmp/agent{idx}_classes"
+        # Use /opt as Singularity's --contain clears /tmp across execute() calls
+        classes_dir = f"/opt/agent{idx}_classes"
         self.environment.execute(
             f"rm -rf {classes_dir}; mkdir -p {classes_dir}; cp -r build/classes/* {classes_dir}/"
         )
