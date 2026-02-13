@@ -39,7 +39,7 @@ class TestCoreWarValidation:
             files={"warrior.red": VALID_WARRIOR},
             command_outputs={
                 "ls": {"output": "warrior.red\n", "returncode": 0},
-                "./src/pmars warrior.red /home/dwarf.red": {
+                "./src/pmars warrior.red /opt/dwarf.red": {
                     "output": "warrior.red by Imp scores 10\ndwarf.red by Dwarf scores 5",
                     "returncode": 0,
                 },
@@ -69,7 +69,7 @@ class TestCoreWarValidation:
             files={"warrior.red": "invalid redcode syntax"},
             command_outputs={
                 "ls": {"output": "warrior.red\n", "returncode": 0},
-                "./src/pmars warrior.red /home/dwarf.red": {
+                "./src/pmars warrior.red /opt/dwarf.red": {
                     "output": "Error: Invalid instruction at line 1\n",
                     "returncode": 0,  # pmars returns 0 even on parse errors
                 },
