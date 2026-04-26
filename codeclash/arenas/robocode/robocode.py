@@ -10,6 +10,7 @@ from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
 from codeclash.arenas.arena import CodeArena, RoundStats
+from codeclash.constants import RESULT_TIE
 from codeclash.utils.environment import create_file_in_container
 
 RC_FILE = Path("MyTank.java")
@@ -140,7 +141,13 @@ robocode.battle.selectedRobots={selected_robots}
                     player = match.group(2).rsplit(".", 1)[0]
                     scores[player] += int(match.group(3))
 
-        stats.winner = max(scores, key=scores.get)
+        if not scores:
+            stats.winner = RESULT_TIE
+            return
+
+        max_score = max(scores.values())
+        leaders = [player for player, score in scores.items() if score == max_score]
+        stats.winner = RESULT_TIE if len(leaders) > 1 else leaders[0]
         stats.scores = scores
         for player, score in scores.items():
             stats.player_stats[player].score = score

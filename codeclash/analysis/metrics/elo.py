@@ -14,7 +14,7 @@ from scipy.stats import kendalltau, spearmanr
 from tqdm import tqdm
 
 from codeclash.analysis.significance import calculate_p_value
-from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME
+from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MODEL_TO_DISPLAY_NAME, model_display_name
 from codeclash.constants import LOCAL_LOG_DIR, RESULT_TIE
 from codeclash.utils.log import add_file_handler, get_logger
 
@@ -74,9 +74,6 @@ class ScoreMatrixBuilder:
         self._samples: dict[str, dict[tuple[str, str], list[tuple[float, float]]]] = defaultdict(
             lambda: defaultdict(list)
         )
-
-    def _get_unique_model_name(self, model: str) -> str:
-        return model.rpartition("/")[2]
 
     def _get_sorted_pair(self, p1: str, p2: str) -> tuple[str, str]:
         return tuple(sorted([p1, p2]))
@@ -154,8 +151,6 @@ class ScoreMatrixBuilder:
             return
 
         player_names = [p["name"] for p in players]
-        models = [p["config"]["model"]["model_name"].strip("@") for p in players]
-
         # Aggregate scores for each round
         p1_round_scores = []
         p2_round_scores = []
@@ -199,7 +194,7 @@ class ScoreMatrixBuilder:
             p2_score = sum(p2_round_scores)
 
         # Convert to unique names and sorted pair when updating matrix
-        unique_names = [self._get_unique_model_name(m) for m in models]
+        unique_names = player_names
         sorted_pair = self._get_sorted_pair(unique_names[0], unique_names[1])
 
         if unique_names[0] == sorted_pair[0]:
@@ -550,7 +545,7 @@ class BradleyTerryFitterPlots:
         player_order = [all_players[i] for i in all_indices]
 
         # Translate to display names
-        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in player_order]
+        display_names = [model_display_name(p) for p in player_order]
 
         # Create mapping from player to y-position
         player_to_pos = {p: i for i, p in enumerate(player_order)}
@@ -698,7 +693,7 @@ class BradleyTerryFitterPlots:
 
                 ax.set_xlabel("BT Strength", fontproperties=FONT_BOLD, fontsize=12)
                 ax.set_ylabel("Negative Log-Likelihood", fontproperties=FONT_BOLD, fontsize=12)
-                display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                display_name = model_display_name(player)
                 ax.set_title(display_name, fontproperties=FONT_BOLD, fontsize=14)
                 legend = ax.legend(prop=FONT_BOLD, fontsize=10, loc="upper right")
                 legend.set_frame_on(False)
@@ -777,7 +772,7 @@ class BootStrapRankStability:
         rank_matrix = (rank_matrix / self.n_bootstrap) * 100
 
         # Translate player names to display names
-        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in players]
+        display_names = [model_display_name(p) for p in players]
 
         fig, ax = plt.subplots(figsize=(6, 6))
         im = ax.imshow(rank_matrix, cmap="YlOrRd", aspect="auto", vmin=0, vmax=100)
@@ -826,7 +821,7 @@ class BootStrapRankStability:
         elo_data = [elo_samples[p] for p in players]
 
         # Translate player names to display names
-        display_names = [MODEL_TO_DISPLAY_NAME.get(p, p) for p in players]
+        display_names = [model_display_name(p) for p in players]
 
         fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -1095,7 +1090,7 @@ class EloVsMaxRounds:
                             elos_list.append(results_by_max_round[max_round][game_name][player])
 
                 if max_rounds_list:
-                    display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                    display_name = model_display_name(player)
                     ax.plot(max_rounds_list, elos_list, marker="o", label=display_name, linewidth=2, markersize=6)
 
             ax.set_xlabel("Max Round", fontproperties=FONT_BOLD, fontsize=14)
@@ -1212,7 +1207,7 @@ class EloOnlyAtRound:
                             elos_list.append(results_by_round[round_num][game_name][player])
 
                 if rounds_list:
-                    display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+                    display_name = model_display_name(player)
                     ax.plot(rounds_list, elos_list, marker="o", label=display_name, linewidth=2, markersize=6)
 
             ax.set_xlabel("Round", fontproperties=FONT_BOLD, fontsize=14)
@@ -1348,7 +1343,7 @@ def write_latex_table(results: dict[str, dict], output_dir: Path) -> None:
     lines.append(r"\midrule")
 
     for player, all_elo in sorted_players:
-        display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+        display_name = model_display_name(player)
         row_parts = [display_name.replace("_", r"\_")]
 
         for game_name in games_in_table:
@@ -1407,7 +1402,7 @@ def write_website_results(results: dict[str, dict], output_dir: Path) -> None:
         # Create leaderboard entries
         board = []
         for rank, (player, elo) in enumerate(sorted_players):
-            entry = {"rank": rank + 1, "model": MODEL_TO_DISPLAY_NAME.get(player, player), "elo": int(round(elo))}
+            entry = {"rank": rank + 1, "model": model_display_name(player), "elo": int(round(elo))}
             # Add confidence interval if available
             if elo_std is not None:
                 player_idx = players.index(player)
@@ -1506,7 +1501,7 @@ def write_latex_table_plain(results: dict[str, dict], output_dir: Path) -> None:
     lines.append(r"\midrule")
 
     for player, all_elo in sorted_players:
-        display_name = MODEL_TO_DISPLAY_NAME.get(player, player)
+        display_name = model_display_name(player)
         row_parts = [display_name.replace("_", r"\_")]
 
         for game_name in games_in_table:

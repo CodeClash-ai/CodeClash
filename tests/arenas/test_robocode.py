@@ -8,6 +8,7 @@ import pytest
 
 from codeclash.arenas.arena import RoundStats
 from codeclash.arenas.robocode.robocode import RC_FILE, SIMS_PER_RUN, RoboCodeArena
+from codeclash.constants import RESULT_TIE
 
 from .conftest import MockPlayer
 
@@ -224,6 +225,37 @@ class TestRoboCodeResults:
         assert stats.winner == "Bob"
         assert stats.scores["Alice"] == 4500
         assert stats.scores["Bob"] == 9500
+
+    def test_parse_results_tie(self, arena, tmp_log_dir):
+        """Equal total scores should be recorded as a tie, not assigned to the first player."""
+        round_dir = tmp_log_dir / "rounds" / "1"
+        round_dir.mkdir(parents=True)
+
+        self._create_results_file(
+            round_dir,
+            0,
+            [
+                (1, "Alice.MyTank", 0),
+                (2, "Bob.MyTank", 0),
+            ],
+        )
+        self._create_results_file(
+            round_dir,
+            1,
+            [
+                (1, "Alice.MyTank", 0),
+                (2, "Bob.MyTank", 0),
+            ],
+        )
+
+        agents = [MockPlayer("Alice"), MockPlayer("Bob")]
+        stats = RoundStats(round_num=1, agents=agents)
+
+        arena.get_results(agents, round_num=1, stats=stats)
+
+        assert stats.winner == RESULT_TIE
+        assert stats.scores["Alice"] == 0
+        assert stats.scores["Bob"] == 0
 
 
 class TestRoboCodeConfig:

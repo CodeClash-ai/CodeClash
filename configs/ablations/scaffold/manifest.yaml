@@ -1,0 +1,142 @@
+version: 1
+
+notes:
+  - "This is an experiment manifest, not an execution format consumed by CodeClash today."
+  - "Current repo support is limited to agent=mini and agent=dummy."
+  - "Cells with blocked_on_adapter require a new agent implementation."
+
+fairness_constraints:
+  same_arena: true
+  same_rounds_per_cell: true
+  same_step_limit_per_round: true
+  same_cost_limit_per_round: true
+  same_repo_snapshot: true
+  same_tool_surface: true
+  same_log_visibility: true
+  same_replication_count: true
+
+opponent_panel:
+  - model: "@anthropic/claude-sonnet-4-5-20250929"
+  - model: "@openai/o3"
+  - model: "@x-ai/grok-code-fast-1"
+
+arena_panel_screen:
+  - arena: "BattleSnake"
+    rounds: 5
+    sims_per_round: 1000
+  - arena: "CoreWar"
+    rounds: 5
+    sims_per_round: 1000
+  - arena: "RobotRumble"
+    rounds: 5
+    sims_per_round: 250
+
+arena_panel_confirm:
+  - arena: "BattleSnake"
+    rounds: 15
+    sims_per_round: 1000
+  - arena: "CoreWar"
+    rounds: 15
+    sims_per_round: 1000
+  - arena: "Halite"
+    rounds: 15
+    sims_per_round: 250
+  - arena: "HuskyBench"
+    rounds: 15
+    sims_per_round: 100
+  - arena: "RoboCode"
+    rounds: 15
+    sims_per_round: 250
+  - arena: "RobotRumble"
+    rounds: 15
+    sims_per_round: 250
+
+phases:
+  - id: "phase_a_scaffold_screen"
+    status: "partially_blocked"
+    replications: 2
+    goal: "Measure harness effects while holding the model fixed."
+    systems:
+      - id: "mini__gpt5mini"
+        agent: "mini"
+        model: "@openai/gpt-5-mini"
+        status: "ready_now"
+      - id: "swe_agent__gpt5mini"
+        agent: "swe-agent"
+        model: "@openai/gpt-5-mini"
+        status: "blocked_on_adapter"
+      - id: "openhands__gpt5mini"
+        agent: "openhands"
+        model: "@openai/gpt-5-mini"
+        status: "blocked_on_adapter"
+      - id: "codex_sdk__gpt5mini"
+        agent: "codex-sdk"
+        model: "@openai/gpt-5-mini"
+        status: "blocked_on_adapter"
+    run_count_formula: "4 harnesses x 3 opponents x 3 arenas x 2 reps"
+    run_count_total: 72
+    success_rule:
+      shortlist_top_systems: 2
+      require_no_major_regression_in:
+        - "simulation_validation_rate"
+        - "bash_success_rate"
+        - "recovery_after_failed_command"
+
+  - id: "phase_b_codex_stack"
+    status: "blocked"
+    replications: 2
+    goal: "Separate generic scaffold effects from Codex-specific model-stack co-design."
+    systems:
+      - id: "best_generic__gpt5mini"
+        agent: "TBD_from_phase_a"
+        model: "@openai/gpt-5-mini"
+        status: "blocked_on_phase_a"
+      - id: "best_generic__gpt5_1_codex_mini"
+        agent: "TBD_from_phase_a"
+        model: "@openai/gpt-5.1-codex-mini"
+        status: "blocked_on_phase_a_and_model_entry"
+      - id: "codex_sdk__gpt5_1_codex_mini"
+        agent: "codex-sdk"
+        model: "@openai/gpt-5.1-codex-mini"
+        status: "blocked_on_adapter_and_model_entry"
+    run_count_formula: "3 systems x 3 opponents x 3 arenas x 2 reps"
+    run_count_total: 54
+    interpretation_checks:
+      - "Does codex-sdk help when the model is held fixed at gpt-5.1-codex-mini?"
+      - "Does the Codex-family model help even without the codex-sdk harness?"
+
+  - id: "phase_c_confirm_gpt54"
+    status: "blocked"
+    replications: 1
+    goal: "Confirm the best systems on a stronger expensive model."
+    systems:
+      - id: "top1_from_phase_b__gpt54"
+        agent: "TBD_from_phase_b"
+        model: "@openai/gpt-5.4"
+        status: "blocked_on_phase_b_and_model_entry"
+      - id: "top2_from_phase_b__gpt54"
+        agent: "TBD_from_phase_b"
+        model: "@openai/gpt-5.4"
+        status: "blocked_on_phase_b_and_model_entry"
+    opponents:
+      - model: "@anthropic/claude-sonnet-4-5-20250929"
+      - model: "@openai/o3"
+    run_count_formula: "2 systems x 2 opponents x 6 arenas x 1 rep"
+    run_count_total: 24
+
+metrics:
+  primary:
+    - "pooled_elo"
+    - "per_arena_elo"
+    - "head_to_head_win_rate_excluding_ties"
+    - "bootstrap_top1_consistency"
+    - "bootstrap_pairwise_order_agreement"
+  diagnostics:
+    - "bash_success_rate"
+    - "recovery_after_failed_command"
+    - "grounded_edit_rate"
+    - "simulation_validation_rate"
+    - "unit_test_validation_rate"
+    - "files_edited_per_round"
+    - "steps_per_round"
+    - "model_cost_usd"

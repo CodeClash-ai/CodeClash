@@ -16,5 +16,6 @@ RUN git clone https://github.com/CodeClash-ai/HuskyBench.git /workspace \
     && git remote set-url origin https://github.com/CodeClash-ai/HuskyBench.git
 WORKDIR /workspace
 
-RUN pip install -r engine/requirements.txt
+RUN pip install --no-cache-dir Cython setuptools wheel \
+    && pip install --no-cache-dir -r engine/requirements.txt
 RUN mkdir -p /workspace/engine/output

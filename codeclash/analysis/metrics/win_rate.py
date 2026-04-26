@@ -31,16 +31,16 @@ def main(log_dir: Path):
     model_profiles = {}
     for game_log_folder in tqdm([x.parent for x in log_dir.rglob("metadata.json")]):
         game_id = game_log_folder.name.split(".")[1]
-        player_ids = [x.name for x in (game_log_folder / "players").iterdir() if x.is_dir()]
         metadata = json.load(open(game_log_folder / "metadata.json"))
         try:
-            player_to_model = {
-                x["name"]: x["config"]["model"]["model_name"].strip("@").split("/")[-1]
-                for x in metadata["config"]["players"]
-            }
+            player_ids = [x["name"] for x in metadata["config"]["players"]]
+            player_to_model = {x["name"]: x["name"] for x in metadata["config"]["players"]}
         except KeyError:
             continue
-        num_rounds = len(metadata["round_stats"])
+        round_stats = metadata.get("round_stats")
+        if not isinstance(round_stats, dict) or not round_stats:
+            continue
+        num_rounds = len(round_stats)
 
         # Only count each unique model once per game
         unique_models = {player_to_model[player] for player in player_ids}
@@ -55,7 +55,7 @@ def main(log_dir: Path):
                     player_id=player_id, model_name=model_name, game_id=game_id, count=num_rounds
                 )
 
-        for round, details in metadata["round_stats"].items():
+        for round, details in round_stats.items():
             if round == "0":
                 # Skip initial round
                 continue

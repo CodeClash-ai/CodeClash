@@ -21,6 +21,22 @@ MODEL_TO_DISPLAY_NAME = {
     "o3": "o3",
 }
 
+
+def model_display_name(model: str) -> str:
+    label = MODEL_TO_DISPLAY_NAME.get(model, model)
+    tier_labels = {
+        "-default": " (Default)",
+        "-low": " (Low)",
+        "-medium": " (Medium)",
+        "-high": " (High)",
+    }
+    for suffix, pretty in tier_labels.items():
+        if model.endswith(suffix):
+            base = model[: -len(suffix)]
+            base_label = MODEL_TO_DISPLAY_NAME.get(base, base)
+            return f"{base_label}{pretty}"
+    return label
+
 MODEL_TO_COLOR = {
     "anthropic/claude-sonnet-4-20250514": "#FFD449",
     "anthropic/claude-sonnet-4-5-20250929": "#F75C03",

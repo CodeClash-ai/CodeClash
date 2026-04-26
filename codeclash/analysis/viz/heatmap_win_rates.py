@@ -59,7 +59,7 @@ def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "
 
     # Build matrix
     models = sorted({m for pair in results.keys() for m in pair})
-    clean_names = [MODEL_TO_DISPLAY_NAME[m.split("/")[-1]] for m in models]
+    clean_names = [MODEL_TO_DISPLAY_NAME.get(m.split("/")[-1], m.split("/")[-1]) for m in models]
     n = len(models)
 
     matrix = np.full((n, n), np.nan)
@@ -73,7 +73,8 @@ def main(log_dir: Path, unit: str = "rounds", output_file: Path = ASSETS_DIR / "
         total_wins = sum(results[(m1, m2)][0] for m2 in models if m1 != m2)
         total_matches = sum(results[(m1, m2)][1] for m2 in models if m1 != m2)
         avg_win_rate = total_wins / total_matches if total_matches > 0 else 0
-        print(f"{MODEL_TO_DISPLAY_NAME[m1.split('/')[-1]]}: {avg_win_rate:.2%} win rate over {total_matches} matches")
+        label = MODEL_TO_DISPLAY_NAME.get(m1.split("/")[-1], m1.split("/")[-1])
+        print(f"{label}: {avg_win_rate:.2%} win rate over {total_matches} matches")
 
     # Plot
     FONT_BOLD.set_size(18)
