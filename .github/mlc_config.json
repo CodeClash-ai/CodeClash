@@ -22,6 +22,9 @@
       "pattern": "https://robotrumble\\.org/boards/2"
     },
     {
+      "pattern": "https://robocode\\.sourceforge\\.io.*"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {
