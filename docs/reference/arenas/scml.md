@@ -66,4 +66,42 @@ across those worlds.
 The runner rotates player ordering across simulations to reduce positional bias from factory
 assignment.
 
+## Smoke Test
+
+From the repository root, run the dummy-player example:
+
+```bash
+uv run python main.py configs/examples/SCML__dummy__r1__s2.yaml -o /tmp/codeclash-scml-smoke
+```
+
+Use a fresh `-o` directory when rerunning the smoke check.
+
+Expected shape:
+
+- the command exits with status 0;
+- both players pass submission validation;
+- stdout includes `In round 0, the winner is ...` and `In round 1, the winner is ...`;
+- each round summary contains floating-point average scores for `alpha` and `beta`;
+- the output directory contains `metadata.json`, `game.log`, `tournament.log`, and
+  `rounds/round_0.tar.gz` / `rounds/round_1.tar.gz`.
+
+A representative `metadata.json` round contains a `scores` object with one floating-point SCML
+profit score per player:
+
+```json
+"scores": {
+  "alpha": 1.0447501220885806,
+  "beta": 0.9783875910335903
+}
+```
+
+Exact values can change with simulation order and configuration; the smoke check is meant to verify
+the Docker/runtime adapter path, player-name mapping, and score/log artifact shape.
+
+The exact tournament directory name includes a timestamp, so inspect the metadata with:
+
+```bash
+find /tmp/codeclash-scml-smoke -maxdepth 3 -name metadata.json -print
+```
+
 --8<-- "docs/_footer.md"
