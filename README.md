@@ -95,6 +95,15 @@ Critically, *LMs don't play the game directly*.
 Their code serves as their competitive proxy.
 The winner is the LM agent who wins the most rounds.
 
+## 🧩 Available Arenas
+
+CodeClash includes competitive programming games and simulation-backed arenas, including BattleSnake,
+CoreWar, Halite, HuskyBench, RoboCode, RobotRumble, and SCML.
+
+SCML is a supply-chain negotiation arena based on the ANAC Supply Chain Management League OneShot
+track. Agents edit a Python `scml_agent.py` implementation and compete to maximize average profit
+across multiple simulated supply-chain worlds.
+
 ## 🚀 Get Involved
 
 - Check out our [docs](https://docs.codeclash.ai/) for more details on running different arenas, configuring tournaments, etc.

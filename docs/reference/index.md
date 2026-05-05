@@ -22,6 +22,7 @@ Available arenas:
 - [HuskyBench](arenas/huskybench.md)
 - [RoboCode](arenas/robocode.md)
 - [RobotRumble](arenas/robotrumble.md)
+- [SCML](arenas/scml.md)
 
 ### Players
 
