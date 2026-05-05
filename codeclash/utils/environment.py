@@ -145,7 +145,7 @@ def copy_to_container(
                 shutil.copytree(src_path, dest_full)
         else:
             shutil.copy2(src_path, dest_full)
-        return
+        return None
 
     if not str(dest_path).startswith("/"):
         # If not an absolute path, assume relative to container's cwd
@@ -218,7 +218,7 @@ def copy_from_container(
                     shutil.copytree(src_full, dest_path)
         else:
             shutil.copy2(src_full, dest_path)
-        return
+        return None
 
     cmd = [
         "docker",

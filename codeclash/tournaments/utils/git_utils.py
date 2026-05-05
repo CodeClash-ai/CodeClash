@@ -44,7 +44,6 @@ def filter_git_diff(diff: str) -> str:
         if in_block:
             block.append(ln)
 
-
     if in_block and block:
         if is_binary_block(block):
             file_path = extract_file_path_from_block(block)
@@ -142,7 +141,6 @@ def split_git_diff_by_files(diff: str) -> dict[str, str]:
             current_block.append(line)
         elif current_file:
             current_block.append(line)
-
 
     # Handle the last file
     if current_file and current_block:

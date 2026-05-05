@@ -16,12 +16,10 @@ docker cp rules (from Docker docs):
    - DEST exists as dir -> merge CONTENTS into DEST (no subdirectory created)
 """
 
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-
 from minisweagent.environments.singularity import SingularityEnvironment, SingularityEnvironmentConfig
 
 from codeclash.utils.environment import (

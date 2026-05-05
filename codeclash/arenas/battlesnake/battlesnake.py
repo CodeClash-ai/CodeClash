@@ -120,9 +120,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
             if use_popen:
                 # In Singularity, background processes don't persist across execute() calls.
                 # Use Popen to keep the singularity exec process (and the server) alive.
-                proc = self._start_server_popen(
-                    f"PORT={port} python {self.submission}", cwd=f"/{agent.name}"
-                )
+                proc = self._start_server_popen(f"PORT={port} python {self.submission}", cwd=f"/{agent.name}")
                 server_procs.append(proc)
             else:
                 self.environment.execute(f"PORT={port} python {self.submission} &", cwd=f"/{agent.name}")
