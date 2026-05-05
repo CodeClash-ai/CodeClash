@@ -397,7 +397,7 @@ requires-dist = [
     { name = "jinja2" },
     { name = "litellm" },
     { name = "markupsafe" },
-    { name = "mini-swe-agent" },
+    { name = "mini-swe-agent", specifier = "<2" },
     { name = "mkdocs-glightbox", marker = "extra == 'docs'" },
     { name = "mkdocs-include-markdown-plugin", marker = "extra == 'docs'" },
     { name = "mkdocs-material", marker = "extra == 'docs'" },

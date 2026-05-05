@@ -21,7 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "litellm",
-    "mini-swe-agent",
+    "mini-swe-agent<2",
     "portkey-ai",
     "python-dotenv",
     "ghapi",

@@ -19,6 +19,15 @@
       "pattern": "https://docs\\.codeclash\\.io"
     },
     {
+      "pattern": "https://robotrumble\\.org/boards/2"
+    },
+    {
+      "pattern": "https://robocode\\.sourceforge\\.io.*"
+    },
+    {
+      "pattern": "https://huskybench\\.com/.*"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {

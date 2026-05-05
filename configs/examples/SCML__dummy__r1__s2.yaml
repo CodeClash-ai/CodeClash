@@ -1,0 +1,31 @@
+tournament:
+  rounds: 1
+game:
+  name: SCML
+  sims_per_round: 2
+  n_steps: 5
+  n_lines: 2
+  timeout: 240
+players:
+- agent: dummy
+  name: alpha
+- agent: dummy
+  name: beta
+prompts:
+  game_description: |-
+    You are a software developer ({{player_id}}) competing in CodeClash's SCML OneShot arena.
+
+    The game is played in {{total_rounds}} rounds. For every round, you and your competitors edit
+    code that controls an autonomous supply-chain negotiation agent. This is round {{round}}.
+
+    Your task: improve `scml_agent.py`, located in {{working_dir}}.
+    All commands run from {{working_dir}}.
+
+    Your file must define `MyAgent`, an SCML OneShot agent class. A valid starting point is:
+
+    from scml.oneshot.agents import GreedySyncAgent
+
+    class MyAgent(GreedySyncAgent):
+        pass
+
+    The arena runs multiple SCML2024 OneShot worlds. Your objective is to maximize average profit.
