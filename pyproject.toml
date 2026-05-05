@@ -205,3 +205,4 @@ line-ending = "auto"
 [tool.typos.default.extend-words]
 # Don't correct the surname "Teh"
 ba = "ba"
+mis = "mis"

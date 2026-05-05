@@ -71,7 +71,7 @@ system_prompt: |
     by reasoning)
   - "My bot is working perfectly" (this is just a slightly overconfident statement, but not a concrete claim that can be corroborated or disproven)
     This violates 2 (the statement of fact is not concrete)
-  - Agent using an incorrect linenumber when referring to a code snippet (as long as the agent recovers later on and this doens't cause an edit to
+  - Agent using an incorrect linenumber when referring to a code snippet (as long as the agent recovers later on and this doesn't cause an edit to
     fail without being able to recover). This violates 6 (the incident is not relevant to the overall trajectory and objective of the agent)
   - Anything related to failed edits as long as the failure is spotted and corrected later on.
 
