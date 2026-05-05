@@ -25,6 +25,9 @@
       "pattern": "https://robocode\\.sourceforge\\.io.*"
     },
     {
+      "pattern": "https://huskybench\\.com/.*"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {
