@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://docs.codeclash.ai/reference/arenas/dummy/">
+        <link rel="canonical" href="https://docs.codeclash.ai/reference/arenas/scml/">
       
       
-        <link rel="prev" href="../scml/">
+        <link rel="prev" href="../robotrumble/">
       
       
-        <link rel="next" href="../../player/player/">
+        <link rel="next" href="../dummy/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>DummyArena - CodeClash Documentation</title>
+        <title>SCML - CodeClash Documentation</title>
       
     
     
@@ -102,7 +102,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dummyarena" class="md-skip">
+        <a href="#scml" class="md-skip">
           Skip to content
         </a>
       
@@ -135,7 +135,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              DummyArena
+              SCML
             
           </span>
         </div>
@@ -969,34 +969,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../scml/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SCML
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -1016,7 +988,7 @@
   <span class="md-ellipsis">
     
   
-    DummyArena
+    SCML
   
 
     
@@ -1034,7 +1006,7 @@
   <span class="md-ellipsis">
     
   
-    DummyArena
+    SCML
   
 
     
@@ -1071,6 +1043,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1082,19 +1065,19 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;DummyArena
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SCMLOneShotArena
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label=" DummyArena">
+    <nav class="md-nav" aria-label=" SCMLOneShotArena">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.name" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.name" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
@@ -1105,18 +1088,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.submission" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.submission" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
@@ -1127,7 +1099,40 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.execute_round" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.default_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.validate_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.execute_round" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
@@ -1138,21 +1143,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.get_results" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.get_results" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.validate_code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
       
     </span>
   </a>
@@ -1165,10 +1159,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#agent-interface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
+        Agent Interface
       
     </span>
   </a>
@@ -1186,10 +1180,49 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dummy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DummyArena
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1610,6 +1643,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1621,19 +1665,19 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;DummyArena
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SCMLOneShotArena
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label=" DummyArena">
+    <nav class="md-nav" aria-label=" SCMLOneShotArena">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.name" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.name" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;name
@@ -1644,18 +1688,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.submission" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.submission" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;submission
@@ -1666,7 +1699,40 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.execute_round" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.default_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;default_args
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.validate_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.execute_round" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;execute_round
@@ -1677,21 +1743,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.get_results" class="md-nav__link">
+  <a href="#codeclash.arenas.scml.scml.SCMLOneShotArena.get_results" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#codeclash.arenas.dummy.dummy.DummyArena.validate_code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;validate_code
       
     </span>
   </a>
@@ -1704,10 +1759,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#agent-interface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
+        Agent Interface
       
     </span>
   </a>
@@ -1719,6 +1774,17 @@
     <span class="md-ellipsis">
       
         Configuration Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scoring
       
     </span>
   </a>
@@ -1743,7 +1809,7 @@
 
 
   
-    <a href="https://github.com/CodeClash-ai/CodeClash/edit/main/docs/reference/arenas/dummy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/CodeClash-ai/CodeClash/edit/main/docs/reference/arenas/scml.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1751,10 +1817,19 @@
   
 
 
-<h1 id="dummyarena">DummyArena</h1>
-<p>Simple test game for development and debugging.</p>
+<h1 id="scml">SCML</h1>
+<p>Supply-chain negotiation arena based on the ANAC Supply Chain Management League OneShot track.</p>
 <h2 id="overview">Overview</h2>
-<p>DummyArena is a minimal game implementation used for testing the CodeClash framework.</p>
+<p>SCML simulates a supply chain in which autonomous factory-manager agents negotiate contracts to buy
+and sell goods. The CodeClash arena uses the SCML2024 OneShot world because it focuses on negotiation
+and profit without requiring long-term production scheduling.</p>
+<p>Each CodeClash player edits an SCML OneShot agent. A round runs multiple independent SCML worlds and
+scores each player by average profit.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://scml.cs.brown.edu/">SCML Official Site</a></li>
+<li><a href="https://scml.readthedocs.io/">SCML Documentation</a></li>
+</ul>
 <h2 id="implementation">Implementation</h2>
 
 
@@ -1762,12 +1837,12 @@
 
 
 
-<h2 id="codeclash.arenas.dummy.dummy.DummyArena" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">codeclash.arenas.dummy.dummy.DummyArena</span>
+<h2 id="codeclash.arenas.scml.scml.SCMLOneShotArena" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">codeclash.arenas.scml.scml.SCMLOneShotArena</span>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">DummyArena</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n"><span title="pathlib.Path">Path</span></span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">SCMLOneShotArena</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n"><span title="pathlib.Path">Path</span></span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
@@ -1863,7 +1938,7 @@
 
 
 
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.name" class="doc doc-heading">
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.name" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">name</span>
 
 
@@ -1873,7 +1948,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;SCML&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1886,30 +1961,7 @@
 
 
 
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.description" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">description</span>
-
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
-      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
-  </span>
-
-</h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;WARNING: This is a dummy game meant for testing the CodeClash infrastructure. It does not represent a real game.&#39;</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.submission" class="doc doc-heading">
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.submission" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">submission</span>
 
 
@@ -1919,7 +1971,7 @@
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">submission</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;main.py&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">submission</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;scml_agent.py&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1928,99 +1980,59 @@
 
 </div>
 
+<div class="doc doc-object doc-attribute">
 
 
 
-<div class="doc doc-object doc-function">
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.description" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">description</span>
 
 
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.execute_round" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">execute_round</span>
-
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">execute_round</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;SCML OneShot is a supply-chain negotiation simulator based on the ANAC Supply Chain Management League.</span><span class="se">\n\n</span><span class="s1">Your bot is a Python file named `scml_agent.py` that defines a class named `MyAgent`.</span><span class="se">\n</span><span class="s1">`MyAgent` should inherit from an SCML OneShot agent class, for example:</span><span class="se">\n\n</span><span class="s1">    from scml.oneshot.agents import GreedySyncAgent</span><span class="se">\n\n</span><span class="s1">    class MyAgent(GreedySyncAgent):</span><span class="se">\n</span><span class="s1">        ...</span><span class="se">\n\n</span><span class="s1">Each round runs several SCML2024 OneShot worlds. Your agent negotiates with the other submitted</span><span class="se">\n</span><span class="s1">agents to buy or sell goods in a simulated supply chain. The objective is to maximize profit. The</span><span class="se">\n</span><span class="s1">arena score is your average SCML score across all worlds in the round.</span><span class="se">\n</span><span class="s1">&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/dummy/dummy.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">]</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;python engine.py </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> -r </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">game_config</span><span class="p">[</span><span class="s1">&#39;sims_per_round&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">log_env</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DUMMY_LOG</span><span class="si">}</span><span class="s2">;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running game: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">assert_zero_exit_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
-</code></pre></div></td></tr></table></div>
-            </details>
     </div>
 
 </div>
 
-<div class="doc doc-object doc-function">
+<div class="doc doc-object doc-attribute">
 
 
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.get_results" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_results</span>
 
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.default_args" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">default_args</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get_results</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.arenas.arena.RoundStats" href="../game/#codeclash.arenas.arena.RoundStats">RoundStats</a></span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">default_args</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sims_per_round&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;n_lines&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">180</span><span class="p">}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/dummy/dummy.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
-<span class="normal">22</span>
-<span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="n">DUMMY_LOG</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">round_log</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="n">round_log</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;FINAL_RESULTS&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-
-    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
-        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Bot\_(\d)\_main:\s(\d+)\srounds\swon&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
-            <span class="n">bot_id</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">rounds_won</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-            <span class="n">scores</span><span class="p">[</span><span class="n">agents</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">bot_id</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rounds_won</span>
-
-    <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">scores</span><span class="o">.</span><span class="n">get</span><span class="p">)</span> <span class="k">if</span> <span class="n">scores</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span>
-    <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">player</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">score</span>
-</code></pre></div></td></tr></table></div>
-            </details>
     </div>
 
 </div>
 
+
+
+
 <div class="doc doc-object doc-function">
 
 
-<h3 id="codeclash.arenas.dummy.dummy.DummyArena.validate_code" class="doc doc-heading">
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.validate_code" class="doc doc-heading">
 <code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">validate_code</span>
 
 
@@ -2032,12 +2044,216 @@
 
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>codeclash/arenas/dummy/dummy.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-    <span class="c1"># TODO: implement more checks</span>
+              <summary>Source code in <code>codeclash/arenas/scml/scml.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">quoted_submission</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="p">)</span>
+    <span class="n">file_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;test -f </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2"> &amp;&amp; echo exists&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;exists&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_check</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Submission file `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">` not found in the workspace root&quot;</span>
+
+    <span class="n">content</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cat </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">` is empty&quot;</span>
+
+    <span class="n">syntax_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;python -m py_compile </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">syntax_check</span><span class="p">[</span><span class="s2">&quot;returncode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Python syntax error in `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`:</span><span class="se">\n</span><span class="si">{</span><span class="n">syntax_check</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">import_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="s2">&quot;python - &lt;&lt;&#39;PY&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;import importlib.util</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;spec = importlib.util.spec_from_file_location(&#39;submission_agent&#39;, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">!r}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;module = importlib.util.module_from_spec(spec)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;spec.loader.exec_module(module)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;assert hasattr(module, &#39;MyAgent&#39;), &#39;MyAgent class not found&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;from scml.oneshot.agent import OneShotAgent</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;assert issubclass(module.MyAgent, OneShotAgent), &#39;MyAgent must inherit from an SCML OneShotAgent class&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;PY&quot;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">import_check</span><span class="p">[</span><span class="s2">&quot;returncode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Could not import `MyAgent` from `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`:</span><span class="se">\n</span><span class="si">{</span><span class="n">import_check</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
     <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.execute_round" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">execute_round</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">execute_round</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>codeclash/arenas/scml/scml.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">agent_args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
+        <span class="n">agent_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--agent&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
+
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;python&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;run_scml.py&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--sims&quot;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;sims_per_round&quot;</span><span class="p">)),</span>
+        <span class="s2">&quot;--steps&quot;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;n_steps&quot;</span><span class="p">)),</span>
+        <span class="s2">&quot;--lines&quot;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;n_lines&quot;</span><span class="p">)),</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_env</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span><span class="p">),</span>
+        <span class="o">*</span><span class="n">agent_args</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">full_cmd</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running game: </span><span class="si">{</span><span class="n">full_cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">full_cmd</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">)))</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;SCML round timed out&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="n">assert_zero_exit_code</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="codeclash.arenas.scml.scml.SCMLOneShotArena.get_results" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_results</span>
+
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get_results</span><span class="p">(</span><span class="n">agents</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            codeclash.agents.player.Player" href="../../player/player/#codeclash.agents.player.Player">Player</a></span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            codeclash.arenas.arena.RoundStats" href="../game/#codeclash.arenas.arena.RoundStats">RoundStats</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>codeclash/arenas/scml/scml.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+    <span class="n">result_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing result file: </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span>
+        <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">scores</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;average_scores&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+            <span class="n">scores</span><span class="p">[</span><span class="n">player</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+    <span class="n">stats</span><span class="o">.</span><span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">details</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;details&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">player</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">score</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">scores</span><span class="p">:</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span>
+        <span class="k">return</span>
+
+    <span class="n">top_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">winners</span> <span class="o">=</span> <span class="p">[</span><span class="n">player</span> <span class="k">for</span> <span class="n">player</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">score</span> <span class="o">==</span> <span class="n">top_score</span><span class="p">]</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">winners</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">winners</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">RESULT_TIE</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2050,21 +2266,37 @@
 
     </div>
 
-</div><h2 id="usage">Usage</h2>
-<p>Useful for:
-- Testing tournament infrastructure
-- Debugging agent implementations
-- Quick validation of configurations</p>
-<h2 id="configuration-example">Configuration Example</h2>
-<div class="highlight"><pre><span></span><code><span class="nt">game</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DummyArena</span>
-<span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
-<span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</div><h2 id="agent-interface">Agent Interface</h2>
+<p>Your bot must be a Python file named <code>scml_agent.py</code> that defines <code>MyAgent</code>.</p>
+<p><code>MyAgent</code> must inherit from an SCML OneShot agent class. A valid starting point is:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">scml.oneshot.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">GreedySyncAgent</span>
 
-<span class="nt">players</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TestAgent</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">GreedySyncAgent</span><span class="p">):</span>
+    <span class="k">pass</span>
 </code></pre></div>
+<p>Agents can use the normal SCML OneShot APIs exposed by the upstream <code>scml</code> package. The package is
+installed in the SCML arena Docker image, not in CodeClash's core Python environment.</p>
+<h2 id="configuration-example">Configuration Example</h2>
+<div class="highlight"><pre><span></span><code><span class="nt">tournament</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">game</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SCML</span>
+<span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">n_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">  </span><span class="nt">n_lines</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="nt">players</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpha</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">beta</span>
+</code></pre></div>
+<h2 id="scoring">Scoring</h2>
+<p>The arena runs <code>sims_per_round</code> independent SCML2024 OneShot worlds. For each world, it maps SCML
+agent scores back to CodeClash player names. The final CodeClash score is the average SCML score
+across those worlds.</p>
+<p>The runner rotates player ordering across simulations to reduce positional bias from factory
+assignment.</p>
 <div class="grid cards">
   <a href="https://github.com/CodeClash-ai/CodeClash/issues/new" class="nav-card-link">
     <div class="nav-card">
@@ -2153,7 +2385,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../scml/" class="md-footer__link md-footer__link--prev" aria-label="Previous: SCML">
+          <a href="../robotrumble/" class="md-footer__link md-footer__link--prev" aria-label="Previous: RobotRumble">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2163,20 +2395,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                SCML
+                RobotRumble
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../player/player/" class="md-footer__link md-footer__link--next" aria-label="Next: Player (Abstract)">
+          <a href="../dummy/" class="md-footer__link md-footer__link--next" aria-label="Next: DummyArena">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Player (Abstract)
+                DummyArena
               </div>
             </div>
             <div class="md-footer__button md-icon">

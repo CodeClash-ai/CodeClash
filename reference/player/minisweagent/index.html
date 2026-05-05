@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../../assets/clash.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -610,6 +610,8 @@
       
         
       
+        
+      
     
     
     
@@ -968,6 +970,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../arenas/scml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SCML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../arenas/dummy/" class="md-nav__link">
         
   
@@ -975,7 +1005,7 @@
   <span class="md-ellipsis">
     
   
-    DummyGame
+    DummyArena
   
 
     
@@ -1622,7 +1652,7 @@
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">MiniSWEAgent</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="n"><span title="minisweagent.environments.docker.DockerEnvironment">DockerEnvironment</span></span><span class="p">,</span> <span class="n">game_context</span><span class="p">:</span> <span class="n"><span title="codeclash.agents.utils.GameContext">GameContext</span></span><span class="p">,</span> <span class="n">push</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">MiniSWEAgent</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="n"><span title="minisweagent.environments.docker.DockerEnvironment">DockerEnvironment</span></span><span class="p">,</span> <span class="n">game_context</span><span class="p">:</span> <span class="n"><span title="codeclash.agents.utils.GameContext">GameContext</span></span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents first">
@@ -1643,8 +1673,8 @@
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>codeclash/agents/minisweagent.py</code></summary>
                     <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">50</span>
-<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="n">DockerEnvironment</span><span class="p">,</span> <span class="n">game_context</span><span class="p">:</span> <span class="n">GameContext</span><span class="p">,</span> <span class="n">push</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="n">environment</span><span class="p">,</span> <span class="n">game_context</span><span class="o">=</span><span class="n">game_context</span><span class="p">,</span> <span class="n">push</span><span class="o">=</span><span class="n">push</span><span class="p">)</span>
+<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="n">DockerEnvironment</span><span class="p">,</span> <span class="n">game_context</span><span class="p">:</span> <span class="n">GameContext</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="n">environment</span><span class="p">,</span> <span class="n">game_context</span><span class="o">=</span><span class="n">game_context</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
