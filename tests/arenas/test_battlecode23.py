@@ -548,4 +548,3 @@ class TestBattleCode23RoundResult:
         assert result.loser is None
         assert "all agents failed" in result.reason
         assert len(result.simulations) == 0
-

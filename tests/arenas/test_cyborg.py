@@ -121,7 +121,7 @@ class TestCybORGExecution:
                     "steps_per_episode": 11,
                     "num_drones": 13,
                     "timeout": 17,
-                }
+                },
             }
         }
         arena.log_env = Path("/logs")

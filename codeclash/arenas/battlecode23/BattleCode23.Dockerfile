@@ -11,4 +11,3 @@ RUN git clone https://github.com/CodeClash-ai/BattleCode2023.git /workspace \
 WORKDIR /workspace
 
 RUN chmod +x gradlew && ./gradlew update
-
