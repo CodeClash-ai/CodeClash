@@ -74,6 +74,7 @@ nav:
         - "BattleSnake": "reference/arenas/battlesnake.md"
         - "Bridge": "reference/arenas/bridge.md"
         - "CoreWar": "reference/arenas/corewar.md"
+        - "CybORG": "reference/arenas/cyborg.md"
         - "Halite": "reference/arenas/halite.md"
         - "Halite II": "reference/arenas/halite2.md"
         - "Halite III": "reference/arenas/halite3.md"

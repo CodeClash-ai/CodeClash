@@ -18,6 +18,7 @@ Available arenas:
 - [BattleCode](arenas/battlecode.md)
 - [BattleSnake](arenas/battlesnake.md)
 - [CoreWar](arenas/corewar.md)
+- [CybORG](arenas/cyborg.md)
 - [Halite](arenas/halite.md), [Halite II](arenas/halite2.md), [Halite III](arenas/halite3.md)
 - [HuskyBench](arenas/huskybench.md)
 - [RoboCode](arenas/robocode.md)
