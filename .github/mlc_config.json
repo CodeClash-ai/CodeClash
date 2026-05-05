@@ -19,6 +19,9 @@
       "pattern": "https://docs\\.codeclash\\.io"
     },
     {
+      "pattern": "https://robotrumble\\.org/boards/2"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {
