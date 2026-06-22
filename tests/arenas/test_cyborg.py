@@ -66,6 +66,67 @@ class TestCybORGValidation:
         assert valid is False
         assert "Could not import" in error
 
+    def test_validation_instantiates_agent_with_runtime_fallbacks(self, mock_player_factory):
+        arena = CybORGArena.__new__(CybORGArena)
+        arena.submission = "cyborg_agent.py"
+        player = mock_player_factory(
+            name="Alice",
+            files={"cyborg_agent.py": "from CybORG.Agents import RandomAgent\nclass MyAgent(RandomAgent):\n    pass\n"},
+            command_outputs={
+                "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
+                "cat cyborg_agent.py": {
+                    "output": "from CybORG.Agents import RandomAgent\nclass MyAgent(RandomAgent):\n    pass\n",
+                    "returncode": 0,
+                },
+                "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
+            },
+        )
+
+        valid, error = arena.validate_code(player)
+
+        import_command = player.environment._executed_commands[-1]
+        assert valid is True
+        assert error is None
+        assert "make_agent(module.MyAgent, 'validation-agent')" in import_command
+
+    def test_validation_rejects_agent_constructor_failure(self, mock_player_factory):
+        arena = CybORGArena.__new__(CybORGArena)
+        arena.submission = "cyborg_agent.py"
+        player = mock_player_factory(
+            name="Alice",
+            files={
+                "cyborg_agent.py": (
+                    "from CybORG.Agents import RandomAgent\n"
+                    "class MyAgent(RandomAgent):\n"
+                    "    def __init__(self, seed=None):\n"
+                    "        super().__init__(seed=seed)\n"
+                )
+            },
+            command_outputs={
+                "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
+                "cat cyborg_agent.py": {
+                    "output": (
+                        "from CybORG.Agents import RandomAgent\n"
+                        "class MyAgent(RandomAgent):\n"
+                        "    def __init__(self, seed=None):\n"
+                        "        super().__init__(seed=seed)\n"
+                    ),
+                    "returncode": 0,
+                },
+                "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
+                "python - <<'PY'": {
+                    "output": "TypeError: RandomAgent.__init__() got an unexpected keyword argument 'seed'",
+                    "returncode": 1,
+                },
+            },
+        )
+
+        valid, error = arena.validate_code(player)
+
+        assert valid is False
+        assert "Could not import `MyAgent`" in error
+        assert "unexpected keyword argument 'seed'" in error
+
 
 class TestCybORGResults:
     def test_parse_winner(self, tmp_log_dir):
