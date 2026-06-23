@@ -1025,6 +1025,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke Test
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1821,6 +1832,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke Test
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2104,7 +2126,21 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">68</span>
 <span class="normal">69</span>
 <span class="normal">70</span>
-<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
     <span class="n">quoted_submission</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="p">)</span>
     <span class="n">file_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;test -f </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2"> &amp;&amp; echo exists&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">&quot;exists&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_check</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
@@ -2127,6 +2163,20 @@ same seeded episode batch and scores players by average episode reward.</p>
         <span class="s2">&quot;assert hasattr(module, &#39;MyAgent&#39;), &#39;MyAgent class not found&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="s2">&quot;from CybORG.Agents import BaseAgent</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="s2">&quot;assert issubclass(module.MyAgent, BaseAgent), &#39;MyAgent must inherit from a CybORG BaseAgent class&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;def make_agent(agent_class, agent_name):</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    try:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        return agent_class(name=agent_name)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    except TypeError:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        try:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;            return agent_class(agent_name)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        except TypeError:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;            try:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;                return agent_class()</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;            except TypeError as final_error:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;                raise TypeError(</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;                    &#39;MyAgent could not be constructed with the CybORG runtime constructor fallbacks&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;                ) from final_error</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;make_agent(module.MyAgent, &#39;validation-agent&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="s2">&quot;PY&quot;</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">import_check</span><span class="p">[</span><span class="s2">&quot;returncode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -2155,31 +2205,31 @@ same seeded episode batch and scores players by average episode reward.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/cyborg/cyborg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span>
-<span class="normal">87</span>
-<span class="normal">88</span>
-<span class="normal">89</span>
-<span class="normal">90</span>
-<span class="normal">91</span>
-<span class="normal">92</span>
-<span class="normal">93</span>
-<span class="normal">94</span>
-<span class="normal">95</span>
-<span class="normal">96</span>
-<span class="normal">97</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">agent_args</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
         <span class="n">agent_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--agent&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
@@ -2226,21 +2276,7 @@ same seeded episode batch and scores players by average episode reward.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/cyborg/cyborg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
@@ -2255,7 +2291,21 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">125</span>
 <span class="normal">126</span>
 <span class="normal">127</span>
-<span class="normal">128</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
     <span class="n">result_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">result_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing result file: </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2332,6 +2382,33 @@ average episode score across the round.</p>
 <p>The runtime pins CybORG to the upstream <code>v3.0</code> code and installs it editable from a checked-out
 repository because the upstream package expects data files such as <code>CybORG/version.txt</code> to be present
 next to the source tree.</p>
+<h2 id="smoke-test">Smoke Test</h2>
+<p>From the repository root, run the dummy-player example:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/CybORG__dummy__r1__s2.yaml<span class="w"> </span>-o<span class="w"> </span>/tmp/codeclash-cyborg-smoke
+</code></pre></div>
+<p>Use a fresh <code>-o</code> directory when rerunning the smoke check.</p>
+<p>Expected shape:</p>
+<ul>
+<li>the command exits with status 0;</li>
+<li>both players pass submission validation;</li>
+<li>stdout includes <code>In round 0, the winner is ...</code> and <code>In round 1, the winner is ...</code>;</li>
+<li>each round summary contains floating-point average rewards for <code>alpha</code> and <code>beta</code>;</li>
+<li>per-episode details have <code>status: "ok"</code> and <code>steps_completed: 5</code>;</li>
+<li>the output directory contains <code>metadata.json</code>, <code>game.log</code>, <code>tournament.log</code>, and
+  <code>rounds/round_0.tar.gz</code> / <code>rounds/round_1.tar.gz</code>.</li>
+</ul>
+<p>A representative <code>metadata.json</code> round contains a <code>scores</code> object with one floating-point episode
+reward per player:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;scores&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;alpha&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-27.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;beta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-33.5</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Exact values can change with simulator randomness and configuration; the smoke check is meant to
+verify the Docker/runtime adapter path, player-name mapping, and score/log artifact shape.</p>
+<p>The exact tournament directory name includes a timestamp, so inspect the metadata with:</p>
+<div class="highlight"><pre><span></span><code>find<span class="w"> </span>/tmp/codeclash-cyborg-smoke<span class="w"> </span>-maxdepth<span class="w"> </span><span class="m">3</span><span class="w"> </span>-name<span class="w"> </span>metadata.json<span class="w"> </span>-print
+</code></pre></div>
 <div class="grid cards">
   <a href="https://github.com/CodeClash-ai/CodeClash/issues/new" class="nav-card-link">
     <div class="nav-card">

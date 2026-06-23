@@ -1221,6 +1221,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke Test
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1821,6 +1832,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke Test
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2327,6 +2349,32 @@ agent scores back to CodeClash player names. The final CodeClash score is the av
 across those worlds.</p>
 <p>The runner rotates player ordering across simulations to reduce positional bias from factory
 assignment.</p>
+<h2 id="smoke-test">Smoke Test</h2>
+<p>From the repository root, run the dummy-player example:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/SCML__dummy__r1__s2.yaml<span class="w"> </span>-o<span class="w"> </span>/tmp/codeclash-scml-smoke
+</code></pre></div>
+<p>Use a fresh <code>-o</code> directory when rerunning the smoke check.</p>
+<p>Expected shape:</p>
+<ul>
+<li>the command exits with status 0;</li>
+<li>both players pass submission validation;</li>
+<li>stdout includes <code>In round 0, the winner is ...</code> and <code>In round 1, the winner is ...</code>;</li>
+<li>each round summary contains floating-point average scores for <code>alpha</code> and <code>beta</code>;</li>
+<li>the output directory contains <code>metadata.json</code>, <code>game.log</code>, <code>tournament.log</code>, and
+  <code>rounds/round_0.tar.gz</code> / <code>rounds/round_1.tar.gz</code>.</li>
+</ul>
+<p>A representative <code>metadata.json</code> round contains a <code>scores</code> object with one floating-point SCML
+profit score per player:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;scores&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;alpha&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0447501220885806</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;beta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.9783875910335903</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Exact values can change with simulation order and configuration; the smoke check is meant to verify
+the Docker/runtime adapter path, player-name mapping, and score/log artifact shape.</p>
+<p>The exact tournament directory name includes a timestamp, so inspect the metadata with:</p>
+<div class="highlight"><pre><span></span><code>find<span class="w"> </span>/tmp/codeclash-scml-smoke<span class="w"> </span>-maxdepth<span class="w"> </span><span class="m">3</span><span class="w"> </span>-name<span class="w"> </span>metadata.json<span class="w"> </span>-print
+</code></pre></div>
 <div class="grid cards">
   <a href="https://github.com/CodeClash-ai/CodeClash/issues/new" class="nav-card-link">
     <div class="nav-card">
