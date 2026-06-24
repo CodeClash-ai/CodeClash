@@ -28,5 +28,9 @@ prompts:
 
     from agent.ValueAgent import ValueAgent as MyAgent
 
+    If you subclass an upstream ABIDES agent, inspect and match ABIDES method signatures exactly.
+    Common hooks are `wakeup(self, currentTime)`, `receiveMessage(self, currentTime, msg)`,
+    `kernelStarting(self, startTime)`, and `kernelStopping(self)`.
+
     The arena runs compact ABIDES market simulations. Your objective is to maximize average
     mark-to-market profit across identical seeded market worlds.

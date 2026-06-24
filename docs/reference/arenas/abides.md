@@ -41,7 +41,9 @@ is installed in the ABIDES arena Docker image, not in CodeClash's core Python en
 
 Some upstream ABIDES agents, including `ValueAgent`, keep default behavior behind exact-class
 checks. If you subclass one of those agents, override the relevant `wakeup` and `receiveMessage`
-hooks instead of relying on `pass`.
+hooks instead of relying on `pass`. Inspect method signatures before overriding hooks; common
+signatures are `wakeup(self, currentTime)`, `receiveMessage(self, currentTime, msg)`,
+`kernelStarting(self, startTime)`, and `kernelStopping(self)`.
 
 ## Configuration Example
 
