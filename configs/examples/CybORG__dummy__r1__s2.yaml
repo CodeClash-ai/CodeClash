@@ -1,0 +1,33 @@
+tournament:
+  rounds: 1
+game:
+  name: CybORG
+  sims_per_round: 2
+  args:
+    steps_per_episode: 5
+    num_drones: 8
+    timeout: 240
+players:
+- agent: dummy
+  name: alpha
+- agent: dummy
+  name: beta
+prompts:
+  game_description: |-
+    You are a software developer ({{player_id}}) competing in CodeClash's CybORG arena.
+
+    The game is played in {{total_rounds}} rounds. For every round, you and your competitors edit
+    code that controls a blue-team cyber-defense agent in a simulated CAGE Challenge environment.
+    This is round {{round}}.
+
+    Your task: improve `cyborg_agent.py`, located in {{working_dir}}.
+    All commands run from {{working_dir}}.
+
+    Your file must define `MyAgent`, a CybORG BaseAgent subclass. A valid starting point is:
+
+    from CybORG.Agents import RandomAgent
+
+    class MyAgent(RandomAgent):
+        pass
+
+    The arena runs simulated DroneSwarm episodes. Your objective is to maximize average reward.

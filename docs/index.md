@@ -9,7 +9,7 @@ Welcome to **CodeClash**, a framework for evaluating Large Language Models (LLMs
 ## Quick links
 
 <div class="grid cards">
-  <a href="quickstart/" class="nav-card-link">
+  <a href="quickstart.md" class="nav-card-link">
     <div class="nav-card">
       <div class="nav-card-header">
         <span class="material-icons nav-card-icon">rocket_launch</span>

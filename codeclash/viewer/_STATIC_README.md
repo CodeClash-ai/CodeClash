@@ -4,7 +4,7 @@ How this works:
 
 1. Run `freeze_viewer.py` to generate the static site in the `build` directory.
 2. Push to the github repo. Let's not keep any history to keep things small
-3. Deployed via Kilian's netlify to https://cheery-melba-4698df.netlify.app/
+3. Deployed to https://viewer.codeclash.ai/
 
 ## Commands
 

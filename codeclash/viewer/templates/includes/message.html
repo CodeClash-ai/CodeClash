@@ -5,7 +5,25 @@
         {{ message_role_upper }} #{{ loop.index }}
     </span>
     <div class="message-content">
-        {% if message.content is string %}
+        {% set tool_actions = message.extra.actions if (message.extra and message.extra.actions) else [] %}
+        {% if tool_actions %}
+            {# mini-swe-agent v2 tool-call assistant message: reasoning text + issued command(s).
+               The command lives in extra.actions rather than a ```bash block in the text. #}
+            <div class="message-content-full">
+                {% if message.content is string and message.content|trim %}
+                    <div class="message-text">
+                        <pre>{{ message.content }}</pre>
+                    </div>
+                {% endif %}
+                {% for action in tool_actions %}
+                    {% if action.command %}
+                        <div class="code-block">
+                            <pre><code>{{ action.command }}</code></pre>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% elif message.content is string %}
             {# Simple string content #}
             {% set line_count = message.content.count('\n') + 1 %}
             {% if line_count <= 5 %}

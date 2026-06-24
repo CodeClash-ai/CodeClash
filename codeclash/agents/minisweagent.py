@@ -3,12 +3,9 @@ import os
 import traceback
 from collections.abc import Callable
 
-from minisweagent import Model
 from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.environments.docker import DockerEnvironment
-from minisweagent.models import get_model
-from minisweagent.models.test_models import DeterministicModel
-from minisweagent.run.utils.save import save_traj
+from minisweagent.models import Model, get_model
 
 from codeclash import REPO_DIR
 from codeclash.agents.player import Player
@@ -22,10 +19,8 @@ os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
 
 
 class ClashAgent(DefaultAgent):
-    """
-    Slightly modified version of `DefaultAgent` from mini-SWE-agent
-    (https://github.com/SWE-agent/mini-swe-agent)
-    """
+    """`DefaultAgent` from mini-SWE-agent (https://github.com/SWE-agent/mini-swe-agent)
+    with per-player debug logging."""
 
     def __init__(
         self,
@@ -39,9 +34,11 @@ class ClashAgent(DefaultAgent):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.logger = logger
 
-    def add_message(self, role: str, content: str, **kwargs):
-        super().add_message(role, content, **kwargs)
-        self.logger.debug(f"[{role}] {content}", extra={"highlighter": None})
+    def add_messages(self, *messages: dict) -> list[dict]:
+        result = super().add_messages(*messages)
+        for m in messages:
+            self.logger.debug(f"[{m.get('role')}] {m.get('content')}", extra={"highlighter": None})
+        return result
 
 
 class MiniSWEAgent(Player):
@@ -51,11 +48,7 @@ class MiniSWEAgent(Player):
         super().__init__(config, environment=environment, game_context=game_context)
 
     def run(self):
-        # temporary workaround around https://github.com/SWE-agent/mini-swe-agent/issues/477
-        if "DeterministicModel" not in self.config["config"]["model"].get("model_class", ""):
-            model = get_model(config=self.config["config"]["model"])
-        else:
-            model = DeterministicModel(outputs=self.config["config"]["model"]["outputs"])
+        model = get_model(config=self.config["config"]["model"])
         self.agent = ClashAgent(
             model=model,
             env=self.environment,
@@ -63,14 +56,13 @@ class MiniSWEAgent(Player):
             **self.config["config"]["agent"],
         )
         exit_status = None
-        result = None
         exc_message = None
         try:
-            exit_status, result = self.agent.run(task="", **self.game_context.to_template_vars())
+            result = self.agent.run(task="", **self.game_context.to_template_vars())
+            exit_status = result.get("exit_status", "")
         except Exception as e:
             exit_status = str(e)
             exc_message = traceback.format_exc()
-            result = exc_message
             self.logger.critical(exc_message)
         finally:
             traj_path = (
@@ -79,13 +71,7 @@ class MiniSWEAgent(Player):
                 / self.name
                 / f"{self.name}_r{self.game_context.round}.traj.json"
             )
-            save_traj(
-                self.agent,  # type: ignore
-                traj_path,
-                exit_status=exit_status,
-                result=result,
-                print_fct=self.logger.debug,
-            )
+            self.agent.save(traj_path)
             copy_to_container(
                 self.environment,
                 traj_path,
@@ -93,8 +79,8 @@ class MiniSWEAgent(Player):
             )
             self._metadata["agent_stats"][self.game_context.round] = {
                 "exit_status": exit_status,
-                "cost": self.agent.model.cost,
-                "api_calls": self.agent.model.n_calls,
+                "cost": self.agent.cost,
+                "api_calls": self.agent.n_calls,
             }
         if exit_status.lower().strip() not in ["", "submitted", "limitsexceeded"] and exc_message is not None:
             raise RuntimeError(f"Agent {self.name} failed with exit status: {exit_status} and exception: {exc_message}")
