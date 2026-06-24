@@ -840,7 +840,7 @@ function shouldRowBeVisible(row) {
     const dateElement = row.querySelector(".date-text");
     if (dateElement) {
       const dateText = dateElement.textContent.trim();
-      // Extract just the MM/DD part
+      // Extract just the date part (before the time)
       const rowDate = dateText.split(" ")[0];
       if (rowDate !== selectedDate) {
         return false;
@@ -1065,7 +1065,7 @@ function handleModelTagClick(event, modelName) {
 
 function handleDateClick(event, dateText) {
   event.stopPropagation();
-  // Extract just the YYYY-MM-DD part
+  // Extract just the date part (before the time)
   const date = dateText.trim().split(" ")[0];
 
   // Toggle date filter - if already selected, clear it

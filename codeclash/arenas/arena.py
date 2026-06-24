@@ -12,7 +12,12 @@ from minisweagent.environments.docker import DockerEnvironment
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG, RESULT_TIE
 from codeclash.utils.aws import is_running_in_aws_batch, pull_game_container_aws_ecr
-from codeclash.utils.environment import assert_zero_exit_code, copy_between_containers, copy_from_container
+from codeclash.utils.environment import (
+    ClashDockerEnvironment,
+    assert_zero_exit_code,
+    copy_between_containers,
+    copy_from_container,
+)
 from codeclash.utils.log import get_logger
 
 
@@ -185,7 +190,7 @@ class CodeArena(ABC):
             run_args = ["--rm"]
         else:
             run_args = []
-        environment = DockerEnvironment(
+        environment = ClashDockerEnvironment(
             image=self.image_name,
             cwd=str(DIR_WORK),
             env={
