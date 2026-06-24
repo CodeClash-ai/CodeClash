@@ -16,7 +16,7 @@
 - model_name: xai/grok-code-fast-1
   model_kwargs:
     temperature: 0.2
-- model_name: google/gemini-2.5-pro
+- model_name: gemini/gemini-2.5-pro
   model_kwargs:
     temperature: 0.2
 - model_name: openai/gpt-5
