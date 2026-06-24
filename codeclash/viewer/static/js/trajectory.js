@@ -133,8 +133,11 @@ function createMessageElement(message, index) {
   // extra.actions / tool_calls instead of in a ```bash block in the text, so they need
   // their own renderer. v1 messages have neither and fall through to the text paths below.
   const toolActions =
-    message.extra && Array.isArray(message.extra.actions) ? message.extra.actions : [];
-  const hasToolCalls = Array.isArray(message.tool_calls) && message.tool_calls.length > 0;
+    message.extra && Array.isArray(message.extra.actions)
+      ? message.extra.actions
+      : [];
+  const hasToolCalls =
+    Array.isArray(message.tool_calls) && message.tool_calls.length > 0;
   if (toolActions.length > 0 || hasToolCalls) {
     messageContent.innerHTML = createToolCallContentHTML(message);
   } else if (typeof message.content === "string") {
