@@ -8,6 +8,7 @@ from codeclash.constants import RESULT_TIE
 from codeclash.utils.environment import assert_zero_exit_code
 
 RESULTS_JSON = "scml_results.json"
+CRASH_SCORE = -1_000_000.0
 
 
 class SCMLOneShotArena(CodeArena):
@@ -15,27 +16,29 @@ class SCMLOneShotArena(CodeArena):
     submission: str = "scml_agent.py"
     description: str = """SCML OneShot is a supply-chain negotiation simulator based on the ANAC Supply Chain Management League.
 
-Your bot is a Python file named `scml_agent.py` that defines a class named `MyAgent`.
-`MyAgent` should inherit from an SCML OneShot agent class, for example:
+Your bot is a Python file named `scml_agent.py` that defines a function named `decide`.
+The trusted runtime owns the SCML agent object and passes plain decision observations to your code:
 
-    from scml.oneshot.agents import GreedySyncAgent
+    def decide(observation):
+        return {}
 
-    class MyAgent(GreedySyncAgent):
-        ...
-
-Each round runs several SCML2024 OneShot worlds. Your agent negotiates with the other submitted
-agents to buy or sell goods in a simulated supply chain. The objective is to maximize profit. The
-arena score is your average SCML score across all worlds in the round.
+Each round runs several two-process SCML2024 OneShot worlds. Your policy controls trusted SCML
+wrapper agents that negotiate with the other submitted policies to buy and sell goods in a simulated
+supply chain. The objective is to maximize profit. The arena score is your average SCML score across
+all worlds in the round.
 """
     default_args: dict = {
         "sims_per_round": 3,
         "n_steps": 10,
         "n_lines": 2,
+        "decision_timeout": 3.0,
+        "max_policy_errors": 8,
+        "validation_timeout": 10,
         "timeout": 180,
     }
 
     def _game_arg(self, key: str):
-        return self.game_config.get(key, self.default_args[key])
+        return getattr(self, "game_config", {}).get(key, self.default_args[key])
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         quoted_submission = shlex.quote(self.submission)
@@ -51,19 +54,25 @@ arena score is your average SCML score across all worlds in the round.
         if syntax_check["returncode"] != 0:
             return False, f"Python syntax error in `{self.submission}`:\n{syntax_check['output']}"
 
-        import_check = agent.environment.execute(
-            "python - <<'PY'\n"
-            "import importlib.util\n"
-            f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
-            "module = importlib.util.module_from_spec(spec)\n"
-            "spec.loader.exec_module(module)\n"
-            "assert hasattr(module, 'MyAgent'), 'MyAgent class not found'\n"
-            "from scml.oneshot.agent import OneShotAgent\n"
-            "assert issubclass(module.MyAgent, OneShotAgent), 'MyAgent must inherit from an SCML OneShotAgent class'\n"
-            "PY"
-        )
+        validation_timeout = int(self._game_arg("validation_timeout"))
+        try:
+            import_check = agent.environment.execute(
+                "python - <<'PY'\n"
+                "import importlib.util\n"
+                f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
+                "module = importlib.util.module_from_spec(spec)\n"
+                "spec.loader.exec_module(module)\n"
+                "assert hasattr(module, 'decide'), 'decide function not found'\n"
+                "assert callable(module.decide), 'decide must be callable'\n"
+                "result = module.decide({'event': 'validate', 'awi': {}, 'state': {}, 'nmi': {}})\n"
+                "assert result is None or isinstance(result, dict), 'decide must return a dictionary or None'\n"
+                "PY",
+                timeout=validation_timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, f"`decide` validation exceeded {validation_timeout}s timeout"
         if import_check["returncode"] != 0:
-            return False, f"Could not import `MyAgent` from `{self.submission}`:\n{import_check['output']}"
+            return False, f"Could not import or call `decide` from `{self.submission}`:\n{import_check['output']}"
 
         return True, None
 
@@ -81,6 +90,10 @@ arena score is your average SCML score across all worlds in the round.
             str(self._game_arg("n_steps")),
             "--lines",
             str(self._game_arg("n_lines")),
+            "--decision-timeout",
+            str(self._game_arg("decision_timeout")),
+            "--max-policy-errors",
+            str(self._game_arg("max_policy_errors")),
             "--output",
             str(self.log_env / RESULTS_JSON),
             *agent_args,
@@ -99,8 +112,19 @@ arena score is your average SCML score across all worlds in the round.
             self.logger.error(f"Missing result file: {result_file}")
             stats.winner = RESULT_TIE
             for agent in agents:
-                stats.scores[agent.name] = 0.0
-                stats.player_stats[agent.name].score = 0.0
+                stats.scores[agent.name] = CRASH_SCORE
+                stats.player_stats[agent.name].score = CRASH_SCORE
+                stats.details.append(
+                    json.dumps(
+                        {
+                            "player": agent.name,
+                            "score": CRASH_SCORE,
+                            "status": "error",
+                            "error": f"missing SCML result file: {result_file}",
+                        },
+                        sort_keys=True,
+                    )
+                )
             return
 
         with open(result_file) as f:

@@ -5,6 +5,9 @@ game:
   sims_per_round: 2
   n_steps: 5
   n_lines: 2
+  decision_timeout: 3.0
+  max_policy_errors: 8
+  validation_timeout: 10
   timeout: 240
 players:
 - agent: dummy
@@ -21,11 +24,14 @@ prompts:
     Your task: improve `scml_agent.py`, located in {{working_dir}}.
     All commands run from {{working_dir}}.
 
-    Your file must define `MyAgent`, an SCML OneShot agent class. A valid starting point is:
+    Your file must define `decide(observation)`. A valid starting point is:
 
-    from scml.oneshot.agents import GreedySyncAgent
+    def decide(observation):
+        return {}
 
-    class MyAgent(GreedySyncAgent):
-        pass
+    For proposal events, return {"offer": [quantity, time, unit_price]} to override the trusted
+    greedy fallback. For response events, return {"response": "accept"}, {"response": "reject"},
+    or {"response": "end"}.
 
-    The arena runs multiple SCML2024 OneShot worlds. Your objective is to maximize average profit.
+    The arena runs multiple two-process SCML2024 OneShot worlds. Your objective is to maximize
+    average profit.
