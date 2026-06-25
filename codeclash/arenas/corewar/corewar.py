@@ -97,8 +97,10 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         if self.submission not in agent.environment.execute("ls")["output"]:
             return False, f"There should be a `{self.submission}` file"
-        # Play game against a simple default bot to ensure it runs
-        test_run_cmd = f"{self.run_cmd_round} {self.submission} /home/dwarf.red"
+        # Play game against a simple default bot to ensure it runs. Pass -r with the real
+        # round count so warriors that `;assert ROUNDS > 1` (a common idiom) validate the same
+        # way they'll actually run, instead of failing on pmars's default single round.
+        test_run_cmd = f"{self.run_cmd_round} {self.submission} /home/dwarf.red -r {self.game_config['sims_per_round']}"
         test_run = agent.environment.execute(test_run_cmd, timeout=60)["output"]
         if any([l.startswith("Error") for l in test_run.split("\n")]):
             return False, f"The `{self.submission}` file is malformed (Ran `{test_run_cmd}`):\n{test_run}"
