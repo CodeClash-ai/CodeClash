@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 from codeclash.arenas.abides.abides import CRASH_SCORE, ABIDESArena
@@ -108,6 +109,27 @@ class TestABIDESValidation:
 
         assert valid is False
         assert "Could not import or call" in error
+
+    def test_validation_timeout_invalidates_submission(self):
+        arena = ABIDESArena.__new__(ABIDESArena)
+        arena.submission = "abides_agent.py"
+        arena.config = {"game": {"args": {"validation_timeout": 5}}}
+
+        class TimeoutEnvironment(MockEnvironment):
+            def execute(self, cmd, cwd=None, timeout=None):
+                if cmd.startswith("python - <<'PY'"):
+                    raise subprocess.TimeoutExpired(cmd=cmd, timeout=timeout)
+                return super().execute(cmd, cwd=cwd, timeout=timeout)
+
+        player = MockPlayer(
+            "Alice",
+            TimeoutEnvironment(files={"abides_agent.py": "def decide(observation):\n    return []\n"}),
+        )
+
+        valid, error = arena.validate_code(player)
+
+        assert valid is False
+        assert "`decide` validation exceeded 5s timeout" in error
 
 
 class TestABIDESResults:

@@ -55,28 +55,32 @@ profit across all simulations in the round.
         if syntax_check["returncode"] != 0:
             return False, f"Python syntax error in `{self.submission}`:\n{syntax_check['output']}"
 
-        import_check = agent.environment.execute(
-            "python - <<'PY'\n"
-            "import importlib.util\n"
-            f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
-            "module = importlib.util.module_from_spec(spec)\n"
-            "spec.loader.exec_module(module)\n"
-            "assert hasattr(module, 'decide'), 'decide function not found'\n"
-            "assert callable(module.decide), 'decide must be callable'\n"
-            "observation = {\n"
-            "    'symbol': 'JPM',\n"
-            "    'cash': 10000000,\n"
-            "    'position': 0,\n"
-            "    'best_bid': None,\n"
-            "    'best_ask': None,\n"
-            "    'last_trade': 100000,\n"
-            "    'market_open': True,\n"
-            "}\n"
-            "result = module.decide(observation)\n"
-            "assert result is None or isinstance(result, (list, tuple, dict)), 'decide must return a list, tuple, dict, or None'\n"
-            "PY",
-            timeout=int(self._game_arg("validation_timeout")),
-        )
+        validation_timeout = int(self._game_arg("validation_timeout"))
+        try:
+            import_check = agent.environment.execute(
+                "python - <<'PY'\n"
+                "import importlib.util\n"
+                f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
+                "module = importlib.util.module_from_spec(spec)\n"
+                "spec.loader.exec_module(module)\n"
+                "assert hasattr(module, 'decide'), 'decide function not found'\n"
+                "assert callable(module.decide), 'decide must be callable'\n"
+                "observation = {\n"
+                "    'symbol': 'JPM',\n"
+                "    'cash': 10000000,\n"
+                "    'position': 0,\n"
+                "    'best_bid': None,\n"
+                "    'best_ask': None,\n"
+                "    'last_trade': 100000,\n"
+                "    'market_open': True,\n"
+                "}\n"
+                "result = module.decide(observation)\n"
+                "assert result is None or isinstance(result, (list, tuple, dict)), 'decide must return a list, tuple, dict, or None'\n"
+                "PY",
+                timeout=validation_timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, f"`decide` validation exceeded {validation_timeout}s timeout"
         if import_check["returncode"] != 0:
             return (
                 False,
