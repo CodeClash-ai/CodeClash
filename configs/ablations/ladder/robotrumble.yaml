@@ -12,8 +12,7 @@ player:
   config:
     agent: !include mini/default.yaml
     model:
-      model_name: '@anthropic/claude-sonnet-4-5-20250929'
-      model_class: portkey
+      model_name: anthropic/claude-sonnet-4-5-20250929
       model_kwargs:
         temperature: 0.2
         max_tokens: 4096
