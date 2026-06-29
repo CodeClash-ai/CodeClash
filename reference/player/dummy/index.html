@@ -1749,7 +1749,31 @@
 <span class="normal">59</span>
 <span class="normal">60</span>
 <span class="normal">61</span>
-<span class="normal">62</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="n">environment</span><span class="p">:</span> <span class="n">DockerEnvironment</span><span class="p">,</span>
@@ -1767,6 +1791,7 @@
         <span class="n">log_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">game_context</span><span class="o">.</span><span class="n">log_local</span> <span class="o">/</span> <span class="s2">&quot;players&quot;</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">/</span> <span class="s2">&quot;player.log&quot;</span><span class="p">,</span>
         <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👤&quot;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;branch&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">game_context</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="s2">&quot;player_unique_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_player_unique_id</span><span class="p">,</span>
@@ -1778,10 +1803,6 @@
         <span class="s2">&quot;agent_stats&quot;</span><span class="p">:</span> <span class="p">{},</span>  <span class="c1"># mapping round -&gt; agent stats</span>
     <span class="p">}</span>
 
-    <span class="k">if</span> <span class="n">branch</span> <span class="o">:=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;branch_init&quot;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checking out branch </span><span class="si">{</span><span class="n">branch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">assert_zero_exit_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout </span><span class="si">{</span><span class="n">branch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">push</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Will push agent gameplay as branch to remote repository after each round&quot;</span><span class="p">)</span>
         <span class="n">token</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GITHUB_TOKEN&quot;</span><span class="p">)</span>
@@ -1792,6 +1813,33 @@
             <span class="sa">f</span><span class="s2">&quot;git remote add origin https://x-access-token:</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">@github.com/</span><span class="si">{</span><span class="n">GH_ORG</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">game_context</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.git&quot;</span><span class="p">,</span>
         <span class="p">]:</span>
             <span class="n">assert_zero_exit_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">),</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+
+    <span class="c1"># Handle branch initialization</span>
+    <span class="k">if</span> <span class="n">branch_init</span> <span class="o">:=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;branch_init&quot;</span><span class="p">):</span>
+        <span class="c1"># Fetch from remote first (handles branches pushed in previous tournaments)</span>
+        <span class="c1"># Then checkout - git will create tracking branch if needed</span>
+        <span class="n">assert_zero_exit_code</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git fetch origin &amp;&amp; git checkout </span><span class="si">{</span><span class="n">branch_init</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checked out initial branch </span><span class="si">{</span><span class="n">branch_init</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span> <span class="o">!=</span> <span class="n">branch_init</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Switching to branch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2"> for pushing changes&quot;</span><span class="p">)</span>
+        <span class="c1"># First fetch to see if the branch exists on remote</span>
+        <span class="n">assert_zero_exit_code</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;git fetch origin&quot;</span><span class="p">),</span>
+            <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Try to checkout the branch - git will track remote if it exists there</span>
+        <span class="n">checkout_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkout_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;returncode&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Branch doesn&#39;t exist locally or remotely, create it</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Branch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2"> doesn&#39;t exist, creating it&quot;</span><span class="p">)</span>
+            <span class="n">assert_zero_exit_code</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout -b </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
+            <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 

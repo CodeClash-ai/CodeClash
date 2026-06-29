@@ -1876,8 +1876,10 @@
 The CodeClash arena uses CybORG's simulated DroneSwarm scenario through the PettingZoo parallel
 interface. It does not run real exploit tooling, emulate external networks, or interact with live
 systems.</p>
-<p>Each CodeClash player edits a blue-team CybORG agent. A round evaluates every submitted agent on the
-same seeded episode batch and scores players by average episode reward.</p>
+<p>Each CodeClash player edits a restricted blue-team policy. A round evaluates every submitted policy
+on the same seeded episode batch and scores players by average episode reward. The trusted runtime
+owns the CybORG environment and action validation; submitted code only receives plain observations
+and returns discrete action intents.</p>
 <h2 id="resources">Resources</h2>
 <ul>
 <li><a href="https://github.com/cage-challenge/CybORG">CybORG GitHub Repository</a></li>
@@ -1913,12 +1915,7 @@ same seeded episode batch and scores players by average episode reward.</p>
 
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>codeclash/arenas/arena.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 73</span>
-<span class="normal"> 74</span>
-<span class="normal"> 75</span>
-<span class="normal"> 76</span>
-<span class="normal"> 77</span>
-<span class="normal"> 78</span>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 78</span>
 <span class="normal"> 79</span>
 <span class="normal"> 80</span>
 <span class="normal"> 81</span>
@@ -1943,7 +1940,12 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">100</span>
 <span class="normal">101</span>
 <span class="normal">102</span>
-<span class="normal">103</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The CodeArena class is responsible for running games, i.e., taking a list of code</span>
 <span class="sd">    from different agents/players and running them against each other.</span>
 <span class="sd">    It also provides the environments for the game and agents to run in.</span>
@@ -2047,7 +2049,7 @@ same seeded episode batch and scores players by average episode reward.</p>
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;CybORG is a simulated cyber-defense arena based on the CAGE Challenge 3 DroneSwarm scenario.</span><span class="se">\n\n</span><span class="s2">Your bot is a Python file named `cyborg_agent.py` that defines a class named `MyAgent`.</span><span class="se">\n</span><span class="s2">`MyAgent` should inherit from a CybORG BaseAgent-compatible class, for example:</span><span class="se">\n\n</span><span class="s2">    from CybORG.Agents import RandomAgent</span><span class="se">\n\n</span><span class="s2">    class MyAgent(RandomAgent):</span><span class="se">\n</span><span class="s2">        ...</span><span class="se">\n\n</span><span class="s2">Each round evaluates every submitted agent independently on the same seeded DroneSwarm episodes.</span><span class="se">\n</span><span class="s2">Your agent controls the blue-team drone agents through CybORG&#39;s simulated PettingZoo interface.</span><span class="se">\n</span><span class="s2">The objective is to maximize average episode reward. This arena uses CybORG simulation only and does</span><span class="se">\n</span><span class="s2">    not run real exploit tools or interact with external networks.</span><span class="se">\n</span><span class="s2">    &quot;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;CybORG is a simulated cyber-defense arena based on the CAGE Challenge 3 DroneSwarm scenario.</span><span class="se">\n\n</span><span class="s1">Your bot is a Python file named `cyborg_agent.py` that defines a function named `decide`.</span><span class="se">\n</span><span class="s1">The function receives a plain observation list and action-space dictionary, then returns an action:</span><span class="se">\n\n</span><span class="s1">    def decide(observation, action_space):</span><span class="se">\n</span><span class="s1">        return 0</span><span class="se">\n\n</span><span class="s1">Each round evaluates every submitted agent independently on the same seeded DroneSwarm episodes.</span><span class="se">\n</span><span class="s1">The trusted runtime owns the CybORG environment and action validation. Submitted code only receives</span><span class="se">\n</span><span class="s1">plain observations and returns action intents. The objective is to maximize average episode reward.</span><span class="se">\n</span><span class="s1">This arena uses CybORG simulation only and does not run real exploit tools or interact with external</span><span class="se">\n</span><span class="s1">networks.</span><span class="se">\n</span><span class="s1">&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2070,7 +2072,7 @@ same seeded episode batch and scores players by average episode reward.</p>
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">default_args</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;steps_per_episode&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;num_drones&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">240</span><span class="p">}</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">default_args</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;steps_per_episode&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;num_drones&#39;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span> <span class="s1">&#39;decision_timeout&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span> <span class="s1">&#39;validation_timeout&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">240</span><span class="p">}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2098,9 +2100,7 @@ same seeded episode batch and scores players by average episode reward.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/cyborg/cyborg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span>
 <span class="normal">48</span>
@@ -2134,13 +2134,7 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">76</span>
 <span class="normal">77</span>
 <span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">79</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
     <span class="n">quoted_submission</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="p">)</span>
     <span class="n">file_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;test -f </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2"> &amp;&amp; echo exists&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">&quot;exists&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_check</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
@@ -2154,33 +2148,25 @@ same seeded episode batch and scores players by average episode reward.</p>
     <span class="k">if</span> <span class="n">syntax_check</span><span class="p">[</span><span class="s2">&quot;returncode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Python syntax error in `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`:</span><span class="se">\n</span><span class="si">{</span><span class="n">syntax_check</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    <span class="n">import_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-        <span class="s2">&quot;python - &lt;&lt;&#39;PY&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;import importlib.util</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;spec = importlib.util.spec_from_file_location(&#39;submission_agent&#39;, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">!r}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;module = importlib.util.module_from_spec(spec)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;spec.loader.exec_module(module)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;assert hasattr(module, &#39;MyAgent&#39;), &#39;MyAgent class not found&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;from CybORG.Agents import BaseAgent</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;assert issubclass(module.MyAgent, BaseAgent), &#39;MyAgent must inherit from a CybORG BaseAgent class&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;def make_agent(agent_class, agent_name):</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;    try:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;        return agent_class(name=agent_name)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;    except TypeError:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;        try:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;            return agent_class(agent_name)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;        except TypeError:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;            try:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;                return agent_class()</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;            except TypeError as final_error:</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;                raise TypeError(</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;                    &#39;MyAgent could not be constructed with the CybORG runtime constructor fallbacks&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;                ) from final_error</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;make_agent(module.MyAgent, &#39;validation-agent&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;PY&quot;</span>
-    <span class="p">)</span>
+    <span class="n">validation_timeout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;validation_timeout&quot;</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">import_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">&quot;python - &lt;&lt;&#39;PY&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;import importlib.util</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;spec = importlib.util.spec_from_file_location(&#39;submission_agent&#39;, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">!r}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;module = importlib.util.module_from_spec(spec)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;spec.loader.exec_module(module)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;assert hasattr(module, &#39;decide&#39;), &#39;decide function not found&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;assert callable(module.decide), &#39;decide must be callable&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;result = module.decide([0, 1, 0], {&#39;type&#39;: &#39;discrete&#39;, &#39;n&#39;: 11})</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;assert result is None or isinstance(result, int), &#39;decide must return an integer action or None&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;PY&quot;</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="n">validation_timeout</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;`decide` validation exceeded </span><span class="si">{</span><span class="n">validation_timeout</span><span class="si">}</span><span class="s2">s timeout&quot;</span>
     <span class="k">if</span> <span class="n">import_check</span><span class="p">[</span><span class="s2">&quot;returncode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Could not import `MyAgent` from `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`:</span><span class="se">\n</span><span class="si">{</span><span class="n">import_check</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Could not import or call `decide` from `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`:</span><span class="se">\n</span><span class="si">{</span><span class="n">import_check</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
@@ -2205,7 +2191,13 @@ same seeded episode batch and scores players by average episode reward.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/cyborg/cyborg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 87</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
 <span class="normal"> 88</span>
 <span class="normal"> 89</span>
 <span class="normal"> 90</span>
@@ -2225,11 +2217,7 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">104</span>
 <span class="normal">105</span>
 <span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">107</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">agent_args</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
         <span class="n">agent_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--agent&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
@@ -2243,6 +2231,8 @@ same seeded episode batch and scores players by average episode reward.</p>
         <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;steps_per_episode&quot;</span><span class="p">)),</span>
         <span class="s2">&quot;--drones&quot;</span><span class="p">,</span>
         <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;num_drones&quot;</span><span class="p">)),</span>
+        <span class="s2">&quot;--decision-timeout&quot;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_game_arg</span><span class="p">(</span><span class="s2">&quot;decision_timeout&quot;</span><span class="p">)),</span>
         <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
         <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_env</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span><span class="p">),</span>
         <span class="o">*</span><span class="n">agent_args</span><span class="p">,</span>
@@ -2276,7 +2266,11 @@ same seeded episode batch and scores players by average episode reward.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/cyborg/cyborg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
 <span class="normal">114</span>
 <span class="normal">115</span>
 <span class="normal">116</span>
@@ -2305,14 +2299,32 @@ same seeded episode batch and scores players by average episode reward.</p>
 <span class="normal">139</span>
 <span class="normal">140</span>
 <span class="normal">141</span>
-<span class="normal">142</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
     <span class="n">result_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">result_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing result file: </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">stats</span><span class="o">.</span><span class="n">winner</span> <span class="o">=</span> <span class="n">RESULT_TIE</span>
         <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
-            <span class="n">stats</span><span class="o">.</span><span class="n">scores</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">scores</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">CRASH_SCORE</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">player_stats</span><span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">CRASH_SCORE</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;player&quot;</span><span class="p">:</span> <span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">CRASH_SCORE</span><span class="p">,</span>
+                        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;missing CybORG result file: </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">return</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -2348,17 +2360,15 @@ same seeded episode batch and scores players by average episode reward.</p>
     </div>
 
 </div><h2 id="agent-interface">Agent Interface</h2>
-<p>Your bot must be a Python file named <code>cyborg_agent.py</code> that defines <code>MyAgent</code>.</p>
-<p><code>MyAgent</code> must inherit from a CybORG <code>BaseAgent</code> class. A valid starting point is:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">CybORG.Agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomAgent</span>
-
-
-<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">RandomAgent</span><span class="p">):</span>
-    <span class="k">pass</span>
+<p>Your bot must be a Python file named <code>cyborg_agent.py</code> that defines <code>decide(observation, action_space)</code>.</p>
+<p><code>observation</code> is a plain list converted from CybORG's observation array. <code>action_space</code> is a
+dictionary such as <code>{"type": "discrete", "n": 11}</code>. Return an integer action accepted by that
+action space. A valid starting point is:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">decide</span><span class="p">(</span><span class="n">observation</span><span class="p">,</span> <span class="n">action_space</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">0</span>
 </code></pre></div>
-<p>The arena runs <code>MyAgent</code> through CybORG's PettingZoo parallel wrapper. For each episode, the same
-<code>MyAgent</code> class controls all blue-team drone agents. <code>get_action(observation, action_space)</code> should
-return an action accepted by the provided CybORG action space.</p>
+<p>For each episode, the same policy file controls all blue-team drone agents through isolated policy
+worker processes. The runtime validates every returned action before stepping the simulator.</p>
 <h2 id="configuration-example">Configuration Example</h2>
 <div class="highlight"><pre><span></span><code><span class="nt">tournament</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
@@ -2368,6 +2378,8 @@ return an action accepted by the provided CybORG action space.</p>
 <span class="w">  </span><span class="nt">args</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">steps_per_episode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
 <span class="w">    </span><span class="nt">num_drones</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">    </span><span class="nt">decision_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<span class="w">    </span><span class="nt">validation_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <span class="w">    </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">240</span>
 <span class="nt">players</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">agent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dummy</span>
@@ -2393,7 +2405,8 @@ next to the source tree.</p>
 <li>both players pass submission validation;</li>
 <li>stdout includes <code>In round 0, the winner is ...</code> and <code>In round 1, the winner is ...</code>;</li>
 <li>each round summary contains floating-point average rewards for <code>alpha</code> and <code>beta</code>;</li>
-<li>per-episode details have <code>status: "ok"</code> and <code>steps_completed: 5</code>;</li>
+<li>per-episode details have <code>status: "ok"</code>, <code>steps_completed: 5</code>, <code>policy_errors</code>,
+  <code>invalid_actions</code>, and <code>decisions</code>;</li>
 <li>the output directory contains <code>metadata.json</code>, <code>game.log</code>, <code>tournament.log</code>, and
   <code>rounds/round_0.tar.gz</code> / <code>rounds/round_1.tar.gz</code>.</li>
 </ul>
