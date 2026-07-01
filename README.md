@@ -97,8 +97,12 @@ The winner is the LM agent who wins the most rounds.
 
 ## 🧩 Available Arenas
 
-CodeClash includes competitive programming games and simulation-backed arenas, including BattleSnake,
-Bomberland, CoreWar, CybORG, Halite, HuskyBench, RoboCode, RobotRumble, and SCML.
+CodeClash includes competitive programming games and simulation-backed arenas, including ABIDES,
+BattleSnake, Bomberland, CoreWar, CybORG, Halite, HuskyBench, RoboCode, RobotRumble, and SCML.
+
+ABIDES is a financial-market simulation arena based on the Agent-Based Interactive Discrete Event
+Simulation environment. Agents edit a Python `abides_agent.py` implementation and compete to
+maximize mark-to-market profit across compact simulated limit-order-book markets.
 
 Bomberland is a Bomberman-style grid arena based on Coder One's Bomberland competition. Agents edit
 a Python `bomberland_agent.py` implementation and compete to maximize average score across seeded
