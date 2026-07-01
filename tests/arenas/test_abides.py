@@ -1,12 +1,54 @@
+import importlib.util
 import json
 import subprocess
+import sys
+import types
 from pathlib import Path
+
+import pytest
 
 from codeclash.arenas.abides.abides import CRASH_SCORE, ABIDESArena
 from codeclash.arenas.arena import RoundStats
 from codeclash.constants import RESULT_TIE
 
 from .conftest import MockEnvironment, MockPlayer
+
+
+def load_runtime_module(monkeypatch):
+    class FakeTradingAgent:
+        pass
+
+    fake_modules = {
+        "agent": types.ModuleType("agent"),
+        "agent.ExchangeAgent": types.ModuleType("agent.ExchangeAgent"),
+        "agent.market_makers": types.ModuleType("agent.market_makers"),
+        "agent.market_makers.MarketMakerAgent": types.ModuleType("agent.market_makers.MarketMakerAgent"),
+        "agent.TradingAgent": types.ModuleType("agent.TradingAgent"),
+        "agent.ZeroIntelligenceAgent": types.ModuleType("agent.ZeroIntelligenceAgent"),
+        "Kernel": types.ModuleType("Kernel"),
+        "util": types.ModuleType("util"),
+        "util.oracle": types.ModuleType("util.oracle"),
+        "util.oracle.SparseMeanRevertingOracle": types.ModuleType("util.oracle.SparseMeanRevertingOracle"),
+        "util.order": types.ModuleType("util.order"),
+    }
+    fake_modules["agent.ExchangeAgent"].ExchangeAgent = type("ExchangeAgent", (), {})
+    fake_modules["agent.market_makers.MarketMakerAgent"].MarketMakerAgent = type("MarketMakerAgent", (), {})
+    fake_modules["agent.TradingAgent"].TradingAgent = FakeTradingAgent
+    fake_modules["agent.ZeroIntelligenceAgent"].ZeroIntelligenceAgent = type("ZeroIntelligenceAgent", (), {})
+    fake_modules["Kernel"].Kernel = type("Kernel", (), {})
+    fake_modules["util"].util = types.SimpleNamespace(silent_mode=False)
+    fake_modules["util.oracle.SparseMeanRevertingOracle"].SparseMeanRevertingOracle = type(
+        "SparseMeanRevertingOracle", (), {}
+    )
+    fake_modules["util.order"].LimitOrder = type("LimitOrder", (), {"silent_mode": False})
+    for name, module in fake_modules.items():
+        monkeypatch.setitem(sys.modules, name, module)
+
+    runtime_path = Path(__file__).parents[2] / "codeclash/arenas/abides/runtime/run_abides.py"
+    spec = importlib.util.spec_from_file_location("run_abides_test", runtime_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class TestABIDESValidation:
@@ -252,3 +294,27 @@ class TestABIDESExecution:
         assert "--agent Alice=/Alice/abides_agent.py" in cmd
         assert "--agent Bob=/Bob/abides_agent.py" in cmd
         assert arena.environment.timeout == 17
+
+
+class TestABIDESRuntimeProtocol:
+    def test_normalize_order_intents_rejects_boolean_numeric_fields(self, monkeypatch):
+        runtime = load_runtime_module(monkeypatch)
+
+        with pytest.raises(ValueError, match="quantity"):
+            runtime.normalize_order_intents({"side": "buy", "quantity": True, "limit_price": 100_000})
+
+        with pytest.raises(ValueError, match="limit_price"):
+            runtime.normalize_order_intents({"side": "buy", "quantity": 1, "limit_price": False})
+
+    def test_normalize_order_intents_accepts_whole_number_floats_and_clamps(self, monkeypatch):
+        runtime = load_runtime_module(monkeypatch)
+
+        assert runtime.normalize_order_intents({"side": "buy", "quantity": 25.0, "limit_price": 2_000_000.0}) == [
+            {"side": "buy", "quantity": runtime.MAX_ORDER_QUANTITY, "limit_price": runtime.MAX_LIMIT_PRICE}
+        ]
+
+    def test_normalize_order_intents_rejects_non_integral_floats(self, monkeypatch):
+        runtime = load_runtime_module(monkeypatch)
+
+        with pytest.raises(ValueError, match="quantity"):
+            runtime.normalize_order_intents({"side": "buy", "quantity": 1.5, "limit_price": 100_000})

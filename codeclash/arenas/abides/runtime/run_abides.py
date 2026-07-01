@@ -103,6 +103,18 @@ def make_random_state() -> np.random.RandomState:
     return np.random.RandomState(seed=np.random.randint(low=0, high=2**32, dtype="uint64"))
 
 
+def normalize_int_field(value, field: str) -> int:
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, bool):
+        raise ValueError(f"order {field} must be an integer")
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if not isinstance(value, int):
+        raise ValueError(f"order {field} must be an integer")
+    return value
+
+
 def normalize_order_intents(raw_orders) -> list[dict]:
     if raw_orders is None:
         return []
@@ -123,9 +135,13 @@ def normalize_order_intents(raw_orders) -> list[dict]:
         if side not in {"buy", "sell"}:
             raise ValueError("order side must be 'buy' or 'sell'")
 
-        quantity = min(max(int(raw_order.get("quantity", 0)), 1), MAX_ORDER_QUANTITY)
+        quantity = min(max(normalize_int_field(raw_order.get("quantity", 0), "quantity"), 1), MAX_ORDER_QUANTITY)
         limit_price = min(
-            max(int(raw_order.get("limit_price", raw_order.get("price", 0))), MIN_LIMIT_PRICE), MAX_LIMIT_PRICE
+            max(
+                normalize_int_field(raw_order.get("limit_price", raw_order.get("price", 0)), "limit_price"),
+                MIN_LIMIT_PRICE,
+            ),
+            MAX_LIMIT_PRICE,
         )
         normalized.append(
             {
