@@ -1,10 +1,6 @@
-from scml.oneshot.agents import GreedySyncAgent
+def decide(observation):
+    """Return SCML negotiation intents for the trusted runtime to validate.
 
-
-class MyAgent(GreedySyncAgent):
-    """Baseline SCML OneShot agent.
-
-    Improve this class to negotiate better supply-chain contracts and maximize profit.
+    Return {} or None to use the trusted greedy fallback.
     """
-
-    pass
+    return {}

@@ -72,6 +72,7 @@ nav:
         - "CodeGame (Abstract)": "reference/arenas/game.md"
         - "BattleCode": "reference/arenas/battlecode.md"
         - "BattleSnake": "reference/arenas/battlesnake.md"
+        - "Bomberland": "reference/arenas/bomberland.md"
         - "Bridge": "reference/arenas/bridge.md"
         - "CoreWar": "reference/arenas/corewar.md"
         - "CybORG": "reference/arenas/cyborg.md"

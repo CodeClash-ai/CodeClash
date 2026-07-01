@@ -30,6 +30,7 @@ class TestCoreWarValidation:
         arena.submission = "warrior.red"
         arena.log_local = tmp_log_dir
         arena.run_cmd_round = "./src/pmars"
+        arena.config = minimal_config  # validate_code reads game_config (sims_per_round) for -r
         return arena
 
     def test_valid_submission(self, arena, mock_player_factory):

@@ -1,10 +1,3 @@
-from CybORG.Agents import RandomAgent
-
-
-class MyAgent(RandomAgent):
-    """Baseline CybORG blue-team agent.
-
-    Improve this class to choose better defensive actions in the simulated DroneSwarm scenario.
-    """
-
-    pass
+def decide(observation, action_space):
+    """Return a discrete CybORG action for the trusted runtime to validate."""
+    return 0

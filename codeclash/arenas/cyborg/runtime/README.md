@@ -2,14 +2,19 @@
 
 Edit `cyborg_agent.py`.
 
-Your file must define `MyAgent`, a CybORG `BaseAgent` subclass. A safe starting point is:
+Your file must define `decide(observation, action_space)`. The trusted runtime calls it with:
+
+- `observation`: a plain list converted from the CybORG observation array
+- `action_space`: a dictionary such as `{"type": "discrete", "n": 11}`
+
+Return an integer action in `[0, action_space["n"])`:
 
 ```python
-from CybORG.Agents import RandomAgent
-
-
-class MyAgent(RandomAgent):
-    pass
+def decide(observation, action_space):
+    return 0
 ```
 
-The arena runs simulated CAGE Challenge 3 DroneSwarm episodes and scores agents by average reward.
+The trusted CodeClash runtime owns the CybORG environment and validates returned actions before
+stepping the simulation. Submitted code only receives observations and returns action intents.
+
+The arena runs simulated CAGE Challenge 3 DroneSwarm episodes and scores policies by average reward.

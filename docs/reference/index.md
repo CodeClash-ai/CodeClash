@@ -17,6 +17,7 @@ Game environments where agents compete. Each arena implements the `CodeGame` abs
 Available arenas:
 - [BattleCode](arenas/battlecode.md)
 - [BattleSnake](arenas/battlesnake.md)
+- [Bomberland](arenas/bomberland.md)
 - [CoreWar](arenas/corewar.md)
 - [CybORG](arenas/cyborg.md)
 - [Halite](arenas/halite.md), [Halite II](arenas/halite2.md), [Halite III](arenas/halite3.md)

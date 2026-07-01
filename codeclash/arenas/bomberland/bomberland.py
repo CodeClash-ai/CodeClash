@@ -7,38 +7,58 @@ from codeclash.arenas.arena import CodeArena, RoundStats
 from codeclash.constants import RESULT_TIE
 from codeclash.utils.environment import assert_zero_exit_code
 
-RESULTS_JSON = "scml_results.json"
+RESULTS_JSON = "bomberland_results.json"
 CRASH_SCORE = -1_000_000.0
 
 
-class SCMLOneShotArena(CodeArena):
-    name: str = "SCML"
-    submission: str = "scml_agent.py"
-    description: str = """SCML OneShot is a supply-chain negotiation simulator based on the ANAC Supply Chain Management League.
+class BomberlandArena(CodeArena):
+    name: str = "Bomberland"
+    submission: str = "bomberland_agent.py"
+    description: str = """Bomberland is a Bomberman-style multi-agent arena based on Coder One's Bomberland competition.
 
-Your bot is a Python file named `scml_agent.py` that defines a function named `decide`.
-The trusted runtime owns the SCML agent object and passes plain decision observations to your code:
+Your bot is a Python file named `bomberland_agent.py` that defines a callable named `next_actions`.
+The callable receives a game-state dictionary and should return a dictionary mapping unit ids to actions:
 
-    def decide(observation):
-        return {}
+    def next_actions(game_state):
+        return {"unit_0": "up"}
 
-Each round runs several two-process SCML2024 OneShot worlds. Your policy controls trusted SCML
-wrapper agents that negotiate with the other submitted policies to buy and sell goods in a simulated
-supply chain. The objective is to maximize profit. The arena score is your average SCML score across
-all worlds in the round.
+Valid actions are `up`, `down`, `left`, `right`, `bomb`, `stay`, and `detonate` (to blow up one of
+your own bombs early, e.g. the string `"detonate:x,y"` or `{"type": "detonate", "coordinates": [x, y]}`;
+bombs also explode automatically after their timer). Each round runs several deterministic seeded
+games. Your units move on a destructible grid, place bombs, destroy blocks, damage opposing units,
+and score by survival, damage, kills, and block destruction. Bomb blasts (`x` entities) stay active
+briefly and damage any unit standing on or moving into them.
 """
     default_args: dict = {
-        "sims_per_round": 3,
-        "n_steps": 10,
-        "n_lines": 2,
-        "decision_timeout": 3.0,
-        "max_policy_errors": 8,
-        "validation_timeout": 10,
+        "sims_per_round": 4,
+        "ticks": 80,
+        "width": 11,
+        "height": 11,
+        "unit_count": 3,
+        "agent_timeout": 0.25,
+        "validation_timeout": 5,
         "timeout": 180,
     }
 
+    def __init__(self, config: dict, **kwargs):
+        player_count = len(config.get("players", []))
+        if player_count != 2:
+            raise ValueError("Bomberland requires exactly two players")
+        game_config = config.get("game", {})
+        game_args = game_config.get("args", {})
+        sims_per_round = int(
+            game_args.get("sims_per_round", game_config.get("sims_per_round", self.default_args["sims_per_round"]))
+        )
+        if sims_per_round % 2 != 0:
+            raise ValueError("Bomberland requires an even sims_per_round so both players get paired starting sides")
+        super().__init__(config, **kwargs)
+
     def _game_arg(self, key: str):
-        return getattr(self, "game_config", {}).get(key, self.default_args[key])
+        nested_args = self.game_config.get("args", {})
+        return nested_args.get(key, self.game_config.get(key, self.default_args[key]))
+
+    def _sims_per_round(self) -> int:
+        return int(self._game_arg("sims_per_round"))
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
         quoted_submission = shlex.quote(self.submission)
@@ -62,17 +82,25 @@ all worlds in the round.
                 f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
                 "module = importlib.util.module_from_spec(spec)\n"
                 "spec.loader.exec_module(module)\n"
-                "assert hasattr(module, 'decide'), 'decide function not found'\n"
-                "assert callable(module.decide), 'decide must be callable'\n"
-                "result = module.decide({'event': 'validate', 'awi': {}, 'state': {}, 'nmi': {}})\n"
-                "assert result is None or isinstance(result, dict), 'decide must return a dictionary or None'\n"
+                "assert hasattr(module, 'next_actions'), 'next_actions callable not found'\n"
+                "assert callable(module.next_actions), 'next_actions must be callable'\n"
+                "state = {\n"
+                "    'connection': {'agent_id': 'Alice'},\n"
+                "    'agents': {'Alice': {'unit_ids': ['u0']}},\n"
+                "    'unit_state': {'u0': {'agent_id': 'Alice', 'hp': 3, 'coordinates': [1, 1]}},\n"
+                "    'entities': [],\n"
+                "    'world': {'width': 5, 'height': 5},\n"
+                "    'tick': 0,\n"
+                "}\n"
+                "result = module.next_actions(state)\n"
+                "assert result is None or isinstance(result, dict), 'next_actions must return a dict or None'\n"
                 "PY",
                 timeout=validation_timeout,
             )
         except subprocess.TimeoutExpired:
-            return False, f"`decide` validation exceeded {validation_timeout}s timeout"
+            return False, f"`next_actions` validation exceeded {validation_timeout}s timeout"
         if import_check["returncode"] != 0:
-            return False, f"Could not import or call `decide` from `{self.submission}`:\n{import_check['output']}"
+            return False, f"Could not import or call `next_actions` from `{self.submission}`:\n{import_check['output']}"
 
         return True, None
 
@@ -83,17 +111,19 @@ all worlds in the round.
 
         cmd = [
             "python",
-            "run_scml.py",
+            "run_bomberland.py",
             "--sims",
-            str(self._game_arg("sims_per_round")),
-            "--steps",
-            str(self._game_arg("n_steps")),
-            "--lines",
-            str(self._game_arg("n_lines")),
-            "--decision-timeout",
-            str(self._game_arg("decision_timeout")),
-            "--max-policy-errors",
-            str(self._game_arg("max_policy_errors")),
+            str(self._sims_per_round()),
+            "--ticks",
+            str(self._game_arg("ticks")),
+            "--width",
+            str(self._game_arg("width")),
+            "--height",
+            str(self._game_arg("height")),
+            "--unit-count",
+            str(self._game_arg("unit_count")),
+            "--agent-timeout",
+            str(self._game_arg("agent_timeout")),
             "--output",
             str(self.log_env / RESULTS_JSON),
             *agent_args,
@@ -103,7 +133,7 @@ all worlds in the round.
         try:
             response = self.environment.execute(full_cmd, timeout=int(self._game_arg("timeout")))
         except subprocess.TimeoutExpired as exc:
-            raise RuntimeError("SCML round timed out") from exc
+            raise RuntimeError("Bomberland round timed out") from exc
         assert_zero_exit_code(response, logger=self.logger)
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
@@ -120,7 +150,7 @@ all worlds in the round.
                             "player": agent.name,
                             "score": CRASH_SCORE,
                             "status": "error",
-                            "error": f"missing SCML result file: {result_file}",
+                            "error": f"missing Bomberland result file: {result_file}",
                         },
                         sort_keys=True,
                     )
@@ -130,7 +160,7 @@ all worlds in the round.
         with open(result_file) as f:
             result = json.load(f)
 
-        scores = {agent.name: 0.0 for agent in agents}
+        scores = {agent.name: CRASH_SCORE for agent in agents}
         for player, score in result.get("average_scores", {}).items():
             if player in scores:
                 scores[player] = float(score)

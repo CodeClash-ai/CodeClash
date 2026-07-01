@@ -2,14 +2,16 @@
 
 Edit `scml_agent.py`.
 
-Your file must define `MyAgent`, an SCML OneShot agent class. A safe starting point is:
+Your file must define `decide(observation)`. The trusted runtime calls it with plain dictionaries
+for SCML proposal and response events. Return `{}` or `None` to use the trusted greedy fallback.
 
 ```python
-from scml.oneshot.agents import GreedySyncAgent
-
-
-class MyAgent(GreedySyncAgent):
-    pass
+def decide(observation):
+    return {}
 ```
 
-The arena runs multiple SCML2024 OneShot worlds and scores agents by average profit.
+For `event == "propose"`, return `{"offer": [quantity, time, unit_price]}` to make a proposal.
+For `event == "respond"`, return `{"response": "accept"}`, `{"response": "reject"}`, or
+`{"response": "end"}`. Invalid decisions fall back to the trusted greedy policy.
+
+The arena runs multiple two-process SCML2024 OneShot worlds and scores policies by average profit.

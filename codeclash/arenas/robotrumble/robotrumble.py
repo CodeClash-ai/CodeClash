@@ -10,8 +10,8 @@ from codeclash.constants import RESULT_TIE
 
 DEFAULT_SIMS = 100
 MAP_EXT_TO_HEADER = {
-    "js": "function robot(state, unit) {",
-    "py": "def robot(state, unit):",
+    "js": ["function robot(state, unit) {"],
+    "py": ["def robot(state, unit):", "def robot(state: State, unit: Obj)"],
 }
 ROBOTRUMBLE_HIDDEN_EXEC = ".codeclash_exec"
 
@@ -156,11 +156,13 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         agent.environment.execute(f'echo "robot.{ext}" > {ROBOTRUMBLE_HIDDEN_EXEC}')
 
         # Check that the robot function is defined
-        header = MAP_EXT_TO_HEADER[ext]
-        if header not in agent.environment.execute(f"cat robot.{ext}")["output"]:
+        if not any(
+            [header in agent.environment.execute(f"cat robot.{ext}")["output"] for header in MAP_EXT_TO_HEADER[ext]]
+        ):
+            headers = "\n- ".join(MAP_EXT_TO_HEADER[ext])
             return (
                 False,
-                f"robot.{ext} does not contain the required robot function. It should be defined as '{header}'.",
+                f"robot.{ext} does not contain the required robot function. It should be defined as one of: '{headers}'.",
             )
         test_run_cmd = f"{self.run_cmd_round} robot.{ext} robot.{ext} -t 1"
         try:

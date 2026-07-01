@@ -9,8 +9,10 @@ The CodeClash arena uses CybORG's simulated DroneSwarm scenario through the Pett
 interface. It does not run real exploit tooling, emulate external networks, or interact with live
 systems.
 
-Each CodeClash player edits a blue-team CybORG agent. A round evaluates every submitted agent on the
-same seeded episode batch and scores players by average episode reward.
+Each CodeClash player edits a restricted blue-team policy. A round evaluates every submitted policy
+on the same seeded episode batch and scores players by average episode reward. The trusted runtime
+owns the CybORG environment and action validation; submitted code only receives plain observations
+and returns discrete action intents.
 
 ## Resources
 
@@ -26,21 +28,19 @@ same seeded episode batch and scores players by average episode reward.
 
 ## Agent Interface
 
-Your bot must be a Python file named `cyborg_agent.py` that defines `MyAgent`.
+Your bot must be a Python file named `cyborg_agent.py` that defines `decide(observation, action_space)`.
 
-`MyAgent` must inherit from a CybORG `BaseAgent` class. A valid starting point is:
+`observation` is a plain list converted from CybORG's observation array. `action_space` is a
+dictionary such as `{"type": "discrete", "n": 11}`. Return an integer action accepted by that
+action space. A valid starting point is:
 
 ```python
-from CybORG.Agents import RandomAgent
-
-
-class MyAgent(RandomAgent):
-    pass
+def decide(observation, action_space):
+    return 0
 ```
 
-The arena runs `MyAgent` through CybORG's PettingZoo parallel wrapper. For each episode, the same
-`MyAgent` class controls all blue-team drone agents. `get_action(observation, action_space)` should
-return an action accepted by the provided CybORG action space.
+For each episode, the same policy file controls all blue-team drone agents through isolated policy
+worker processes. The runtime validates every returned action before stepping the simulator.
 
 ## Configuration Example
 
@@ -53,6 +53,8 @@ game:
   args:
     steps_per_episode: 5
     num_drones: 8
+    decision_timeout: 3.0
+    validation_timeout: 10
     timeout: 240
 players:
   - agent: dummy
@@ -87,7 +89,8 @@ Expected shape:
 - both players pass submission validation;
 - stdout includes `In round 0, the winner is ...` and `In round 1, the winner is ...`;
 - each round summary contains floating-point average rewards for `alpha` and `beta`;
-- per-episode details have `status: "ok"` and `steps_completed: 5`;
+- per-episode details have `status: "ok"`, `steps_completed: 5`, `policy_errors`,
+  `invalid_actions`, and `decisions`;
 - the output directory contains `metadata.json`, `game.log`, `tournament.log`, and
   `rounds/round_0.tar.gz` / `rounds/round_1.tar.gz`.
 

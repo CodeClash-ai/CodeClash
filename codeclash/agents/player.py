@@ -35,6 +35,7 @@ class Player(ABC):
             log_path=self.game_context.log_local / "players" / self.name / "player.log",
             emoji="👤",
         )
+        self._branch_name = config.get("branch", f"{self.game_context.id}.{self.name}")
         self._metadata = {
             "name": self.name,
             "player_unique_id": self._player_unique_id,
@@ -46,10 +47,6 @@ class Player(ABC):
             "agent_stats": {},  # mapping round -> agent stats
         }
 
-        if branch := config.get("branch_init"):
-            self.logger.info(f"Checking out branch {branch}")
-            assert_zero_exit_code(self.environment.execute(f"git checkout {branch}"), logger=self.logger)
-
         if self.push:
             self.logger.info("Will push agent gameplay as branch to remote repository after each round")
             token = os.getenv("GITHUB_TOKEN")
@@ -60,6 +57,33 @@ class Player(ABC):
                 f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.game_context.name}.git",
             ]:
                 assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
+
+        # Handle branch initialization
+        if branch_init := config.get("branch_init"):
+            # Fetch from remote first (handles branches pushed in previous tournaments)
+            # Then checkout - git will create tracking branch if needed
+            assert_zero_exit_code(
+                self.environment.execute(f"git fetch origin && git checkout {branch_init}"),
+                logger=self.logger,
+            )
+            self.logger.info(f"Checked out initial branch {branch_init}")
+
+        if self._branch_name != branch_init:
+            self.logger.info(f"Switching to branch {self._branch_name} for pushing changes")
+            # First fetch to see if the branch exists on remote
+            assert_zero_exit_code(
+                self.environment.execute("git fetch origin"),
+                logger=self.logger,
+            )
+            # Try to checkout the branch - git will track remote if it exists there
+            checkout_result = self.environment.execute(f"git checkout {self._branch_name}")
+            if checkout_result.get("returncode", 0) != 0:
+                # Branch doesn't exist locally or remotely, create it
+                self.logger.info(f"Branch {self._branch_name} doesn't exist, creating it")
+                assert_zero_exit_code(
+                    self.environment.execute(f"git checkout -b {self._branch_name}"),
+                    logger=self.logger,
+                )
 
     # --- Main methods ---
 
@@ -104,7 +128,7 @@ class Player(ABC):
 
         if self.push:
             for cmd in [
-                f"git push origin {self._branch_name}",
+                f"git push -u origin {self._branch_name}",
                 "git push origin --tags",
             ]:
                 assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
@@ -154,11 +178,6 @@ class Player(ABC):
             logger=self.logger,
         )
         self._metadata["round_tags"][round] = tag
-
-    @property
-    def _branch_name(self) -> str:
-        """Get the branch name for the agent's codebase."""
-        return f"{self.game_context.id}.{self.name}"
 
     def _get_round_tag_name(self, round: int) -> str:
         """Get git tag name for the version of the codebase at the given round."""

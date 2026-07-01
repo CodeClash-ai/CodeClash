@@ -8,6 +8,7 @@ from codeclash.constants import RESULT_TIE
 from codeclash.utils.environment import assert_zero_exit_code
 
 RESULTS_JSON = "cyborg_results.json"
+CRASH_SCORE = -1_000_000.0
 
 
 class CybORGArena(CodeArena):
@@ -15,27 +16,28 @@ class CybORGArena(CodeArena):
     submission: str = "cyborg_agent.py"
     description: str = """CybORG is a simulated cyber-defense arena based on the CAGE Challenge 3 DroneSwarm scenario.
 
-Your bot is a Python file named `cyborg_agent.py` that defines a class named `MyAgent`.
-`MyAgent` should inherit from a CybORG BaseAgent-compatible class, for example:
+Your bot is a Python file named `cyborg_agent.py` that defines a function named `decide`.
+The function receives a plain observation list and action-space dictionary, then returns an action:
 
-    from CybORG.Agents import RandomAgent
-
-    class MyAgent(RandomAgent):
-        ...
+    def decide(observation, action_space):
+        return 0
 
 Each round evaluates every submitted agent independently on the same seeded DroneSwarm episodes.
-Your agent controls the blue-team drone agents through CybORG's simulated PettingZoo interface.
-The objective is to maximize average episode reward. This arena uses CybORG simulation only and does
-    not run real exploit tools or interact with external networks.
-    """
+The trusted runtime owns the CybORG environment and action validation. Submitted code only receives
+plain observations and returns action intents. The objective is to maximize average episode reward.
+This arena uses CybORG simulation only and does not run real exploit tools or interact with external
+networks.
+"""
     default_args: dict = {
         "steps_per_episode": 30,
         "num_drones": 18,
+        "decision_timeout": 3.0,
+        "validation_timeout": 10,
         "timeout": 240,
     }
 
     def _game_arg(self, key: str):
-        return self.game_config.get("args", {}).get(key, self.default_args[key])
+        return getattr(self, "game_config", {}).get("args", {}).get(key, self.default_args[key])
 
     def _episodes_per_round(self) -> int:
         return int(self.game_config.get("args", {}).get("episodes_per_round", self.game_config["sims_per_round"]))
@@ -54,33 +56,25 @@ The objective is to maximize average episode reward. This arena uses CybORG simu
         if syntax_check["returncode"] != 0:
             return False, f"Python syntax error in `{self.submission}`:\n{syntax_check['output']}"
 
-        import_check = agent.environment.execute(
-            "python - <<'PY'\n"
-            "import importlib.util\n"
-            f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
-            "module = importlib.util.module_from_spec(spec)\n"
-            "spec.loader.exec_module(module)\n"
-            "assert hasattr(module, 'MyAgent'), 'MyAgent class not found'\n"
-            "from CybORG.Agents import BaseAgent\n"
-            "assert issubclass(module.MyAgent, BaseAgent), 'MyAgent must inherit from a CybORG BaseAgent class'\n"
-            "def make_agent(agent_class, agent_name):\n"
-            "    try:\n"
-            "        return agent_class(name=agent_name)\n"
-            "    except TypeError:\n"
-            "        try:\n"
-            "            return agent_class(agent_name)\n"
-            "        except TypeError:\n"
-            "            try:\n"
-            "                return agent_class()\n"
-            "            except TypeError as final_error:\n"
-            "                raise TypeError(\n"
-            "                    'MyAgent could not be constructed with the CybORG runtime constructor fallbacks'\n"
-            "                ) from final_error\n"
-            "make_agent(module.MyAgent, 'validation-agent')\n"
-            "PY"
-        )
+        validation_timeout = int(self._game_arg("validation_timeout"))
+        try:
+            import_check = agent.environment.execute(
+                "python - <<'PY'\n"
+                "import importlib.util\n"
+                f"spec = importlib.util.spec_from_file_location('submission_agent', {self.submission!r})\n"
+                "module = importlib.util.module_from_spec(spec)\n"
+                "spec.loader.exec_module(module)\n"
+                "assert hasattr(module, 'decide'), 'decide function not found'\n"
+                "assert callable(module.decide), 'decide must be callable'\n"
+                "result = module.decide([0, 1, 0], {'type': 'discrete', 'n': 11})\n"
+                "assert result is None or isinstance(result, int), 'decide must return an integer action or None'\n"
+                "PY",
+                timeout=validation_timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, f"`decide` validation exceeded {validation_timeout}s timeout"
         if import_check["returncode"] != 0:
-            return False, f"Could not import `MyAgent` from `{self.submission}`:\n{import_check['output']}"
+            return False, f"Could not import or call `decide` from `{self.submission}`:\n{import_check['output']}"
 
         return True, None
 
@@ -98,6 +92,8 @@ The objective is to maximize average episode reward. This arena uses CybORG simu
             str(self._game_arg("steps_per_episode")),
             "--drones",
             str(self._game_arg("num_drones")),
+            "--decision-timeout",
+            str(self._game_arg("decision_timeout")),
             "--output",
             str(self.log_env / RESULTS_JSON),
             *agent_args,
@@ -116,8 +112,19 @@ The objective is to maximize average episode reward. This arena uses CybORG simu
             self.logger.error(f"Missing result file: {result_file}")
             stats.winner = RESULT_TIE
             for agent in agents:
-                stats.scores[agent.name] = 0.0
-                stats.player_stats[agent.name].score = 0.0
+                stats.scores[agent.name] = CRASH_SCORE
+                stats.player_stats[agent.name].score = CRASH_SCORE
+                stats.details.append(
+                    json.dumps(
+                        {
+                            "player": agent.name,
+                            "score": CRASH_SCORE,
+                            "status": "error",
+                            "error": f"missing CybORG result file: {result_file}",
+                        },
+                        sort_keys=True,
+                    )
+                )
             return
 
         with open(result_file) as f:

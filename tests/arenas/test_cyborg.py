@@ -1,8 +1,9 @@
 import json
+import subprocess
 from pathlib import Path
 
 from codeclash.arenas.arena import RoundStats
-from codeclash.arenas.cyborg.cyborg import CybORGArena
+from codeclash.arenas.cyborg.cyborg import CRASH_SCORE, CybORGArena
 from codeclash.constants import RESULT_TIE
 
 from .conftest import MockEnvironment, MockPlayer
@@ -14,10 +15,13 @@ class TestCybORGValidation:
         arena.submission = "cyborg_agent.py"
         player = mock_player_factory(
             name="Alice",
-            files={"cyborg_agent.py": "class MyAgent:\n    pass\n"},
+            files={"cyborg_agent.py": "def decide(observation, action_space):\n    return 0\n"},
             command_outputs={
                 "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
-                "cat cyborg_agent.py": {"output": "class MyAgent:\n    pass\n", "returncode": 0},
+                "cat cyborg_agent.py": {
+                    "output": "def decide(observation, action_space):\n    return 0\n",
+                    "returncode": 0,
+                },
                 "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
                 "python - <<'PY'": {"output": "", "returncode": 0},
             },
@@ -28,7 +32,7 @@ class TestCybORGValidation:
         assert valid is True
         assert error is None
 
-    def test_missing_myagent(self, mock_player_factory):
+    def test_missing_decide(self, mock_player_factory):
         arena = CybORGArena.__new__(CybORGArena)
         arena.submission = "cyborg_agent.py"
         player = mock_player_factory(
@@ -38,7 +42,7 @@ class TestCybORGValidation:
                 "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
                 "cat cyborg_agent.py": {"output": "class OtherAgent:\n    pass\n", "returncode": 0},
                 "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
-                "python - <<'PY'": {"output": "MyAgent class not found", "returncode": 1},
+                "python - <<'PY'": {"output": "decide function not found", "returncode": 1},
             },
         )
 
@@ -52,10 +56,13 @@ class TestCybORGValidation:
         arena.submission = "cyborg_agent.py"
         player = mock_player_factory(
             name="Alice",
-            files={"cyborg_agent.py": "class MyAgent:\n    pass\n"},
+            files={"cyborg_agent.py": "def decide(observation, action_space):\n    raise ImportError('boom')\n"},
             command_outputs={
                 "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
-                "cat cyborg_agent.py": {"output": "class MyAgent:\n    pass\n", "returncode": 0},
+                "cat cyborg_agent.py": {
+                    "output": "def decide(observation, action_space):\n    raise ImportError('boom')\n",
+                    "returncode": 0,
+                },
                 "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
                 "python - <<'PY'": {"output": "ImportError", "returncode": 1},
             },
@@ -66,16 +73,16 @@ class TestCybORGValidation:
         assert valid is False
         assert "Could not import" in error
 
-    def test_validation_instantiates_agent_with_runtime_fallbacks(self, mock_player_factory):
+    def test_validation_calls_decide_with_plain_protocol(self, mock_player_factory):
         arena = CybORGArena.__new__(CybORGArena)
         arena.submission = "cyborg_agent.py"
         player = mock_player_factory(
             name="Alice",
-            files={"cyborg_agent.py": "from CybORG.Agents import RandomAgent\nclass MyAgent(RandomAgent):\n    pass\n"},
+            files={"cyborg_agent.py": "def decide(observation, action_space):\n    return 0\n"},
             command_outputs={
                 "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
                 "cat cyborg_agent.py": {
-                    "output": "from CybORG.Agents import RandomAgent\nclass MyAgent(RandomAgent):\n    pass\n",
+                    "output": "def decide(observation, action_space):\n    return 0\n",
                     "returncode": 0,
                 },
                 "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
@@ -87,35 +94,24 @@ class TestCybORGValidation:
         import_command = player.environment._executed_commands[-1]
         assert valid is True
         assert error is None
-        assert "make_agent(module.MyAgent, 'validation-agent')" in import_command
+        assert "module.decide([0, 1, 0], {'type': 'discrete', 'n': 11})" in import_command
+        assert "BaseAgent" not in import_command
 
-    def test_validation_rejects_agent_constructor_failure(self, mock_player_factory):
+    def test_validation_rejects_bad_decide_return_type(self, mock_player_factory):
         arena = CybORGArena.__new__(CybORGArena)
         arena.submission = "cyborg_agent.py"
         player = mock_player_factory(
             name="Alice",
-            files={
-                "cyborg_agent.py": (
-                    "from CybORG.Agents import RandomAgent\n"
-                    "class MyAgent(RandomAgent):\n"
-                    "    def __init__(self, seed=None):\n"
-                    "        super().__init__(seed=seed)\n"
-                )
-            },
+            files={"cyborg_agent.py": "def decide(observation, action_space):\n    return 'bad'\n"},
             command_outputs={
                 "test -f cyborg_agent.py && echo exists": {"output": "exists\n", "returncode": 0},
                 "cat cyborg_agent.py": {
-                    "output": (
-                        "from CybORG.Agents import RandomAgent\n"
-                        "class MyAgent(RandomAgent):\n"
-                        "    def __init__(self, seed=None):\n"
-                        "        super().__init__(seed=seed)\n"
-                    ),
+                    "output": "def decide(observation, action_space):\n    return 'bad'\n",
                     "returncode": 0,
                 },
                 "python -m py_compile cyborg_agent.py": {"output": "", "returncode": 0},
                 "python - <<'PY'": {
-                    "output": "TypeError: RandomAgent.__init__() got an unexpected keyword argument 'seed'",
+                    "output": "decide must return an integer action or None",
                     "returncode": 1,
                 },
             },
@@ -124,8 +120,27 @@ class TestCybORGValidation:
         valid, error = arena.validate_code(player)
 
         assert valid is False
-        assert "Could not import `MyAgent`" in error
-        assert "unexpected keyword argument 'seed'" in error
+        assert "Could not import or call `decide`" in error
+        assert "integer action" in error
+
+    def test_validation_rejects_decide_timeout(self):
+        class TimeoutEnvironment(MockEnvironment):
+            def execute(self, cmd: str, cwd: str | None = None, timeout: int | None = None):
+                if cmd.startswith("python - <<'PY'"):
+                    raise subprocess.TimeoutExpired(cmd=cmd, timeout=timeout)
+                return super().execute(cmd, cwd=cwd, timeout=timeout)
+
+        arena = CybORGArena.__new__(CybORGArena)
+        arena.submission = "cyborg_agent.py"
+        player = MockPlayer(
+            "Alice",
+            TimeoutEnvironment(files={"cyborg_agent.py": "def decide(observation, action_space):\n    return 0\n"}),
+        )
+
+        valid, error = arena.validate_code(player)
+
+        assert valid is False
+        assert "`decide` validation exceeded 10s timeout" in error
 
 
 class TestCybORGResults:
@@ -181,6 +196,7 @@ class TestCybORGExecution:
                 "args": {
                     "steps_per_episode": 11,
                     "num_drones": 13,
+                    "decision_timeout": 2.5,
                     "timeout": 17,
                 },
             }
@@ -206,6 +222,7 @@ class TestCybORGExecution:
         assert "--episodes 5" in cmd
         assert "--steps 11" in cmd
         assert "--drones 13" in cmd
+        assert "--decision-timeout 2.5" in cmd
         assert "--output /logs/cyborg_results.json" in cmd
         assert "--agent Alice=/Alice/cyborg_agent.py" in cmd
         assert "--agent Bob=/Bob/cyborg_agent.py" in cmd
@@ -228,3 +245,20 @@ class TestCybORGExecution:
         arena.execute_round([MockPlayer("Alice")])
 
         assert "--episodes 7" in arena.environment._executed_commands[0]
+
+    def test_missing_results_file_penalizes_all_players(self, tmp_log_dir):
+        arena = CybORGArena.__new__(CybORGArena)
+        arena.log_local = tmp_log_dir
+        arena.logger = type("Logger", (), {"error": lambda self, msg: None})()
+
+        agents = [MockPlayer("Alice"), MockPlayer("Bob")]
+        stats = RoundStats(round_num=1, agents=agents)
+
+        arena.get_results(agents, 1, stats)
+
+        assert stats.winner == RESULT_TIE
+        assert stats.scores == {"Alice": CRASH_SCORE, "Bob": CRASH_SCORE}
+        assert stats.player_stats["Alice"].score == CRASH_SCORE
+        assert stats.player_stats["Bob"].score == CRASH_SCORE
+        assert len(stats.details) == 2
+        assert "missing CybORG result file" in stats.details[0]

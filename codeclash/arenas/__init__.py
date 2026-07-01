@@ -3,6 +3,7 @@ from codeclash.arenas.battlecode23.battlecode23 import BattleCode23Arena
 from codeclash.arenas.battlecode24.battlecode24 import BattleCode24Arena
 from codeclash.arenas.battlecode25.battlecode25 import BattleCode25Arena
 from codeclash.arenas.battlesnake.battlesnake import BattleSnakeArena
+from codeclash.arenas.bomberland.bomberland import BomberlandArena
 from codeclash.arenas.bridge.bridge import BridgeArena
 from codeclash.arenas.chess.chess import ChessArena
 from codeclash.arenas.corewar.corewar import CoreWarArena
@@ -23,6 +24,7 @@ ARENAS = [
     BattleCode24Arena,
     BattleCode25Arena,
     BattleSnakeArena,
+    BomberlandArena,
     BridgeArena,
     ChessArena,
     CoreWarArena,

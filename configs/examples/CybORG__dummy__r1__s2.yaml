@@ -6,6 +6,8 @@ game:
   args:
     steps_per_episode: 5
     num_drones: 8
+    decision_timeout: 3.0
+    validation_timeout: 10
     timeout: 240
 players:
 - agent: dummy
@@ -23,11 +25,11 @@ prompts:
     Your task: improve `cyborg_agent.py`, located in {{working_dir}}.
     All commands run from {{working_dir}}.
 
-    Your file must define `MyAgent`, a CybORG BaseAgent subclass. A valid starting point is:
+    Your file must define `decide(observation, action_space)`. The trusted runtime passes a plain
+    observation list and an action-space dictionary such as `{"type": "discrete", "n": 11}`.
+    A valid starting point is:
 
-    from CybORG.Agents import RandomAgent
-
-    class MyAgent(RandomAgent):
-        pass
+    def decide(observation, action_space):
+        return 0
 
     The arena runs simulated DroneSwarm episodes. Your objective is to maximize average reward.
