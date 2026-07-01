@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%environment
+    export DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl ca-certificates python3.10 python3.10-venv \
+        python3-pip python-is-python3 wget git build-essential \
+        g++ make jq locales \
+    && rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/Babak-SSH/Kojiro.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/Babak-SSH/Kojiro.git
+
+    rm -rf /opt/fastchess-build \
+    && git clone https://github.com/Disservin/fastchess.git /opt/fastchess-build \
+    && cd /opt/fastchess-build \
+    && make -j \
+    && install -d /usr/local/bin \
+    && install fastchess /usr/local/bin/fastchess \
+    && rm -rf /opt/fastchess-build
+
+%labels
+    Author CodeClash

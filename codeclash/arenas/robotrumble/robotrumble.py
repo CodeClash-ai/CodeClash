@@ -58,7 +58,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         self.logger.info(f"Running game with players: {[agent.name for agent in agents]}")
         args = []
         for agent in agents:
-            executable = agent.environment.execute(f"cat {ROBOTRUMBLE_HIDDEN_EXEC}")["output"].strip()
+            executable = agent.environment.execute(f"cat {ROBOTRUMBLE_HIDDEN_EXEC}")["output"].strip().splitlines()[-1]
             args.append(f"/{agent.name}/{executable}")
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
@@ -147,7 +147,8 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         ext, exists = None, False
         for possible_ext in MAP_EXT_TO_HEADER.keys():
             exists_output = agent.environment.execute(f"test -f robot.{possible_ext} && echo 'exists'")["output"]
-            if "exists" == exists_output.strip():
+            lines = exists_output.strip().splitlines()
+            if lines and "exists" == lines[-1]:
                 ext = possible_ext
                 exists = True
                 break

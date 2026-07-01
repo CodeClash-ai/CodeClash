@@ -1,0 +1,35 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%environment
+    export DEBIAN_FRONTEND=noninteractive
+    export GO_VERSION=1.22.0
+    export PATH=/usr/local/go/bin:$PATH
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    export GO_VERSION=1.22.0
+
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl ca-certificates python3.10 python3.10-venv \
+        python3-pip python-is-python3 wget git build-essential jq locales \
+    && rm -rf /var/lib/apt/lists/*
+
+    ARCH=$(dpkg --print-architecture) \
+    && echo "Building for architecture: $ARCH" \
+    && curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz -o /tmp/go.tar.gz \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz
+
+    export PATH=/usr/local/go/bin:$PATH
+
+    git clone https://github.com/CodeClash-ai/BattleSnake.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleSnake.git
+
+    cd /workspace/game && go build -o battlesnake ./cli/battlesnake/main.go
+    cd /workspace && pip install -r requirements.txt
+
+%labels
+    Author CodeClash

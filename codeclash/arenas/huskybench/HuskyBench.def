@@ -1,0 +1,24 @@
+Bootstrap: docker
+From: python:3.10-slim
+
+%environment
+    export DEBIAN_FRONTEND=noninteractive
+    export TZ=Etc/UTC
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    export TZ=Etc/UTC
+
+    apt-get update && apt-get install -y \
+        wget git build-essential unzip lsof \
+    && rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/CodeClash-ai/HuskyBench.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/HuskyBench.git
+
+    cd /workspace && pip install -r engine/requirements.txt
+    mkdir -p /workspace/engine/output
+
+%labels
+    Author CodeClash

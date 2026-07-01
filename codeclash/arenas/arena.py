@@ -7,18 +7,25 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from minisweagent.environments.docker import DockerEnvironment
-
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG, RESULT_TIE
 from codeclash.utils.aws import is_running_in_aws_batch, pull_game_container_aws_ecr
 from codeclash.utils.environment import (
     ClashDockerEnvironment,
+    ClashSingularityEnvironment,
+    ContainerEnvironment,
     assert_zero_exit_code,
     copy_between_containers,
     copy_from_container,
 )
 from codeclash.utils.log import get_logger
+
+
+def get_runtime() -> str:
+    """Get the container runtime from the CODECLASH_RUNTIME environment variable.
+    Defaults to 'docker' if not set.
+    """
+    return os.environ.get("CODECLASH_RUNTIME", "docker").lower()
 
 
 class PlayerStats:
@@ -104,8 +111,8 @@ class CodeArena(ABC):
         self.log_env: Path = DIR_LOGS
         self.log_local: Path = local_output_dir
         self.logger = get_logger(self.name, log_path=self.log_local / "game.log", emoji="🏓")
-        self.environment: DockerEnvironment = self.get_environment()
-        """The running docker environment for executing the game"""
+        self.environment: ContainerEnvironment = self.get_environment()
+        """The running container environment for executing the game"""
 
     @property
     def game_config(self) -> dict:
@@ -119,11 +126,51 @@ class CodeArena(ABC):
     def image_name(self) -> str:
         return f"codeclash/{self.name.lower()}"
 
+    @property
+    def sif_path(self) -> Path:
+        """Path to the Singularity .sif image file, located next to the arena definition."""
+        arena_file = Path(inspect.getfile(self.__class__))
+        return arena_file.parent / f"{self.name.lower()}.sif"
+
     def build_image(self):
         """
-        Build a Docker image for the game using the Dockerfile in the codebase.
-        If running in AWS, pull the image from the AWS Docker registry instead.
+        Build a container image for the game.
+
+        For Docker: builds from the Dockerfile in the codebase. If running in AWS,
+        pulls the image from the AWS Docker registry instead.
+        For Singularity: builds a .sif file from the .def file if it doesn't already exist.
         """
+        if get_runtime() == "singularity":
+            self._build_singularity_image()
+        else:
+            self._build_docker_image()
+
+    def _build_singularity_image(self):
+        """Build a Singularity .sif image from the .def file."""
+        if self.sif_path.exists():
+            self.logger.debug(f"Singularity image {self.sif_path} already exists")
+            return
+
+        arena_file = Path(inspect.getfile(self.__class__))
+        def_path = arena_file.parent / f"{self.name}.def"
+        if not def_path.exists():
+            raise RuntimeError(f"Singularity definition file not found: {def_path}")
+
+        self.logger.info(f"Building Singularity image {self.sif_path} from {def_path}")
+        result = subprocess.run(
+            f"singularity build --fakeroot {self.sif_path} {def_path}",
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            self.logger.info(f"Built Singularity image {self.sif_path}")
+        else:
+            self.logger.error(f"Failed to build Singularity image: {result.stderr}\n{result.stdout}")
+            raise RuntimeError(f"Failed to build Singularity image: {result.stderr}")
+
+    def _build_docker_image(self):
+        """Build a Docker image from the Dockerfile."""
         if is_running_in_aws_batch():
             pull_game_container_aws_ecr(game_name=self.name, image_name=self.image_name, logger=self.logger)
 
@@ -153,9 +200,9 @@ class CodeArena(ABC):
             text=True,
         )
         if result.returncode == 0:
-            self.logger.info(f"✅ Built Docker image {self.image_name}")
+            self.logger.info(f"Built Docker image {self.image_name}")
         else:
-            self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
+            self.logger.error(f"Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
             raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
     def copy_logs_from_env(self, round_num: int) -> None:
@@ -183,39 +230,51 @@ class CodeArena(ABC):
     def log_round(self, round_num: int) -> Path:
         return self.log_local / "rounds" / str(round_num)
 
-    def get_environment(self, branch_name: str | None = None) -> DockerEnvironment:
-        """Get docker container ID with the game code installed."""
+    def get_environment(self, branch_name: str | None = None) -> ContainerEnvironment:
+        """Get a container environment with the game code installed."""
         self.build_image()
-        if not self._keep_containers:
-            run_args = ["--rm"]
+
+        env_vars = {
+            "GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", ""),
+            "PAGER": "cat",
+            "MANPAGER": "cat",
+            "LESS": "-R",
+            "PIP_PROGRESS_BAR": "off",
+            "TQDM_DISABLE": "1",
+        }
+
+        if get_runtime() == "singularity":
+            environment = ClashSingularityEnvironment(
+                image=str(self.sif_path),
+                cwd=str(DIR_WORK),
+                env=env_vars,
+                timeout=36000,  # 10h in seconds
+                logger=self.logger,
+            )
         else:
             run_args = []
-        environment = ClashDockerEnvironment(
-            image=self.image_name,
-            cwd=str(DIR_WORK),
-            env={
-                "GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", ""),
-                "PAGER": "cat",
-                "MANPAGER": "cat",
-                "LESS": "-R",
-                "PIP_PROGRESS_BAR": "off",
-                "TQDM_DISABLE": "1",
-            },
-            container_timeout="10h",
-            logger=self.logger,
-            run_args=run_args,
-        )
+            environment = ClashDockerEnvironment(
+                image=self.image_name,
+                cwd=str(DIR_WORK),
+                env=env_vars,
+                container_timeout="10h",
+                logger=self.logger,
+                run_args=run_args,
+            )
 
         branch_name = self.game_id if branch_name is None else branch_name
 
         # Logger setting will likely not take effect for initial container creation logs
         environment.logger = get_logger("environment", emoji="🪴")
+        # Use local (not --global) git config so it persists in the repo's .git/config.
+        # Singularity's --contain flag creates an ephemeral home per exec call,
+        # so --global config written to ~/.gitconfig is lost between calls.
         for cmd in [
             f"git branch {branch_name}",
             f"git checkout {branch_name}",
-            'git config --global user.email "player@codeclash.com"',
-            'git config --global user.name "Player"',
-            "git config --global commit.gpgsign false",
+            'git config user.email "player@codeclash.com"',
+            'git config user.name "Player"',
+            "git config commit.gpgsign false",
         ]:
             assert_zero_exit_code(environment.execute(cmd), logger=self.logger)
         return environment

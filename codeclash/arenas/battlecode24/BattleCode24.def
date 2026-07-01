@@ -1,0 +1,20 @@
+Bootstrap: docker
+From: eclipse-temurin:8-jdk
+
+%environment
+    export JAVA_HOME=/opt/java/openjdk
+    export GRADLE_USER_HOME=/root/.gradle
+
+%post
+    apt-get update && apt-get install -y --no-install-recommends \
+        git curl unzip && \
+        rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/CodeClash-ai/BattleCode2024.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/BattleCode2024.git
+
+    cd /workspace && chmod +x gradlew && ./gradlew update
+
+%labels
+    Author CodeClash

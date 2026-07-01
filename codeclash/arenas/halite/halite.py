@@ -83,7 +83,7 @@ You may include additional files as needed, but please ensure:
     def execute_round(self, agents: list[Player]):
         entries = []
         for agent in agents:
-            executable = agent.environment.execute(f"cat {HALITE_HIDDEN_EXEC}")["output"].strip()
+            executable = agent.environment.execute(f"cat {HALITE_HIDDEN_EXEC}")["output"].strip().splitlines()[-1]
             entries.append(executable)
         cmd = f"{self.run_cmd_round} {shlex.join(entries)}"
         self.logger.info(f"Running game: {cmd}")
@@ -137,7 +137,8 @@ You may include additional files as needed, but please ensure:
     ) -> tuple[bool, str | None]:
         # Check that the `submission/` folder exists
         exists_output = agent.environment.execute("test -d submission && echo 'exists'")["output"]
-        if "exists" != exists_output.strip():
+        lines = exists_output.strip().splitlines()
+        if not lines or "exists" != lines[-1]:
             return False, f"Submission folder `{self.submission}/` does not exist"
 
         # Check that there is a *single* file called "main.<ext>" in the submission folder

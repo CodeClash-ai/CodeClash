@@ -179,7 +179,10 @@ class PvpTournament(AbstractTournament):
         ]
         self.logger.info(f"Compressing round logs, this might take a while... ({' '.join(cmd)})")
         result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
+        if result.returncode == 1:
+            # Allow "some files differ" warning
+            self.logger.warning(f"tar reported file changes during compression (exit code 1): {result.stderr.strip()}")
+        elif result.returncode > 1:
             raise RuntimeError(f"Command failed with exit code {result.returncode}:\n{result.stderr}")
         # Remove the original round logs
         shutil.rmtree(self.game.log_local / "rounds")
@@ -203,7 +206,10 @@ class PvpTournament(AbstractTournament):
             f"Compressing round {round_num_zero_indexed} logs, this might take a while... ({' '.join(cmd)})"
         )
         result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
+        if result.returncode == 1:
+            # Allow "some files differ" warning
+            self.logger.warning(f"tar reported file changes during compression (exit code 1): {result.stderr.strip()}")
+        elif result.returncode > 1:
             raise RuntimeError(f"Command failed with exit code {result.returncode}:\n{result.stderr}")
         self.logger.debug("Removing %s", round_dir)
         shutil.rmtree(round_dir)

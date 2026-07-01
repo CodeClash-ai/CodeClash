@@ -1,10 +1,12 @@
 import json
+import os
 import random
 import subprocess
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from minisweagent.environments.singularity import SingularityEnvironment
 from tqdm.auto import tqdm
 
 from codeclash.agents.player import Player
@@ -33,6 +35,26 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
             else:
                 self.run_cmd_round += f" --{arg} {val}"
         self._failed_to_start_player = []
+
+    def _start_server_popen(self, command: str, cwd: str) -> subprocess.Popen:
+        """Start a long-running server process via subprocess.Popen.
+
+        In Singularity, each environment.execute() call is a separate `singularity exec`
+        invocation. Background processes (&) don't reliably survive after the call returns.
+        This method uses Popen to keep the singularity exec process alive for the duration
+        of the server, so the server persists across subsequent execute() calls.
+        """
+        env = self.environment
+        cmd = [env.config.executable, "exec", "--contain", "--cleanenv"]
+        if cwd and cwd != "/":
+            cmd.extend(["--pwd", cwd])
+        for key in env.config.forward_env:
+            if (value := os.getenv(key)) is not None:
+                cmd.extend(["--env", f"{key}={value}"])
+        for key, value in env.config.env.items():
+            cmd.extend(["--env", f"{key}={value}"])
+        cmd.extend(["--writable", str(env.sandbox_dir), "bash", "-c", command])
+        return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _wait_for_ports(self, requested_ports: list[int], timeout: float = 60.0) -> list[int]:
         """Wait for ports to be served, up to timeout seconds.
@@ -89,12 +111,19 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
         assert len(agents) > 1, "Battlesnake requires at least two players"
         self.logger.debug("Starting game servers")
         player2port = {}
+        server_procs: list[subprocess.Popen] = []
+        use_popen = isinstance(self.environment, SingularityEnvironment)
+
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             player2port[agent.name] = port
-            # Surprisingly slow despite using &
-            # Start server in background - just add & to run in background!
-            self.environment.execute(f"PORT={port} python {self.submission} &", cwd=f"/{agent.name}")
+            if use_popen:
+                # In Singularity, background processes don't persist across execute() calls.
+                # Use Popen to keep the singularity exec process (and the server) alive.
+                proc = self._start_server_popen(f"PORT={port} python {self.submission}", cwd=f"/{agent.name}")
+                server_procs.append(proc)
+            else:
+                self.environment.execute(f"PORT={port} python {self.submission} &", cwd=f"/{agent.name}")
 
         self.logger.debug(f"Waiting for ports: {player2port}")
         available_ports = self._wait_for_ports(list(player2port.values()))
@@ -129,8 +158,13 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 for future in tqdm(as_completed(futures), total=len(futures)):
                     future.result()
         finally:
-            # Kill all python servers when done
-            self.environment.execute(f"pkill -f 'python {self.submission}' || true")
+            if server_procs:
+                for proc in server_procs:
+                    proc.terminate()
+                for proc in server_procs:
+                    proc.wait()
+            else:
+                self.environment.execute(f"pkill -f 'python {self.submission}' || true")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         scores = defaultdict(int)

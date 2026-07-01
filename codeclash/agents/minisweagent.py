@@ -4,13 +4,12 @@ import traceback
 from collections.abc import Callable
 
 from minisweagent.agents.default import AgentConfig, DefaultAgent
-from minisweagent.environments.docker import DockerEnvironment
 from minisweagent.models import Model, get_model
 
 from codeclash import REPO_DIR
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
-from codeclash.utils.environment import copy_to_container
+from codeclash.utils.environment import ContainerEnvironment, copy_to_container
 
 os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "90"
 os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
@@ -25,7 +24,7 @@ class ClashAgent(DefaultAgent):
     def __init__(
         self,
         model: Model,
-        env: DockerEnvironment,
+        env: ContainerEnvironment,
         *,
         logger: logging.Logger,
         config_class: Callable = AgentConfig,
@@ -44,7 +43,7 @@ class ClashAgent(DefaultAgent):
 class MiniSWEAgent(Player):
     """Player with agentic code editing capabilities"""
 
-    def __init__(self, config: dict, environment: DockerEnvironment, game_context: GameContext):
+    def __init__(self, config: dict, environment: ContainerEnvironment, game_context: GameContext):
         super().__init__(config, environment=environment, game_context=game_context)
 
     def run(self):

@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%environment
+    export DEBIAN_FRONTEND=noninteractive
+    export PATH="/root/.cargo/bin:${PATH}"
+    export RUSTUP_HOME=/root/.rustup
+    export CARGO_HOME=/root/.cargo
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl ca-certificates python3.10 python3.10-venv \
+        python3-pip python-is-python3 wget git build-essential jq locales \
+    && rm -rf /var/lib/apt/lists/*
+
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
+    . "$HOME/.cargo/env"
+
+    apt-get update && apt-get install -y ocaml ocamlbuild \
+    && rm -rf /var/lib/apt/lists/*
+
+    git clone https://github.com/CodeClash-ai/Halite.git /workspace \
+    && cd /workspace \
+    && git remote set-url origin https://github.com/CodeClash-ai/Halite.git
+
+    export PATH="/root/.cargo/bin:${PATH}"
+    cd /workspace/environment && make
+
+%labels
+    Author CodeClash

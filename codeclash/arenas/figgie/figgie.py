@@ -58,10 +58,10 @@ Suits: "spades", "clubs", "hearts", "diamonds"
 """
 
     def __init__(self, config, **kwargs):
-        super().__init__(config, **kwargs)
         num_players = len(config.get("players", []))
         if num_players not in [4, 5]:
             raise ValueError(f"Figgie requires 4 or 5 players, got {num_players}")
+        super().__init__(config, **kwargs)
 
     def execute_round(self, agents: list[Player]) -> None:
         args = [f"/{agent.name}/{self.submission}" for agent in agents]
