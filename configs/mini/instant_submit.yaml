@@ -1,4 +1,10 @@
 model_name: instant_submit
 model_class: minisweagent.models.test_models.DeterministicModel
+# mini-swe-agent v2 DeterministicModel: each output is a full assistant message dict,
+# with the action(s) under extra.actions (rather than a fenced bash block in the text).
 outputs:
-  - "```bash\necho COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\n```"
+  - role: assistant
+    content: "Submitting immediately."
+    extra:
+      actions:
+        - command: "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT"

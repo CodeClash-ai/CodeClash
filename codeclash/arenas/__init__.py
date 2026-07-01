@@ -3,9 +3,11 @@ from codeclash.arenas.battlecode23.battlecode23 import BattleCode23Arena
 from codeclash.arenas.battlecode24.battlecode24 import BattleCode24Arena
 from codeclash.arenas.battlecode25.battlecode25 import BattleCode25Arena
 from codeclash.arenas.battlesnake.battlesnake import BattleSnakeArena
+from codeclash.arenas.bomberland.bomberland import BomberlandArena
 from codeclash.arenas.bridge.bridge import BridgeArena
 from codeclash.arenas.chess.chess import ChessArena
 from codeclash.arenas.corewar.corewar import CoreWarArena
+from codeclash.arenas.cyborg.cyborg import CybORGArena
 from codeclash.arenas.dummy.dummy import DummyArena
 from codeclash.arenas.figgie.figgie import FiggieArena
 from codeclash.arenas.gomoku.gomoku import GomokuArena
@@ -15,15 +17,18 @@ from codeclash.arenas.halite3.halite3 import Halite3Arena
 from codeclash.arenas.huskybench.huskybench import HuskyBenchArena
 from codeclash.arenas.robocode.robocode import RoboCodeArena
 from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
+from codeclash.arenas.scml.scml import SCMLOneShotArena
 
 ARENAS = [
     BattleCode23Arena,
     BattleCode24Arena,
     BattleCode25Arena,
     BattleSnakeArena,
+    BomberlandArena,
     BridgeArena,
     ChessArena,
     CoreWarArena,
+    CybORGArena,
     DummyArena,
     FiggieArena,
     GomokuArena,
@@ -33,6 +38,7 @@ ARENAS = [
     HuskyBenchArena,
     RoboCodeArena,
     RobotRumbleArena,
+    SCMLOneShotArena,
 ]
 
 

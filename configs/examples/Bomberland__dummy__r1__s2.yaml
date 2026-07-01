@@ -1,0 +1,36 @@
+tournament:
+  rounds: 1
+game:
+  name: Bomberland
+  sims_per_round: 2
+  args:
+    ticks: 40
+    width: 11
+    height: 11
+    unit_count: 3
+    agent_timeout: 0.25
+    timeout: 180
+players:
+- agent: dummy
+  name: alpha
+- agent: dummy
+  name: beta
+prompts:
+  game_description: |-
+    You are a software developer ({{player_id}}) competing in CodeClash's Bomberland arena.
+
+    The game is played in {{total_rounds}} rounds. For every round, you and your competitor edit
+    code that controls a squad in a Bomberman-style grid arena. This is round {{round}}.
+
+    Your task: improve `bomberland_agent.py`, located in {{working_dir}}.
+    All commands run from {{working_dir}}.
+
+    Your file must define `next_actions(game_state)`. A valid starting point is:
+
+    def next_actions(game_state):
+        agent_id = game_state["connection"]["agent_id"]
+        return {unit_id: "stay" for unit_id in game_state["agents"][agent_id]["unit_ids"]}
+
+    Valid actions are "up", "down", "left", "right", "bomb", and "stay".
+    The arena runs multiple seeded Bomberland simulations. Your objective is to maximize average
+    score by surviving, damaging enemy units, destroying blocks, and eliminating enemy units.

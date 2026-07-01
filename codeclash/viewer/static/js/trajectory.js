@@ -128,8 +128,19 @@ function createMessageElement(message, index) {
   const messageContent = document.createElement("div");
   messageContent.className = "message-content";
 
-  // Handle different content types
-  if (typeof message.content === "string") {
+  // Handle different content types.
+  // mini-swe-agent v2 (tool-call) assistant messages keep the command in
+  // extra.actions / tool_calls instead of in a ```bash block in the text, so they need
+  // their own renderer. v1 messages have neither and fall through to the text paths below.
+  const toolActions =
+    message.extra && Array.isArray(message.extra.actions)
+      ? message.extra.actions
+      : [];
+  const hasToolCalls =
+    Array.isArray(message.tool_calls) && message.tool_calls.length > 0;
+  if (toolActions.length > 0 || hasToolCalls) {
+    messageContent.innerHTML = createToolCallContentHTML(message);
+  } else if (typeof message.content === "string") {
     const lines = message.content.split("\n");
     if (lines.length <= 5) {
       // Show full content
@@ -256,6 +267,54 @@ function createComplexContentHTML(contentParts) {
     }
   });
 
+  html += "</div>";
+  return html;
+}
+
+function createToolCallContentHTML(message) {
+  // Render a mini-swe-agent v2 tool-call assistant message: the reasoning text (if any)
+  // followed by each issued command as a code block (matching the v1 ```bash styling).
+
+  // Thought text: content may be a string, an array of content blocks, or null.
+  let thought = "";
+  if (typeof message.content === "string") {
+    thought = message.content;
+  } else if (Array.isArray(message.content)) {
+    thought = message.content
+      .filter((p) => p && p.type === "text" && typeof p.text === "string")
+      .map((p) => p.text)
+      .join("\n");
+  }
+
+  // Commands: prefer the parsed actions, fall back to the raw tool_calls.
+  let commands = [];
+  if (message.extra && Array.isArray(message.extra.actions)) {
+    commands = message.extra.actions.map((a) => a.command).filter(Boolean);
+  }
+  if (!commands.length && Array.isArray(message.tool_calls)) {
+    commands = message.tool_calls
+      .map((tc) => {
+        try {
+          return JSON.parse(tc.function.arguments).command;
+        } catch (e) {
+          return tc.function && tc.function.arguments;
+        }
+      })
+      .filter(Boolean);
+  }
+
+  let html = '<div class="message-content-full">';
+  if (thought.trim()) {
+    html += `<div class="message-text"><pre>${escapeHtml(thought)}</pre></div>`;
+  }
+  commands.forEach((cmd) => {
+    html += `<div class="code-block"><pre><code>${escapeHtml(cmd)}</code></pre></div>`;
+  });
+  if (!thought.trim() && !commands.length) {
+    html += `<div class="message-text"><pre>${escapeHtml(
+      JSON.stringify(message.content, null, 2),
+    )}</pre></div>`;
+  }
   html += "</div>";
   return html;
 }

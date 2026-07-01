@@ -980,14 +980,14 @@ def get_parent_folder(path):
 
 
 def format_timestamp(timestamp):
-    """Format Unix timestamp as MM/DD HH:MM"""
+    """Format Unix timestamp as YY/MM/DD HH:MM"""
     if timestamp is None:
         return ""
     from datetime import datetime
 
     try:
         dt = datetime.fromtimestamp(timestamp)
-        return dt.strftime("%m/%d %H:%M")
+        return dt.strftime("%y/%m/%d %H:%M")
     except (ValueError, OSError):
         return ""
 

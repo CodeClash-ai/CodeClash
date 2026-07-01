@@ -19,6 +19,18 @@
       "pattern": "https://docs\\.codeclash\\.io"
     },
     {
+      "pattern": "https://robotrumble\\.org/boards/2"
+    },
+    {
+      "pattern": "https://robocode\\.sourceforge\\.io.*"
+    },
+    {
+      "pattern": "https://huskybench\\.com/.*"
+    },
+    {
+      "pattern": "https://corewar\\.co\\.uk"
+    },
+    {
       "pattern": "https?://(.*\\.)?twitter\\.com/.*"
     },
     {
@@ -26,6 +38,9 @@
     },
     {
       "pattern": "https://www\\.contributor-covenant\\.org/version/2/1/code_of_conduct\\.html"
+    },
+    {
+      "pattern": "https://join\\.slack\\.com/t/swe-bench/shared_invite/.*"
     }
   ]
 }

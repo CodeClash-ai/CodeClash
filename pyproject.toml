@@ -21,8 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "litellm",
-    "mini-swe-agent",
-    "portkey-ai",
+    "mini-swe-agent>=2.4,<3",
     "python-dotenv",
     "ghapi",
     "flask",
@@ -205,3 +204,4 @@ line-ending = "auto"
 [tool.typos.default.extend-words]
 # Don't correct the surname "Teh"
 ba = "ba"
+mis = "mis"

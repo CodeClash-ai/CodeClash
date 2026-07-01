@@ -7,13 +7,12 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from minisweagent.environments.docker import DockerEnvironment
-from minisweagent.environments.singularity import SingularityEnvironment
-
 from codeclash.agents.player import Player
 from codeclash.constants import DIR_LOGS, DIR_WORK, GH_ORG, RESULT_TIE
 from codeclash.utils.aws import is_running_in_aws_batch, pull_game_container_aws_ecr
 from codeclash.utils.environment import (
+    ClashDockerEnvironment,
+    ClashSingularityEnvironment,
     ContainerEnvironment,
     assert_zero_exit_code,
     copy_between_containers,
@@ -245,7 +244,7 @@ class CodeArena(ABC):
         }
 
         if get_runtime() == "singularity":
-            environment = SingularityEnvironment(
+            environment = ClashSingularityEnvironment(
                 image=str(self.sif_path),
                 cwd=str(DIR_WORK),
                 env=env_vars,
@@ -253,11 +252,8 @@ class CodeArena(ABC):
                 logger=self.logger,
             )
         else:
-            if not self._keep_containers:
-                run_args = ["--rm"]
-            else:
-                run_args = []
-            environment = DockerEnvironment(
+            run_args = []
+            environment = ClashDockerEnvironment(
                 image=self.image_name,
                 cwd=str(DIR_WORK),
                 env=env_vars,

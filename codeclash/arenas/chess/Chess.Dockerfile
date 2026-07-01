@@ -25,4 +25,3 @@ RUN git clone https://github.com/Disservin/fastchess.git /tmp/fastchess \
     && rm -rf /tmp/fastchess
 
 WORKDIR /workspace
-

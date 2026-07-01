@@ -52,7 +52,7 @@ class BattleCode23Arena(CodeArena):
 
     name: str = "BattleCode23"
     description: str = """Battlecode 2023: Tempest is a real-time strategy game where your Java bot controls a team of robots competing to conquer sky islands.
-Your mission: conquer 75% or more of all sky islands by placing reality anchors on them. The first team to succeed immediately wins. 
+Your mission: conquer 75% or more of all sky islands by placing reality anchors on them. The first team to succeed immediately wins.
 Robots include Headquarters (craft anchors and build units), Carriers (transport anchors and gather resources), Launchers (combat units), and specialized units like Boosters and Destabilizers.
 Islands are conquered by placing reality anchors on them, which are crafted at headquarters using resources (Adamantium, Mana, Elixir) gathered from wells."""
     default_args: dict = {
