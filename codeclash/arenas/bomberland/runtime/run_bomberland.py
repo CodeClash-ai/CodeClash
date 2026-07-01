@@ -42,7 +42,7 @@ def load_agent(name, path):
 def _agent_worker(path, state, result_queue):
     try:
         callback = load_agent("runtime", path)
-        result = callback(copy.deepcopy(state))
+        result = callback(state)
         result_queue.put({"actions": result if isinstance(result, dict) else {}})
     except BaseException as exc:
         if isinstance(exc, (KeyboardInterrupt, SystemExit)):
@@ -55,7 +55,7 @@ def call_agent(agent_path, state, timeout):
     start_method = "fork" if "fork" in multiprocessing.get_all_start_methods() else "spawn"
     context = multiprocessing.get_context(start_method)
     result_queue = context.Queue(maxsize=1)
-    process = context.Process(target=_agent_worker, args=(agent_path, copy.deepcopy(state), result_queue))
+    process = context.Process(target=_agent_worker, args=(agent_path, state, result_queue))
     process.start()
     process.join(timeout)
     if process.is_alive():
@@ -240,7 +240,6 @@ def explode_bomb(index, bombs, metal, wood, units, stats, blasts):
     bomb = bombs[index]
     cells = blast_cells(bomb["pos"], bomb["radius"], metal, wood)
     owner = bomb["owner"]
-    stats[owner]["bombs_returned"] += 1
     unit_id = bomb.get("unit_id")
     if unit_id in units:
         units[unit_id]["inventory"]["bombs"] += 1
@@ -398,7 +397,6 @@ def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_t
             "wood_destroyed": 0,
             "invalid_actions": 0,
             "agent_errors": 0,
-            "bombs_returned": 0,
         }
         for player in players
     }
