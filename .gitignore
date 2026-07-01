@@ -1,5 +1,8 @@
 # Project specific
 
+# macOS
+.DS_Store
+
 .vscode/**
 *.ipynb
 *.traj.json
