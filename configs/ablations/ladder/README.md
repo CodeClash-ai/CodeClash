@@ -5,7 +5,7 @@ For a more static and hill-climb-able version of CodeClash, we introduce CC:Ladd
 For instance, for RobotRumble, we created a ladder by doing the following steps:
 1. From the online [leaderboard](https://robotrumble.org/boards/2), we manually crawled all open source, published bots and pushed them as branches to the [CC:RobotRumble](https://github.com/CodeClash-ai/RobotRumble) repository.
 2. We then created the `robotrumble.yaml` file in this folder.
-3. Next, from the repository root, we run `uv run python scripts/run_ladder.py configs/ablations/ladder/robotrumble.yaml`, which runs PvP Tournaments against all pairs of branches.
+3. Next, from the repository root, we run `uv run codeclash ladder run configs/ablations/ladder/robotrumble.yaml`, which runs PvP Tournaments against all pairs of branches.
 4. From these logs, we then calculate win rate to rank all models.
 
 You can follow these steps to create your own "CC:<arena>" ladder.

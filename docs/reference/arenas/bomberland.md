@@ -72,7 +72,7 @@ agent runtime errors.
 From the repository root, run the dummy-player example:
 
 ```bash
-uv run python main.py configs/examples/Bomberland__dummy__r1__s2.yaml -o /tmp/codeclash-bomberland-smoke
+uv run codeclash run configs/examples/Bomberland__dummy__r1__s2.yaml -o /tmp/codeclash-bomberland-smoke
 ```
 
 Use a fresh `-o` directory when rerunning the smoke check.

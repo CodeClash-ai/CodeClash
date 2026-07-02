@@ -54,7 +54,7 @@ uv sync --extra dev
 cp .env.example .env  # Then edit .env with your GITHUB_TOKEN
 
 # Run a test battle
-uv run python main.py configs/test/battlesnake.yaml
+uv run codeclash run configs/test/battlesnake.yaml
 ```
 
 > [!TIP]
@@ -66,14 +66,14 @@ uv run python main.py configs/test/battlesnake.yaml
 
 ```bash
 pip install -e '.[dev]'
-python main.py configs/test/battlesnake.yaml
+codeclash run configs/test/battlesnake.yaml
 ```
 </details>
 
 Once this works, you should be set up to run a real tournament!
 To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 rounds* and *1000 competition simulations* per round, run:
 ```bash
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 ```
 
 ## ⚔️ How It Works

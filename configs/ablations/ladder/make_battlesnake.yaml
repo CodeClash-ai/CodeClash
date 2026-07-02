@@ -1,5 +1,5 @@
 # Round-robin over ALL imported human BattleSnakes, used to RANK them (skill Phase 3).
-# Run:  uv run python scripts/make_ladder.py configs/ablations/ladder/make_battlesnake.yaml
+# Run:  uv run codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml
 # Then rank from the logs with codeclash/analysis/metrics/win_rate.py (or elo.py).
 #
 # Params: args match the main BattleSnake configs (11x11, browser off). Following the

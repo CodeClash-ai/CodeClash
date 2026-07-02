@@ -31,7 +31,11 @@ dependencies = [
     "unidiff",
     "trueskill",
     "cdifflib",
+    "typer",
 ]
+
+[project.scripts]
+codeclash = "codeclash.cli.app:main"
 
 [project.optional-dependencies]
 dev = [

@@ -362,6 +362,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "scipy" },
     { name = "trueskill" },
+    { name = "typer" },
     { name = "unidiff" },
 ]
 
@@ -408,6 +409,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "scipy" },
     { name = "trueskill" },
+    { name = "typer" },
     { name = "unidiff" },
     { name = "werkzeug", marker = "extra == 'dev'" },
 ]

@@ -85,7 +85,7 @@ If any of these fail, see [Docker troubleshooting](#docker-issues).
 Run a minimal test tournament with dummy agents (no LLM calls):
 
 ```bash
-uv run python main.py configs/test/battlesnake.yaml
+uv run codeclash run configs/test/battlesnake.yaml
 ```
 
 This verifies:
@@ -119,7 +119,7 @@ CodeClash configs are organized into tiers:
 No LLM API calls - uses dummy agents that make no changes:
 
 ```bash
-uv run python main.py configs/test/battlesnake.yaml
+uv run codeclash run configs/test/battlesnake.yaml
 ```
 
 ### Example Configs (Quick Experiments)
@@ -128,12 +128,12 @@ Short 5-round tournaments for learning and experimentation:
 
 ```bash
 # Claude Sonnet 4.5 vs o3 in BattleSnake (5 rounds)
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 # Same matchup in other arenas
-uv run python main.py configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
-uv run python main.py configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-uv run python main.py configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv run codeclash run configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv run codeclash run configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
 ```
 
 ### Main Configs (Full Benchmarks)
@@ -142,7 +142,7 @@ Full 15-round tournaments used in the paper:
 
 ```bash
 # Full BattleSnake tournament
-uv run python main.py configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 ```
 
 !!! warning "Cost Warning"
@@ -176,7 +176,7 @@ The viewer shows:
 ```bash
 # 1. Make sure you have API keys in .env
 # 2. Run a short example tournament
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 # 3. View results
 uv run python scripts/run_viewer.py
@@ -186,10 +186,10 @@ uv run python scripts/run_viewer.py
 
 ```bash
 # CoreWar - Assembly-like programming battle
-uv run python main.py configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 # RobotRumble - Multi-robot combat
-uv run python main.py configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv run codeclash run configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
 ```
 
 ### Create a custom matchup
@@ -199,7 +199,7 @@ Copy an example config and modify:
 ```bash
 cp configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml configs/my_tournament.yaml
 # Edit configs/my_tournament.yaml to change models, rounds, etc.
-uv run python main.py configs/my_tournament.yaml
+uv run codeclash run configs/my_tournament.yaml
 ```
 
 ## Troubleshooting
@@ -242,11 +242,11 @@ See [Issue #81](https://github.com/CodeClash-ai/CodeClash/issues/81) for macOS-s
 
 ```bash
 # Make sure you're using uv run
-uv run python main.py configs/test/battlesnake.yaml
+uv run codeclash run configs/test/battlesnake.yaml
 
 # Or activate the virtual environment first
 source .venv/bin/activate
-python main.py configs/test/battlesnake.yaml
+codeclash run configs/test/battlesnake.yaml
 ```
 
 ## Next Steps

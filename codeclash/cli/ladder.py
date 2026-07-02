@@ -1,8 +1,11 @@
-import argparse
+"""`codeclash ladder` subcommands: build a ladder (make) and climb it (run)."""
+
 import getpass
 import time
 from pathlib import Path
+from typing import Optional
 
+import typer
 import yaml
 
 from codeclash import CONFIG_DIR
@@ -10,15 +13,55 @@ from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.tournaments.pvp import PvpTournament
 from codeclash.utils.yaml_utils import resolve_includes
 
+ladder_app = typer.Typer(
+    no_args_is_help=True, add_completion=False, context_settings={"help_option_names": ["-h", "--help"]}
+)
 
-def main(
-    config_path: Path,
-    *,
-    cleanup: bool = False,
-    output_dir: Path | None = None,
-    suffix: str = "",
-    keep_containers: bool = False,
+
+@ladder_app.command("make")
+def make(
+    config_path: Path = typer.Argument(..., help="Path to the ladder (round-robin) config file."),
 ):
+    """Build a ladder: run PvP tournaments across all pairs of players (for ranking)."""
+    yaml_content = config_path.read_text()
+    preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
+    config = yaml.safe_load(preprocessed_yaml)
+
+    players = config["players"]
+    num_players = len(players)
+    for i in range(num_players):
+        for j in range(i + 1, num_players):
+            player1 = players[i]
+            player1["name"] = player1["branch_init"]
+            player2 = players[j]
+            player2["name"] = player2["branch_init"]
+            pvp_config = {
+                **config,
+                "players": [player1, player2],
+            }
+
+            vs = f"PvpTournament.{player1['name']}_vs_{player2['name']}".replace("/", "_")
+            output_dir = LOCAL_LOG_DIR / "ladder" / config["game"]["name"] / vs
+            try:
+                tournament = PvpTournament(pvp_config, output_dir=output_dir)
+            except FileExistsError:
+                continue
+            tournament.run()
+
+
+@ladder_app.command("run")
+def run(
+    config_path: Path = typer.Argument(..., help="Path to the ladder config (with `player` + `ladder`)."),
+    cleanup: bool = typer.Option(False, "--cleanup", "-c", help="Clean up the game environment after running."),
+    output_dir: Optional[Path] = typer.Option(
+        None, "--output-dir", "-o", help="Output directory (default: logs/<user>)."
+    ),
+    suffix: str = typer.Option("", "--suffix", "-s", help="Suffix for the output folder name (no leading dot)."),
+    keep_containers: bool = typer.Option(
+        False, "--keep-containers", "-k", help="Do not remove containers after games/agent finish."
+    ),
+):
+    """Send a model up a ranked ladder, rung by rung, until it loses."""
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
@@ -88,43 +131,3 @@ def main(
 
     print(f"Ladder tournament complete. Logs saved to {parent_dir}")
     print(f"Final opponent faced: {opponent['name']} (rank {opponent_rank}/{len(ladder)} in ladder)")
-
-
-def main_cli(argv: list[str] | None = None):
-    parser = argparse.ArgumentParser(description="CodeClash")
-    parser.add_argument(
-        "config_path",
-        type=Path,
-        help="Path to the config file.",
-    )
-    parser.add_argument(
-        "-c",
-        "--cleanup",
-        action="store_true",
-        help="If set, do not clean up the game environment after running.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        type=Path,
-        help="Sets the output directory (default is 'logs' with current user subdirectory).",
-    )
-    parser.add_argument(
-        "-s",
-        "--suffix",
-        type=str,
-        help="Suffix to attach to the folder name. Does not include leading dot or underscore.",
-        default="",
-    )
-    parser.add_argument(
-        "-k",
-        "--keep-containers",
-        action="store_true",
-        help="Do not remove containers after games/agent finish",
-    )
-    args = parser.parse_args(argv)
-    main(**vars(args))
-
-
-if __name__ == "__main__":
-    main_cli()

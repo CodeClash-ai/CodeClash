@@ -5,7 +5,7 @@ This guide covers everything you need to know about running CodeClash tournament
 ## CLI Reference
 
 ```bash
-uv run python main.py <config_path> [options]
+uv run codeclash run <config_path> [options]
 ```
 
 ### Arguments
@@ -28,18 +28,18 @@ uv run python main.py <config_path> [options]
 
 ```bash
 # Basic run
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 # Keep containers for debugging
-uv run python main.py configs/test/battlesnake.yaml -k
+uv run codeclash run configs/test/battlesnake.yaml -k
 
 # Custom output directory with suffix
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml \
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml \
     -o ./my_experiments \
     -s experiment1
 
 # Push final codebases to GitHub
-uv run python main.py configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml -p
+uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml -p
 ```
 
 ## Configuration Anatomy
@@ -258,14 +258,14 @@ Example: `PvpTournament.BattleSnake.r5.s1000.p2.claude-sonnet-4-5.o3.24121014302
 
 ```bash
 # BattleSnake: Claude Sonnet 4.5 vs o3 (15 rounds)
-uv run python main.py configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 ```
 
 ### Run all arenas for a matchup
 
 ```bash
 for arena in BattleSnake CoreWar Halite RoboCode RobotRumble; do
-    uv run python main.py "configs/main/${arena}__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml"
+    uv run codeclash run "configs/main/${arena}__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml"
 done
 ```
 
@@ -273,7 +273,7 @@ done
 
 ```bash
 # Keep containers for inspection
-uv run python main.py configs/test/battlesnake.yaml -k
+uv run codeclash run configs/test/battlesnake.yaml -k
 
 # Then inspect the container
 docker ps -a  # Find container ID
@@ -285,10 +285,10 @@ docker exec -it <container_id> /bin/bash
 
 ```bash
 # Run variant A
-uv run python main.py configs/my_config.yaml -s variantA
+uv run codeclash run configs/my_config.yaml -s variantA
 
 # Run variant B (modified config)
-uv run python main.py configs/my_config_b.yaml -s variantB
+uv run codeclash run configs/my_config_b.yaml -s variantB
 ```
 
 ### Batch run with different models
@@ -299,7 +299,7 @@ models=("claude-sonnet-4-5-20250929" "gpt-5" "gemini-2.5-pro")
 for model in "${models[@]}"; do
     config="configs/main/BattleSnake__${model}__o3__r15__s1000.yaml"
     if [ -f "$config" ]; then
-        uv run python main.py "$config"
+        uv run codeclash run "$config"
     fi
 done
 ```

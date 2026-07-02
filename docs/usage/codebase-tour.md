@@ -300,7 +300,7 @@ uv run pytest
 ### 2. Try a test tournament
 
 ```bash
-uv run python main.py configs/test/battlesnake.yaml
+uv run codeclash run configs/test/battlesnake.yaml
 ```
 
 ### 3. Explore an existing arena
