@@ -1944,10 +1944,7 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>codeclash/arenas/bomberland/bomberland.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span>
-<span class="normal">43</span>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">43</span>
 <span class="normal">44</span>
 <span class="normal">45</span>
 <span class="normal">46</span>
@@ -1955,7 +1952,10 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 <span class="normal">48</span>
 <span class="normal">49</span>
 <span class="normal">50</span>
-<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">player_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;players&quot;</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="k">if</span> <span class="n">player_count</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bomberland requires exactly two players&quot;</span><span class="p">)</span>
@@ -2040,7 +2040,7 @@ shape: submitted code receives a game-state dictionary and returns one action pe
   </span>
 
 </h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Bomberland is a Bomberman-style multi-agent arena based on Coder One</span><span class="se">\&#39;</span><span class="s1">s Bomberland competition.</span><span class="se">\n\n</span><span class="s1">Your bot is a Python file named `bomberland_agent.py` that defines a callable named `next_actions`.</span><span class="se">\n</span><span class="s1">The callable receives a game-state dictionary and should return a dictionary mapping unit ids to actions:</span><span class="se">\n\n</span><span class="s1">    def next_actions(game_state):</span><span class="se">\n</span><span class="s1">        return {&quot;unit_0&quot;: &quot;up&quot;}</span><span class="se">\n\n</span><span class="s1">Valid actions are `up`, `down`, `left`, `right`, `bomb`, and `stay`. Each round runs several</span><span class="se">\n</span><span class="s1">deterministic seeded games. Your units move on a destructible grid, place bombs, destroy blocks,</span><span class="se">\n</span><span class="s1">damage opposing units, and score by survival, damage, kills, and block destruction.</span><span class="se">\n</span><span class="s1">&#39;</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;Bomberland is a Bomberman-style multi-agent arena based on Coder One</span><span class="se">\&#39;</span><span class="s1">s Bomberland competition.</span><span class="se">\n\n</span><span class="s1">Your bot is a Python file named `bomberland_agent.py` that defines a callable named `next_actions`.</span><span class="se">\n</span><span class="s1">The callable receives a game-state dictionary and should return a dictionary mapping unit ids to actions:</span><span class="se">\n\n</span><span class="s1">    def next_actions(game_state):</span><span class="se">\n</span><span class="s1">        return {&quot;unit_0&quot;: &quot;up&quot;}</span><span class="se">\n\n</span><span class="s1">Valid actions are `up`, `down`, `left`, `right`, `bomb`, `stay`, and `detonate` (to blow up one of</span><span class="se">\n</span><span class="s1">your own bombs early, e.g. the string `&quot;detonate:x,y&quot;` or `{&quot;type&quot;: &quot;detonate&quot;, &quot;coordinates&quot;: [x, y]}`;</span><span class="se">\n</span><span class="s1">bombs also explode automatically after their timer). Each round runs several deterministic seeded</span><span class="se">\n</span><span class="s1">games. Your units move on a destructible grid, place bombs, destroy blocks, damage opposing units,</span><span class="se">\n</span><span class="s1">and score by survival, damage, kills, and block destruction. Bomb blasts (`x` entities) stay active</span><span class="se">\n</span><span class="s1">briefly and damage any unit standing on or moving into them.</span><span class="se">\n</span><span class="s1">&#39;</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2091,10 +2091,7 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/bomberland/bomberland.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 60</span>
-<span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 63</span>
 <span class="normal"> 64</span>
 <span class="normal"> 65</span>
 <span class="normal"> 66</span>
@@ -2133,7 +2130,10 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 <span class="normal"> 99</span>
 <span class="normal">100</span>
 <span class="normal">101</span>
-<span class="normal">102</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
     <span class="n">quoted_submission</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="p">)</span>
     <span class="n">file_check</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;test -f </span><span class="si">{</span><span class="n">quoted_submission</span><span class="si">}</span><span class="s2"> &amp;&amp; echo exists&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">&quot;exists&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_check</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
@@ -2198,10 +2198,7 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/bomberland/bomberland.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span>
 <span class="normal">110</span>
@@ -2228,7 +2225,10 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 <span class="normal">131</span>
 <span class="normal">132</span>
 <span class="normal">133</span>
-<span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">execute_round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">agent_args</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
         <span class="n">agent_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--agent&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=/</span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
@@ -2281,10 +2281,7 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>codeclash/arenas/bomberland/bomberland.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">139</span>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span>
@@ -2321,7 +2318,10 @@ shape: submitted code receives a game-state dictionary and returns one action pe
 <span class="normal">173</span>
 <span class="normal">174</span>
 <span class="normal">175</span>
-<span class="normal">176</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Player</span><span class="p">],</span> <span class="n">round_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">RoundStats</span><span class="p">):</span>
     <span class="n">result_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_round</span><span class="p">(</span><span class="n">round_num</span><span class="p">)</span> <span class="o">/</span> <span class="n">RESULTS_JSON</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">result_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing result file: </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2408,7 +2408,7 @@ from surviving health, surviving units, enemy damage, kills, destroyed blocks, i
 agent runtime errors.</p>
 <h2 id="smoke-test">Smoke Test</h2>
 <p>From the repository root, run the dummy-player example:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/Bomberland__dummy__r1__s2.yaml<span class="w"> </span>-o<span class="w"> </span>/tmp/codeclash-bomberland-smoke
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/Bomberland__dummy__r1__s2.yaml<span class="w"> </span>-o<span class="w"> </span>/tmp/codeclash-bomberland-smoke
 </code></pre></div>
 <p>Use a fresh <code>-o</code> directory when rerunning the smoke check.</p>
 <p>Expected shape:</p>

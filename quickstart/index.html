@@ -2160,7 +2160,7 @@ docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </
 <p>If any of these fail, see <a href="#docker-issues">Docker troubleshooting</a>.</p>
 <h3 id="test-tournament">Test Tournament</h3>
 <p>Run a minimal test tournament with dummy agents (no LLM calls):</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml
 </code></pre></div>
 <p>This verifies:</p>
 <ul>
@@ -2214,22 +2214,22 @@ docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </
 </table>
 <h3 id="test-configs-free">Test Configs (Free)</h3>
 <p>No LLM API calls - uses dummy agents that make no changes:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml
 </code></pre></div>
 <h3 id="example-configs-quick-experiments">Example Configs (Quick Experiments)</h3>
 <p>Short 5-round tournaments for learning and experimentation:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Claude Sonnet 4.5 vs o3 in BattleSnake (5 rounds)</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 <span class="c1"># Same matchup in other arenas</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
 </code></pre></div>
 <h3 id="main-configs-full-benchmarks">Main Configs (Full Benchmarks)</h3>
 <p>Full 15-round tournaments used in the paper:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Full BattleSnake tournament</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Cost Warning</p>
@@ -2253,23 +2253,23 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <h3 id="run-your-first-real-tournament">Run your first real tournament</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Make sure you have API keys in .env</span>
 <span class="c1"># 2. Run a short example tournament</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 <span class="c1"># 3. View results</span>
 uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_viewer.py
 </code></pre></div>
 <h3 id="try-a-different-arena">Try a different arena</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># CoreWar - Assembly-like programming battle</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 <span class="c1"># RobotRumble - Multi-robot combat</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
 </code></pre></div>
 <h3 id="create-a-custom-matchup">Create a custom matchup</h3>
 <p>Copy an example config and modify:</p>
 <div class="highlight"><pre><span></span><code>cp<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span>configs/my_tournament.yaml
 <span class="c1"># Edit configs/my_tournament.yaml to change models, rounds, etc.</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/my_tournament.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/my_tournament.yaml
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="docker-issues">Docker Issues</h3>
@@ -2297,11 +2297,11 @@ sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> <
 <h3 id="import-errors">Import Errors</h3>
 <p><strong>"ModuleNotFoundError: No module named 'codeclash'"</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Make sure you&#39;re using uv run</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml
 
 <span class="c1"># Or activate the virtual environment first</span>
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml
+codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml
 </code></pre></div>
 <h2 id="next-steps">Next Steps</h2>
 <ul>

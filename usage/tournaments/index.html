@@ -1837,7 +1837,7 @@
 <h1 id="running-tournaments">Running Tournaments</h1>
 <p>This guide covers everything you need to know about running CodeClash tournaments: CLI options, configuration files, environment variables, and output structure.</p>
 <h2 id="cli-reference">CLI Reference</h2>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>&lt;config_path&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>&lt;config_path&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <h3 id="arguments">Arguments</h3>
 <table>
@@ -1893,18 +1893,18 @@
 </table>
 <h3 id="examples">Examples</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Basic run</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
 
 <span class="c1"># Keep containers for debugging</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
 
 <span class="c1"># Custom output directory with suffix</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span><span class="se">\</span>
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-o<span class="w"> </span>./my_experiments<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-s<span class="w"> </span>experiment1
 
 <span class="c1"># Push final codebases to GitHub</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span>-p
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span>-p
 </code></pre></div>
 <h2 id="configuration-anatomy">Configuration Anatomy</h2>
 <p>Tournament configs are YAML files with four main sections:</p>
@@ -2246,16 +2246,16 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <h2 id="quick-recipes">Quick Recipes</h2>
 <h3 id="reproduce-a-paper-result">Reproduce a paper result</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># BattleSnake: Claude Sonnet 4.5 vs o3 (15 rounds)</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 </code></pre></div>
 <h3 id="run-all-arenas-for-a-matchup">Run all arenas for a matchup</h3>
 <div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span>arena<span class="w"> </span><span class="k">in</span><span class="w"> </span>BattleSnake<span class="w"> </span>CoreWar<span class="w"> </span>Halite<span class="w"> </span>RoboCode<span class="w"> </span>RobotRumble<span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<span class="w">    </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span><span class="s2">&quot;configs/main/</span><span class="si">${</span><span class="nv">arena</span><span class="si">}</span><span class="s2">__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml&quot;</span>
+<span class="w">    </span>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;configs/main/</span><span class="si">${</span><span class="nv">arena</span><span class="si">}</span><span class="s2">__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml&quot;</span>
 <span class="k">done</span>
 </code></pre></div>
 <h3 id="debug-a-failing-agent">Debug a failing agent</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Keep containers for inspection</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml<span class="w"> </span>-k
 
 <span class="c1"># Then inspect the container</span>
 docker<span class="w"> </span>ps<span class="w"> </span>-a<span class="w">  </span><span class="c1"># Find container ID</span>
@@ -2264,10 +2264,10 @@ docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </spa
 </code></pre></div>
 <h3 id="quick-ab-test-with-custom-suffix">Quick A/B test with custom suffix</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run variant A</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/my_config.yaml<span class="w"> </span>-s<span class="w"> </span>variantA
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/my_config.yaml<span class="w"> </span>-s<span class="w"> </span>variantA
 
 <span class="c1"># Run variant B (modified config)</span>
-uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>configs/my_config_b.yaml<span class="w"> </span>-s<span class="w"> </span>variantB
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/my_config_b.yaml<span class="w"> </span>-s<span class="w"> </span>variantB
 </code></pre></div>
 <h3 id="batch-run-with-different-models">Batch run with different models</h3>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
@@ -2275,7 +2275,7 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <span class="k">for</span><span class="w"> </span>model<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">models</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
 <span class="w">    </span><span class="nv">config</span><span class="o">=</span><span class="s2">&quot;configs/main/BattleSnake__</span><span class="si">${</span><span class="nv">model</span><span class="si">}</span><span class="s2">__o3__r15__s1000.yaml&quot;</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$config</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">        </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$config</span><span class="s2">&quot;</span>
+<span class="w">        </span>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$config</span><span class="s2">&quot;</span>
 <span class="w">    </span><span class="k">fi</span>
 <span class="k">done</span>
 </code></pre></div>
