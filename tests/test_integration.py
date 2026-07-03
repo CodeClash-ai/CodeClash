@@ -9,10 +9,13 @@ from codeclash import CONFIG_DIR
 
 
 def test_pvp_battlesnake():
-    from main import main_cli
+    from typer.testing import CliRunner
+
+    from codeclash.cli.app import app
 
     config_path = CONFIG_DIR / "test" / "battlesnake_pvp_test.yaml"
-    main_cli(["-c", str(config_path)])
+    result = CliRunner().invoke(app, ["run", "-c", str(config_path)])
+    assert result.exit_code == 0, result.output
 
 
 def test_single_player_battlesnake():

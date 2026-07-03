@@ -13,6 +13,7 @@ Usage:
 The jsonl format: one metadata line, per-turn v1 state frames ({game,turn,board,you}),
 and a final result line ({winnerName,isDraw}).
 """
+
 import argparse
 import json
 import sys
@@ -48,19 +49,28 @@ def load(path):
     frames = []
     for t in turns:
         b = by_turn[t]
-        frames.append({
-            "turn": t,
-            "food": [[c["x"], c["y"]] for c in b.get("food", [])],
-            "hazards": [[c["x"], c["y"]] for c in b.get("hazards", [])],
-            "snakes": [{
-                "name": s["name"],
-                "health": s.get("health", 0),
-                "body": [[c["x"], c["y"]] for c in s["body"]],
-            } for s in b["snakes"]],
-        })
+        frames.append(
+            {
+                "turn": t,
+                "food": [[c["x"], c["y"]] for c in b.get("food", [])],
+                "hazards": [[c["x"], c["y"]] for c in b.get("hazards", [])],
+                "snakes": [
+                    {
+                        "name": s["name"],
+                        "health": s.get("health", 0),
+                        "body": [[c["x"], c["y"]] for c in s["body"]],
+                    }
+                    for s in b["snakes"]
+                ],
+            }
+        )
     return {
-        "w": b0["width"], "h": b0["height"], "frames": frames, "colors": colors,
-        "winner": result.get("winnerName"), "draw": result.get("isDraw", False),
+        "w": b0["width"],
+        "h": b0["height"],
+        "frames": frames,
+        "colors": colors,
+        "winner": result.get("winnerName"),
+        "draw": result.get("isDraw", False),
     }
 
 
@@ -69,7 +79,7 @@ def to_ascii(g):
         grid = [["." for _ in range(g["w"])] for _ in range(g["h"])]
         for fx, fy in f["food"]:
             grid[fy][fx] = "*"
-        for i, s in enumerate(f["snakes"]):
+        for s in f["snakes"]:
             ch = s["name"][0].upper()
             for j, (x, y) in enumerate(s["body"]):
                 grid[y][x] = ch if j else ch.lower()  # head lowercase-ish marker

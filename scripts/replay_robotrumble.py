@@ -18,6 +18,7 @@ The raw JSON format: a single object {winner, errors, turns:[...]}. Each turn ha
 (unit id -> {"Ok": {"type":"Move"|"Attack","direction":...}} or {"Ok":"None"}).
 Blue is the first (blue) bot, Red is the second.
 """
+
 import argparse
 import json
 import sys
@@ -55,14 +56,16 @@ def load(path, blue_name=None, red_name=None):
                 ok = act["Ok"]
                 if isinstance(ok, dict):
                     atype, adir = ok.get("type"), ok.get("direction")
-            units.append({
-                "team": o.get("team"),
-                "hp": o.get("health", 0),
-                "x": o["coords"][0],
-                "y": o["coords"][1],
-                "act": atype,
-                "dir": adir,
-            })
+            units.append(
+                {
+                    "team": o.get("team"),
+                    "hp": o.get("health", 0),
+                    "x": o["coords"][0],
+                    "y": o["coords"][1],
+                    "act": atype,
+                    "dir": adir,
+                }
+            )
         frames.append({"turn": t["state"].get("turn"), "units": units})
 
     winner_raw = data.get("winner")
@@ -97,9 +100,11 @@ def to_ascii(g):
         for u in f["units"]:
             counts[u["team"]] += 1
             hp[u["team"]] += u["hp"]
-        print(f"\n--- turn {f['turn']} ---  "
-              f"{g['names']['Blue']}(B): {counts['Blue']} units / {hp['Blue']} hp   "
-              f"{g['names']['Red']}(R): {counts['Red']} units / {hp['Red']} hp")
+        print(
+            f"\n--- turn {f['turn']} ---  "
+            f"{g['names']['Blue']}(B): {counts['Blue']} units / {hp['Blue']} hp   "
+            f"{g['names']['Red']}(R): {counts['Red']} units / {hp['Red']} hp"
+        )
         for row in grid:
             print(" ".join(row))
     print(f"\nWinner: {'TIE' if g['draw'] else g['winner']}")

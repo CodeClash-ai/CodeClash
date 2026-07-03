@@ -12,7 +12,6 @@ import random
 import time
 import uuid
 from pathlib import Path
-from typing import Optional
 
 import typer
 import yaml
@@ -39,9 +38,7 @@ app.add_typer(rank_app, name="rank", help="Compute player standings from game lo
 def run(
     config_path: Path = typer.Argument(..., help="Path to the tournament config file."),
     cleanup: bool = typer.Option(False, "--cleanup", "-c", help="Clean up the game environment after running."),
-    output_dir: Optional[Path] = typer.Option(
-        None, "--output-dir", "-o", help="Output directory (default: logs/<user>)."
-    ),
+    output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Output directory (default: logs/<user>)."),
     suffix: str = typer.Option("", "--suffix", "-s", help="Suffix for the output folder name (no leading dot)."),
     keep_containers: bool = typer.Option(
         False, "--keep-containers", "-k", help="Do not remove containers after games/agent finish."
