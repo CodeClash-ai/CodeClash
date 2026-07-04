@@ -5,9 +5,10 @@ model_name: claude-4-8-opus-vertex-genai
 model_class: codeclash.agents.mini_anthropic_model.AnthropicModel
 api_key_env: LLAMA_API_KEY
 base_url: https://api.llama.com/experimental/passthrough/anthropic
-max_tokens: 4096
-model_kwargs:
-  temperature: 0.2
+max_tokens: 16384
+# NOTE: these gateway Claude models run with extended thinking enabled, which requires
+# temperature to be unset (or 1.0). Setting temperature (e.g. 0.2) returns HTTP 400 — so no
+# model_kwargs/temperature here.
 cost:
   input: 5.0e-06
   output: 2.5e-05

@@ -47,5 +47,28 @@
                 ]
             }
         ]
+    },
+    "gemini-3-5-flash-fair": {
+        "litellm_provider": "openai",
+        "mode": "chat",
+        "max_input_tokens": 1048576,
+        "max_output_tokens": 65535,
+        "max_tokens": 65535,
+        "input_cost_per_token": 1.5e-06,
+        "output_cost_per_token": 9e-06,
+        "output_cost_per_reasoning_token": 9e-06,
+        "cache_read_input_token_cost": 1.5e-07,
+        "source": "reveng model_prices.json (gemini-3-5-flash-genai tier)"
+    },
+    "gpt-5-5-genai-responses": {
+        "litellm_provider": "openai",
+        "mode": "responses",
+        "max_input_tokens": 1050000,
+        "max_output_tokens": 128000,
+        "max_tokens": 128000,
+        "input_cost_per_token": 5e-06,
+        "output_cost_per_token": 3e-05,
+        "cache_read_input_token_cost": 5e-07,
+        "source": "reveng model_prices.json"
     }
 }
