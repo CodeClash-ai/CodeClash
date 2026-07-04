@@ -1,0 +1,21 @@
+# RobotRumble ladder climbed by gpt-5-5. Requires LLAMA_API_KEY in .env.
+#   uv run codeclash ladder run configs/ablations/ladder/robotrumble__gpt_5_5.yaml
+tournament:
+  rounds: 5
+game:
+  name: RobotRumble
+  sims_per_round: 250
+  args:
+    raw: false
+player:
+  agent: mini
+  name: gpt-5-5
+  branch_init: human/anton/anton3000
+  config:
+    agent: !include mini/default.yaml
+    model: !include mini/models/llama_gpt_5_5.yaml
+  push: True
+prompts:
+  game_description: |-
+    RobotRumble ladder
+ladder: !include ablations/ladder/rungs/robotrumble.yaml

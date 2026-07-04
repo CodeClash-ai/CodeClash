@@ -1,0 +1,27 @@
+# Cheap smoke to validate the llama-endpoint wiring before a full ladder run:
+# Opus 4.8 (native Anthropic API via AnthropicModel) climbs a 2-rung BattleSnake ladder.
+# 1 round, 10 sims — just enough to confirm the model authenticates, caches, and edits code.
+# Requires LLAMA_API_KEY in .env.
+#   uv run codeclash ladder run configs/ablations/ladder/battlesnake_llama_smoke.yaml -c
+tournament:
+  rounds: 1
+game:
+  name: BattleSnake
+  sims_per_round: 10
+  args:
+    width: 11
+    height: 11
+    browser: false
+player:
+  agent: mini
+  name: opus-4-8
+  branch_init: human/moxuz/pinky-snek
+  config:
+    agent: !include mini/default.yaml
+    model: !include mini/models/llama_opus_4_8.yaml
+  push: True
+prompts:
+  game_description: "BattleSnake ladder smoke over the llama endpoint."
+ladder:
+- {agent: dummy, name: pinky, branch_init: human/moxuz/pinky-snek}       # simple heuristic (port)
+- {agent: dummy, name: tr8r, branch_init: human/noahspriggs/tr-8r}       # 2016 winner (port)
