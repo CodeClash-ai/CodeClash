@@ -1,9 +1,7 @@
-# Cheap smoke to validate the custom-endpoint wiring before a full ladder run:
-# one Claude player (native Anthropic API via AnthropicModel) climbs a 2-rung BattleSnake ladder.
+# Cheap smoke to validate the llama-endpoint wiring before a full ladder run:
+# Opus 4.8 (native Anthropic API via AnthropicModel) climbs a 2-rung BattleSnake ladder.
 # 1 round, 10 sims — just enough to confirm the model authenticates, caches, and edits code.
-#
-#   uv pip install -e '.[llama]'
-#   # set LLAMA_API_KEY, LLAMA_BASE_URL, LLAMA_MODEL in .env
+# Requires LLAMA_API_KEY in .env.
 #   uv run codeclash ladder run configs/ablations/ladder/battlesnake_llama_smoke.yaml -c
 tournament:
   rounds: 1
@@ -16,27 +14,15 @@ game:
     browser: false
 player:
   agent: mini
-  name: claude-gateway
+  name: opus-4-8
   branch_init: human/moxuz/pinky-snek
   config:
     agent: !include mini/default.yaml
-    model:
-      model_class: codeclash.agents.mini_anthropic_model.AnthropicModel
-      model_name: claude-gateway          # placeholder; real id comes from LLAMA_MODEL
-      model_name_env: LLAMA_MODEL
-      api_key_env: LLAMA_API_KEY
-      base_url_env: LLAMA_BASE_URL
-      max_tokens: 4096
-      model_kwargs:
-        temperature: 0.2
-      cost:
-        input: 5.0e-06
-        output: 2.5e-05
-        cache_creation_input: 6.25e-06
-        cache_read_input: 5.0e-07
+    model: !include mini/models/llama_opus_4_8.yaml
   push: True
 prompts:
-  game_description: "BattleSnake ladder smoke over a custom Anthropic-compatible endpoint."
+  game_description: "BattleSnake ladder smoke over the llama endpoint."
 ladder:
 - {agent: dummy, name: pinky, branch_init: human/moxuz/pinky-snek}       # simple heuristic (port)
 - {agent: dummy, name: tr8r, branch_init: human/noahspriggs/tr-8r}       # 2016 winner (port)
+

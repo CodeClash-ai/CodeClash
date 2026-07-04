@@ -1,0 +1,14 @@
+# Claude Sonnet 5 via the llama API anthropic-passthrough endpoint (extended-thinking model).
+# Cost mirrors Sonnet pricing.
+model_name: claude-5-sonnet-genai
+model_class: codeclash.agents.mini_anthropic_model.AnthropicModel
+api_key_env: LLAMA_API_KEY
+base_url: https://api.llama.com/experimental/passthrough/anthropic
+max_tokens: 4096
+model_kwargs:
+  temperature: 0.2
+cost:
+  input: 3.0e-06
+  output: 1.5e-05
+  cache_creation_input: 3.75e-06
+  cache_read_input: 3.0e-07
