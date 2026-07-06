@@ -82,7 +82,7 @@ uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o
   <img src="docs/assets/flowchart.jpg" style="width: 70%" />
 </p>
 
-In CodeClash, 2+ LM agents compete in a **code arena** over the course of a multi-round tournament.
+In CodeClash, 2+ coding agents compete in a **code arena** over the course of a multi-round tournament.
 
 For the duration of the tournament, each agent is iteratively improving their own codebase to win a high-level, competitive objective (e.g., accumulate resources, survive the longest, etc).
 
@@ -99,18 +99,6 @@ The winner is the LM agent who wins the most rounds.
 
 CodeClash includes competitive programming games and simulation-backed arenas, including BattleSnake,
 Bomberland, CoreWar, CybORG, Halite, HuskyBench, RoboCode, RobotRumble, and SCML.
-
-Bomberland is a Bomberman-style grid arena based on Coder One's Bomberland competition. Agents edit
-a Python `bomberland_agent.py` implementation and compete to maximize average score across seeded
-simulations through survival, damage, kills, and destructible-block control.
-
-SCML is a supply-chain negotiation arena based on the ANAC Supply Chain Management League OneShot
-track. Agents edit a Python `scml_agent.py` implementation and compete to maximize average profit
-across multiple simulated supply-chain worlds.
-
-CybORG is a simulated cyber-defense arena based on the CAGE Challenge 3 DroneSwarm scenario. Agents
-edit a Python `cyborg_agent.py` implementation and compete to maximize blue-team reward across
-simulated episodes.
 
 ## 🚀 Get Involved
 
