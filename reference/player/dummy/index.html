@@ -1803,7 +1803,9 @@
 <span class="normal">83</span>
 <span class="normal">84</span>
 <span class="normal">85</span>
-<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="n">environment</span><span class="p">:</span> <span class="n">DockerEnvironment</span><span class="p">,</span>
@@ -1846,8 +1848,7 @@
 
     <span class="c1"># Handle branch initialization</span>
     <span class="k">if</span> <span class="n">branch_init</span> <span class="o">:=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;branch_init&quot;</span><span class="p">):</span>
-        <span class="c1"># Fetch from remote first (handles branches pushed in previous tournaments)</span>
-        <span class="c1"># Then checkout - git will create tracking branch if needed</span>
+        <span class="c1"># Fetch, then check out the initial branch (creating a tracking branch if needed).</span>
         <span class="n">assert_zero_exit_code</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git fetch origin &amp;&amp; git checkout </span><span class="si">{</span><span class="n">branch_init</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
             <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
@@ -1856,20 +1857,23 @@
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span> <span class="o">!=</span> <span class="n">branch_init</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Switching to branch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2"> for pushing changes&quot;</span><span class="p">)</span>
-        <span class="c1"># First fetch to see if the branch exists on remote</span>
-        <span class="n">assert_zero_exit_code</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;git fetch origin&quot;</span><span class="p">),</span>
-            <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="c1"># Try to checkout the branch - git will track remote if it exists there</span>
-        <span class="n">checkout_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">checkout_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;returncode&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Branch doesn&#39;t exist locally or remotely, create it</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Branch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2"> doesn&#39;t exist, creating it&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">branch_init</span><span class="p">:</span>
+            <span class="c1"># Start the push branch at branch_init. get_environment() pre-created a</span>
+            <span class="c1"># same-named branch at the default branch; a plain checkout would revert the</span>
+            <span class="c1"># working tree to it, so use -B to re-point it at the current HEAD.</span>
             <span class="n">assert_zero_exit_code</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout -b </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout -B </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
                 <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
             <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Resume the branch if a previous round pushed it to the remote, else create it.</span>
+            <span class="n">assert_zero_exit_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;git fetch origin&quot;</span><span class="p">),</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;returncode&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Branch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2"> doesn&#39;t exist, creating it&quot;</span><span class="p">)</span>
+                <span class="n">assert_zero_exit_code</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git checkout -b </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_branch_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
+                <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 

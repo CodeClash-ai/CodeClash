@@ -1917,6 +1917,7 @@ uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> <
 <span class="nt">game</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BattleSnake</span><span class="w">            </span><span class="c1"># Arena name (must match registered arena)</span>
 <span class="w">  </span><span class="nt">sims_per_round</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">         </span><span class="c1"># Number of game simulations per round</span>
+<span class="w">  </span><span class="nt">sim_concurrency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w">          </span><span class="c1"># Optional: simulations to run in parallel (default per arena)</span>
 <span class="w">  </span><span class="nt">args</span><span class="p">:</span><span class="w">                        </span><span class="c1"># Arena-specific arguments</span>
 <span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span>
 <span class="w">    </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">11</span>
@@ -2002,6 +2003,11 @@ uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> <
 <td><code>sims_per_round</code></td>
 <td>int</td>
 <td>Number of game simulations per round</td>
+</tr>
+<tr>
+<td><code>sim_concurrency</code></td>
+<td>int</td>
+<td>Optional. Simulations to run in parallel; defaults to each arena's tuned value</td>
 </tr>
 <tr>
 <td><code>args</code></td>
