@@ -1,0 +1,129 @@
+# Round-robin over the SCML OneShot human bots (ported from yasserfarouk/scml-agents +
+# built-in baselines), used to RANK them via Elo/Bradley-Terry -> see scml.yaml for the ladder.
+# rounds:0 = dummy players just play the baseline SCML2024OneShot game (no code edits).
+# 51 bots -> 51*50/2 = 1275 pairwise tournaments. Bots live on CodeClash-ai/SCML; Docker required.
+#
+# COST (measured ~4.8s/sim + ~3s overhead per pair; pairs are single-threaded, so wall =
+# core-hours / workers): at sims_per_round=400 a pair takes ~32 min -> ~681 core-hours total.
+#   * 32-core box (--workers 30): ~23 h    * 64 vCPU (-w 62): ~11 h    * 96 vCPU (-w 90): ~7.5 h
+# Keep --workers <= (cores - 2): the decide() call has a 3s timeout that CPU oversubscription
+# can trip. Resumable: reruns skip pairs already logged, so it's safe to stop/resume.
+#
+# Full run (250-400 sims = publication-quality Elo; 400 chosen for SCML's high per-sim variance):
+#   uv run codeclash ladder make configs/ablations/ladder/make_scml.yaml --workers 30
+# Cheap SANITY pilot first (~1 h @ 32 cores): temporarily set sims_per_round: 30, run, rank, and
+# eyeball the ordering (baselines near the bottom) before committing to the full 400-sim pass.
+tournament:
+  rounds: 0
+game:
+  name: SCML
+  sims_per_round: 400
+  # sims_per_round: 30   # <- pilot: uncomment (and comment out 400) for a ~1h sanity-check ranking
+  args:
+    n_steps: 10
+    n_lines: 2
+players:
+- agent: dummy
+  branch_init: human/scml-baselines/greedy
+- agent: dummy
+  branch_init: human/scml-baselines/nice
+- agent: dummy
+  branch_init: human/scml-baselines/random
+- agent: dummy
+  branch_init: human/scml2021/staghunter
+- agent: dummy
+  branch_init: human/scml2021/team_50
+- agent: dummy
+  branch_init: human/scml2021/team_51
+- agent: dummy
+  branch_init: human/scml2021/team_54
+- agent: dummy
+  branch_init: human/scml2021/team_55
+- agent: dummy
+  branch_init: human/scml2021/team_61
+- agent: dummy
+  branch_init: human/scml2021/team_62
+- agent: dummy
+  branch_init: human/scml2021/team_72
+- agent: dummy
+  branch_init: human/scml2021/team_73
+- agent: dummy
+  branch_init: human/scml2021/team_86
+- agent: dummy
+  branch_init: human/scml2021/team_90
+- agent: dummy
+  branch_init: human/scml2021/team_corleone
+- agent: dummy
+  branch_init: human/scml2022/team_102
+- agent: dummy
+  branch_init: human/scml2022/team_103
+- agent: dummy
+  branch_init: human/scml2022/team_105
+- agent: dummy
+  branch_init: human/scml2022/team_106
+- agent: dummy
+  branch_init: human/scml2022/team_107
+- agent: dummy
+  branch_init: human/scml2022/team_123
+- agent: dummy
+  branch_init: human/scml2022/team_124
+- agent: dummy
+  branch_init: human/scml2022/team_126
+- agent: dummy
+  branch_init: human/scml2022/team_131
+- agent: dummy
+  branch_init: human/scml2022/team_134
+- agent: dummy
+  branch_init: human/scml2022/team_94
+- agent: dummy
+  branch_init: human/scml2022/team_96
+- agent: dummy
+  branch_init: human/scml2023/team_102
+- agent: dummy
+  branch_init: human/scml2023/team_123
+- agent: dummy
+  branch_init: human/scml2023/team_126
+- agent: dummy
+  branch_init: human/scml2023/team_127
+- agent: dummy
+  branch_init: human/scml2023/team_134
+- agent: dummy
+  branch_init: human/scml2023/team_143
+- agent: dummy
+  branch_init: human/scml2023/team_144
+- agent: dummy
+  branch_init: human/scml2023/team_145
+- agent: dummy
+  branch_init: human/scml2023/team_148
+- agent: dummy
+  branch_init: human/scml2023/team_149
+- agent: dummy
+  branch_init: human/scml2023/team_151
+- agent: dummy
+  branch_init: human/scml2023/team_poli_usp
+- agent: dummy
+  branch_init: human/scml2024/coyoteteam
+- agent: dummy
+  branch_init: human/scml2024/ozug4
+- agent: dummy
+  branch_init: human/scml2024/team_144
+- agent: dummy
+  branch_init: human/scml2024/team_164
+- agent: dummy
+  branch_init: human/scml2024/team_171
+- agent: dummy
+  branch_init: human/scml2024/team_172
+- agent: dummy
+  branch_init: human/scml2024/team_174
+- agent: dummy
+  branch_init: human/scml2024/team_193
+- agent: dummy
+  branch_init: human/scml2024/team_238
+- agent: dummy
+  branch_init: human/scml2024/team_abc
+- agent: dummy
+  branch_init: human/scml2024/team_miyajima
+- agent: dummy
+  branch_init: human/scml2024/teamyuzuru
+prompts:
+  game_description: SCML OneShot ladder

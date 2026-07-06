@@ -12,6 +12,22 @@ You can follow these steps to create your own "CC:<arena>" ladder.
 The tricky part is typically finding a large collection of human solutions for a particular arena.
 We've typically found that googling for online leaderboards or awesome-<arena> repositories (e.g. [BattleSnake](https://github.com/BattlesnakeOfficial/awesome-battlesnake)) is a good strategy.
 
+### SCML OneShot (newly added)
+
+The [CC:SCML](https://github.com/CodeClash-ai/SCML) repo hosts 51 human bots on `human/*` branches
+(like the other arenas, bot code lives only on the branches, not in this repo): 3 built-in `scml`
+baselines (greedy/random/nice) plus 48 ANAC competition agents from
+[`yasserfarouk/scml-agents`](https://github.com/yasserfarouk/scml-agents) (2021–2024), each
+re-expressed from its `OneShotAgent`/`OneShotSyncAgent` source into the arena's single-file
+`decide(observation)` contract. RL/learned agents were ported as heuristic-core best-effort;
+`scml2023/team_139` is deferred. Note: unlike the earlier arenas, SCML's `git`-workspace had to be
+wired for the ladder first — the `CodeClash-ai/SCML` repo was created (seeded with the runtime) and
+`SCML.Dockerfile` now `git clone`s it so `branch_init` works.
+
+The build tooling (porting guide, validators, smoke/push scripts, and the AWS run
+instructions in `RUN_ON_AWS.md`) lives in `scripts/ladder/` — it's operational one-off tooling for
+constructing porting-based ladders, reusable for future arenas.
+
 ## Config layout
 
 Each arena has a few kinds of config in this folder:
