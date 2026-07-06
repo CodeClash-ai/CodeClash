@@ -47,14 +47,10 @@ dev = [
     "ruff",
     "Werkzeug",
     "frozen-flask",
+    "anthropic",
 ]
 aws = [
     "boto3",
-]
-llama = [
-    # Claude via a custom Anthropic-compatible endpoint with prompt caching.
-    # Used by codeclash/agents/mini_anthropic_model.py; see the ladder configs.
-    "anthropic",
 ]
 docs = [
     "mkdocs-material",

@@ -391,6 +391,7 @@ aws = [
     { name = "boto3" },
 ]
 dev = [
+    { name = "anthropic" },
     { name = "frozen-flask" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -405,13 +406,10 @@ docs = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
 ]
-llama = [
-    { name = "anthropic" },
-]
 
 [package.metadata]
 requires-dist = [
-    { name = "anthropic", marker = "extra == 'llama'" },
+    { name = "anthropic", marker = "extra == 'dev'" },
     { name = "boto3", marker = "extra == 'aws'" },
     { name = "cdifflib" },
     { name = "flask" },
@@ -438,7 +436,7 @@ requires-dist = [
     { name = "werkzeug", marker = "extra == 'dev'" },
     { name = "zstandard" },
 ]
-provides-extras = ["dev", "aws", "llama", "docs"]
+provides-extras = ["dev", "aws", "docs"]
 
 [[package]]
 name = "colorama"
