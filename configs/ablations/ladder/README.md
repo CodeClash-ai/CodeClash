@@ -12,6 +12,19 @@ You can follow these steps to create your own "CC:<arena>" ladder.
 The tricky part is typically finding a large collection of human solutions for a particular arena.
 We've typically found that googling for online leaderboards or awesome-<arena> repositories (e.g. [BattleSnake](https://github.com/BattlesnakeOfficial/awesome-battlesnake)) is a good strategy.
 
+### RoboCode (newly added)
+
+The [CC:RoboCode](https://github.com/CodeClash-ai/RoboCode) repo hosts 116 human bots on `human/robocode/*`
+branches (bot code lives only on the branches, not in this repo). This arena is **classic Robocode**
+(`robocode.*` API compiled against `robocode.jar`), so importing open-source bots is mostly a
+mechanical copy-in + rename rather than a strategy rewrite: each bot's Java class(es) are placed in
+`robots/custom/`, the main class renamed to `MyTank`, `package custom;`. The set spans the shipped
+sample bots (SittingDuck/Walls/Corners/…) through famous RoboWiki/PEZ micro-mini bots (Aristocles,
+Pugilist, HawkOnFire) up to a single-file **DrussGT** (a world-class bot) as the top rung; a few use
+Robocode's sanctioned `getDataFile` persistence (degrades gracefully without cross-battle saves).
+Diamond/BeepBoop remain as future top rungs (nested-package multi-file → need flattening). Each import
+was verified to **compile and play a real battle**. Build tooling + per-bot source provenance (`SOURCES.md`) live in `scripts/ladder/`.
+
 ## Config layout
 
 Each arena has a few kinds of config in this folder:
