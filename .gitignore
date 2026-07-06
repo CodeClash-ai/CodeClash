@@ -233,3 +233,6 @@ docs/visualization/*.jsonl
 docs/visualization/*.png
 docs/visualization/code_org
 docs/visualization/elo_plots
+
+# Per-model llama endpoint configs — kept local only (obscures internal API details)
+configs/mini/models/
