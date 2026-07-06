@@ -1,0 +1,17 @@
+# Arena smoke test for the Gomoku ladder: run a human-branch bot through the REAL arena
+# (Docker build -> clone CodeClash-ai/Gomoku -> branch_init checkout -> validate_code -> engine.py)
+# against the default bot.
+#   GITHUB_TOKEN=$(gh auth token) uv run codeclash run scripts/ladder/examples/gomoku_smoke.yaml
+tournament:
+  rounds: 1
+game:
+  name: Gomoku
+  sims_per_round: 6
+players:
+- agent: dummy
+  name: starter
+  branch_init: human/muhtasham/strategic-starter
+- agent: dummy
+  name: default
+prompts:
+  game_description: Gomoku ladder smoke test

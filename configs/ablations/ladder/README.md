@@ -12,6 +12,17 @@ You can follow these steps to create your own "CC:<arena>" ladder.
 The tricky part is typically finding a large collection of human solutions for a particular arena.
 We've typically found that googling for online leaderboards or awesome-<arena> repositories (e.g. [BattleSnake](https://github.com/BattlesnakeOfficial/awesome-battlesnake)) is a good strategy.
 
+### Gomoku (newly added)
+
+The [CC:Gomoku](https://github.com/CodeClash-ai/Gomoku) repo hosts the human bots on `human/*`
+branches (like the other arenas, bot code lives only on the branches, not in this repo): 21
+open-source Gomoku/Gobang AIs ported into the arena's single-file `get_move(board, color)` contract
+— pure-Python minimax/MCTS/threat-search bots imported directly, plus JS/Java/C++ engines (e.g.
+lihongxun945, blackstone, blupig) reimplemented in stdlib Python — alongside a strategic starter.
+AlphaZero/CNN bots were skipped (need trained weights). The build tooling (porting guide,
+validators, smoke/push scripts, run instructions in `RUN.md`) lives in `scripts/ladder/`; it's
+operational one-off tooling for constructing porting-based ladders, reusable across arenas.
+
 ## Config layout
 
 Each arena has a few kinds of config in this folder:
