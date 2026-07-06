@@ -167,7 +167,7 @@ def run(
     )
     print(advancement_rule)
     logger.info(advancement_rule)
-    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{timestamp}"
+    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{player['name']}.{timestamp}"
     player["branch"] = ladder_folder
     parent_dir = LOCAL_LOG_DIR / getpass.getuser() / ladder_folder
 
