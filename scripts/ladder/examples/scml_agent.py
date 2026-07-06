@@ -47,8 +47,8 @@ def _good_price(awi, nmi, state):
     up_min, up_max = _issue_bounds(nmi["issues"], UNIT_PRICE)
     th = _threshold(state)
     if _is_selling(awi, nmi):
-        return int(round(up_min + th * (up_max - up_min)))   # seller: high early, concede down
-    return int(round(up_max - th * (up_max - up_min)))       # buyer:  low early, concede up
+        return int(round(up_min + th * (up_max - up_min)))  # seller: high early, concede down
+    return int(round(up_max - th * (up_max - up_min)))  # buyer:  low early, concede up
 
 
 def _my_needs(awi, nmi):
@@ -99,9 +99,9 @@ def decide(observation):
 
             needs = _my_needs(awi, nmi)
             if not needs or needs <= 0:
-                return {"response": "end"}          # nothing more to trade
+                return {"response": "end"}  # nothing more to trade
 
-            if current[QUANTITY] > needs:            # too much -> reject, counter with my best
+            if current[QUANTITY] > needs:  # too much -> reject, counter with my best
                 counter = _best_offer(awi, nmi, state)
                 return {"response": "reject", "offer": counter} if counter else {"response": "reject"}
 
