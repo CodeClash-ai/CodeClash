@@ -2,6 +2,9 @@
 #   uv run codeclash ladder run configs/ablations/ladder/corewar__opus_4_8.yaml
 tournament:
   rounds: 5
+ladder_rules:
+  min_round_win_fraction: 0.5   # advance only on a strict majority of rounds
+  win_last_k: 1                 # ...and win the last K rounds (K=1 == just the final round)
 game:
   name: CoreWar
   sims_per_round: 2000

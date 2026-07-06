@@ -17,6 +17,45 @@ from codeclash.utils.yaml_utils import resolve_includes
 
 logger = get_logger("ladder")
 
+
+def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[float, int]:
+    """Validate the optional ``ladder_rules`` block and return ``(min_round_win_fraction, win_last_k)``.
+
+    Defaults reproduce the historical behavior: win a strict majority of rounds
+    (``min_round_win_fraction=0.5``) AND win the final round (``win_last_k=1``).
+    """
+    min_round_win_fraction = ladder_rules.get("min_round_win_fraction", 0.5)
+    win_last_k = ladder_rules.get("win_last_k", 1)
+
+    # win_last_k: number of trailing rounds the player must win (1 == just the final round).
+    if isinstance(win_last_k, bool) or not isinstance(win_last_k, int):
+        typer.echo(f"ladder_rules.win_last_k must be an integer, got {win_last_k!r}.")
+        raise typer.Exit(1)
+    if win_last_k < 1:
+        typer.echo(
+            f"ladder_rules.win_last_k must be >= 1, got {win_last_k}. "
+            "Use 1 to require winning only the final round."
+        )
+        raise typer.Exit(1)
+    if win_last_k > rounds:
+        typer.echo(
+            f"ladder_rules.win_last_k ({win_last_k}) cannot exceed tournament.rounds ({rounds})."
+        )
+        raise typer.Exit(1)
+
+    # min_round_win_fraction: player must win strictly more than this fraction of rounds.
+    if isinstance(min_round_win_fraction, bool) or not isinstance(min_round_win_fraction, (int, float)):
+        typer.echo(f"ladder_rules.min_round_win_fraction must be a number, got {min_round_win_fraction!r}.")
+        raise typer.Exit(1)
+    if not 0 <= min_round_win_fraction < 1:
+        typer.echo(
+            f"ladder_rules.min_round_win_fraction must be in [0, 1), got {min_round_win_fraction}. "
+            "0.5 requires a strict majority; 0 drops the majority requirement."
+        )
+        raise typer.Exit(1)
+
+    return float(min_round_win_fraction), win_last_k
+
 ladder_app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
@@ -101,9 +140,16 @@ def run(
         config["tournament"]["rounds"],
         config["game"]["sims_per_round"],
     )
+    min_round_win_fraction, win_last_k = _resolve_ladder_rules(config.get("ladder_rules", {}), rounds)
     timestamp = time.strftime("%y%m%d%H%M%S")
     del config["player"]
     del config["ladder"]
+    config.pop("ladder_rules", None)
+
+    print(
+        f"Ladder advancement rule: win > {min_round_win_fraction:.0%} of {rounds} rounds "
+        f"and win the last {win_last_k} round(s)."
+    )
     ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{timestamp}"
     player["branch"] = ladder_folder
     parent_dir = LOCAL_LOG_DIR / getpass.getuser() / ladder_folder
@@ -143,12 +189,22 @@ def run(
             metadata = yaml.safe_load(f)
         round_winners = [r["winner"] for r in metadata["round_stats"].values()]
 
-        # Player must have won majority of rounds and the last round to continue ladder
+        # Advancement rule (configurable via `ladder_rules`): win strictly more than
+        # `min_round_win_fraction` of rounds AND win the last `win_last_k` rounds.
         player_wins = sum(1 for w in round_winners if w == player["name"])
-        player_won_last = round_winners[-1] == player["name"]
+        won_majority = player_wins > len(round_winners) * min_round_win_fraction
+        won_last_k = all(w == player["name"] for w in round_winners[-win_last_k:])
 
-        if not player_wins > len(round_winners) // 2 or not player_won_last:
-            # If player lost tournament, ladder challenge ends
+        if not won_majority or not won_last_k:
+            # Player failed the advancement rule; the ladder challenge ends here.
+            print("=" * 10)
+            print(
+                f"{player['name']} did not clear {opponent['name']} "
+                f"(rank {opponent_rank}/{len(ladder)}): won {player_wins}/{len(round_winners)} rounds "
+                f"(needed > {min_round_win_fraction:.0%}), last {win_last_k} round(s) won: {won_last_k}.\n"
+                "Ladder challenge ends."
+            )
+            print("=" * 10)
             break
 
         print("=" * 10)
