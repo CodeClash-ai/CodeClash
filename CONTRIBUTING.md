@@ -101,13 +101,13 @@ CodeClash/
 │   ├── agents/          # AI agent implementations (MiniSWEAgent, etc.)
 │   ├── arenas/          # Game arena implementations
 │   ├── analysis/        # Post-tournament analysis tools
+|   ├── cli/             # CLI entrypoint
 │   ├── tournaments/     # Tournament orchestration
 │   ├── viewer/          # Web-based results viewer
 │   └── utils/           # Shared utilities
 ├── configs/             # Tournament configuration files
 ├── docs/                # Documentation (MkDocs)
-├── tests/               # Test suite
-└── main.py              # Main entry point
+└──  tests/               # Test suite
 ```
 
 ## Types of Contributions
@@ -170,7 +170,7 @@ Analysis tools live in `codeclash/analysis/`. We're particularly interested in:
 | Preview docs | `uv run mkdocs serve` |
 | Build wheel | `uv build --wheel` |
 | Build wheel + sdist | `uv build` |
-| Run a tournament | `uv run python main.py <config>` |
+| Run a tournament | `uv run codeclash run <config>` |
 | View results | `uv run python scripts/run_viewer.py` |
 
 ### Building Distributions

@@ -20,7 +20,10 @@ MAP_FILE_TYPE_TO_COMPILE = {
     ".cpp": "g++ -std=c++11 {name}.cpp -o {name}.o",
     ".c": "gcc {name}.c -o {name}.o",
     ".hs": "ghc --make {name}.hs -O -v0 -rtsopts -outputdir dist",
-    ".ml": "ocamlbuild -lib unix {name}.native",
+    # ocamlbuild normally leaves {name}.native as an ABSOLUTE symlink into _build/, which
+    # dangles once the built submission is relocated to /<player>/submission for the match
+    # (the bot then fails to launch). -no-links + copy emits a real, relocatable binary.
+    ".ml": "ocamlbuild -no-links -lib unix {name}.native && cp _build/{name}.native {name}.native",
     ".rs": "cargo build",
 }
 
@@ -87,7 +90,7 @@ You may include additional files as needed, but please ensure:
             entries.append(executable)
         cmd = f"{self.run_cmd_round} {shlex.join(entries)}"
         self.logger.info(f"Running game: {cmd}")
-        with ThreadPoolExecutor(20) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 20)) as executor:
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)
                 for idx in range(self.game_config["sims_per_round"])

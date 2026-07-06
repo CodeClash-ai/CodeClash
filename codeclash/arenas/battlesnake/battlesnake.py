@@ -34,7 +34,7 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 self.run_cmd_round += f" --{arg} {val}"
         self._failed_to_start_player = []
 
-    def _wait_for_ports(self, requested_ports: list[int], timeout: float = 60.0) -> list[int]:
+    def _wait_for_ports(self, requested_ports: list[int], timeout: float = 180.0) -> list[int]:
         """Wait for ports to be served, up to timeout seconds.
 
         Returns:
@@ -84,6 +84,16 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
             )
         return response["output"]
 
+    def _start_cmd(self, agent: Player) -> str:
+        """Command to start the submission's server on $PORT. Submissions are either the
+        Python starter (main.py) or any other language via a run.sh launch script, which
+        compiles from source and starts the server (we commit source, never binaries).
+        run.sh runs from the copied codebase, so slow compiles are covered by the
+        (generous) port-wait timeout rather than a separate build step."""
+        if "run.sh" in self.environment.execute(f"ls /{agent.name}")["output"]:
+            return "bash run.sh"
+        return f"python {self.submission}"
+
     def execute_round(self, agents: list[Player]):
         self._failed_to_start_player = []
         assert len(agents) > 1, "Battlesnake requires at least two players"
@@ -92,9 +102,9 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
         for idx, agent in enumerate(agents):
             port = 8001 + idx
             player2port[agent.name] = port
-            # Surprisingly slow despite using &
-            # Start server in background - just add & to run in background!
-            self.environment.execute(f"PORT={port} python {self.submission} &", cwd=f"/{agent.name}")
+            # Start server in background (& ). Submission may be Python (main.py) or any
+            # other language via a run.sh launch script.
+            self.environment.execute(f"PORT={port} {self._start_cmd(agent)} &", cwd=f"/{agent.name}")
 
         self.logger.debug(f"Waiting for ports: {player2port}")
         available_ports = self._wait_for_ports(list(player2port.values()))
@@ -117,8 +127,13 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
         try:
             self.logger.info(f"Running game with players: {list(player2port.keys())}")
 
-            # Use ThreadPoolExecutor for parallel execution
-            with ThreadPoolExecutor(20) as executor:
+            # Use ThreadPoolExecutor for parallel execution. Concurrency is configurable
+            # (game.sim_concurrency): the single-threaded bot servers serialize move
+            # requests, so total concurrency across all parallel pairs must stay bounded or
+            # responses exceed the move timeout and games degenerate. When running many pairs
+            # concurrently (ladder --workers), lower this so workers*sim_concurrency stays ~20.
+            max_sim_workers = self.game_config.get("sim_concurrency", 20)
+            with ThreadPoolExecutor(max_sim_workers) as executor:
                 # Submit all simulations to the thread pool
                 futures = [
                     executor.submit(self._run_single_simulation, player2port, idx)
@@ -129,8 +144,12 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 for future in tqdm(as_completed(futures), total=len(futures)):
                     future.result()
         finally:
-            # Kill all python servers when done
+            # Kill all servers started this round (any language) so ports free up for the
+            # next round. pkill covers the Python starter; fuser frees each game port for
+            # compiled/interpreted servers launched via run.sh.
             self.environment.execute(f"pkill -f 'python {self.submission}' || true")
+            for port in player2port.values():
+                self.environment.execute(f"fuser -k {port}/tcp 2>/dev/null || true")
 
     def get_results(self, agents: list[Player], round_num: int, stats: RoundStats):
         scores = defaultdict(int)
@@ -163,7 +182,13 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 stats.player_stats[player].score = score
 
     def validate_code(self, agent: Player) -> tuple[bool, str | None]:
-        if self.submission not in agent.environment.execute("ls")["output"]:
+        listing = agent.environment.execute("ls")["output"]
+        # Non-Python submissions declare how to launch their server via run.sh (any
+        # language). We trust the launch script here; a broken one is caught at runtime
+        # by _wait_for_ports (failed-to-start -> forfeit).
+        if "run.sh" in listing:
+            return True, None
+        if self.submission not in listing:
             return False, f"No {self.submission} file found in the root directory"
         # note: no longer calling splitlines
         bot_content = agent.environment.execute(f"cat {self.submission}")["output"]

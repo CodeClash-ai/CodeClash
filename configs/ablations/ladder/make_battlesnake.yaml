@@ -1,0 +1,123 @@
+# Round-robin over the 50 human BattleSnakes (with reliable servers), used to RANK them via
+# a Bradley-Terry/Elo fit -> see battlesnake.yaml for the resulting ranked ladder.
+# rounds:0 = dummy players just play the baseline game (no code edits). sim_concurrency caps
+# per-pair parallelism so the single-threaded bot servers don't exceed the move timeout when
+# several pairs run at once (ladder make --workers N): keep workers*sim_concurrency ~20.
+# 50 bots -> 50*49/2 = 1225 pairwise tournaments.
+# Excludes 4 compiled-language bots that can't build in-arena (snork/hettie/esproso/bobby-witt)
+# and bountysnake2017 (unreliable server). All bots live on CodeClash-ai/BattleSnake; Docker required.
+# Run:  uv run codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml --workers 3
+
+tournament:
+  rounds: 0
+game:
+  name: BattleSnake
+  sims_per_round: 250
+  sim_concurrency: 5
+  args:
+    width: 11
+    height: 11
+    browser: false
+players:
+- agent: dummy
+  branch_init: human/aleksiy325/snek-two
+- agent: dummy
+  branch_init: human/altersaddle/untimely-neglected-wearable
+- agent: dummy
+  branch_init: human/ccSnake2018/ccsnake
+- agent: dummy
+  branch_init: human/ChaelCodes/cornelius
+- agent: dummy
+  branch_init: human/coreyja/amphibious-arthur
+- agent: dummy
+  branch_init: human/coreyja/bombastic-bob
+- agent: dummy
+  branch_init: human/coreyja/coreyja-rs
+- agent: dummy
+  branch_init: human/coreyja/devious-devin
+- agent: dummy
+  branch_init: human/coreyja/eremetic-eric
+- agent: dummy
+  branch_init: human/coreyja/famished-frank
+- agent: dummy
+  branch_init: human/coreyja/gigantic-george
+- agent: dummy
+  branch_init: human/coreyja/improbable-irene
+- agent: dummy
+  branch_init: human/coreyja/jump-flooding
+- agent: dummy
+  branch_init: human/csauve/bookworm
+- agent: dummy
+  branch_init: human/Flipez/flipez-crystal
+- agent: dummy
+  branch_init: human/graeme-hill/snakebot
+- agent: dummy
+  branch_init: human/hirethissnake/sneaky-snake
+- agent: dummy
+  branch_init: human/jackisherwood/battlesnake-elon
+- agent: dummy
+  branch_init: human/JerryKott/jerrykott-2017
+- agent: dummy
+  branch_init: human/jhawthorn/snek
+- agent: dummy
+  branch_init: human/joshhartmann11/battlejake
+- agent: dummy
+  branch_init: human/joshhartmann11/battlejake2019
+- agent: dummy
+  branch_init: human/kentmacdonald2/beames
+- agent: dummy
+  branch_init: human/m-schier/kreuzotter
+- agent: dummy
+  branch_init: human/MorganConrad/sisiutl
+- agent: dummy
+  branch_init: human/MorganConrad/tantilla
+- agent: dummy
+  branch_init: human/moxuz/pinky-snek
+- agent: dummy
+  branch_init: human/nbw/nbw-crystal
+- agent: dummy
+  branch_init: human/nbw/nbw-ruby
+- agent: dummy
+  branch_init: human/Nettogrof/nessegrev-java
+- agent: dummy
+  branch_init: human/Nettogrof/nessegrev-julia
+- agent: dummy
+  branch_init: human/noahspriggs/tr-8r
+- agent: dummy
+  branch_init: human/OliverMKing/astar-snake
+- agent: dummy
+  branch_init: human/pambrose/pambrose-kotlin
+- agent: dummy
+  branch_init: human/Petah/project-z
+- agent: dummy
+  branch_init: human/rdbrck/bountysnake2018
+- agent: dummy
+  branch_init: human/rdbrck/btas
+- agent: dummy
+  branch_init: human/smallsco/robosnake
+- agent: dummy
+  branch_init: human/Spenca/vulture-snake
+- agent: dummy
+  branch_init: human/tbgiles/feisty-snake
+- agent: dummy
+  branch_init: human/TheApX/hungry
+- agent: dummy
+  branch_init: human/tim-hub/awesome-snake
+- agent: dummy
+  branch_init: human/tyrelh/tyrelh-2018
+- agent: dummy
+  branch_init: human/tyrelh/tyrelh-2019
+- agent: dummy
+  branch_init: human/tyrelh/tyrelh-python
+- agent: dummy
+  branch_init: human/woofers/woofers-java
+- agent: dummy
+  branch_init: human/Xe/since
+- agent: dummy
+  branch_init: human/xtagon/nagini
+- agent: dummy
+  branch_init: human/zacpez/scape-goat
+- agent: dummy
+  branch_init: human/zakwht/zakwht-2018
+prompts:
+  game_description: BattleSnake ladder

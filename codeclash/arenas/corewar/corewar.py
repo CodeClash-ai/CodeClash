@@ -40,7 +40,7 @@ Victory comes from crafting clever tactics—replicators, scanners, bombers—th
         assert response["returncode"] == 0, response
 
     def execute_round(self, agents: list[Player]):
-        with ThreadPoolExecutor(4) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 4)) as executor:
             futures = [executor.submit(self._run_single_simulation, agents, idx) for idx in range(len(agents))]
             for future in as_completed(futures):
                 future.result()

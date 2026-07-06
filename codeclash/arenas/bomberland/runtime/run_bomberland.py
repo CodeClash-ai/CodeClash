@@ -384,6 +384,32 @@ def player_score(player, agents, units, stats):
     )
 
 
+def frame_units(agents, units):
+    """Serialize per-unit state for one tick: id / owner / coordinates / hp."""
+    out = []
+    for player in agents:
+        for unit_id in agents[player]["unit_ids"]:
+            unit = units[unit_id]
+            out.append(
+                {
+                    "unit_id": unit_id,
+                    "agent_id": unit["agent_id"],
+                    "coordinates": list(unit["coordinates"]),
+                    "hp": unit["hp"],
+                }
+            )
+    return out
+
+
+def frame_state(agents, units, metal, wood, bombs, blasts, tick):
+    """A single per-tick snapshot: tick, units, and world entities."""
+    return {
+        "tick": tick,
+        "units": frame_units(agents, units),
+        "entities": entities_for_state(metal, wood, bombs, blasts),
+    }
+
+
 def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_timeout):
     rng = random.Random(seed)
     metal, wood = build_map(width, height, unit_count, rng)
@@ -401,6 +427,7 @@ def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_t
         for player in players
     }
 
+    frames = []
     final_tick = 0
     for tick in range(ticks):
         final_tick = tick
@@ -409,6 +436,7 @@ def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_t
             players, callbacks, agents, units, metal, wood, bombs, blasts, stats, width, height, tick, agent_timeout
         )
         tick_bombs(bombs, metal, wood, units, stats, blasts)
+        frames.append(frame_state(agents, units, metal, wood, bombs, blasts, tick))
         if len(live_players(players, units)) <= 1:
             break
 
@@ -416,6 +444,7 @@ def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_t
     best_score = max(scores.values())
     winners = [player for player, score in scores.items() if score == best_score]
     winner = winners[0] if len(winners) == 1 else "TIE"
+    trace = {"width": width, "height": height, "winner": winner, "frames": frames}
     detail = {
         "seed": seed,
         "ticks": final_tick + 1,
@@ -429,7 +458,7 @@ def run_game(players, callbacks, seed, ticks, width, height, unit_count, agent_t
         },
         "stats": stats,
     }
-    return scores, detail
+    return scores, detail, trace
 
 
 def parse_agent_arg(raw):
@@ -462,9 +491,11 @@ def main():
     callbacks = {name: path for name, path in args.agent}
     totals = {player: 0.0 for player in players}
     details = []
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
     for sim in range(args.sims):
         sim_players = players if sim % 2 == 0 else list(reversed(players))
-        scores, detail = run_game(
+        scores, detail, trace = run_game(
             sim_players,
             callbacks,
             seed=100_000 + sim,
@@ -479,6 +510,10 @@ def main():
         detail["sim"] = sim
         detail["player_order"] = sim_players
         details.append(json.dumps(detail, sort_keys=True))
+        trace["sim"] = sim
+        trace["player_order"] = sim_players
+        # Per-game replay trace, alongside the aggregate results in the output dir.
+        (output.parent / f"sim_{sim}.json").write_text(json.dumps(trace) + "\n")
 
     result = {
         "average_scores": {player: totals[player] / args.sims for player in players},
@@ -486,8 +521,6 @@ def main():
         "sims": args.sims,
         "details": details,
     }
-    output = Path(args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
 
 

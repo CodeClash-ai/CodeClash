@@ -1,27 +1,58 @@
-import argparse
+"""Root `codeclash` Typer app.
+
+Single entrypoint for CodeClash. Subcommands:
+    codeclash run <config>            run a PvP tournament
+    codeclash ladder make <config>    build a ladder (round-robin ranking)
+    codeclash ladder run <config>     send a model up a ranked ladder
+    codeclash rank {win-rate,elo,matrix} ...   compute standings from logs
+    codeclash replay <log-folder>     browse/animate recorded games
+"""
+
 import getpass
 import random
 import time
 import uuid
 from pathlib import Path
 
+import typer
 import yaml
 
 from codeclash import CONFIG_DIR
+from codeclash.cli.ladder import ladder_app
+from codeclash.cli.rank import rank_app
+from codeclash.cli.replay import replay
 from codeclash.constants import LOCAL_LOG_DIR
 from codeclash.tournaments.pvp import PvpTournament
 from codeclash.utils.aws import is_running_in_aws_batch
 from codeclash.utils.yaml_utils import resolve_includes
 
+app = typer.Typer(
+    no_args_is_help=True,
+    add_completion=False,
+    rich_markup_mode="rich",  # enables the [dim] markup used in the Examples blocks
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help="CodeClash: run coding-game tournaments, build ladders, and rank players.",
+)
+app.add_typer(ladder_app, name="ladder", help="Build and run CC:Ladder tournaments.")
+app.add_typer(rank_app, name="rank", help="Compute player standings from game logs.")
+app.command("replay")(replay)
 
-def main(
-    config_path: Path,
-    *,
-    cleanup: bool = False,
-    output_dir: Path | None = None,
-    suffix: str = "",
-    keep_containers: bool = False,
+
+@app.command()
+def run(
+    config_path: Path = typer.Argument(..., help="Path to the tournament config file."),
+    cleanup: bool = typer.Option(False, "--cleanup", "-c", help="Clean up the game environment after running."),
+    output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Output directory (default: logs/<user>)."),
+    suffix: str = typer.Option("", "--suffix", "-s", help="Suffix for the output folder name (no leading dot)."),
+    keep_containers: bool = typer.Option(
+        False, "--keep-containers", "-k", help="Do not remove containers after games/agent finish."
+    ),
 ):
+    """Run a PvP tournament from a config file.
+
+    [dim]• codeclash run configs/test/battlesnake_pvp_test.yaml[/dim]
+    [dim]• codeclash run path/to/config.yaml -c -o out/  # cleanup + custom output dir[/dim]
+    """
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
@@ -29,7 +60,6 @@ def main(
     def get_output_path() -> Path:
         if is_running_in_aws_batch():
             # Offset timestamp by random seconds to avoid collisions
-            # Hopefully that means we can just remove the uuid part later on
             offset = random.randint(0, 600)
             timestamp = time.strftime("%y%m%d%H%M%S", time.localtime(time.time() + offset))
         else:
@@ -48,7 +78,6 @@ def main(
         if transparent:
             folder_name += ".transparent"
         if is_running_in_aws_batch():
-            # Also add a UUID just to be safe
             _uuid = str(uuid.uuid4())
             folder_name += f".{_uuid}-uuid"
         if output_dir is None:
@@ -60,46 +89,14 @@ def main(
             return output_dir / folder_name
 
     full_output_dir = get_output_path()
-
     tournament = PvpTournament(config, output_dir=full_output_dir, cleanup=cleanup, keep_containers=keep_containers)
     tournament.run()
 
 
-def main_cli(argv: list[str] | None = None):
-    parser = argparse.ArgumentParser(description="CodeClash")
-    parser.add_argument(
-        "config_path",
-        type=Path,
-        help="Path to the config file.",
-    )
-    parser.add_argument(
-        "-c",
-        "--cleanup",
-        action="store_true",
-        help="If set, do not clean up the game environment after running.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        type=Path,
-        help="Sets the output directory (default is 'logs' with current user subdirectory).",
-    )
-    parser.add_argument(
-        "-s",
-        "--suffix",
-        type=str,
-        help="Suffix to attach to the folder name. Does not include leading dot or underscore.",
-        default="",
-    )
-    parser.add_argument(
-        "-k",
-        "--keep-containers",
-        action="store_true",
-        help="Do not remove containers after games/agent finish",
-    )
-    args = parser.parse_args(argv)
-    main(**vars(args))
+def main() -> None:
+    """Console-script entrypoint (`codeclash`)."""
+    app()
 
 
 if __name__ == "__main__":
-    main_cli()
+    app()

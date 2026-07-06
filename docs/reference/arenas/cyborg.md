@@ -78,7 +78,7 @@ next to the source tree.
 From the repository root, run the dummy-player example:
 
 ```bash
-uv run python main.py configs/examples/CybORG__dummy__r1__s2.yaml -o /tmp/codeclash-cyborg-smoke
+uv run codeclash run configs/examples/CybORG__dummy__r1__s2.yaml -o /tmp/codeclash-cyborg-smoke
 ```
 
 Use a fresh `-o` directory when rerunning the smoke check.

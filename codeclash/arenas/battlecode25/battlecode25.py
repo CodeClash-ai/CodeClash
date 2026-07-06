@@ -54,7 +54,7 @@ Your mission: paint over 70% of the map (or eliminate the enemy) by coordinating
         cmd = f"{self.run_cmd_round} {' '.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
-        with ThreadPoolExecutor(5) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 5)) as executor:
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)

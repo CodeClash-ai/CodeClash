@@ -10,7 +10,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip \
- && git clone https://github.com/cage-challenge/CybORG.git /opt/CybORG \
+ && git clone https://github.com/CodeClash-ai/CybORG.git /opt/CybORG \
  && cd /opt/CybORG \
  && git checkout a2d03f99e587af153ae0ac50fb94ba6272e4fff2 \
  && python -m pip install "numpy<1.24" -e /opt/CybORG

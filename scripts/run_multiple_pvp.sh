@@ -12,12 +12,12 @@ CONFIG_FILE="$1"
 # optional second arg: number of times to run (default 10)
 COUNT=${2:-10}
 for ((i=1; i<=COUNT; i++)); do
-    python main.py "$CONFIG_FILE"
+    codeclash run "$CONFIG_FILE"
 done
 
 # Replace RoboCode with CoreWar in config file path
 COREWAR_CONFIG_FILE="${CONFIG_FILE//RoboCode/CoreWar}"
 
 for ((i=1; i<=COUNT; i++)); do
-    python main.py "$COREWAR_CONFIG_FILE"
+    codeclash run "$COREWAR_CONFIG_FILE"
 done

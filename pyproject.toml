@@ -31,7 +31,12 @@ dependencies = [
     "unidiff",
     "trueskill",
     "cdifflib",
+    "typer",
+    "zstandard",  # decompress Halite2/3 .hlt replay files
 ]
+
+[project.scripts]
+codeclash = "codeclash.cli.app:main"
 
 [project.optional-dependencies]
 dev = [
@@ -42,6 +47,7 @@ dev = [
     "ruff",
     "Werkzeug",
     "frozen-flask",
+    "anthropic",
 ]
 aws = [
     "boto3",

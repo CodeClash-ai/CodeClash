@@ -9,6 +9,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     curl ca-certificates python3.10 python3.10-venv \
     python3-pip python-is-python3 wget git build-essential jq curl locales \
+    nodejs npm ruby-full psmisc \
  && rm -rf /var/lib/apt/lists/*
 
 # Set architecture and install Go 1.22
@@ -26,3 +27,7 @@ WORKDIR /workspace
 
 RUN cd game && go build -o battlesnake ./cli/battlesnake/main.go
 RUN pip install -r requirements.txt
+
+# Rust toolchain (stable) for compiling Rust submissions from source (never commit binaries)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+ENV PATH=/root/.cargo/bin:$PATH

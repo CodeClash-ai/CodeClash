@@ -9,7 +9,7 @@ RUN apt-get update \
 
 # Keep a pinned copy of the upstream competition source for provenance and
 # agent authors who want to inspect the original starter-kit shape.
-RUN git clone https://github.com/CoderOneHQ/bomberland.git /opt/bomberland \
+RUN git clone https://github.com/CodeClash-ai/bomberland.git /opt/bomberland \
     && cd /opt/bomberland \
     && git checkout ${BOMBERLAND_COMMIT}
 

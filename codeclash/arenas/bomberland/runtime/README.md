@@ -27,7 +27,7 @@ Round simulation counts must be even so each player receives both starting sides
 Smoke command from the repository root:
 
 ```bash
-uv run python main.py configs/examples/Bomberland__dummy__r1__s2.yaml -o /tmp/codeclash-bomberland-smoke
+uv run codeclash run configs/examples/Bomberland__dummy__r1__s2.yaml -o /tmp/codeclash-bomberland-smoke
 ```
 
 Use a fresh `-o` directory when rerunning the smoke check. Expected output:

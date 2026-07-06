@@ -9,7 +9,9 @@ HALITE_WIN_PATTERN = r"Player\s(\d+),\s'(\S+)',\swas\srank\s(\d+)"
 # Command to be run in each agent's `submission/` folder to compile agent
 MAP_FILE_TYPE_TO_COMPILE = {
     ".cpp": "cmake . && make",
-    ".ml": "ocamlbuild -lib unix {name}.native",
+    # -no-links + copy: ocamlbuild otherwise leaves an absolute symlink that dangles once
+    # the built submission is relocated for the match (see halite.py for the full story).
+    ".ml": "ocamlbuild -no-links -lib unix {name}.native && cp _build/{name}.native {name}.native",
     ".rs": "cargo build",
 }
 
@@ -30,8 +32,11 @@ class Halite3Arena(HaliteArena):
 
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        # Remove replaydirectory arg as Halite3 does not support it
-        self.run_cmd_round: str = self.run_cmd_round.replace(f"--replaydirectory {self.log_env}", "")
+        # Halite3's engine uses --replay-directory (hyphenated), not Halite1/2's --replaydirectory.
+        # Correct the flag (rather than dropping it) so the .hlt replay lands in the round logs.
+        self.run_cmd_round: str = self.run_cmd_round.replace(
+            f"--replaydirectory {self.log_env}", f"--replay-directory {self.log_env}"
+        )
 
     def _run_single_simulation(self, agents: list[Player], idx: int, cmd: str):
         """Run a single halite simulation and return the output."""

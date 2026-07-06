@@ -1,7 +1,8 @@
 ci:
   autoupdate_commit_msg: "chore: update pre-commit hooks"
 
-exclude: '\.ipynb\.py$'
+# Skip notebooks-as-py and committed sample logs (raw game data + imported bot source).
+exclude: '\.ipynb\.py$|^logs/'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

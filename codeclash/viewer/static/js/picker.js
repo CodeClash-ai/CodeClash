@@ -503,7 +503,7 @@ async function fillTextareaWithAWSSubmitCommands() {
     // Format output as AWS submit commands
     const commands = successfulResults.map(
       (result) =>
-        `aws/run_job.py -- aws/docker_and_sync.sh python main.py configs/main/${result.config_name}`,
+        `aws/run_job.py -- aws/docker_and_sync.sh codeclash run configs/main/${result.config_name}`,
     );
     textarea.value = commands.join("\n");
 

@@ -113,7 +113,7 @@ robocode.battle.selectedRobots={selected_robots}
         # Run battle with results output to file
         cmd = f"{self.run_cmd_round} -battle {battle_file}"
         self.logger.info(f"Running game: {cmd}")
-        with ThreadPoolExecutor(5) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 5)) as executor:
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)

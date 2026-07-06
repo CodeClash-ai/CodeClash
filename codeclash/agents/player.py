@@ -60,8 +60,7 @@ class Player(ABC):
 
         # Handle branch initialization
         if branch_init := config.get("branch_init"):
-            # Fetch from remote first (handles branches pushed in previous tournaments)
-            # Then checkout - git will create tracking branch if needed
+            # Fetch, then check out the initial branch (creating a tracking branch if needed).
             assert_zero_exit_code(
                 self.environment.execute(f"git fetch origin && git checkout {branch_init}"),
                 logger=self.logger,
@@ -70,20 +69,23 @@ class Player(ABC):
 
         if self._branch_name != branch_init:
             self.logger.info(f"Switching to branch {self._branch_name} for pushing changes")
-            # First fetch to see if the branch exists on remote
-            assert_zero_exit_code(
-                self.environment.execute("git fetch origin"),
-                logger=self.logger,
-            )
-            # Try to checkout the branch - git will track remote if it exists there
-            checkout_result = self.environment.execute(f"git checkout {self._branch_name}")
-            if checkout_result.get("returncode", 0) != 0:
-                # Branch doesn't exist locally or remotely, create it
-                self.logger.info(f"Branch {self._branch_name} doesn't exist, creating it")
+            if branch_init:
+                # Start the push branch at branch_init. get_environment() pre-created a
+                # same-named branch at the default branch; a plain checkout would revert the
+                # working tree to it, so use -B to re-point it at the current HEAD.
                 assert_zero_exit_code(
-                    self.environment.execute(f"git checkout -b {self._branch_name}"),
+                    self.environment.execute(f"git checkout -B {self._branch_name}"),
                     logger=self.logger,
                 )
+            else:
+                # Resume the branch if a previous round pushed it to the remote, else create it.
+                assert_zero_exit_code(self.environment.execute("git fetch origin"), logger=self.logger)
+                if self.environment.execute(f"git checkout {self._branch_name}").get("returncode", 0) != 0:
+                    self.logger.info(f"Branch {self._branch_name} doesn't exist, creating it")
+                    assert_zero_exit_code(
+                        self.environment.execute(f"git checkout -b {self._branch_name}"),
+                        logger=self.logger,
+                    )
 
     # --- Main methods ---
 
