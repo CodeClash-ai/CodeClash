@@ -1,7 +1,5 @@
-# CC:Ladder for BattleSnake — the ranked ladder of human bots (worst opponent first,
-# strongest last), derived from the round-robin in make_battlesnake.yaml
-# (Bradley-Terry/Elo over 1225 pairwise tournaments). An LM climber ascends rung by
-# rung until it loses.  Run:  uv run codeclash ladder run configs/ablations/ladder/battlesnake.yaml
+# BattleSnake ladder climbed by opus-4-8. Requires LLAMA_API_KEY in .env.
+#   uv run codeclash ladder run configs/ablations/ladder/battlesnake__opus_4_8.yaml
 tournament:
   rounds: 5
 ladder_rules:
@@ -16,15 +14,11 @@ game:
     browser: false
 player:
   agent: mini
-  name: claude-sonnet-4-5-20250929
+  name: opus-4-8
   branch_init: human/pambrose/pambrose-kotlin
   config:
     agent: !include mini/default.yaml
-    model:
-      model_name: anthropic/claude-sonnet-4-5-20250929
-      model_kwargs:
-        temperature: 0.2
-        max_tokens: 4096
+    model: !include mini/models/llama_opus_4_8.yaml
   push: True
 prompts:
   game_description: |-
