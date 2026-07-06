@@ -224,7 +224,9 @@ IMPORTANT: Do not modify the executable name in the Makefile (keep `EXE = kojiro
 
         # Run matches in parallel
         self.logger.info(f"Running {len(pairings)} matches in parallel...")
-        with ThreadPoolExecutor(max_workers=min(self.game_config.get("sim_concurrency", 20), len(pairings))) as executor:
+        with ThreadPoolExecutor(
+            max_workers=min(self.game_config.get("sim_concurrency", 20), len(pairings))
+        ) as executor:
             futures = [
                 executor.submit(
                     self._run_single_match,
