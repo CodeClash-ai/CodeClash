@@ -33,14 +33,11 @@ def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[float, int]:
         raise typer.Exit(1)
     if win_last_k < 1:
         typer.echo(
-            f"ladder_rules.win_last_k must be >= 1, got {win_last_k}. "
-            "Use 1 to require winning only the final round."
+            f"ladder_rules.win_last_k must be >= 1, got {win_last_k}. Use 1 to require winning only the final round."
         )
         raise typer.Exit(1)
     if win_last_k > rounds:
-        typer.echo(
-            f"ladder_rules.win_last_k ({win_last_k}) cannot exceed tournament.rounds ({rounds})."
-        )
+        typer.echo(f"ladder_rules.win_last_k ({win_last_k}) cannot exceed tournament.rounds ({rounds}).")
         raise typer.Exit(1)
 
     # min_round_win_fraction: player must win strictly more than this fraction of rounds.
@@ -55,6 +52,7 @@ def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[float, int]:
         raise typer.Exit(1)
 
     return float(min_round_win_fraction), win_last_k
+
 
 ladder_app = typer.Typer(
     no_args_is_help=True,

@@ -28,4 +28,3 @@ prompts:
 ladder:
 - {agent: dummy, name: pinky, branch_init: human/moxuz/pinky-snek}       # simple heuristic (port)
 - {agent: dummy, name: tr8r, branch_init: human/noahspriggs/tr-8r}       # 2016 winner (port)
-
