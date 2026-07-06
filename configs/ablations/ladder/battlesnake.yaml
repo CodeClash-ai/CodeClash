@@ -5,8 +5,8 @@
 tournament:
   rounds: 5
 ladder_rules:
-  min_round_win_fraction: 0.5   # advance only on a strict majority of rounds
-  win_last_k: 1                 # ...and win the last K rounds (K=1 == just the final round)
+  min_round_wins: 2   # rounds to win to advance (1..total rounds)
+  win_last_k: 0       # must win last K (0 = off, <= min_round_wins)
 game:
   name: BattleSnake
   sims_per_round: 250
