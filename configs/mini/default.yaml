@@ -23,9 +23,9 @@ instance_template: |
    The game is played in team rounds. You play one round, then a teammate takes over.
    You're scored on total team performance across all rounds.
 
-   Each round has {{step_limit}} steps and {{cost_limit}} dollar limits.
-   After you've reached the step or cost limit, you cannot continue working on this task, and we will play the game with your codebase.
-   We recommend submitting before you hit the limits to avoid losing work.
+   Each round has a limit of {{step_limit}} steps.
+   After you've reached the step limit, you cannot continue working on this task, and we will play the game with your codebase.
+   We recommend submitting before you hit the limit to avoid losing work.
 
    Each round starts fresh with no knowledge of previous actions.
    Leave tools, notes, and strategies in the codebase for teammates.
@@ -101,4 +101,4 @@ instance_template: |
   run exactly `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT` to submit your work.
   You cannot continue working in any way on this task after submitting.
 step_limit: 30
-cost_limit: 1.
+cost_limit: 0    # 0 disables the cost cap (see agents/default.py: limit applies only when >0); step_limit is the sole stop

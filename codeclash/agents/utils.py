@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from jinja2 import Template
 from pydantic import BaseModel
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 class GameContext(BaseModel):

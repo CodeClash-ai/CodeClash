@@ -23,8 +23,12 @@ def resolve_includes(yaml_content: str, *, base_dir: Path = Path(".")) -> str:
         if prefix.strip() == "<<:":
             # For merge keys, include the content with proper indentation
             if indentation:
+                # Merged content must be indented deeper than the `<<:` key itself, otherwise
+                # the key gets a null scalar and PyYAML rejects the merge. (+2 spaces, matching
+                # the no-indentation branch below.)
+                content_indent = indentation + "  "
                 included_lines = included_content.splitlines()
-                indented_lines = [indentation + line if line.strip() else line for line in included_lines]
+                indented_lines = [content_indent + line if line.strip() else line for line in included_lines]
                 return indentation + "<<:\n" + "\n".join(indented_lines)
             else:
                 # Indent the included content by 2 spaces for proper merge format

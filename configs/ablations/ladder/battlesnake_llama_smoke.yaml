@@ -20,7 +20,9 @@ player:
   name: opus-4-8
   branch_init: human/moxuz/pinky-snek
   config:
-    agent: !include mini/default.yaml
+    agent:
+      <<: !include mini/default.yaml
+      step_limit: 10   # smoke override: stop after 10 steps (cost cap disabled in default.yaml)
     model: !include mini/models/llama_opus_4_8.yaml
   push: True
 prompts:
