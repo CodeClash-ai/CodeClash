@@ -27,11 +27,13 @@ Each run config carries a `ladder_rules` block controlling what it takes to clea
 
 ```yaml
 ladder_rules:
-  min_round_win_fraction: 0.5   # must win strictly more than this fraction of rounds
-  win_last_k: 1                 # ...and must win the last K rounds (1 == just the final round)
+  min_round_wins: 2   # must win >= this many of the agent rounds to advance (round 0 excluded)
+  win_last_k: 0       # ...and must win the last K rounds (1 == just the final round, 0 == disabled)
 ```
 
-The defaults shown above reproduce the historical behavior (strict majority of rounds **and** win the final round); the block is optional and falls back to these values if omitted. Validation:
+Both keys are **required** — there are no defaults; a config that omits either one errors out. `min_round_wins` is a whole number: the player advances when `player_wins >= min_round_wins`. The baseline round 0 (identical, un-edited codebases) is excluded, so with `tournament.rounds: 5` there are 5 scored agent rounds (rounds 1–5). Validation:
 
-- `win_last_k` must be an integer with `1 <= win_last_k <= tournament.rounds`.
-- `min_round_win_fraction` must be a number in `[0, 1)`; `0` drops the majority requirement (e.g. `min_round_win_fraction: 0` + `win_last_k: 1` means "just win the final round").
+- `min_round_wins` must be an integer with `1 <= min_round_wins <= tournament.rounds`.
+- `win_last_k` must be an integer with `0 <= win_last_k <= min_round_wins`. `0` **disables** the trailing-rounds requirement; `1` means "just win the final round".
+
+The per-rung outcome (`player_wins`, `won_last_k`, `cleared`) is persisted under `ladder_advancement` in each rung's `metadata.json`. The overall climb result (`rungs_cleared`, `final_opponent`, `cleared_ladder`, …) is written to a ladder-level `metadata.json` in the run's parent dir.
