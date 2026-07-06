@@ -56,6 +56,7 @@ tournament:
 game:
   name: BattleSnake            # Arena name (must match registered arena)
   sims_per_round: 1000         # Number of game simulations per round
+  sim_concurrency: 20          # Optional: simulations to run in parallel (default per arena)
   args:                        # Arena-specific arguments
     width: 11
     height: 11
@@ -119,6 +120,7 @@ Include paths are relative to the `configs/` directory.
 |-------|------|-------------|
 | `name` | string | Arena name (BattleSnake, CoreWar, Halite, etc.) |
 | `sims_per_round` | int | Number of game simulations per round |
+| `sim_concurrency` | int | Optional. Simulations to run in parallel; defaults to each arena's tuned value |
 | `args` | dict | Arena-specific arguments |
 
 #### Arena-Specific Args

@@ -94,7 +94,7 @@ game_state is a dict containing:
         cmd = f"{self.run_cmd} {shlex.join(agent_paths)}"
 
         # Run simulations in parallel
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        with ThreadPoolExecutor(max_workers=self.game_config.get("sim_concurrency", 8)) as executor:
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, f"{cmd} --seed {idx} --dealer {idx % 4}")
                 for idx in range(sims)

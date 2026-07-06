@@ -63,7 +63,7 @@ NOTE: Please ensure that your code runs efficiently (under 60 seconds). Code tha
         cmd = f"{self.run_cmd_round} {shlex.join(args)}"
         self.logger.info(f"Running game: {cmd}")
 
-        with ThreadPoolExecutor(8) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 8)) as executor:
             # Submit all simulations to the thread pool
             futures = [
                 executor.submit(self._run_single_simulation, agents, idx, cmd)

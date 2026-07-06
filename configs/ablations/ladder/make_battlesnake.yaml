@@ -1,21 +1,19 @@
-# Round-robin over ALL imported human BattleSnakes, used to RANK them (skill Phase 3).
-# Run:  uv run codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml
-# Then rank from the logs with codeclash/analysis/metrics/win_rate.py (or elo.py).
-#
-# Params: args match the main BattleSnake configs (11x11, browser off). Following the
-# make_robotrumble.yaml ladder precedent, tournament.rounds: 0 (dummy players never edit
-# code -> just play the baseline game once per pair) and sims_per_round: 250 for a stable
-# win-rate signal. (The main head-to-head configs use s1000; RobotRumble's ladder used 250.)
-#
-# 55 players -> 55*54/2 = 1485 pairwise tournaments. Cost is dominated by per-pair container
-# setup, so sims_per_round can stay generous without changing total runtime much.
-# NOTE: all human/* branches are pushed to CodeClash-ai/BattleSnake; Docker must be running.
-# Native bots (snork/esproso/bobby-witt/hettie) compile/run their real source in-container.
+# Round-robin over the 50 human BattleSnakes (with reliable servers), used to RANK them via
+# a Bradley-Terry/Elo fit -> see battlesnake.yaml for the resulting ranked ladder.
+# rounds:0 = dummy players just play the baseline game (no code edits). sim_concurrency caps
+# per-pair parallelism so the single-threaded bot servers don't exceed the move timeout when
+# several pairs run at once (ladder make --workers N): keep workers*sim_concurrency ~20.
+# 50 bots -> 50*49/2 = 1225 pairwise tournaments.
+# Excludes 4 compiled-language bots that can't build in-arena (snork/hettie/esproso/bobby-witt)
+# and bountysnake2017 (unreliable server). All bots live on CodeClash-ai/BattleSnake; Docker required.
+# Run:  uv run codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml --workers 3
+
 tournament:
   rounds: 0
 game:
   name: BattleSnake
   sims_per_round: 250
+  sim_concurrency: 5
   args:
     width: 11
     height: 11
@@ -29,8 +27,6 @@ players:
   branch_init: human/ccSnake2018/ccsnake
 - agent: dummy
   branch_init: human/ChaelCodes/cornelius
-- agent: dummy
-  branch_init: human/ChaelCodes/hettie
 - agent: dummy
   branch_init: human/coreyja/amphibious-arthur
 - agent: dummy
@@ -70,8 +66,6 @@ players:
 - agent: dummy
   branch_init: human/kentmacdonald2/beames
 - agent: dummy
-  branch_init: human/L4r0x/snork
-- agent: dummy
   branch_init: human/m-schier/kreuzotter
 - agent: dummy
   branch_init: human/MorganConrad/sisiutl
@@ -96,8 +90,6 @@ players:
 - agent: dummy
   branch_init: human/Petah/project-z
 - agent: dummy
-  branch_init: human/rdbrck/bountysnake2017
-- agent: dummy
   branch_init: human/rdbrck/bountysnake2018
 - agent: dummy
   branch_init: human/rdbrck/btas
@@ -108,13 +100,9 @@ players:
 - agent: dummy
   branch_init: human/tbgiles/feisty-snake
 - agent: dummy
-  branch_init: human/Tch1b0/esproso
-- agent: dummy
   branch_init: human/TheApX/hungry
 - agent: dummy
   branch_init: human/tim-hub/awesome-snake
-- agent: dummy
-  branch_init: human/tphummel/bobby-witt
 - agent: dummy
   branch_init: human/tyrelh/tyrelh-2018
 - agent: dummy
@@ -132,5 +120,4 @@ players:
 - agent: dummy
   branch_init: human/zakwht/zakwht-2018
 prompts:
-  game_description: |-
-    BattleSnake ladder
+  game_description: BattleSnake ladder

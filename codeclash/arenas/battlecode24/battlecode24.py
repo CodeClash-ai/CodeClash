@@ -238,7 +238,7 @@ The game features a setup phase (first 200 rounds) where teams are separated by 
         # Filter to only compiled agents' classes
         valid_classes = {name: path for name, path in agent_classes.items() if path is not None}
 
-        with ThreadPoolExecutor(5) as executor:
+        with ThreadPoolExecutor(self.game_config.get("sim_concurrency", 5)) as executor:
             futures = [executor.submit(self._run_simulation, sim, agents, valid_classes) for sim in simulations]
             for future in tqdm(as_completed(futures), total=len(futures), desc="Simulations"):
                 try:
