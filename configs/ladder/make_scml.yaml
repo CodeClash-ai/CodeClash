@@ -17,8 +17,8 @@ tournament:
   rounds: 0
 game:
   name: SCML
-  sims_per_round: 400
-  # sims_per_round: 30   # <- pilot: uncomment (and comment out 400) for a ~1h sanity-check ranking
+  sims_per_round: 200
+  timeout: 10800   # 3h per-pair game cap; 200 sims needs ~1-1.5h (default 180s kills the run)
   args:
     n_steps: 10
     n_lines: 2
