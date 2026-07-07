@@ -2,6 +2,7 @@ import inspect
 import os
 import random
 import subprocess
+import threading
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -75,6 +76,10 @@ class CodeArena(ABC):
     default_args: dict = {}
     submission: str
 
+    # Serializes image builds across concurrent pairs (e.g. `ladder make --workers N`), so
+    # worker threads don't all race `docker build` on a cold start and fail with "already exists".
+    _build_lock = threading.Lock()
+
     def __init__(self, config: dict, *, tournament_id: str, local_output_dir: Path, keep_containers: bool = False):
         """The CodeArena class is responsible for running games, i.e., taking a list of code
         from different agents/players and running them against each other.
@@ -127,36 +132,38 @@ class CodeArena(ABC):
         if is_running_in_aws_batch():
             pull_game_container_aws_ecr(game_name=self.name, image_name=self.image_name, logger=self.logger)
 
-        # Check if container exists using subprocess
-        self.logger.debug(f"Checking if container {self.image_name} exists")
-        result = subprocess.run(
-            f"docker images -q {self.image_name}",
-            shell=True,
-            capture_output=True,
-            text=True,
-        )
-        if result.stdout.strip():
-            self.logger.debug(f"Container {self.image_name} exists")
-            return
+        # Hold the lock across check-and-build so concurrent pairs don't race: the first thread
+        # builds while the rest wait, then find the image already present and skip.
+        with CodeArena._build_lock:
+            self.logger.debug(f"Checking if container {self.image_name} exists")
+            result = subprocess.run(
+                f"docker images -q {self.image_name}",
+                shell=True,
+                capture_output=True,
+                text=True,
+            )
+            if result.stdout.strip():
+                self.logger.debug(f"Container {self.image_name} exists")
+                return
 
-        self.logger.info(
-            f"Building Docker image {self.image_name}. This may take 1-5 minutes and only work on Linux for some games."
-        )
+            self.logger.info(
+                f"Building Docker image {self.image_name}. This may take 1-5 minutes and only work on Linux for some games."
+            )
 
-        # NOTE: Assuming Dockerfile is declared in same directory as the arena.
-        arena_file = Path(inspect.getfile(self.__class__))
-        folder_path = arena_file.parent
-        result = subprocess.run(
-            f"docker build --no-cache -t {self.image_name} -f {folder_path}/{self.name}.Dockerfile .",
-            shell=True,
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            self.logger.info(f"✅ Built Docker image {self.image_name}")
-        else:
-            self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
-            raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
+            # NOTE: Assuming Dockerfile is declared in same directory as the arena.
+            arena_file = Path(inspect.getfile(self.__class__))
+            folder_path = arena_file.parent
+            result = subprocess.run(
+                f"docker build --no-cache -t {self.image_name} -f {folder_path}/{self.name}.Dockerfile .",
+                shell=True,
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                self.logger.info(f"✅ Built Docker image {self.image_name}")
+            else:
+                self.logger.error(f"❌ Failed to build Docker image: {result.stderr}\n{result.stdout}{result.stderr}")
+                raise RuntimeError(f"Failed to build Docker image: {result.stderr}")
 
     def copy_logs_from_env(self, round_num: int) -> None:
         """Copy logs from the game's environment to the local machine."""
