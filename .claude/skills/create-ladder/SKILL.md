@@ -17,10 +17,10 @@ via round-robin), then **run the ladder** (a model climbs rung by rung until it 
 This skill produces, for arena `<A>`: `human/<author>/<name>` branches on `CodeClash-ai/<A>`,
 a `make_<a>.yaml` (round-robin), a ranked `rungs/<a>.yaml`, and a run config `<a>.yaml`.
 
-Work in the `repo/` clone. Reference implementations to mirror:
-`configs/ablations/ladder/{make_battlesnake,battlesnake,rungs/battlesnake}.yaml` and its
-`README.md`. For worked examples of the import step, the `john/*-ladder` branches show two
-shapes end-to-end (gomoku = function-port, robocode = copy-in).
+Work in the `repo/` clone. Reference implementations to mirror in
+`configs/ablations/ladder/`: `make_battlesnake.yaml` (round-robin), `battlesnake.yaml`
+(run), `rungs/battlesnake.yaml` (ranked opponents), and its `README.md`. The arena's own
+`codeclash/arenas/<a>/<a>.py` is the source of truth for the submission contract.
 
 ---
 
