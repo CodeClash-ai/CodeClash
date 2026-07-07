@@ -6,7 +6,7 @@
 # 50 bots -> 50*49/2 = 1225 pairwise tournaments.
 # Excludes 4 compiled-language bots that can't build in-arena (snork/hettie/esproso/bobby-witt)
 # and bountysnake2017 (unreliable server). All bots live on CodeClash-ai/BattleSnake; Docker required.
-# Run:  uv run codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml --workers 3
+# Run:  uv run codeclash ladder make configs/ladder/make_battlesnake.yaml --workers 3
 
 tournament:
   rounds: 0

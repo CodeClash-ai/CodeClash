@@ -1,10 +1,8 @@
 # BattleSnake ladder climbed by opus-4-7. Requires LLAMA_API_KEY in .env.
-#   uv run codeclash ladder run configs/ablations/ladder/battlesnake__opus_4_7.yaml
+#   uv run codeclash ladder run configs/ladder/battlesnake__opus_4_7.yaml
 tournament:
   rounds: 5
-ladder_rules:
-  min_round_win_fraction: 0.5   # advance only on a strict majority of rounds
-  win_last_k: 1                 # ...and win the last K rounds (K=1 == just the final round)
+ladder_rules: !include ladder/ladder_rules.yaml
 game:
   name: BattleSnake
   sims_per_round: 250
@@ -20,7 +18,5 @@ player:
     agent: !include mini/default.yaml
     model: !include mini/models/llama_opus_4_7.yaml
   push: True
-prompts:
-  game_description: |-
-    BattleSnake ladder
-ladder: !include ablations/ladder/rungs/battlesnake.yaml
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/battlesnake.yaml

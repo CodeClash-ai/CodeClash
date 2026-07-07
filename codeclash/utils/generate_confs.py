@@ -3,14 +3,14 @@ Generate configuration files for tournaments between pairs of models in specifie
 
 Each configuration file specifies a tournament between two models in a given arena,
 including the number of rounds and simulations per round. The configurations are saved
-as YAML files in the specified output directory (default: configs/main/).
+as YAML files in the specified output directory (default: configs/pvp/).
 
 Also generates a tracking JSON file at configs/tracker.json to keep track of
 the number of tournaments and rounds played for each pair of models in each arena.
 
 Usage:
 
-python codeclash/utils/generate_confs.py -m configs/models.yaml -r 15 -s 1000
+python codeclash/utils/generate_confs.py -m configs/mini/model_roster.yaml -r 15 -s 1000
 """
 
 import argparse
@@ -184,7 +184,7 @@ if __name__ == "__main__":
         "-m",
         "--models",
         type=str,
-        default="configs/models.yaml",
+        default="configs/mini/model_roster.yaml",
         help="Path to model configurations.",
     )
     parser.add_argument(
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         "-o",
         "--output",
         type=Path,
-        default=Path("configs/main/"),
+        default=Path("configs/pvp/"),
         help="Output directory for configuration files (default: main/).",
     )
     args = parser.parse_args()

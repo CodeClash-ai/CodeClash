@@ -26,6 +26,7 @@ class GameContext(BaseModel):
     round: int
     rounds: int
     working_dir: str
+    arena_description: str = ""
 
     def _render_prompt_templates(self) -> dict:
         context = self.model_dump()
