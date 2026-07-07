@@ -102,4 +102,3 @@ instance_template: |
   You cannot continue working in any way on this task after submitting.
 step_limit: 30
 cost_limit: 0
-observation_template: "[Step {{n_model_calls}}/{{step_limit}} used - {{step_limit - n_model_calls}} left]\n{% if output.exception_info %}<exception>{{output.exception_info}}</exception>\n{% endif %}<returncode>{{output.returncode}}</returncode>\n<output>\n{{output.output}}</output>"
