@@ -27,6 +27,15 @@ from codeclash.utils.log import get_logger
 logger = get_logger("ladder")
 
 
+def _player_slug(branch_init: str) -> str:
+    """
+    Turn a ``human/<author>/<bot>`` init branch into a bare, filesystem-safe player name:
+    strip the ``human/`` prefix and join the rest with ``__`` (e.g. ``human/aleksiy325/snek-two``
+    -> ``aleksiy325__snek-two``).
+    """
+    return branch_init.replace("human/", "").replace("/", "__")
+
+
 def resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
     """Validate the required ``ladder_rules`` block and return ``(min_round_wins, win_last_k)``.
 
@@ -88,9 +97,9 @@ def build_ladder(config: dict, workers: int = 1) -> None:
     for i in range(num_players):
         for j in range(i + 1, num_players):
             player1 = copy.deepcopy(players[i])
-            player1["name"] = player1["branch_init"]
+            player1["name"] = _player_slug(player1["branch_init"])
             player2 = copy.deepcopy(players[j])
-            player2["name"] = player2["branch_init"]
+            player2["name"] = _player_slug(player2["branch_init"])
             pvp_config = {**copy.deepcopy(config), "players": [player1, player2]}
             vs = f"PvpTournament.{player1['name']}_vs_{player2['name']}".replace("/", "_")
             output_dir = LOCAL_LOG_DIR / "ladder" / config["game"]["name"] / vs
@@ -199,7 +208,7 @@ class LadderTournament:
         opponent_rank = 0
         for idx, opponent in enumerate(self.ladder):
             opponent_rank = len(self.ladder) - idx
-            opponent["name"] = opponent["branch_init"].replace("human/", "").replace("/", "_")
+            opponent["name"] = _player_slug(opponent["branch_init"])
             if "branch_init" in self.player and idx > 0:
                 # After first opponent, remove branch_init so the player continues from the
                 # previous tournament's codebase.

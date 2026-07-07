@@ -21,6 +21,20 @@ open-source Gomoku/Gobang AIs ported into the arena's single-file `get_move(boar
 lihongxun945, blackstone, blupig) reimplemented in stdlib Python — alongside a strategic starter.
 AlphaZero/CNN bots were skipped (need trained weights).
 
+### RoboCode (newly added)
+
+The [CC:RoboCode](https://github.com/CodeClash-ai/RoboCode) repo hosts 116 human bots on `human/robocode/*`
+branches (bot code lives only on the branches, not in this repo). This arena is **classic Robocode**
+(`robocode.*` API compiled against `robocode.jar`), so importing open-source bots is mostly a
+mechanical copy-in + rename rather than a strategy rewrite: each bot's Java class(es) are placed in
+`robots/custom/`, the main class renamed to `MyTank`, `package custom;`. The set spans the shipped
+sample bots (SittingDuck/Walls/Corners/…) through famous RoboWiki/PEZ micro-mini bots (Aristocles,
+Pugilist, HawkOnFire) up to a single-file **DrussGT** (a world-class bot) as the top rung; a few use
+Robocode's sanctioned `getDataFile` persistence (degrades gracefully without cross-battle saves).
+Diamond/BeepBoop remain as future top rungs (nested-package multi-file → need flattening). Each import
+was verified to **compile and play a real battle**; every bot's source repo/author/license is recorded
+as a header comment in its branch files.
+
 ## Config layout
 
 Each arena has a few kinds of config in this folder:

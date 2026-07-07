@@ -18,8 +18,12 @@ SIMS_PER_RUN = 10
 
 class RoboCodeArena(CodeArena):
     name: str = "RoboCode"
-    description: str = f"""Robocode (Tank Royale) is a programming game where your code is the tank: each turn your bot sends intents—speed plus body/gun/radar turn rates and firepower—based on the game state it perceives via radar.
-Your program decides how to move, aim, and fire in a deterministic, turn-based arena to outlast other bots.
+    description: str = f"""Robocode is a programming game where your code IS the tank. This is classic
+Robocode (the `robocode.*` API compiled against robocode.jar) — NOT Robocode Tank Royale.
+Your bot is a Java class that `extends robocode.Robot` (or `robocode.AdvancedRobot` for non-blocking
+control): its `run()` method drives the tank in a loop (e.g. `ahead(100)`, `turnGunRight(90)`,
+`fire(3)`), and it reacts to events like `onScannedRobot(ScannedRobotEvent)`, `onHitByBullet(...)`,
+and `onHitWall(...)`. Move, aim the gun, sweep the radar, and fire to outlast other bots.
 Your bot logic must be written in Java and located in the `robots/custom/` directory.
 Keep the main bot class named `{str(RC_FILE)}`, but you can include additional Java files if you'd like."""
     default_args: dict = {
