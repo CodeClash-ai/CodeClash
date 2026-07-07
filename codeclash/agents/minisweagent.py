@@ -20,6 +20,7 @@ os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
 
 class ClashAgentConfig(AgentConfig):
     """`AgentConfig` plus an optional global observation-format override."""
+
     observation_template: str | None = None
 
 
