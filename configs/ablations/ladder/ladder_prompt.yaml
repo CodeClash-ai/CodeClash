@@ -1,8 +1,3 @@
-# Shared task instructions for a model climbing a CC:Ladder run (all arenas). Each ladder run
-# config pulls this in on its `prompts:` line, so the framing lives in one place. Uses vars the
-# ladder already provides: player_id, arena_description, rounds, round, working_dir.
-# Deliberately says nothing about ladders/rungs/advancement — just: write code to beat one opponent.
-# NOTE: keep the include-directive token out of these comments; the resolver matches it on any line.
 game_description: |-
   You are a software developer ({{player_id}}) competing in a coding game. You are matched against a
   single opponent, and your job is to write and improve the code for your bot so that it defeats theirs.

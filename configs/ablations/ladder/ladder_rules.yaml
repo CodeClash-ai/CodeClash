@@ -1,5 +1,2 @@
-# Shared advancement rule for every CC:Ladder run config. Each <arena>[__<model>].yaml pulls
-# this in on its `ladder_rules:` line, so the win condition stays consistent across all
-# arenas/models in one place.
-min_round_wins: 2   # whole number of agent rounds to win to advance (1..tournament.rounds)
-win_last_k: 0       # must win the last K rounds (0 = off; must be <= min_round_wins)
+min_round_wins: 2
+win_last_k: 0

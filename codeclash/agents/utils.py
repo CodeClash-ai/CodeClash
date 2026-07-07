@@ -26,8 +26,6 @@ class GameContext(BaseModel):
     round: int
     rounds: int
     working_dir: str
-    # Arena's static description (CodeArena.description), exposed to prompt templates as
-    # {{arena_description}}. Optional so non-pvp GameContext construction sites keep working.
     arena_description: str = ""
 
     def _render_prompt_templates(self) -> dict:
