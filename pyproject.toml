@@ -48,6 +48,7 @@ dev = [
     "Werkzeug",
     "frozen-flask",
     "anthropic",
+    "matplotlib",  # analysis plots + elo ranking (codeclash.analysis)
 ]
 aws = [
     "boto3",
