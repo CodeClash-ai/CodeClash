@@ -3,14 +3,16 @@
 # Elo/Bradley-Terry -> see robocode.yaml. rounds:0 = dummy players play baseline battles (no code
 # edits). N bots -> N*(N-1)/2 pairs; each pair plays sims_per_round rounds (batched 10 at a time,
 # sim_concurrency parallel). Bots live on CodeClash-ai/RoboCode human/* branches; Docker required.
-# COST (measured ~3.4s for a 50-round pair headless): at sims_per_round=100, 116 bots -> 6670 pairs
-# ~= 13 core-hours -> ~2 h on a laptop (--workers 6), ~26 min on a 32-core box (-w 30).
+# COST (measured on an 8-core box: a pair is ~11.8s fixed overhead + ~9.7s per 100 sims, so at
+# sims_per_round=300 a single pair is ~41s solo and ~25s/pair of throughput under --workers 6).
+# 116 bots -> 6670 pairs -> ~46 core-hours -> ~2 days on an 8-core box (-w 6). Resumable: skips
+# already-logged pairs, so a killed run can be re-launched. Scale --workers with cores (~cores-2).
 # Run: uv run codeclash ladder make configs/ablations/ladder/make_robocode.yaml --workers 6
 tournament:
   rounds: 0
 game:
   name: RoboCode
-  sims_per_round: 100
+  sims_per_round: 300
   sim_concurrency: 5
   args:
     nodisplay: true
