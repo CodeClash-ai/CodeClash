@@ -151,7 +151,7 @@ def run(
         f"Ladder advancement rule: win >= {min_round_win_fraction:.0%} of {rounds} agent rounds "
         f"(baseline round 0 excluded) and win the last {win_last_k} round(s)."
     )
-    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{timestamp}"
+    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{player['name']}.{timestamp}"
     player["branch"] = ladder_folder
     parent_dir = LOCAL_LOG_DIR / getpass.getuser() / ladder_folder
 
