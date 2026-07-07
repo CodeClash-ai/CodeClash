@@ -104,9 +104,14 @@ Local validation is necessary but NOT sufficient — a local shim skips Docker, 
    `GITHUB_TOKEN=$(gh auth token) uv run codeclash ladder make configs/ablations/ladder/make_<a>.yaml --workers N`
    → logs land under `logs/ladder/<A>/`. Fast arenas run on a laptop; big ones (e.g. SCML's
    ~1275 pairs) want an AWS box under `tmux`/`nohup`.
-4. Rank: `python -m codeclash.analysis.metrics.elo -d logs/ladder/<A> --output-dir assets/<a>_elo`
+4. Rank: `uv run python -m codeclash.analysis.metrics.elo -d logs/ladder/<A> --include-round-0 --output-dir assets/<a>_elo`
    → prints the Bradley-Terry/Elo order (weakest → strongest); that ordering IS the ladder.
-   Tip: run a cheap low-`sims` pilot first and eyeball that baselines sit near the bottom.
+   - **`--include-round-0` is REQUIRED for ladder construction.** `ladder make` uses
+     `tournament.rounds: 0`, so round 0 IS the match; without the flag every tournament is
+     dropped (round 0 is normally the excluded identical-codebases baseline) and the fit
+     crashes on an empty matrix. Do NOT pass it for normal multi-round PvP/climbing Elo.
+   - Use `uv run python`, not bare `python` — the analysis deps (matplotlib) live in the uv venv.
+   - Tip: run a cheap low-`sims` pilot first and eyeball that baselines sit near the bottom.
 
 ## Phase 5 — Assemble the ranked configs
 
