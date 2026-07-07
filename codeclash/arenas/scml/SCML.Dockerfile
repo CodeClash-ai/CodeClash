@@ -23,7 +23,6 @@ RUN python -m pip install --upgrade pip \
 # arenas). Default branch holds the runtime; human/* branches overlay scml_agent.py.
 RUN git clone https://github.com/CodeClash-ai/SCML.git /workspace \
     && cd /workspace \
-    && git remote set-url origin https://github.com/CodeClash-ai/SCML.git \
     && git config user.email "player@codeclash.com" \
     && git config user.name "Player"
 WORKDIR /workspace

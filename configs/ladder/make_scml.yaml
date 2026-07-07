@@ -4,15 +4,15 @@
 # 51 bots -> 51*50/2 = 1275 pairwise tournaments. Bots live on CodeClash-ai/SCML; Docker required.
 #
 # COST (measured ~4.8s/sim + ~3s overhead per pair; pairs are single-threaded, so wall =
-# core-hours / workers): at sims_per_round=400 a pair takes ~32 min -> ~681 core-hours total.
-#   * 32-core box (--workers 30): ~23 h    * 64 vCPU (-w 62): ~11 h    * 96 vCPU (-w 90): ~7.5 h
+# core-hours / workers): at sims_per_round=200 a pair takes ~16 min -> ~341 core-hours total.
+#   * 32-core box (--workers 30): ~11 h    * 64 vCPU (-w 62): ~5.5 h    * 96 vCPU (-w 90): ~3.8 h
 # Keep --workers <= (cores - 2): the decide() call has a 3s timeout that CPU oversubscription
 # can trip. Resumable: reruns skip pairs already logged, so it's safe to stop/resume.
 #
-# Full run (250-400 sims = publication-quality Elo; 400 chosen for SCML's high per-sim variance):
+# Full run (200 sims = publication-quality Elo, sized for SCML's high per-sim variance):
 #   uv run codeclash ladder make configs/ladder/make_scml.yaml --workers 30
 # Cheap SANITY pilot first (~1 h @ 32 cores): temporarily set sims_per_round: 30, run, rank, and
-# eyeball the ordering (baselines near the bottom) before committing to the full 400-sim pass.
+# eyeball the ordering (baselines near the bottom) before committing to the full 200-sim pass.
 tournament:
   rounds: 0
 game:
