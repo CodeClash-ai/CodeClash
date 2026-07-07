@@ -16,7 +16,5 @@ player:
         temperature: 0.2
         max_tokens: 4096
   push: True
-prompts:
-  game_description: |-
-    Core War ladder
+prompts: !include ablations/ladder/ladder_prompt.yaml
 ladder: !include ablations/ladder/rungs/corewar.yaml

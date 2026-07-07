@@ -14,7 +14,5 @@ player:
     agent: !include mini/default.yaml
     model: !include mini/models/llama_gemini_3_5_flash.yaml
   push: True
-prompts:
-  game_description: |-
-    Core War ladder
+prompts: !include ablations/ladder/ladder_prompt.yaml
 ladder: !include ablations/ladder/rungs/corewar.yaml

@@ -23,8 +23,7 @@ player:
       step_limit: 10   # smoke override: stop after 10 steps (cost cap disabled in default.yaml)
     model: !include mini/models/llama_opus_4_8.yaml
   push: True
-prompts:
-  game_description: "BattleSnake ladder smoke over the llama endpoint."
+prompts: !include ablations/ladder/ladder_prompt.yaml
 ladder:
 - {agent: dummy, name: pinky, branch_init: human/moxuz/pinky-snek}       # simple heuristic (port)
 - {agent: dummy, name: tr8r, branch_init: human/noahspriggs/tr-8r}       # 2016 winner (port)
