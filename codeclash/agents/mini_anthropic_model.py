@@ -11,7 +11,7 @@ To use it, point a player's `model` block at
 `model_class: codeclash.agents.mini_anthropic_model.AnthropicModel` and provide the API key,
 base URL, and model name (see the `*_env` config fields, which keep endpoint-specific values in
 the environment rather than in committed configs). Requires the optional `anthropic` dependency
-(`uv pip install -e '.[llama]'`). See configs/ablations/ladder/robotrumble_llama.yaml.
+(`uv pip install -e '.[llama]'`). See configs/ladder/robotrumble_llama.yaml.
 """
 
 import json

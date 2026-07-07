@@ -110,8 +110,8 @@ CodeClash configs are organized into tiers:
 | Directory | Purpose | LLM Cost | Use When |
 |-----------|---------|----------|----------|
 | `configs/test/` | Smoke tests with dummy agents | Free | Verifying setup works |
-| `configs/examples/` | Short tournaments (5 rounds) | Low | Learning, quick experiments |
-| `configs/main/` | Full benchmark runs (15 rounds) | High | Reproducing paper results |
+| `configs/examples/` | Single-player & minimal per-arena samples | Low | Trying one arena or mode |
+| `configs/pvp/` | Full benchmark runs (15 rounds) | High | Reproducing paper results |
 | `configs/ablations/` | Specialized experiments | Varies | Research ablations |
 
 ### Test Configs (Free)
@@ -122,31 +122,22 @@ No LLM API calls - uses dummy agents that make no changes:
 uv run codeclash run configs/test/battlesnake.yaml
 ```
 
-### Example Configs (Quick Experiments)
+### PvP Configs (Full Benchmarks)
 
-Short 5-round tournaments for learning and experimentation:
+Full 15-round model-vs-model tournaments, as used in the paper:
 
 ```bash
-# Claude Sonnet 4.5 vs o3 in BattleSnake (5 rounds)
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+# Claude Sonnet 4.5 vs o3 in BattleSnake
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 # Same matchup in other arenas
-uv run codeclash run configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
-uv run codeclash run configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-uv run codeclash run configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-```
-
-### Main Configs (Full Benchmarks)
-
-Full 15-round tournaments used in the paper:
-
-```bash
-# Full BattleSnake tournament
-uv run codeclash run configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/pvp/CoreWar__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/pvp/Halite__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
+uv run codeclash run configs/pvp/RoboCode__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
 ```
 
 !!! warning "Cost Warning"
-    Main configs run 15 rounds with real LLM agents. Expect significant API costs depending on your model choices.
+    PvP configs run 15 rounds with real LLM agents. Expect significant API costs depending on your model choices.
 
 ## Viewing Results
 
@@ -175,8 +166,8 @@ The viewer shows:
 
 ```bash
 # 1. Make sure you have API keys in .env
-# 2. Run a short example tournament
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+# 2. Run a tournament
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 # 3. View results
 uv run python scripts/run_viewer.py
@@ -186,18 +177,18 @@ uv run python scripts/run_viewer.py
 
 ```bash
 # CoreWar - Assembly-like programming battle
-uv run codeclash run configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/pvp/CoreWar__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 # RobotRumble - Multi-robot combat
-uv run codeclash run configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv run codeclash run configs/pvp/RobotRumble__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
 ```
 
 ### Create a custom matchup
 
-Copy an example config and modify:
+Copy a config and modify:
 
 ```bash
-cp configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml configs/my_tournament.yaml
+cp configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml configs/my_tournament.yaml
 # Edit configs/my_tournament.yaml to change models, rounds, etc.
 uv run codeclash run configs/my_tournament.yaml
 ```

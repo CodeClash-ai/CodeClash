@@ -46,9 +46,7 @@ def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
         typer.echo(f"ladder_rules.min_round_wins must be an integer, got {min_round_wins!r}.")
         raise typer.Exit(1)
     if not 1 <= min_round_wins <= rounds:
-        typer.echo(
-            f"ladder_rules.min_round_wins must be in [1, {rounds}] (tournament.rounds), got {min_round_wins}."
-        )
+        typer.echo(f"ladder_rules.min_round_wins must be in [1, {rounds}] (tournament.rounds), got {min_round_wins}.")
         raise typer.Exit(1)
 
     # win_last_k: number of trailing rounds the player must win (1 == just the final round, 0 == disabled).
@@ -87,7 +85,7 @@ def make(
 ):
     """Build a ladder: run PvP tournaments across all pairs of players (for ranking).
 
-    [dim]• codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml[/dim]
+    [dim]• codeclash ladder make configs/ladder/make_battlesnake.yaml[/dim]
     """
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)

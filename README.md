@@ -73,7 +73,7 @@ codeclash run configs/test/battlesnake.yaml
 Once this works, you should be set up to run a real tournament!
 To run *Claude Sonnet 4.5* against *o3* in a *BattleSnake* tournament with *5 rounds* and *1000 competition simulations* per round, run:
 ```bash
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 ```
 
 ## ⚔️ How It Works
