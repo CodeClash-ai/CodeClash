@@ -19,25 +19,17 @@ from codeclash.utils.yaml_utils import resolve_includes
 logger = get_logger("ladder")
 
 
-def _player_slug(branch_init: str, game_name: str) -> str:
-    """Turn a ``human/<...>/<bot>`` init branch into a bare, package-safe player name.
+def _player_slug(branch_init: str) -> str:
+    """Turn a ``human/<author>/<bot>`` init branch into a bare, filesystem-safe player name:
+    strip the ``human/`` prefix and join the rest with ``_`` (e.g. ``human/aleksiy325/snek-two``
+    -> ``aleksiy325_snek-two``).
 
-    The name is used as an on-disk directory and — in the RoboCode arena — as a Java package name
-    and robot-selector token (``robots/<name>/``, ``sed s/custom/<name>/``,
-    ``selectedRobots=<name>.MyTank``), so it must contain no slashes. RoboCode additionally reserves
-    the ``robocode`` package namespace for its engine and its robot classloader refuses to load any
-    robot whose package starts with it, so a leading path segment equal to the game name (RoboCode
-    branches are ``human/robocode/<bot>``) is dropped rather than folded into a ``robocode_<bot>``
-    token that would raise ClassNotFoundException at battle time. Non-RoboCode branches
-    (``human/<author>/<bot>``, ``human/<bot>``) are unaffected: their leading segment never matches
-    the game name, so the result is the same ``<author>_<bot>`` slug as before.
+    RoboCode also uses this name as a Java *package* (``<name>.MyTank``), which must be a bare
+    identifier that does not start with the engine's reserved ``robocode`` namespace. The RoboCode
+    ladder branches are named so the plain slug already satisfies that (``human/robo_code/walls``
+    -> ``robo_code__walls``), so no game-specific handling is needed here.
     """
-    parts = [p for p in branch_init.split("/") if p]
-    if parts and parts[0] == "human":
-        parts = parts[1:]
-    if parts and parts[0].lower() == game_name.lower():
-        parts = parts[1:]
-    return "_".join(parts)
+    return branch_init.replace("human/", "").replace("/", "__")
 
 
 def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
@@ -115,17 +107,15 @@ def make(
     players = config["players"]
     num_players = len(players)
 
-    game_name = config["game"]["name"]
-
     # Build one fully independent (deep-copied) config per pair up front so concurrent runs
     # never share or mutate the same player/config dicts.
     jobs: list[tuple[dict, Path]] = []
     for i in range(num_players):
         for j in range(i + 1, num_players):
             player1 = copy.deepcopy(players[i])
-            player1["name"] = _player_slug(player1["branch_init"], game_name)
+            player1["name"] = _player_slug(player1["branch_init"])
             player2 = copy.deepcopy(players[j])
-            player2["name"] = _player_slug(player2["branch_init"], game_name)
+            player2["name"] = _player_slug(player2["branch_init"])
             pvp_config = {**copy.deepcopy(config), "players": [player1, player2]}
             vs = f"PvpTournament.{player1['name']}_vs_{player2['name']}".replace("/", "_")
             output_dir = LOCAL_LOG_DIR / "ladder" / config["game"]["name"] / vs
@@ -196,7 +186,7 @@ def run(
     advanced = False
     for idx, opponent in enumerate(ladder):
         opponent_rank = len(ladder) - idx
-        opponent["name"] = _player_slug(opponent["branch_init"], config["game"]["name"])
+        opponent["name"] = _player_slug(opponent["branch_init"])
         if "branch_init" in player and idx > 0:
             # After first opponent, remove branch_init so that player continues from previous tournament's codebase
             del player["branch_init"]
