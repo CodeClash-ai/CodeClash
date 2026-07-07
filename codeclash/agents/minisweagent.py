@@ -18,12 +18,6 @@ os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
 )
 
 
-class ClashAgentConfig(AgentConfig):
-    """`AgentConfig` plus an optional global observation-format override."""
-
-    observation_template: str | None = None
-
-
 class ClashAgent(DefaultAgent):
     """`DefaultAgent` from mini-SWE-agent (https://github.com/SWE-agent/mini-swe-agent)
     with per-player debug logging."""
@@ -34,13 +28,11 @@ class ClashAgent(DefaultAgent):
         env: DockerEnvironment,
         *,
         logger: logging.Logger,
-        config_class: Callable = ClashAgentConfig,
+        config_class: Callable = AgentConfig,
         **kwargs,
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.logger = logger
-        if getattr(self.config, "observation_template", None):
-            self.model.config.observation_template = self.config.observation_template
 
     def add_messages(self, *messages: dict) -> list[dict]:
         result = super().add_messages(*messages)
