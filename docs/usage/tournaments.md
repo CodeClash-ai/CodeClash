@@ -28,18 +28,18 @@ uv run codeclash run <config_path> [options]
 
 ```bash
 # Basic run
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 # Keep containers for debugging
 uv run codeclash run configs/test/battlesnake.yaml -k
 
 # Custom output directory with suffix
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml \
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml \
     -o ./my_experiments \
     -s experiment1
 
 # Push final codebases to GitHub
-uv run codeclash run configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml -p
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml -p
 ```
 
 ## Configuration Anatomy

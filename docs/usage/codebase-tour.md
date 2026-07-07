@@ -248,7 +248,7 @@ Shared helper functions:
 
 5. **Create example configs:**
    - `configs/test/myarena.yaml` (dummy agents)
-   - `configs/examples/MyArena__model1__model2__r5__s100.yaml`
+   - `configs/pvp/MyArena__model1__model2__r15__s100.yaml`
 
 ### Adding a New Agent Type
 
