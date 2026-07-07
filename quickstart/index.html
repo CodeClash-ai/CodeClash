@@ -666,21 +666,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-configs-quick-experiments" class="md-nav__link">
+  <a href="#pvp-configs-full-benchmarks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Configs (Quick Experiments)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#main-configs-full-benchmarks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Main Configs (Full Benchmarks)
+        PvP Configs (Full Benchmarks)
       
     </span>
   </a>
@@ -1923,21 +1912,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-configs-quick-experiments" class="md-nav__link">
+  <a href="#pvp-configs-full-benchmarks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Configs (Quick Experiments)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#main-configs-full-benchmarks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Main Configs (Full Benchmarks)
+        PvP Configs (Full Benchmarks)
       
     </span>
   </a>
@@ -2194,12 +2172,12 @@ docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </
 </tr>
 <tr>
 <td><code>configs/examples/</code></td>
-<td>Short tournaments (5 rounds)</td>
+<td>Single-player &amp; minimal per-arena samples</td>
 <td>Low</td>
-<td>Learning, quick experiments</td>
+<td>Trying one arena or mode</td>
 </tr>
 <tr>
-<td><code>configs/main/</code></td>
+<td><code>configs/pvp/</code></td>
 <td>Full benchmark runs (15 rounds)</td>
 <td>High</td>
 <td>Reproducing paper results</td>
@@ -2216,24 +2194,19 @@ docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </
 <p>No LLM API calls - uses dummy agents that make no changes:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/test/battlesnake.yaml
 </code></pre></div>
-<h3 id="example-configs-quick-experiments">Example Configs (Quick Experiments)</h3>
-<p>Short 5-round tournaments for learning and experimentation:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Claude Sonnet 4.5 vs o3 in BattleSnake (5 rounds)</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+<h3 id="pvp-configs-full-benchmarks">PvP Configs (Full Benchmarks)</h3>
+<p>Full 15-round model-vs-model tournaments, as used in the paper:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Claude Sonnet 4.5 vs o3 in BattleSnake</span>
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 <span class="c1"># Same matchup in other arenas</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/Halite__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/RoboCode__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
-</code></pre></div>
-<h3 id="main-configs-full-benchmarks">Main Configs (Full Benchmarks)</h3>
-<p>Full 15-round tournaments used in the paper:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Full BattleSnake tournament</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/CoreWar__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/Halite__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/RoboCode__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Cost Warning</p>
-<p>Main configs run 15 rounds with real LLM agents. Expect significant API costs depending on your model choices.</p>
+<p>PvP configs run 15 rounds with real LLM agents. Expect significant API costs depending on your model choices.</p>
 </div>
 <h2 id="viewing-results">Viewing Results</h2>
 <p>After a tournament completes, view results with the interactive viewer:</p>
@@ -2252,22 +2225,22 @@ uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> <
 <h2 id="quick-recipes">Quick Recipes</h2>
 <h3 id="run-your-first-real-tournament">Run your first real tournament</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Make sure you have API keys in .env</span>
-<span class="c1"># 2. Run a short example tournament</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+<span class="c1"># 2. Run a tournament</span>
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 <span class="c1"># 3. View results</span>
 uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_viewer.py
 </code></pre></div>
 <h3 id="try-a-different-arena">Try a different arena</h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># CoreWar - Assembly-like programming battle</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/CoreWar__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/CoreWar__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 
 <span class="c1"># RobotRumble - Multi-robot combat</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/examples/RobotRumble__claude-sonnet-4-5-20250929__o3__r5__s250.yaml
+uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/RobotRumble__claude-sonnet-4-5-20250929__o3__r15__s250.yaml
 </code></pre></div>
 <h3 id="create-a-custom-matchup">Create a custom matchup</h3>
-<p>Copy an example config and modify:</p>
-<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>configs/examples/BattleSnake__claude-sonnet-4-5-20250929__o3__r5__s1000.yaml<span class="w"> </span>configs/my_tournament.yaml
+<p>Copy a config and modify:</p>
+<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml<span class="w"> </span>configs/my_tournament.yaml
 <span class="c1"># Edit configs/my_tournament.yaml to change models, rounds, etc.</span>
 uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/my_tournament.yaml
 </code></pre></div>

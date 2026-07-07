@@ -2365,7 +2365,12 @@
 <span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span>
-<span class="normal">206</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Player</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
     <span class="n">listing</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;ls&quot;</span><span class="p">)[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
     <span class="c1"># Non-Python submissions declare how to launch their server via run.sh (any</span>
     <span class="c1"># language). We trust the launch script here; a broken one is caught at runtime</span>
@@ -2387,6 +2392,11 @@
             <span class="n">error_msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There should be a `</span><span class="si">{</span><span class="n">func</span><span class="si">}</span><span class="s2">` function implemented in `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Don&#39;t change the function signatures!&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;__main__&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bot_content</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">submission</span><span class="si">}</span><span class="s1">` must keep its `if __name__ == &quot;__main__&quot;` block that starts &#39;</span>
+            <span class="s2">&quot;the server, or the bot fails to launch.&quot;</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>

@@ -1945,12 +1945,7 @@ and returns discrete action intents.</p>
 
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>codeclash/arenas/arena.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 78</span>
-<span class="normal"> 79</span>
-<span class="normal"> 80</span>
-<span class="normal"> 81</span>
-<span class="normal"> 82</span>
-<span class="normal"> 83</span>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 83</span>
 <span class="normal"> 84</span>
 <span class="normal"> 85</span>
 <span class="normal"> 86</span>
@@ -1975,7 +1970,12 @@ and returns discrete action intents.</p>
 <span class="normal">105</span>
 <span class="normal">106</span>
 <span class="normal">107</span>
-<span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tournament_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">keep_containers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The CodeArena class is responsible for running games, i.e., taking a list of code</span>
 <span class="sd">    from different agents/players and running them against each other.</span>
 <span class="sd">    It also provides the environments for the game and agents to run in.</span>
