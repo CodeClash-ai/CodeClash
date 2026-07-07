@@ -35,5 +35,3 @@ Both keys are **required** — there are no defaults; a config that omits either
 
 - `min_round_wins` must be an integer with `1 <= min_round_wins <= tournament.rounds`.
 - `win_last_k` must be an integer with `0 <= win_last_k <= min_round_wins`. `0` **disables** the trailing-rounds requirement; `1` means "just win the final round".
-
-The per-rung outcome (`player_wins`, `won_last_k`, `cleared`) is persisted under `ladder_advancement` in each rung's `metadata.json`. The overall climb result (`rungs_cleared`, `final_opponent`, `cleared_ladder`, …) is written to a ladder-level `metadata.json` in the run's parent dir.
