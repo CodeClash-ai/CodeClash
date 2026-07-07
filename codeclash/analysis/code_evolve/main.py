@@ -18,7 +18,7 @@ from codeclash.analysis.viz.utils import ASSETS_DIR, FONT_BOLD, MARKERS, MODEL_T
 from codeclash.arenas import ARENAS
 from codeclash.constants import LOCAL_LOG_DIR
 
-MODELS_PATH = Path("configs/models.yaml")
+MODELS_PATH = Path("configs/mini/model_roster.yaml")
 TARGET_ROUNDS = [1, 15, 5, 10]
 
 

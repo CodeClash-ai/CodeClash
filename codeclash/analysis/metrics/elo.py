@@ -40,6 +40,7 @@ class ScoreMatrixBuilder:
         score_type: SCORING_TYPES = "per_round_tertiary",
         max_round: int = 15,
         only_specific_round: bool = False,
+        include_round_0: bool = False,
     ):
         """This class builds a win matrix from a log directory, it doesn't fit anything yet.
         It also adds a "ALL" game to the win matrix, which is the sum of all games.
@@ -62,6 +63,9 @@ class ScoreMatrixBuilder:
 
         The `max_round` parameter controls the maximum number of rounds to include in the score calculation (default: 15).
         The `only_specific_round` parameter controls whether to only include the specific round (True) or all rounds up to max_round (False).
+        The `include_round_0` parameter controls whether round 0 is counted. In normal PvP/climbing
+        tournaments round 0 is the identical-codebases baseline and is excluded. For ladder
+        construction (`ladder make`, `tournament.rounds: 0`) round 0 IS the match, so set this True.
         """
         self.win_matrix: dict[str, dict[tuple[str, str], list[float]]] = defaultdict(
             lambda: defaultdict(lambda: [0.0, 0.0])
@@ -71,6 +75,7 @@ class ScoreMatrixBuilder:
         self.score_type = score_type
         self.max_round = max_round
         self.only_specific_round = only_specific_round
+        self.include_round_0 = include_round_0
         self._samples: dict[str, dict[tuple[str, str], list[tuple[float, float]]]] = defaultdict(
             lambda: defaultdict(list)
         )
@@ -154,13 +159,19 @@ class ScoreMatrixBuilder:
             return
 
         player_names = [p["name"] for p in players]
-        models = [p["config"]["model"]["model_name"].strip("@") for p in players]
+        models = []
+        for p in players:
+            try:
+                models.append(p["config"]["model"]["model_name"].strip("@"))
+            except KeyError:
+                # Ladder bots have no model config; identify by branch (flatten "/" to keep years distinct).
+                models.append(p["name"].removeprefix("human/").replace("/", "__"))
 
         # Aggregate scores for each round
         p1_round_scores = []
         p2_round_scores = []
         for idx, stats in metadata["round_stats"].items():
-            if idx == "0":
+            if idx == "0" and not self.include_round_0:
                 continue
 
             round_num = int(idx)
@@ -1548,6 +1559,12 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--log_dir", type=Path, default=LOCAL_LOG_DIR)
     parser.add_argument("--print-matrix", action="store_true", help="Print win matrix")
     parser.add_argument(
+        "--include-round-0",
+        action="store_true",
+        help="Count round 0 (normally the excluded identical-codebases baseline). REQUIRED for "
+        "ladder construction (`ladder make` uses tournament.rounds: 0, so round 0 IS the match).",
+    )
+    parser.add_argument(
         "-s",
         "--score-type",
         choices=get_args(SCORING_TYPES),
@@ -1578,7 +1595,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     builder = ScoreMatrixBuilder(
-        all_games_normalization_scheme=args.all_normalization_scheme, score_type=args.score_type
+        all_games_normalization_scheme=args.all_normalization_scheme,
+        score_type=args.score_type,
+        include_round_0=args.include_round_0,
     )
     builder.build(args.log_dir)
 
@@ -1632,22 +1651,26 @@ if __name__ == "__main__":
             ).run()
         write_bootstrap_metrics_table(bootstrap_results, args.output_dir, game="ALL")
 
-    logger.info("Running EloVsMaxRounds analysis")
-    EloVsMaxRounds(
-        log_dir=args.log_dir,
-        max_rounds=15,
-        all_games_normalization_scheme=args.all_normalization_scheme,
-        score_type=args.score_type,
-        regularization=args.regularization,
-        output_dir=args.output_dir,
-    ).run()
+    # Max-round analyses are multi-round-only; skip them for single-round ladder round-robins.
+    if not args.include_round_0:
+        logger.info("Running EloVsMaxRounds analysis")
+        EloVsMaxRounds(
+            log_dir=args.log_dir,
+            max_rounds=15,
+            all_games_normalization_scheme=args.all_normalization_scheme,
+            score_type=args.score_type,
+            regularization=args.regularization,
+            output_dir=args.output_dir,
+        ).run()
 
-    logger.info("Running EloOnlyAtRound analysis")
-    EloOnlyAtRound(
-        log_dir=args.log_dir,
-        max_rounds=15,
-        all_games_normalization_scheme=args.all_normalization_scheme,
-        score_type=args.score_type,
-        regularization=args.regularization,
-        output_dir=args.output_dir,
-    ).run()
+        logger.info("Running EloOnlyAtRound analysis")
+        EloOnlyAtRound(
+            log_dir=args.log_dir,
+            max_rounds=15,
+            all_games_normalization_scheme=args.all_normalization_scheme,
+            score_type=args.score_type,
+            regularization=args.regularization,
+            output_dir=args.output_dir,
+        ).run()
+    else:
+        logger.info("Skipping EloVsMaxRounds / EloOnlyAtRound (ladder mode: single round-0 round-robin)")

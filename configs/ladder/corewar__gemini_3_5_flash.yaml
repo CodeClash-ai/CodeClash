@@ -1,0 +1,18 @@
+# CoreWar ladder climbed by gemini-3-5-flash. Requires LLAMA_API_KEY in .env.
+#   uv run codeclash ladder run configs/ladder/corewar__gemini_3_5_flash.yaml
+tournament:
+  rounds: 5
+ladder_rules: !include ladder/ladder_rules.yaml
+game:
+  name: CoreWar
+  sims_per_round: 2000
+player:
+  agent: mini
+  name: gemini-3-5-flash
+  branch_init: human/pspace
+  config:
+    agent: !include mini/default.yaml
+    model: !include mini/models/llama_gemini_3_5_flash.yaml
+  push: True
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/corewar.yaml

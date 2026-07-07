@@ -1,0 +1,18 @@
+# CoreWar ladder climbed by opus-4-7. Requires LLAMA_API_KEY in .env.
+#   uv run codeclash ladder run configs/ladder/corewar__opus_4_7.yaml
+tournament:
+  rounds: 5
+ladder_rules: !include ladder/ladder_rules.yaml
+game:
+  name: CoreWar
+  sims_per_round: 2000
+player:
+  agent: mini
+  name: opus-4-7
+  branch_init: human/pspace
+  config:
+    agent: !include mini/default.yaml
+    model: !include mini/models/llama_opus_4_7.yaml
+  push: True
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/corewar.yaml
