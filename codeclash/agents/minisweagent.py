@@ -19,12 +19,7 @@ os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
 
 
 class ClashAgentConfig(AgentConfig):
-    """`AgentConfig` plus an optional global observation-format override.
-
-    `observation_template` is a model-side field in mini-swe-agent, so putting it in the shared
-    agent config (`configs/mini/default.yaml`) doesn't reach the model on its own. Declaring it
-    here lets the one global config drive it; `ClashAgent` pushes it onto the model at init."""
-
+    """`AgentConfig` plus an optional global observation-format override."""
     observation_template: str | None = None
 
 
@@ -43,8 +38,6 @@ class ClashAgent(DefaultAgent):
     ):
         super().__init__(model, env, config_class=config_class, **kwargs)
         self.logger = logger
-        # Honor the global observation_template (agent config) by pushing it onto the model,
-        # which is what actually renders observations. Applies to every backend uniformly.
         if getattr(self.config, "observation_template", None):
             self.model.config.observation_template = self.config.observation_template
 
