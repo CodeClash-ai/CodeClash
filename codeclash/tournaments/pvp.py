@@ -79,6 +79,7 @@ class PvpTournament(AbstractTournament):
             round=1,
             rounds=self.rounds,
             working_dir=str(DIR_WORK),
+            arena_description=self.game.description,
         )
 
         return get_agent(agent_config, game_context, environment)

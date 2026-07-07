@@ -2,6 +2,7 @@
 
 import copy
 import getpass
+import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -18,43 +19,53 @@ from codeclash.utils.yaml_utils import resolve_includes
 logger = get_logger("ladder")
 
 
-def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[float, int]:
-    """Validate the optional ``ladder_rules`` block and return ``(min_round_win_fraction, win_last_k)``.
+def _resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
+    """Validate the required ``ladder_rules`` block and return ``(min_round_wins, win_last_k)``.
 
-    Defaults: win at least ``min_round_win_fraction`` (0.4) of the *agent* rounds AND win the last
-    ``win_last_k`` (1) round(s). The baseline round 0 (identical, un-edited codebases) is excluded
-    from this count — it reflects game variance, not the agent — so the fraction is taken over the
-    ``rounds`` rounds the agent actually edits.
+    Both keys must be specified explicitly in the config (no defaults):
+    - ``min_round_wins``: the whole number of *agent* rounds the player must win to advance
+      (a ``>=`` threshold). Must be ``1 <= min_round_wins <= rounds``.
+    - ``win_last_k``: the player must win the last ``win_last_k`` round(s). ``1`` means just the final
+      round; ``0`` disables the trailing-rounds requirement entirely. Must be ``<= min_round_wins``.
+
+    The baseline round 0 (identical, un-edited codebases) is excluded from the count — it reflects
+    game variance, not the agent — so wins are counted over the ``rounds`` rounds the agent actually
+    edits (rounds 1..``rounds``).
     """
-    min_round_win_fraction = ladder_rules.get("min_round_win_fraction", 0.4)
-    win_last_k = ladder_rules.get("win_last_k", 1)
+    if "min_round_wins" not in ladder_rules:
+        typer.echo("ladder_rules.min_round_wins is required; specify it explicitly in the config.")
+        raise typer.Exit(1)
+    if "win_last_k" not in ladder_rules:
+        typer.echo("ladder_rules.win_last_k is required; specify it explicitly in the config.")
+        raise typer.Exit(1)
+    min_round_wins = ladder_rules["min_round_wins"]
+    win_last_k = ladder_rules["win_last_k"]
 
-    # win_last_k: number of trailing rounds the player must win (1 == just the final round).
+    # min_round_wins: whole number of agent rounds the player must win (round 0 excluded).
+    if isinstance(min_round_wins, bool) or not isinstance(min_round_wins, int):
+        typer.echo(f"ladder_rules.min_round_wins must be an integer, got {min_round_wins!r}.")
+        raise typer.Exit(1)
+    if not 1 <= min_round_wins <= rounds:
+        typer.echo(f"ladder_rules.min_round_wins must be in [1, {rounds}] (tournament.rounds), got {min_round_wins}.")
+        raise typer.Exit(1)
+
+    # win_last_k: number of trailing rounds the player must win (1 == just the final round, 0 == disabled).
     if isinstance(win_last_k, bool) or not isinstance(win_last_k, int):
         typer.echo(f"ladder_rules.win_last_k must be an integer, got {win_last_k!r}.")
         raise typer.Exit(1)
-    if win_last_k < 1:
+    if win_last_k < 0:
         typer.echo(
-            f"ladder_rules.win_last_k must be >= 1, got {win_last_k}. Use 1 to require winning only the final round."
+            f"ladder_rules.win_last_k must be >= 0, got {win_last_k}. "
+            "Use 0 to disable the trailing-rounds requirement, or 1 to require winning only the final round."
         )
         raise typer.Exit(1)
-    if win_last_k > rounds:
-        typer.echo(f"ladder_rules.win_last_k ({win_last_k}) cannot exceed tournament.rounds ({rounds}).")
-        raise typer.Exit(1)
-
-    # min_round_win_fraction: player must win >= this fraction of the agent rounds (round 0 excluded).
-    if isinstance(min_round_win_fraction, bool) or not isinstance(min_round_win_fraction, (int, float)):
-        typer.echo(f"ladder_rules.min_round_win_fraction must be a number, got {min_round_win_fraction!r}.")
-        raise typer.Exit(1)
-    if not 0 <= min_round_win_fraction <= 1:
+    if win_last_k > min_round_wins:
         typer.echo(
-            f"ladder_rules.min_round_win_fraction must be in [0, 1], got {min_round_win_fraction}. "
-            "The player must win >= this fraction of the agent rounds; 1 requires winning all of them, "
-            "0 drops the fraction requirement."
+            f"ladder_rules.win_last_k ({win_last_k}) cannot exceed ladder_rules.min_round_wins ({min_round_wins})."
         )
         raise typer.Exit(1)
 
-    return float(min_round_win_fraction), win_last_k
+    return min_round_wins, win_last_k
 
 
 ladder_app = typer.Typer(
@@ -74,7 +85,7 @@ def make(
 ):
     """Build a ladder: run PvP tournaments across all pairs of players (for ranking).
 
-    [dim]• codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml[/dim]
+    [dim]• codeclash ladder make configs/ladder/make_battlesnake.yaml[/dim]
     """
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
@@ -141,20 +152,25 @@ def run(
         config["tournament"]["rounds"],
         config["game"]["sims_per_round"],
     )
-    min_round_win_fraction, win_last_k = _resolve_ladder_rules(config.get("ladder_rules", {}), rounds)
+    min_round_wins, win_last_k = _resolve_ladder_rules(config.get("ladder_rules", {}), rounds)
     timestamp = time.strftime("%y%m%d%H%M%S")
     del config["player"]
     del config["ladder"]
     config.pop("ladder_rules", None)
 
-    print(
-        f"Ladder advancement rule: win >= {min_round_win_fraction:.0%} of {rounds} agent rounds "
-        f"(baseline round 0 excluded) and win the last {win_last_k} round(s)."
+    last_k_rule = "disabled" if win_last_k == 0 else f"win the last {win_last_k} round(s)"
+    advancement_rule = (
+        f"Ladder advancement rule: win >= {min_round_wins} of {rounds} agent rounds "
+        f"(baseline round 0 excluded) and {last_k_rule}."
     )
-    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{timestamp}"
+    print(advancement_rule)
+    logger.info(advancement_rule)
+    ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{player['name']}.{timestamp}"
     player["branch"] = ladder_folder
     parent_dir = LOCAL_LOG_DIR / getpass.getuser() / ladder_folder
 
+    rungs_cleared = 0
+    advanced = False
     for idx, opponent in enumerate(ladder):
         opponent_rank = len(ladder) - idx
         opponent["name"] = opponent["branch_init"].replace("human/", "").replace("/", "_")
@@ -190,24 +206,37 @@ def run(
             metadata = yaml.safe_load(f)
         round_winners = [r["winner"] for k, r in metadata["round_stats"].items() if int(k) != 0]
 
-        # Advancement rule (configurable via `ladder_rules`): win at least
-        # `min_round_win_fraction` of the agent rounds AND win the last `win_last_k` rounds.
+        # Advancement rule (required via `ladder_rules`): win at least `min_round_wins` of the
+        # agent rounds AND win the last `win_last_k` rounds. win_last_k == 0 disables the
+        # trailing-rounds requirement.
         player_wins = sum(1 for w in round_winners if w == player["name"])
-        won_majority = player_wins >= len(round_winners) * min_round_win_fraction
-        won_last_k = all(w == player["name"] for w in round_winners[-win_last_k:])
+        won_majority = player_wins >= min_round_wins
+        won_last_k = win_last_k == 0 or all(w == player["name"] for w in round_winners[-win_last_k:])
+        advanced = won_majority and won_last_k
 
-        if not won_majority or not won_last_k:
+        # Record this rung's outcome in its metadata.json (durable gameplay log). The rule itself
+        # (min_round_wins, win_last_k) is constant across the run and lives in the ladder summary.
+        metadata["ladder_advancement"] = {
+            "player_wins": player_wins,
+            "won_last_k": won_last_k,
+            "cleared": advanced,
+        }
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=2)
+
+        if not advanced:
             # Player failed the advancement rule; the ladder challenge ends here.
             print("=" * 10)
             print(
                 f"{player['name']} did not clear {opponent['name']} "
                 f"(rank {opponent_rank}/{len(ladder)}): won {player_wins}/{len(round_winners)} agent rounds "
-                f"(needed >= {min_round_win_fraction:.0%}), last {win_last_k} round(s) won: {won_last_k}.\n"
+                f"(needed >= {min_round_wins}), last {win_last_k} round(s) won: {won_last_k}.\n"
                 "Ladder challenge ends."
             )
             print("=" * 10)
             break
 
+        rungs_cleared += 1
         print("=" * 10)
         print(
             f"{player['name']} successfully beat {opponent['name']} (rank {opponent_rank}/{len(ladder)}) "
@@ -215,6 +244,23 @@ def run(
             "Ladder challenge continuing"
         )
         print("=" * 10)
+
+    # Persist the overall climb result to a ladder-level metadata.json in the run's parent dir.
+    ladder_summary = {
+        "player": player["name"],
+        "game": config["game"]["name"],
+        "rounds": rounds,
+        "min_round_wins": min_round_wins,
+        "win_last_k": win_last_k,
+        "ladder_size": len(ladder),
+        "rungs_cleared": rungs_cleared,
+        "final_opponent": opponent["name"],
+        "final_opponent_rank": opponent_rank,
+        "cleared_ladder": rungs_cleared == len(ladder),
+    }
+    parent_dir.mkdir(parents=True, exist_ok=True)
+    with open(parent_dir / "metadata.json", "w") as f:
+        json.dump(ladder_summary, f, indent=2)
 
     print(f"Ladder tournament complete. Logs saved to {parent_dir}")
     print(f"Final opponent faced: {opponent['name']} (rank {opponent_rank}/{len(ladder)} in ladder)")

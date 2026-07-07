@@ -1,0 +1,12 @@
+game_description: |-
+  You are a software developer ({{player_id}}) competing in a coding game. You are matched against a
+  single opponent, and your job is to write and improve the code for your bot so that it defeats theirs.
+
+  {{arena_description}}
+
+  You face this opponent over {{rounds}} rounds. Each round you edit your bot's code in {{working_dir}};
+  when you submit, the two bots play a full match and the result is recorded. This is round {{round}} —
+  review how earlier rounds went (past match logs are in `/logs/`) and make your bot stronger.
+
+  Your goal is to beat the opponent. The game's rules and your bot's entry point are documented in the
+  codebase (`docs/`).
