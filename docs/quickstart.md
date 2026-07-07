@@ -111,7 +111,7 @@ CodeClash configs are organized into tiers:
 |-----------|---------|----------|----------|
 | `configs/test/` | Smoke tests with dummy agents | Free | Verifying setup works |
 | `configs/examples/` | Short tournaments (5 rounds) | Low | Learning, quick experiments |
-| `configs/main/` | Full benchmark runs (15 rounds) | High | Reproducing paper results |
+| `configs/pvp/` | Full benchmark runs (15 rounds) | High | Reproducing paper results |
 | `configs/ablations/` | Specialized experiments | Varies | Research ablations |
 
 ### Test Configs (Free)
@@ -142,7 +142,7 @@ Full 15-round tournaments used in the paper:
 
 ```bash
 # Full BattleSnake tournament
-uv run codeclash run configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 ```
 
 !!! warning "Cost Warning"

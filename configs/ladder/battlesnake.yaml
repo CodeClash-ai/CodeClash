@@ -1,10 +1,10 @@
 # CC:Ladder for BattleSnake — the ranked ladder of human bots (worst opponent first,
 # strongest last), derived from the round-robin in make_battlesnake.yaml
 # (Bradley-Terry/Elo over 1225 pairwise tournaments). An LM climber ascends rung by
-# rung until it loses.  Run:  uv run codeclash ladder run configs/ablations/ladder/battlesnake.yaml
+# rung until it loses.  Run:  uv run codeclash ladder run configs/ladder/battlesnake.yaml
 tournament:
   rounds: 5
-ladder_rules: !include ablations/ladder/ladder_rules.yaml
+ladder_rules: !include ladder/ladder_rules.yaml
 game:
   name: BattleSnake
   sims_per_round: 250
@@ -24,5 +24,5 @@ player:
         temperature: 0.2
         max_tokens: 4096
   push: True
-prompts: !include ablations/ladder/ladder_prompt.yaml
-ladder: !include ablations/ladder/rungs/battlesnake.yaml
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/battlesnake.yaml

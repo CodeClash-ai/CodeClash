@@ -1,8 +1,8 @@
 # BattleSnake ladder climbed by gpt-5-5. Requires LLAMA_API_KEY in .env.
-#   uv run codeclash ladder run configs/ablations/ladder/battlesnake__gpt_5_5.yaml
+#   uv run codeclash ladder run configs/ladder/battlesnake__gpt_5_5.yaml
 tournament:
   rounds: 5
-ladder_rules: !include ablations/ladder/ladder_rules.yaml
+ladder_rules: !include ladder/ladder_rules.yaml
 game:
   name: BattleSnake
   sims_per_round: 250
@@ -18,5 +18,5 @@ player:
     agent: !include mini/default.yaml
     model: !include mini/models/llama_gpt_5_5.yaml
   push: True
-prompts: !include ablations/ladder/ladder_prompt.yaml
-ladder: !include ablations/ladder/rungs/battlesnake.yaml
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/battlesnake.yaml

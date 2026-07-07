@@ -85,7 +85,7 @@ def make(
 ):
     """Build a ladder: run PvP tournaments across all pairs of players (for ranking).
 
-    [dim]• codeclash ladder make configs/ablations/ladder/make_battlesnake.yaml[/dim]
+    [dim]• codeclash ladder make configs/ladder/make_battlesnake.yaml[/dim]
     """
     yaml_content = config_path.read_text()
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)

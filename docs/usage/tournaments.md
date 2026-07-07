@@ -260,14 +260,14 @@ Example: `PvpTournament.BattleSnake.r5.s1000.p2.claude-sonnet-4-5.o3.24121014302
 
 ```bash
 # BattleSnake: Claude Sonnet 4.5 vs o3 (15 rounds)
-uv run codeclash run configs/main/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
+uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml
 ```
 
 ### Run all arenas for a matchup
 
 ```bash
 for arena in BattleSnake CoreWar Halite RoboCode RobotRumble; do
-    uv run codeclash run "configs/main/${arena}__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml"
+    uv run codeclash run "configs/pvp/${arena}__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml"
 done
 ```
 
@@ -299,7 +299,7 @@ uv run codeclash run configs/my_config_b.yaml -s variantB
 #!/bin/bash
 models=("claude-sonnet-4-5-20250929" "gpt-5" "gemini-2.5-pro")
 for model in "${models[@]}"; do
-    config="configs/main/BattleSnake__${model}__o3__r15__s1000.yaml"
+    config="configs/pvp/BattleSnake__${model}__o3__r15__s1000.yaml"
     if [ -f "$config" ]; then
         uv run codeclash run "$config"
     fi

@@ -1,13 +1,15 @@
 tournament:
   rounds: 5
-ladder_rules: !include ablations/ladder/ladder_rules.yaml
+ladder_rules: !include ladder/ladder_rules.yaml
 game:
-  name: CoreWar
-  sims_per_round: 2000
+  name: RobotRumble
+  sims_per_round: 250
+  args:
+    raw: false
 player:
   agent: mini
   name: claude-sonnet-4-5-20250929
-  branch_init: human/pspace
+  branch_init: human/anton/anton3000
   config:
     agent: !include mini/default.yaml
     model:
@@ -16,5 +18,5 @@ player:
         temperature: 0.2
         max_tokens: 4096
   push: True
-prompts: !include ablations/ladder/ladder_prompt.yaml
-ladder: !include ablations/ladder/rungs/corewar.yaml
+prompts: !include ladder/ladder_prompt.yaml
+ladder: !include ladder/rungs/robotrumble.yaml
