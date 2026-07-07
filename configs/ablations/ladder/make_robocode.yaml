@@ -14,6 +14,10 @@ game:
   name: RoboCode
   sims_per_round: 300
   sim_concurrency: 5
+  # Ranking only needs per-battle scores (results_*.txt), not replays. Recording every sim writes
+  # ~8.7MB of compressed replay XML per pair (~59GB over 6670 pairs) and pins a gzip core on every
+  # log copy, so disable it here.
+  record_ratio: 0
   args:
     nodisplay: true
     nosound: true
