@@ -28,14 +28,10 @@ logger = get_logger("ladder")
 
 
 def _player_slug(branch_init: str) -> str:
-    """Turn a ``human/<author>/<bot>`` init branch into a bare, filesystem-safe player name:
+    """
+    Turn a ``human/<author>/<bot>`` init branch into a bare, filesystem-safe player name:
     strip the ``human/`` prefix and join the rest with ``__`` (e.g. ``human/aleksiy325/snek-two``
     -> ``aleksiy325__snek-two``).
-
-    RoboCode also uses this name as a Java *package* (``<name>.MyTank``), which must be a bare
-    identifier that does not start with the engine's reserved ``robocode`` namespace. The RoboCode
-    ladder branches are named so the plain slug already satisfies that (``human/robo_code/walls``
-    -> ``robo_code__walls``), so no game-specific handling is needed here.
     """
     return branch_init.replace("human/", "").replace("/", "__")
 
