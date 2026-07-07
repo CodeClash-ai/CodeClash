@@ -165,6 +165,7 @@ def run(
         f"Ladder advancement rule: win >= {min_round_wins} of {rounds} agent rounds "
         f"(baseline round 0 excluded) and {last_k_rule}."
     )
+    print(advancement_rule)
     logger.info(advancement_rule)
     ladder_folder = f"LadderTournament.{config['game']['name']}.r{rounds}.s{sims}.{player['name']}.{timestamp}"
     player["branch"] = ladder_folder
