@@ -203,9 +203,9 @@ Snakes collect food, avoid collisions, and try to outlast their opponents."""
                 error_msg.append(f"There should be a `{func}` function implemented in `{self.submission}`")
         if len(error_msg) > 0:
             return False, "\n".join(error_msg + ["Don't change the function signatures!"])
-        if "__main__" not in bot_content or "run_server" not in bot_content:
+        if "__main__" not in bot_content:
             return False, (
-                f"`{self.submission}` must keep its server entrypoint so the bot starts: the "
-                '`if __name__ == "__main__": run_server(...)` block at the bottom of the file.'
+                f'`{self.submission}` must keep its `if __name__ == "__main__"` block that starts '
+                "the server, or the bot fails to launch."
             )
         return True, None
