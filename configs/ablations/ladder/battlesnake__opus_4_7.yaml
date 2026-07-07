@@ -2,9 +2,7 @@
 #   uv run codeclash ladder run configs/ablations/ladder/battlesnake__opus_4_7.yaml
 tournament:
   rounds: 5
-ladder_rules:
-  min_round_wins: 2   # rounds to win to advance (1..total rounds)
-  win_last_k: 0       # must win last K (0 = off, <= min_round_wins)
+ladder_rules: !include ablations/ladder/ladder_rules.yaml
 game:
   name: BattleSnake
   sims_per_round: 250
