@@ -4,6 +4,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
+# Pin numpy/BLAS to a single math thread per container. Each SCML simulation is
+# single-threaded compute (measured: pinned solo == unpinned solo)
+ENV OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     ca-certificates git build-essential jq \
