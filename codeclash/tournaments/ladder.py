@@ -201,13 +201,20 @@ class LadderTournament:
         print(advancement_rule)
         logger.info(advancement_rule)
 
-        rungs_cleared = 0
         advanced = False
         opponent: dict = {}
         opponent_rank = 0
+        rung = 0
+        total = len(self.ladder)
         for idx, opponent in enumerate(self.ladder):
-            opponent_rank = len(self.ladder) - idx
+            # `rung` counts the climb from the bottom (1 = weakest opponent faced first, `total` =
+            # strongest); `opponent_rank` is the opponent's Elo standing (1 = strongest overall).
+            rung = idx + 1
+            opponent_rank = total - idx
             opponent["name"] = _player_slug(opponent["branch_init"])
+            # Prefix the climber's commit/tag messages with rung context (a prefix carrying its own
+            # trailing separator; see Player._round_message).
+            self.player["commit_label"] = f"Rung {rung}/{total} ({opponent['name']}, elo #{opponent_rank}) — "
             if "branch_init" in self.player and idx > 0:
                 # After first opponent, remove branch_init so the player continues from the
                 # previous tournament's codebase.
@@ -256,23 +263,23 @@ class LadderTournament:
                 print("=" * 10)
                 print(
                     f"{self.player['name']} did not clear {opponent['name']} "
-                    f"(rank {opponent_rank}/{len(self.ladder)}): won {player_wins}/{len(round_winners)} agent rounds "
+                    f"(rung {rung}/{total}, elo #{opponent_rank}): won {player_wins}/{len(round_winners)} agent rounds "
                     f"(needed >= {self.min_round_wins}), last {self.win_last_k} round(s) won: {won_last_k}.\n"
                     "Ladder challenge ends."
                 )
                 print("=" * 10)
                 break
 
-            rungs_cleared += 1
             print("=" * 10)
             print(
-                f"{self.player['name']} successfully beat {opponent['name']} (rank {opponent_rank}/{len(self.ladder)}) "
+                f"{self.player['name']} successfully beat {opponent['name']} (rung {rung}/{total}, elo #{opponent_rank}) "
                 f"in {player_wins}/{len(round_winners)} rounds.\n"
                 "Ladder challenge continuing"
             )
             print("=" * 10)
 
         # Persist the overall climb result to a ladder-level metadata.json in the run's parent dir.
+        rungs_cleared = rung if advanced else max(rung - 1, 0)
         ladder_summary = {
             "player": self.player["name"],
             "game": self.config["game"]["name"],
@@ -290,5 +297,5 @@ class LadderTournament:
             json.dump(ladder_summary, f, indent=2)
 
         print(f"Ladder tournament complete. Logs saved to {self.parent_dir}")
-        print(f"Final opponent faced: {opponent['name']} (rank {opponent_rank}/{len(self.ladder)} in ladder)")
+        print(f"Final opponent faced: {opponent['name']} (rung {rung}/{total}, elo #{opponent_rank})")
         return ladder_summary

@@ -67,6 +67,9 @@ class PvpTournament(AbstractTournament):
 
     def get_agent(self, agent_config: dict, prompts: dict) -> Player:
         """Create an agent with environment and game context."""
+        # Commit/tag messages are prefixed with `commit_label` (see Player._round_message). PvP uses
+        # no prefix by default, but it can be overridden in the agent config.
+        agent_config.setdefault("commit_label", "")
         environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
 
         game_context = GameContext(

@@ -19,7 +19,6 @@ uv run codeclash run <config_path> [options]
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--cleanup` | `-c` | Clean up game environment after running |
-| `--push` | `-p` | Push each agent's final codebase to a new GitHub repository |
 | `--output-dir PATH` | `-o PATH` | Custom output directory (default: `logs/<username>/`) |
 | `--suffix TEXT` | `-s TEXT` | Suffix to append to the output folder name |
 | `--keep-containers` | `-k` | Keep Docker containers after games/agents finish (useful for debugging) |
@@ -37,9 +36,6 @@ uv run codeclash run configs/test/battlesnake.yaml -k
 uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml \
     -o ./my_experiments \
     -s experiment1
-
-# Push final codebases to GitHub
-uv run codeclash run configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml -p
 ```
 
 ## Configuration Anatomy
@@ -151,6 +147,22 @@ Each player entry defines an AI agent:
 | `config` | dict | Agent-specific configuration |
 | `config.model` | dict | LLM model settings |
 | `config.agent` | dict | Agent behavior settings |
+| `branch_init` | string | Optional. Git branch to seed the agent's codebase from (e.g. `human/<author>/<bot>`). Defaults to the arena's starter branch. |
+| `push` | bool | Optional (default `false`). Push the agent's evolving codebase to a remote branch after each round. Requires `GITHUB_TOKEN` with write access to the arena repo. Set per-player in the config (there is no CLI flag for it). |
+| `branch` | string | Optional. Remote branch name to push to. Usually set automatically by the orchestrator (the ladder derives it from the run); defaults to `<game_id>.<name>`. |
+| `commit_label` | string | Optional. Prefix prepended to each round's git commit/tag message (otherwise just `Round N Update`). See note below. |
+
+#### Commit labels
+
+Every round, an agent's codebase is committed (and, with `push: true`, pushed) with the message `Round N Update`. The optional `commit_label` field prepends context to that message — it's a **prefix string that carries its own separator**, so the final message is simply `f"{commit_label}Round N Update"`.
+
+It's normally set **programmatically by the tournament**, not hand-written: a plain PvP run leaves it `""` (→ `Round 1 Update`), while a **ladder** run sets it per rung so history reads like:
+
+```
+Rung 2/50 (nessegrev-julia, elo #49) — Round 1 Update
+```
+
+You *can* set it per-player in the config (e.g. to tag an experiment), but most users won't need to. Leave it unset for the default `Round N Update`.
 
 #### Model Configuration
 

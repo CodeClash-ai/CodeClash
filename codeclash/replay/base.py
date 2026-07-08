@@ -367,8 +367,7 @@ def build_index(tour: TournamentInfo) -> str:
         group_td = f"<td>{g.group}</td>" if laddered else ""
         sim_td = f"<td>{sim_winner}</td>" if have_sim_winner else ""
         rows.append(
-            f"<tr>{group_td}<td>{g.round}</td><td>{g.sim}</td>{sim_td}"
-            f"<td>{round_winner or ''}</td><td>{cell}</td></tr>"
+            f"<tr>{group_td}<td>{g.round}</td><td>{g.sim}</td>{sim_td}<td>{round_winner or ''}</td><td>{cell}</td></tr>"
         )
 
     style = (

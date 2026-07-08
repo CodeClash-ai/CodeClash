@@ -78,12 +78,23 @@ class Player(ABC):
                     logger=self.logger,
                 )
             else:
-                # Resume the branch if a previous round pushed it to the remote, else create it.
+                # Resume the branch if a previous rung/round pushed it to the remote, else create it.
+                # Reset the local branch to the fetched remote tip with -B.
                 assert_zero_exit_code(self.environment.execute("git fetch origin"), logger=self.logger)
-                if self.environment.execute(f"git checkout {self._branch_name}").get("returncode", 0) != 0:
-                    self.logger.info(f"Branch {self._branch_name} doesn't exist, creating it")
+                if (
+                    self.environment.execute(f"git rev-parse --verify --quiet origin/{self._branch_name}").get(
+                        "returncode", 1
+                    )
+                    == 0
+                ):
                     assert_zero_exit_code(
-                        self.environment.execute(f"git checkout -b {self._branch_name}"),
+                        self.environment.execute(f"git checkout -B {self._branch_name} origin/{self._branch_name}"),
+                        logger=self.logger,
+                    )
+                else:
+                    self.logger.info(f"Branch {self._branch_name} doesn't exist on remote, creating it")
+                    assert_zero_exit_code(
+                        self.environment.execute(f"git checkout -B {self._branch_name}"),
                         logger=self.logger,
                     )
 
@@ -172,11 +183,17 @@ class Player(ABC):
 
     # --- Helper methods ---
 
+    def _round_message(self, round: int) -> str:
+        """Commit/tag message for a round. The tournament sets ``commit_label`` on the player config —
+        a prefix that carries its own separator (the ladder sets ``"Rung 2/50 (opponent, elo #49) — "``;
+        PvP sets ``""``). Pure concatenation, no per-mode branching here."""
+        return f"{self.config['commit_label']}Round {round} Update"
+
     def _tag_round(self, round: int) -> None:
         """Git tag the codebase at the given round."""
         tag = self._get_round_tag_name(round)
         assert_zero_exit_code(
-            self.environment.execute(f"git tag -a {tag} -m 'Round {round} Update'"),
+            self.environment.execute(f"git tag -a {tag} -m '{self._round_message(round)}'"),
             logger=self.logger,
         )
         self._metadata["round_tags"][round] = tag
@@ -203,7 +220,7 @@ class Player(ABC):
         for cmd in [
             "git add -A",
             unstage_binaries,
-            f"git commit --allow-empty -m 'Round {r} Update'",
+            f"git commit --allow-empty -m '{self._round_message(r)}'",
         ]:
             assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
         self._tag_round(r)
