@@ -15,6 +15,7 @@ from codeclash.arenas.halite.halite import HaliteArena
 from codeclash.arenas.halite2.halite2 import Halite2Arena
 from codeclash.arenas.halite3.halite3 import Halite3Arena
 from codeclash.arenas.huskybench.huskybench import HuskyBenchArena
+from codeclash.arenas.lightcycles.lightcycles import LightCyclesArena
 from codeclash.arenas.paintvolley.paintvolley import PaintVolleyArena
 from codeclash.arenas.robocode.robocode import RoboCodeArena
 from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
@@ -37,6 +38,7 @@ ARENAS = [
     Halite2Arena,
     Halite3Arena,
     HuskyBenchArena,
+    LightCyclesArena,
     PaintVolleyArena,
     RoboCodeArena,
     RobotRumbleArena,
