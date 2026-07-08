@@ -9,7 +9,7 @@ game_description: |-
   review how earlier rounds went (past match logs are in `/logs/`) and make your bot stronger.
 
   {{working_dir}} is your codebase, which contains both your bot and supporting assets, and all of your
-  commands will be executed in the {{working_dir}} directory (see notes below).
+  commands will be executed in the {{working_dir}} directory.
 
   Your goal is to beat the opponent. The game's rules and your bot's entry point are documented in the
   codebase (`docs/`).

@@ -54,7 +54,7 @@ ladder_rules:
   win_last_k: 0       # ...and must win the last K rounds (1 == just the final round, 0 == disabled)
 ```
 
-Both keys are **required** — there are no defaults; a config that omits either one errors out. `min_round_wins` is a whole number: the player advances when `player_wins >= min_round_wins`. The baseline round 0 (identical, un-edited codebases) is excluded, so with `tournament.rounds: 5` there are 5 scored agent rounds (rounds 1–5). Validation:
+Both keys are **required** — there are no defaults; a config that omits either one errors out. `min_round_wins` is a whole number: the player advances when `player_wins >= min_round_wins`. Round 0 (before any edits against the opponent — identical codebases at the first rung, carried-over at later rungs) is excluded, so with `tournament.rounds: 5` there are 5 scored agent rounds (rounds 1–5). Validation:
 
 - `min_round_wins` must be an integer with `1 <= min_round_wins <= tournament.rounds`.
 - `win_last_k` must be an integer with `0 <= win_last_k <= min_round_wins`. `0` **disables** the trailing-rounds requirement; `1` means "just win the final round".

@@ -45,9 +45,8 @@ def resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
     - ``win_last_k``: the player must win the last ``win_last_k`` round(s). ``1`` means just the final
       round; ``0`` disables the trailing-rounds requirement entirely. Must be ``<= min_round_wins``.
 
-    The baseline round 0 (identical, un-edited codebases) is excluded from the count — it reflects
-    game variance, not the agent — so wins are counted over the ``rounds`` rounds the agent actually
-    edits (rounds 1..``rounds``).
+    Round 0 (before any edits against this opponent) is excluded — identical codebases at the first
+    rung, the agent's carried-over codebase at later rungs — so only rounds 1..``rounds`` count.
 
     Raises:
         ValueError: if either key is missing or fails validation.
