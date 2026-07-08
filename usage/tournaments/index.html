@@ -1594,6 +1594,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#commit-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#model-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1870,11 +1881,6 @@
 <td>Clean up game environment after running</td>
 </tr>
 <tr>
-<td><code>--push</code></td>
-<td><code>-p</code></td>
-<td>Push each agent's final codebase to a new GitHub repository</td>
-</tr>
-<tr>
 <td><code>--output-dir PATH</code></td>
 <td><code>-o PATH</code></td>
 <td>Custom output directory (default: <code>logs/&lt;username&gt;/</code>)</td>
@@ -1902,9 +1908,6 @@ uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> <
 uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-o<span class="w"> </span>./my_experiments<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-s<span class="w"> </span>experiment1
-
-<span class="c1"># Push final codebases to GitHub</span>
-uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> </span>run<span class="w"> </span>configs/pvp/BattleSnake__claude-sonnet-4-5-20250929__o3__r15__s1000.yaml<span class="w"> </span>-p
 </code></pre></div>
 <h2 id="configuration-anatomy">Configuration Anatomy</h2>
 <p>Tournament configs are YAML files with four main sections:</p>
@@ -2064,8 +2067,34 @@ uv<span class="w"> </span>run<span class="w"> </span>codeclash<span class="w"> <
 <td>dict</td>
 <td>Agent behavior settings</td>
 </tr>
+<tr>
+<td><code>branch_init</code></td>
+<td>string</td>
+<td>Optional. Git branch to seed the agent's codebase from (e.g. <code>human/&lt;author&gt;/&lt;bot&gt;</code>). Defaults to the arena's starter branch.</td>
+</tr>
+<tr>
+<td><code>push</code></td>
+<td>bool</td>
+<td>Optional (default <code>false</code>). Push the agent's evolving codebase to a remote branch after each round. Requires <code>GITHUB_TOKEN</code> with write access to the arena repo. Set per-player in the config (there is no CLI flag for it).</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td>string</td>
+<td>Optional. Remote branch name to push to. Usually set automatically by the orchestrator (the ladder derives it from the run); defaults to <code>&lt;game_id&gt;.&lt;name&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>commit_label</code></td>
+<td>string</td>
+<td>Optional. Prefix prepended to each round's git commit/tag message (otherwise just <code>Round N Update</code>). See note below.</td>
+</tr>
 </tbody>
 </table>
+<h4 id="commit-labels">Commit labels</h4>
+<p>Every round, an agent's codebase is committed (and, with <code>push: true</code>, pushed) with the message <code>Round N Update</code>. The optional <code>commit_label</code> field prepends context to that message — it's a <strong>prefix string that carries its own separator</strong>, so the final message is simply <code>f"{commit_label}Round N Update"</code>.</p>
+<p>It's normally set <strong>programmatically by the tournament</strong>, not hand-written: a plain PvP run leaves it <code>""</code> (→ <code>Round 1 Update</code>), while a <strong>ladder</strong> run sets it per rung so history reads like:</p>
+<div class="highlight"><pre><span></span><code>Rung 2/50 (nessegrev-julia, elo #49) — Round 1 Update
+</code></pre></div>
+<p>You <em>can</em> set it per-player in the config (e.g. to tag an experiment), but most users won't need to. Leave it unset for the default <code>Round N Update</code>.</p>
 <h4 id="model-configuration">Model Configuration</h4>
 <div class="highlight"><pre><span></span><code><span class="nt">model</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">model_name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;@anthropic/claude-sonnet-4-5-20250929&#39;</span>
