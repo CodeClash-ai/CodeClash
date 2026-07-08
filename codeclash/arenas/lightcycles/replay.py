@@ -24,7 +24,7 @@ from codeclash.replay.base import ReplayData, ReplayRenderer
 DRAW_JS = """
 const ARENA = (function(){
   const PAL = ['#e5484d','#4593ff','#46a758','#f5d90a','#8e4ec6','#f76b15','#e93d82','#12a594'];
-  const BG = '#0d1117', GRID_LINE = 'rgba(255,255,255,0.05)';
+  const BG = '#0d1117', GRID_LINE = 'rgba(255,255,255,0.05)', ROCK_COL = '#4b5563';
   let W, H, CELL;
   function col(i){ return PAL[i % PAL.length]; }
   function setup(cv, G){
@@ -38,6 +38,9 @@ const ARENA = (function(){
     ctx.strokeStyle = GRID_LINE; ctx.lineWidth = 1;
     for(let x=0;x<=W;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,cv.height); ctx.stroke(); }
     for(let y=0;y<=H;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(cv.width,y*CELL); ctx.stroke(); }
+    // static rock obstacles
+    ctx.fillStyle = ROCK_COL;
+    (G.rocks || []).forEach(r => ctx.fillRect(r[0]*CELL, r[1]*CELL, CELL, CELL));
     const n = (G.frames[0].heads || []).length;
     // rebuild trails by accumulating every head cell up to frame i
     for(let p=0;p<n;p++){
@@ -118,7 +121,12 @@ class LightCyclesReplayer(ReplayRenderer):
             frames=frames,
             winner=winner,
             draw=draw,
-            extra={"names": names, "num_players": n, "max_ticks": log.get("max_ticks")},
+            extra={
+                "names": names,
+                "num_players": n,
+                "max_ticks": log.get("max_ticks"),
+                "rocks": log.get("rocks", []),
+            },
         )
 
     def peek_winner(self, raw: bytes, players: list[dict] | None = None) -> tuple[str | None, bool] | None:

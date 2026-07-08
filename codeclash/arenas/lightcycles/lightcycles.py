@@ -12,10 +12,11 @@ class LightCyclesArena(CodeArena):
     name: str = "LightCycles"
     submission: str = "main.py"
     description: str = """Your bot (`main.py`) drives a cycle in LightCycles, a Tron light-cycles game. Each
-player rides around a bordered grid leaving a solid trail behind. Every tick all cycles move one cell
-simultaneously; you crash (and are eliminated) if you move into a wall/border, any trail (yours or an
-opponent's), or the same cell as another cycle (a head-on). The last cycle riding wins; if all remaining
-cycles crash on the same tick it's a draw; at the tick cap the most territory (trail cells) wins.
+player rides around a bordered grid leaving a solid trail behind. The board may contain static rock
+obstacles too. Every tick all cycles move one cell simultaneously; you crash (and are eliminated) if you
+move into a wall/border, a rock, any trail (yours or an opponent's), or the same cell as another cycle (a
+head-on). The last cycle riding wins; if all remaining cycles crash on the same tick it's a draw; at the
+tick cap the most territory (trail cells) wins.
 
 Your bot must implement:
     def get_move(obs: dict) -> str
@@ -25,7 +26,7 @@ straight); an invalid/crashing/slow move also makes you continue straight.
 
 `obs` gives the full deterministic state each tick: obs["tick"]/["max_ticks"], obs["width"]/["height"],
 obs["you"] (your id), obs["players"] (list of {id, x, y, dir, alive}), and obs["grid"]
-(grid[y][x] = owning player id, or -1 for empty; off-grid is a wall). Origin is top-left; N is -y.
+(grid[y][x] = player id >=0, -1 empty, or -2 rock; off-grid is a wall). Origin is top-left; N is -y.
 """
 
     def __init__(self, config, **kwargs):
