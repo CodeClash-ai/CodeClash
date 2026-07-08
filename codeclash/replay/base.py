@@ -66,6 +66,8 @@ class GameRef:
     path: Path | None = None
     group: str = ""  # matchup label, e.g. for a ladder made of many PvP sub-tournaments
     winner: str | None = None  # this game's round winner (from its tournament's metadata)
+    sim_winner: str | None = None  # this individual sim's winner (None if unknown/not computed)
+    sim_draw: bool = False  # whether this individual sim was a draw
 
 
 @dataclass
@@ -92,6 +94,12 @@ class ReplayRenderer(ABC):
     @abstractmethod
     def parse(self, raw: bytes, players: list[dict] | None = None) -> ReplayData:
         """Decode raw sim bytes into a :class:`ReplayData`. Input format is opaque."""
+
+    def peek_winner(self, raw: bytes, players: list[dict] | None = None) -> tuple[str | None, bool] | None:
+        """Cheaply return ``(winner, draw)`` for a single sim, for the index listing,
+        without building all frames. Return ``None`` (the default) if not implemented --
+        the index then just omits the per-sim winner rather than paying a full parse."""
+        return None
 
 
 # --------------------------------------------------------------------------------------
@@ -348,12 +356,20 @@ def build_index(tour: TournamentInfo) -> str:
     laddered = any(g.group for g in tour.games)
     rounds = len({g.round for g in tour.games})
 
+    # Show the per-sim winner (if the arena computed it) as well as the round winner,
+    # so a decisive individual game isn't mislabeled with its round's aggregate result.
+    have_sim_winner = any(g.sim_winner is not None or g.sim_draw for g in tour.games)
     rows = []
     for idx, g in enumerate(tour.games):
-        winner = g.winner if g.winner is not None else tour.round_winners.get(g.round, "")
+        round_winner = g.winner if g.winner is not None else tour.round_winners.get(g.round, "")
+        sim_winner = "TIE" if g.sim_draw else (g.sim_winner or "")
         cell = f'<a class="watch" href="game?g={idx}"><span class="tri">&#9654;</span> watch</a>'
         group_td = f"<td>{g.group}</td>" if laddered else ""
-        rows.append(f"<tr>{group_td}<td>{g.round}</td><td>{g.sim}</td><td>{winner or ''}</td><td>{cell}</td></tr>")
+        sim_td = f"<td>{sim_winner}</td>" if have_sim_winner else ""
+        rows.append(
+            f"<tr>{group_td}<td>{g.round}</td><td>{g.sim}</td>{sim_td}"
+            f"<td>{round_winner or ''}</td><td>{cell}</td></tr>"
+        )
 
     style = (
         ":root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--dim:#6e7681;--line:#21262d;"
@@ -402,8 +418,10 @@ def build_index(tour: TournamentInfo) -> str:
         f"<div class='meta'>{''.join(meta)}</div></div>"
     )
     matchup_th = "<th>matchup</th>" if laddered else ""
+    sim_th = "<th>sim winner</th>" if have_sim_winner else ""
+    round_th = "<th>round winner</th>" if have_sim_winner else "<th>winner</th>"
     table = (
-        f"<div class='games'><table><tr>{matchup_th}<th>round</th><th>sim</th><th>winner</th><th></th></tr>"
+        f"<div class='games'><table><tr>{matchup_th}<th>round</th><th>sim</th>{sim_th}{round_th}<th></th></tr>"
         + "".join(rows)
         + "</table></div>"
     )

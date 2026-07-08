@@ -57,6 +57,10 @@ def get_replayer(arena: str) -> ReplayRenderer | None:
         from codeclash.arenas.gomoku.replay import GomokuReplayer
 
         return GomokuReplayer()
+    if arena == "PaintVolley":
+        from codeclash.arenas.paintvolley.replay import PaintVolleyReplayer
+
+        return PaintVolleyReplayer()
     if arena == "Halite":
         from codeclash.arenas.halite.replay import HaliteReplayer
 
@@ -102,6 +106,20 @@ def _arena_from_name(folder: Path) -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
+def _fill_sim_winners(games: list[GameRef], renderer: ReplayRenderer | None, players: list[dict]) -> None:
+    """Populate each game's per-sim winner via the renderer's cheap ``peek_winner``.
+    Skipped entirely for arenas that don't implement it (avoids extra sim I/O)."""
+    if renderer is None or type(renderer).peek_winner is ReplayRenderer.peek_winner:
+        return
+    for g in games:
+        try:
+            res = renderer.peek_winner(read_sim(g), players)
+        except Exception:
+            res = None
+        if res is not None:
+            g.sim_winner, g.sim_draw = res
+
+
 def load_tournament(folder: Path) -> TournamentInfo:
     """Read a tournament folder: metadata (if present) plus every discoverable game.
 
@@ -139,6 +157,7 @@ def load_tournament(folder: Path) -> TournamentInfo:
         arena = _arena_from_name(folder)
         renderer = get_replayer(arena)
         games = discover_games(folder, renderer.sim_glob) if renderer else []
+        _fill_sim_winners(games, renderer, [])
         return TournamentInfo(
             folder=folder, arena=arena, players=[], rounds=None, sims_per_round=None, round_winners={}, games=games
         )
@@ -158,6 +177,7 @@ def load_tournament(folder: Path) -> TournamentInfo:
     games = discover_games(folder, renderer.sim_glob) if renderer else []
     for g in games:  # attach each game's round winner for the index
         g.winner = round_winners.get(g.round)
+    _fill_sim_winners(games, renderer, players)
 
     return TournamentInfo(
         folder=folder,
