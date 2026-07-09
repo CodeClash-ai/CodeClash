@@ -120,7 +120,12 @@ class AntsReplayer(ReplayRenderer):
             names.append(f"player{len(names) + 1}")
 
         frames = [
-            {"turn": fr.get("t", idx), "ants": fr.get("ants", []), "hills": fr.get("hills", []), "food": fr.get("food", [])}
+            {
+                "turn": fr.get("t", idx),
+                "ants": fr.get("ants", []),
+                "hills": fr.get("hills", []),
+                "food": fr.get("food", []),
+            }
             for idx, fr in enumerate(log.get("frames", []))
         ]
 
