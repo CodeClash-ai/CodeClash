@@ -49,10 +49,18 @@ def run(
     keep_containers: bool = typer.Option(
         False, "--keep-containers", "-k", help="Do not remove containers after games/agent finish."
     ),
+    resume_from: Path | None = typer.Option(
+        None,
+        "--resume",
+        "-r",
+        help="Resume an interrupted run: pass its log dir. Skips cleared rungs and seeds from the "
+        "last cleared rung's pushed codebase. Requires push: True and the same config.",
+    ),
 ):
     """Send a model up a ranked ladder, rung by rung, until it loses.
 
     [dim]• codeclash ladder run path/to/ladder_config.yaml -c  # clean up after each rung[/dim]
+    [dim]• codeclash ladder run path/to/ladder_config.yaml -r logs/<user>/LadderTournament...  # resume[/dim]
     """
     config = _load_config(config_path)
     try:
@@ -62,6 +70,7 @@ def run(
             suffix=suffix,
             cleanup=cleanup,
             keep_containers=keep_containers,
+            resume_from=resume_from,
         )
     except ValueError as e:
         typer.echo(str(e))

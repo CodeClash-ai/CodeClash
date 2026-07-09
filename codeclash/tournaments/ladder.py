@@ -14,6 +14,7 @@ outside the CLI, and the CLI translates those into user-facing exits.
 import copy
 import getpass
 import json
+import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -143,6 +144,7 @@ class LadderTournament:
         suffix: str = "",
         cleanup: bool = False,
         keep_containers: bool = False,
+        resume_from: Path | None = None,
     ):
         # Extract ladder-specific keys and strip them from the config that gets handed to each
         # per-rung PvpTournament (which only understands `players`).
@@ -161,13 +163,45 @@ class LadderTournament:
         self.cleanup = cleanup
         self.keep_containers = keep_containers
         self.output_dir = output_dir
+        self._resuming = resume_from is not None
+        self._start_idx = 0
 
-        timestamp = time.strftime("%y%m%d%H%M%S")
-        game_name = config["game"]["name"]
-        ladder_folder = f"LadderTournament.{game_name}.r{self.rounds}.s{self.sims}.{self.player['name']}.{timestamp}"
-        self.player["branch"] = ladder_folder
         base = base_dir if base_dir is not None else LOCAL_LOG_DIR / getpass.getuser()
-        self.parent_dir = base / ladder_folder
+
+        if not self._resuming:
+            timestamp = time.strftime("%y%m%d%H%M%S")
+            game_name = config["game"]["name"]
+            ladder_folder = (
+                f"LadderTournament.{game_name}.r{self.rounds}.s{self.sims}.{self.player['name']}.{timestamp}"
+            )
+            self.player["branch"] = ladder_folder
+            self.parent_dir = base / ladder_folder
+        else:
+            # Continue the interrupted run IN PLACE: reuse its log dir and its push branch (the dir
+            # name IS the branch name). The top-level metadata.json is written only after the climb
+            # loop finishes (win or lose), so its presence means there is nothing to resume.
+            self.parent_dir = resume_from
+            self.player["branch"] = resume_from.name
+            if not self.player.get("push"):
+                raise ValueError(
+                    "--resume requires push: True — the pushed branch and round tags are the codebase store."
+                )
+            if (resume_from / "metadata.json").exists():
+                raise ValueError(
+                    f"{resume_from.name} already finished (top-level metadata.json present); nothing to resume."
+                )
+            self._start_idx, resume_tag = self._scan_resume(resume_from)
+            if resume_tag is not None:
+                self.player["branch_init"] = resume_tag
+            # The first resumed rung force-resets the branch to `resume_tag`, discarding any partial
+            # rounds the interrupted rung pushed; later rungs then fast-forward normally.
+            self.player["force_push"] = True
+            msg = (
+                f"Resuming {resume_from.name}: {self._start_idx} rung(s) already cleared; "
+                f"seeding codebase from {resume_tag or self.player.get('branch_init')}."
+            )
+            print(msg)
+            logger.info(msg)
 
     def _advancement_rule_str(self) -> str:
         last_k_rule = "disabled" if self.win_last_k == 0 else f"win the last {self.win_last_k} round(s)"
@@ -176,14 +210,52 @@ class LadderTournament:
             f"(baseline round 0 excluded) and {last_k_rule}."
         )
 
-    def _rung_dir(self, players: list[str]) -> Path:
+    def _rung_folder_name(self, players: list[str]) -> str:
         p_num = len(players)
         p_list = ".".join(players)
         suffix_part = f".{self.suffix}" if self.suffix else ""
-        folder_name = (
-            f"PvpTournament.{self.config['game']['name']}.r{self.rounds}.s{self.sims}.p{p_num}.{p_list}{suffix_part}"
-        )
+        return f"PvpTournament.{self.config['game']['name']}.r{self.rounds}.s{self.sims}.p{p_num}.{p_list}{suffix_part}"
+
+    def _rung_dir(self, players: list[str]) -> Path:
+        folder_name = self._rung_folder_name(players)
         return self.parent_dir / folder_name if self.output_dir is None else self.output_dir / folder_name
+
+    def _climber_final_tag(self, rung_metadata: dict) -> str:
+        """The climber's git tag for the last round of a (cleared) rung — the codebase to carry over."""
+        for agent in rung_metadata.get("agents", []):
+            if agent.get("name") == self.player["name"]:
+                tags = agent.get("round_tags") or {}
+                if not tags:
+                    raise ValueError("A cleared rung has no round tags to resume from (was push enabled?).")
+                return tags[max(tags, key=lambda k: int(k))]
+        raise ValueError(f"Climber {self.player['name']!r} not found in the resumed rung's metadata.")
+
+    def _scan_resume(self, resume_dir: Path) -> tuple[int, str | None]:
+        """Inspect an interrupted run and return ``(start_idx, resume_tag)``: the first rung not yet
+        cleared, and the climber's codebase tag at the end of the last cleared rung (``None`` if the
+        run never cleared a rung). Reads only artifacts a normal run already writes — per-rung
+        ``metadata.json`` (``ladder_advancement.cleared``) and the pushed ``round_tags``.
+        """
+        if not resume_dir.exists():
+            raise ValueError(f"--resume directory does not exist: {resume_dir}")
+        resume_tag: str | None = None
+        for idx, opponent in enumerate(self.ladder):
+            players = [self.player["name"], _player_slug(opponent["branch_init"])]
+            meta_path = resume_dir / self._rung_folder_name(players) / "metadata.json"
+            if not meta_path.exists():
+                if idx == 0 and not any(resume_dir.glob("PvpTournament.*")):
+                    return 0, None  # nothing was completed → equivalent to a fresh run
+                if idx == 0:
+                    raise ValueError(f"--resume dir has no rung matching this config: {resume_dir}")
+                return idx, resume_tag  # reached the interrupted rung
+            meta = json.loads(meta_path.read_text())
+            advancement = meta.get("ladder_advancement")
+            if advancement is None:
+                return idx, resume_tag  # rung ran but never finished → resume here
+            if not advancement.get("cleared"):
+                raise ValueError(f"Run already ended: climber lost at rung {idx + 1}. Nothing to resume.")
+            resume_tag = self._climber_final_tag(meta)
+        raise ValueError("Run already cleared the entire ladder. Nothing to resume.")
 
     def _evaluate_advancement(self, round_winners: list[str], player_name: str) -> tuple[int, bool, bool]:
         """Apply the advancement rule to a rung's round winners.
@@ -207,6 +279,8 @@ class LadderTournament:
         rung = 0
         total = len(self.ladder)
         for idx, opponent in enumerate(self.ladder):
+            if idx < self._start_idx:
+                continue  # already cleared in the run we're resuming
             # `rung` counts the climb from the bottom (1 = weakest opponent faced first, `total` =
             # strongest); `opponent_rank` is the opponent's Elo standing (1 = strongest overall).
             rung = idx + 1
@@ -215,10 +289,10 @@ class LadderTournament:
             # Prefix the climber's commit/tag messages with rung context (a prefix carrying its own
             # trailing separator; see Player._round_message).
             self.player["commit_label"] = f"Rung {rung}/{total} ({opponent['name']}, elo #{opponent_rank}) — "
-            if "branch_init" in self.player and idx > 0:
-                # After first opponent, remove branch_init so the player continues from the
-                # previous tournament's codebase.
-                del self.player["branch_init"]
+            if idx > self._start_idx:
+                # After the first executed rung, drop branch_init so the player continues from the
+                # previous rung's pushed codebase (carry-over).
+                self.player.pop("branch_init", None)
             c = {
                 **self.config,
                 "players": [
@@ -229,6 +303,10 @@ class LadderTournament:
 
             players = [p["name"] for p in c["players"]]
             tournament_dir = self._rung_dir(players)
+            # When resuming in place, the interrupted rung left a partial dir; clear it so
+            # PvpTournament (which refuses a pre-existing metadata.json) can re-run it fresh.
+            if self._resuming and idx == self._start_idx and tournament_dir.exists():
+                shutil.rmtree(tournament_dir)
             tournament = PvpTournament(
                 c,
                 output_dir=tournament_dir,
