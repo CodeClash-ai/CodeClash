@@ -43,11 +43,27 @@ const ARENA = (function(){
     ctx.strokeStyle = LINE; ctx.lineWidth = 1;
     for(let x=0;x<=COLS;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,cv.height); ctx.stroke(); }
     for(let y=0;y<=ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(cv.width,y*CELL); ctx.stroke(); }
-    // hills (large bordered square in the owner's color)
+    // hills — an anthill glyph: a soft owner-tinted base, a mound with an entrance
+    // hole, and a bold owner-colored ring that stays visible even with an ant on top.
     (f.hills||[]).forEach(h => {
-      const x = h[1]*CELL, y = h[0]*CELL;
-      ctx.fillStyle = col(h[2]); ctx.globalAlpha = 0.35; ctx.fillRect(x, y, CELL, CELL); ctx.globalAlpha = 1;
-      ctx.strokeStyle = col(h[2]); ctx.lineWidth = 2; ctx.strokeRect(x+1.5, y+1.5, CELL-3, CELL-3);
+      const cc = col(h[2]);
+      const cx = h[1]*CELL + CELL/2, cy = h[0]*CELL + CELL/2, R = CELL*0.55;
+      // soft glow base
+      ctx.globalAlpha = 0.22; ctx.fillStyle = cc;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+      // mound (dome) with a white rim for contrast
+      ctx.fillStyle = cc;
+      ctx.beginPath();
+      ctx.moveTo(cx - R*0.82, cy + R*0.52);
+      ctx.quadraticCurveTo(cx, cy - R*0.92, cx + R*0.82, cy + R*0.52);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5; ctx.stroke();
+      // entrance hole
+      ctx.fillStyle = '#0d1117';
+      ctx.beginPath(); ctx.ellipse(cx, cy + R*0.14, R*0.24, R*0.3, 0, 0, 7); ctx.fill();
+      // framing ring (marks the cell as a hill regardless of an ant sitting on it)
+      ctx.strokeStyle = cc; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(cx, cy, CELL*0.5 - 1, 0, 7); ctx.stroke();
     });
     // food (small white diamonds)
     ctx.fillStyle = FOOD;
