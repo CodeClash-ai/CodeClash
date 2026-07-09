@@ -30,6 +30,9 @@ class Player(ABC):
         self.environment = environment
         self.game_context = game_context
         self.push = config.get("push", False)
+        # Force the branch push (used on ladder resume, to overwrite an interrupted rung's partial
+        # pushes). Safe here because a run's push branch has a single writer. Uses --force-with-lease.
+        self._force_push = config.get("force_push", False)
         self.logger = get_logger(
             self.name,
             log_path=self.game_context.log_local / "players" / self.name / "player.log",
@@ -140,8 +143,9 @@ class Player(ABC):
         self._write_changes_to_file(round=round)
 
         if self.push:
+            force = " --force-with-lease" if self._force_push else ""
             for cmd in [
-                f"git push -u origin {self._branch_name}",
+                f"git push{force} -u origin {self._branch_name}",
                 "git push origin --tags",
             ]:
                 assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
