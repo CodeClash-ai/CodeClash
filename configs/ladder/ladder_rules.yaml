@@ -1,2 +1,7 @@
 min_round_wins: 2
 win_last_k: 0
+# Optional: skip playing a rung whose carried-over bot already dominates round 0 (faster eval,
+# same "highest rung reached" metric). Off by default. Uncomment to enable:
+# fast_forward:
+#   enabled: true
+#   min_sim_win_rate: 0.9   # clear the rung without editing if the bot wins >= 90% of round-0 sims
