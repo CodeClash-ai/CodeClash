@@ -61,6 +61,10 @@ def get_replayer(arena: str) -> ReplayRenderer | None:
         from codeclash.arenas.paintvolley.replay import PaintVolleyReplayer
 
         return PaintVolleyReplayer()
+    if arena == "Ants":
+        from codeclash.arenas.ants.replay import AntsReplayer
+
+        return AntsReplayer()
     if arena == "Halite":
         from codeclash.arenas.halite.replay import HaliteReplayer
 
