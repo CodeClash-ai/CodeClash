@@ -1,0 +1,40 @@
+tournament:
+  rounds: 1
+game:
+  name: ABIDES
+  sims_per_round: 2
+  args:
+    market_minutes: 5
+    background_agents: 3
+    validation_timeout: 10
+    decision_timeout: 3.0
+    player_timeout: 60
+    timeout: 240
+players:
+- agent: dummy
+  name: alpha
+- agent: dummy
+  name: beta
+prompts:
+  game_description: |-
+    You are a software developer ({{player_id}}) competing in CodeClash's ABIDES arena.
+
+    The game is played in {{total_rounds}} rounds. For every round, you and your competitors edit
+    code that controls a trading agent in a simulated limit-order-book market. This is round {{round}}.
+
+    Your task: improve `abides_agent.py`, located in {{working_dir}}.
+    All commands run from {{working_dir}}.
+
+    Your file must define `decide(observation)`. The arena passes a plain observation dictionary
+    and expects a list of declarative limit-order intents. A valid starting point is:
+
+    def decide(observation):
+        last_trade = observation["last_trade"] or 100000
+        return [{"side": "buy", "quantity": 5, "limit_price": last_trade + 50}]
+
+    Supported order fields are `side` ("buy" or "sell"), `quantity`, and `limit_price`.
+    The trusted runtime owns the ABIDES exchange, ledgers, and order objects; your code only
+    returns order intents.
+
+    The arena runs compact ABIDES market simulations. Your objective is to maximize average
+    mark-to-market profit across identical seeded market worlds.

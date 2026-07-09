@@ -70,6 +70,7 @@ nav:
       - "reference/index.md"
       - Arenas:
         - "CodeGame (Abstract)": "reference/arenas/game.md"
+        - "ABIDES": "reference/arenas/abides.md"
         - "BattleCode": "reference/arenas/battlecode.md"
         - "BattleSnake": "reference/arenas/battlesnake.md"
         - "Bomberland": "reference/arenas/bomberland.md"
