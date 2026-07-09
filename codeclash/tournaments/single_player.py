@@ -62,6 +62,9 @@ class SinglePlayerTraining(AbstractTournament):
 
     def get_agent(self, agent_config: dict, round: int) -> Player:
         """Create an agent with environment and game context."""
+        # Commit/tag messages are prefixed with `commit_label` (see Player._round_message);
+        # single-player has no rung/opponent prefix, so default it to empty (as PvP does).
+        agent_config.setdefault("commit_label", "")
         environment = self.game.get_environment(f"{self.game.game_id}.{agent_config['name']}")
         game_context = self.get_game_context(agent_config, round=round)
         return get_agent(agent_config, game_context, environment)
