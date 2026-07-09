@@ -1,3 +1,4 @@
+from codeclash.arenas.ants.ants import AntsArena
 from codeclash.arenas.arena import CodeArena
 from codeclash.arenas.battlecode23.battlecode23 import BattleCode23Arena
 from codeclash.arenas.battlecode24.battlecode24 import BattleCode24Arena
@@ -22,6 +23,7 @@ from codeclash.arenas.robotrumble.robotrumble import RobotRumbleArena
 from codeclash.arenas.scml.scml import SCMLOneShotArena
 
 ARENAS = [
+    AntsArena,
     BattleCode23Arena,
     BattleCode24Arena,
     BattleCode25Arena,
