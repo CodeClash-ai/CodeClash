@@ -1593,17 +1593,17 @@ if __name__ == "__main__":
         help="Directory to save plots (default: assets/elo_plots)",
     )
     parser.add_argument(
+        "-b",
         "--bootstrap",
-        action="store_true",
-        help="Run the bootstrap rank-stability analysis (nonparametric + parametric). Off by "
-        "default: it refits the whole model per sample, so it is very slow (minutes per sample on "
-        "a large ladder). The ranking and per-fit ±1σ uncertainties are produced without it.",
-    )
-    parser.add_argument(
-        "--n-bootstrap",
+        nargs="?",
         type=int,
-        default=1000,
-        help="Bootstrap samples per type when --bootstrap is set (default: 1000).",
+        const=1000,
+        default=None,
+        metavar="N",
+        help="Run the bootstrap rank-stability analysis (nonparametric + parametric). Off unless "
+        "given: pass -b/--bootstrap to run it with N=1000 samples/type, or -b N to set N. It refits "
+        "the whole model per sample, so it is very slow (minutes/sample on a large ladder). The "
+        "ranking and per-fit ±1σ uncertainties are produced without it.",
     )
     args = parser.parse_args()
 
@@ -1655,7 +1655,7 @@ if __name__ == "__main__":
         for bootstrap_type in ["nonparametric", "parametric"]:
             bootstrap_results[bootstrap_type] = BootStrapRankStability(
                 builder,
-                n_bootstrap=args.n_bootstrap,
+                n_bootstrap=args.bootstrap,
                 game="ALL",
                 regularization=args.regularization,
                 topks=None,
