@@ -57,6 +57,12 @@ def run(
     preprocessed_yaml = resolve_includes(yaml_content, base_dir=CONFIG_DIR)
     config = yaml.safe_load(preprocessed_yaml)
 
+    if "ladder_rules" in config:
+        raise typer.BadParameter(
+            "ladder_rules (min_round_wins, win_last_k, fast_forward, early_clinch) applies only to "
+            "`codeclash ladder run`, not `codeclash run`."
+        )
+
     def get_output_path() -> Path:
         if is_running_in_aws_batch():
             # Offset timestamp by random seconds to avoid collisions

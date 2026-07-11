@@ -112,6 +112,21 @@ def resolve_fast_forward(ladder_rules: dict) -> tuple[bool, float]:
     return True, float(rate)
 
 
+def resolve_early_clinch(ladder_rules: dict, win_last_k: int) -> bool:
+    """Validate the optional ``ladder_rules.early_clinch`` flag (default ``False``).
+
+    When true, a rung stops as soon as the climber has won ``min_round_wins`` agent rounds rather than
+    always playing all ``rounds``. Requires ``win_last_k == 0``: a trailing-rounds requirement can't be
+    decided before the final round, so early-stopping would be unsound.
+    """
+    ec = ladder_rules.get("early_clinch", False)
+    if not isinstance(ec, bool):
+        raise ValueError(f"ladder_rules.early_clinch must be a bool, got {ec!r}.")
+    if ec and win_last_k != 0:
+        raise ValueError("ladder_rules.early_clinch requires ladder_rules.win_last_k == 0.")
+    return ec
+
+
 def build_ladder(config: dict, workers: int = 1) -> None:
     """Build a ladder: run PvP tournaments across all pairs of players (for ranking).
 
@@ -184,6 +199,7 @@ class LadderTournament:
         self.sims = config["game"]["sims_per_round"]
         self.min_round_wins, self.win_last_k = resolve_ladder_rules(config.get("ladder_rules", {}), self.rounds)
         self.ff_enabled, self.ff_min_win_rate = resolve_fast_forward(config.get("ladder_rules", {}))
+        self.early_clinch = resolve_early_clinch(config.get("ladder_rules", {}), self.win_last_k)
 
         del config["player"]
         del config["ladder"]
@@ -388,11 +404,17 @@ class LadderTournament:
                     print("=" * 10)
                     continue
 
+            # When early_clinch is on (win_last_k == 0 enforced), stop the rung once the climber has
+            # locked in `min_round_wins` rather than playing out the remaining rounds.
+            early_stop = None
+            if self.early_clinch:
+                early_stop = lambda winners: self._evaluate_advancement(winners, self.player["name"])[2]  # noqa: E731
             tournament = PvpTournament(
                 c,
                 output_dir=tournament_dir,
                 cleanup=self.cleanup,
                 keep_containers=self.keep_containers,
+                early_stop=early_stop,
             )
             tournament.run()
 
