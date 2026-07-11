@@ -66,6 +66,8 @@ nav:
   - Docs:
     - "About": index.md
     - "Quick Start": quickstart.md
+    - "PvP Tournament": usage/pvp.md
+    - "Ladder Tournament": usage/ladder.md
     - API Reference:
       - "reference/index.md"
       - Arenas:

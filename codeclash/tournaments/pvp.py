@@ -5,6 +5,7 @@ PvP training mode where multiple agents compete against each other.
 import json
 import shutil
 import subprocess
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -28,6 +29,7 @@ class PvpTournament(AbstractTournament):
         output_dir: Path,
         cleanup: bool = False,
         keep_containers: bool = False,
+        early_stop: Callable[[list[str]], bool] | None = None,
     ):
         metadata_file = output_dir / "metadata.json"
         if metadata_file.exists():
@@ -35,6 +37,8 @@ class PvpTournament(AbstractTournament):
 
         super().__init__(config, name="PvpTournament", output_dir=output_dir)
         self.cleanup_on_end = cleanup
+        # Given the agent-round winners so far (rounds 1..n), return True to stop before `rounds`.
+        self.early_stop = early_stop
         self.game: CodeArena = get_arena(
             self.config,
             tournament_id=self.tournament_id,
@@ -91,12 +95,18 @@ class PvpTournament(AbstractTournament):
         """Main execution function that runs all rounds."""
         try:
             self.run_competition_phase(0)  # Initial round with identical codebases
+            last_round = self.rounds
             for round_num in range(1, self.rounds + 1):
                 self.run_edit_phase(round_num)
                 self.run_competition_phase(round_num)
-            # Need to separately compress the last round, because
+                if self.early_stop is not None:
+                    winners = [self._metadata["round_stats"][r]["winner"] for r in range(1, round_num + 1)]
+                    if self.early_stop(winners):
+                        last_round = round_num
+                        break
+            # Need to separately compress the last round played, because
             # in run_edit_phase we always only compress the previous round
-            self._compress_round_folder(self.rounds)
+            self._compress_round_folder(last_round)
         finally:
             self.end()
 

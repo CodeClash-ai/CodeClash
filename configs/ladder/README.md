@@ -54,7 +54,37 @@ ladder_rules:
   win_last_k: 0       # ...and must win the last K rounds (1 == just the final round, 0 == disabled)
 ```
 
+These keys are read only by `codeclash ladder run`; a plain PvP `codeclash run` rejects any config that carries a `ladder_rules` block (so `early_clinch`/`fast_forward` can't silently no-op there).
+
 Both keys are **required** — there are no defaults; a config that omits either one errors out. `min_round_wins` is a whole number: the player advances when `player_wins >= min_round_wins`. Round 0 (before any edits against the opponent — identical codebases at the first rung, carried-over at later rungs) is excluded, so with `tournament.rounds: 5` there are 5 scored agent rounds (rounds 1–5). Validation:
 
 - `min_round_wins` must be an integer with `1 <= min_round_wins <= tournament.rounds`.
 - `win_last_k` must be an integer with `0 <= win_last_k <= min_round_wins`. `0` **disables** the trailing-rounds requirement; `1` means "just win the final round".
+
+### Fast-forward (optional)
+
+Since the north-star metric is *the highest rung a bot can reach*, you can skip the (usually redundant) grind of playing edit rounds against opponents your carried-over bot already crushes:
+
+```yaml
+ladder_rules:
+  min_round_wins: 2
+  win_last_k: 0
+  fast_forward:
+    enabled: true
+    min_sim_win_rate: 0.9   # skip a rung if the bot wins >= 90% of that rung's round-0 sims
+```
+
+At each rung, a **round-0-only probe** runs the carried-over bot against the opponent. If the climber wins at least `min_sim_win_rate` of the simulations (ties count as non-wins), the rung is **cleared without playing edit rounds** and recorded with `ladder_advancement.fast_forwarded: true`. Any rung *not* cleanly won still plays in full under the normal `ladder_rules`, so this is safe under non-transitive matchups and never skips a rung it would actually lose. Rung 1 is identical-code (~coin flip at round 0), so it never fast-forwards — the climber always has to earn the first rung. Omit the block (or `enabled: false`) for today's full-play behavior. Validation: `enabled` is a bool (required if the block is present); `min_sim_win_rate` is a number in `(0.5, 1.0]` (required when enabled).
+
+### Early clinch (optional)
+
+Where fast-forward skips a rung entirely, `early_clinch` stops a rung mid-way once the outcome is decided — the climber has already won `min_round_wins` rounds, so the remaining rounds can't change whether it advances:
+
+```yaml
+ladder_rules:
+  min_round_wins: 2
+  win_last_k: 0
+  early_clinch: true
+```
+
+The rung plays rounds normally and breaks the moment `player_wins >= min_round_wins`; advancement is recorded from the rounds actually played. Requires `win_last_k == 0` — a trailing-rounds requirement can't be satisfied before the final round, so the two can't be combined (validation errors otherwise). Composes with `fast_forward` (probe first, then early-clinch the rounds that do get played). Off by default.

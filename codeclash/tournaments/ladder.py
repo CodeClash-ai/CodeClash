@@ -83,6 +83,50 @@ def resolve_ladder_rules(ladder_rules: dict, rounds: int) -> tuple[int, int]:
     return min_round_wins, win_last_k
 
 
+def resolve_fast_forward(ladder_rules: dict) -> tuple[bool, float]:
+    """Validate the optional ``ladder_rules.fast_forward`` sub-block and return
+    ``(enabled, min_sim_win_rate)``.
+
+    Fast-forward lets a climber *skip playing* a rung whose carried-over codebase already dominates:
+    if the climber wins at least ``min_sim_win_rate`` of the rung's round-0 simulations (ties count
+    as non-wins), the rung is cleared without spending edit rounds. Absent or ``enabled: false`` ->
+    ``(False, 0.0)`` = today's full-play behavior.
+    """
+    ff = ladder_rules.get("fast_forward")
+    if ff is None:
+        return False, 0.0
+    if "enabled" not in ff:
+        raise ValueError("ladder_rules.fast_forward.enabled is required when a fast_forward block is present.")
+    enabled = ff["enabled"]
+    if not isinstance(enabled, bool):
+        raise ValueError(f"ladder_rules.fast_forward.enabled must be a bool, got {enabled!r}.")
+    if not enabled:
+        return False, 0.0
+    if "min_sim_win_rate" not in ff:
+        raise ValueError("ladder_rules.fast_forward.min_sim_win_rate is required when fast_forward is enabled.")
+    rate = ff["min_sim_win_rate"]
+    if isinstance(rate, bool) or not isinstance(rate, (int, float)):
+        raise ValueError(f"ladder_rules.fast_forward.min_sim_win_rate must be a number, got {rate!r}.")
+    if not 0.5 < rate <= 1.0:
+        raise ValueError(f"ladder_rules.fast_forward.min_sim_win_rate must be in (0.5, 1.0], got {rate}.")
+    return True, float(rate)
+
+
+def resolve_early_clinch(ladder_rules: dict, win_last_k: int) -> bool:
+    """Validate the optional ``ladder_rules.early_clinch`` flag (default ``False``).
+
+    When true, a rung stops as soon as the climber has won ``min_round_wins`` agent rounds rather than
+    always playing all ``rounds``. Requires ``win_last_k == 0``: a trailing-rounds requirement can't be
+    decided before the final round, so early-stopping would be unsound.
+    """
+    ec = ladder_rules.get("early_clinch", False)
+    if not isinstance(ec, bool):
+        raise ValueError(f"ladder_rules.early_clinch must be a bool, got {ec!r}.")
+    if ec and win_last_k != 0:
+        raise ValueError("ladder_rules.early_clinch requires ladder_rules.win_last_k == 0.")
+    return ec
+
+
 def build_ladder(config: dict, workers: int = 1) -> None:
     """Build a ladder: run PvP tournaments across all pairs of players (for ranking).
 
@@ -154,6 +198,8 @@ class LadderTournament:
         self.rounds = config["tournament"]["rounds"]
         self.sims = config["game"]["sims_per_round"]
         self.min_round_wins, self.win_last_k = resolve_ladder_rules(config.get("ladder_rules", {}), self.rounds)
+        self.ff_enabled, self.ff_min_win_rate = resolve_fast_forward(config.get("ladder_rules", {}))
+        self.early_clinch = resolve_early_clinch(config.get("ladder_rules", {}), self.win_last_k)
 
         del config["player"]
         del config["ladder"]
@@ -254,8 +300,40 @@ class LadderTournament:
                 return idx, resume_tag  # rung ran but never finished → resume here
             if not advancement.get("cleared"):
                 raise ValueError(f"Run already ended: climber lost at rung {idx + 1}. Nothing to resume.")
-            resume_tag = self._climber_final_tag(meta)
+            # A fast-forwarded rung made no code changes (no round tags), so it isn't a new carry-over
+            # point — keep the tag from the last *played* rung.
+            if not advancement.get("fast_forwarded"):
+                resume_tag = self._climber_final_tag(meta)
         raise ValueError("Run already cleared the entire ladder. Nothing to resume.")
+
+    def _fast_forward_probe(self, rung_config: dict, rung_dir: Path) -> float:
+        """Run round 0 only in a throwaway probe dir and return the climber's share of the round-0
+        simulations (ties count as non-wins). Used to decide whether to skip playing the rung."""
+        probe_config = copy.deepcopy(rung_config)
+        probe_config["tournament"] = {**probe_config["tournament"], "rounds": 0}
+        probe_dir = rung_dir.parent / f".ff-probe.{rung_dir.name}"
+        if probe_dir.exists():
+            shutil.rmtree(probe_dir)
+        try:
+            probe = PvpTournament(
+                probe_config, output_dir=probe_dir, cleanup=self.cleanup, keep_containers=self.keep_containers
+            )
+            probe.run()
+            meta = json.loads((probe_dir / "metadata.json").read_text())
+            round_stats = meta.get("round_stats", {})
+            r0 = round_stats.get("0") or round_stats.get(0) or {}
+            wins = (r0.get("scores") or {}).get(self.player["name"], 0)
+            return wins / self.sims if self.sims else 0.0
+        finally:
+            if probe_dir.exists():
+                shutil.rmtree(probe_dir)
+
+    def _record_fast_forward(self, rung_dir: Path, win_rate: float) -> None:
+        """Write a minimal rung metadata.json marking it cleared-by-fast-forward (no rounds played),
+        so resume and the ladder summary can account for it like any other cleared rung."""
+        rung_dir.mkdir(parents=True, exist_ok=True)
+        meta = {"ladder_advancement": {"cleared": True, "fast_forwarded": True, "round0_win_rate": round(win_rate, 4)}}
+        (rung_dir / "metadata.json").write_text(json.dumps(meta, indent=2))
 
     def _evaluate_advancement(self, round_winners: list[str], player_name: str) -> tuple[int, bool, bool]:
         """Apply the advancement rule to a rung's round winners.
@@ -274,6 +352,7 @@ class LadderTournament:
         logger.info(advancement_rule)
 
         advanced = False
+        fast_forwarded = 0
         opponent: dict = {}
         opponent_rank = 0
         rung = 0
@@ -307,11 +386,35 @@ class LadderTournament:
             # PvpTournament (which refuses a pre-existing metadata.json) can re-run it fresh.
             if self._resuming and idx == self._start_idx and tournament_dir.exists():
                 shutil.rmtree(tournament_dir)
+
+            # Fast-forward gate: if enabled and the carried-over bot already wins round 0 by a large
+            # enough margin, clear this rung without playing the edit rounds (see resolve_fast_forward).
+            if self.ff_enabled:
+                ff_rate = self._fast_forward_probe(c, tournament_dir)
+                if ff_rate >= self.ff_min_win_rate:
+                    self._record_fast_forward(tournament_dir, ff_rate)
+                    advanced = True
+                    fast_forwarded += 1
+                    print("=" * 10)
+                    print(
+                        f"{self.player['name']} fast-forwarded rung {rung}/{total} ({opponent['name']}, "
+                        f"elo #{opponent_rank}) — won {ff_rate:.0%} of round-0 sims "
+                        f"(>= {self.ff_min_win_rate:.0%}).\nLadder challenge continuing"
+                    )
+                    print("=" * 10)
+                    continue
+
+            # When early_clinch is on (win_last_k == 0 enforced), stop the rung once the climber has
+            # locked in `min_round_wins` rather than playing out the remaining rounds.
+            early_stop = None
+            if self.early_clinch:
+                early_stop = lambda winners: self._evaluate_advancement(winners, self.player["name"])[2]  # noqa: E731
             tournament = PvpTournament(
                 c,
                 output_dir=tournament_dir,
                 cleanup=self.cleanup,
                 keep_containers=self.keep_containers,
+                early_stop=early_stop,
             )
             tournament.run()
 
@@ -366,6 +469,7 @@ class LadderTournament:
             "win_last_k": self.win_last_k,
             "ladder_size": len(self.ladder),
             "rungs_cleared": rungs_cleared,
+            "rungs_fast_forwarded": fast_forwarded,
             "final_opponent": opponent["name"],
             "final_opponent_rank": opponent_rank,
             "cleared_ladder": rungs_cleared == len(self.ladder),
