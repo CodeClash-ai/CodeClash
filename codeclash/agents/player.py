@@ -101,6 +101,13 @@ class Player(ABC):
                         logger=self.logger,
                     )
 
+        # SECURITY: the container's clone carries every opponent's branch + round tags
+        # (origin/human/*, <uuid>-round-N) — an agent can `git show` them to copy solutions.
+        # After the starting codebase is checked out, strip git so there is no path to opponent
+        # code during the agent's turn. Local commits still work; push re-adds origin transiently.
+        if self.push:
+            self._isolate_git()
+
     # --- Main methods ---
 
     def pre_run_hook(self, *, new_round: int) -> None:
@@ -143,10 +150,15 @@ class Player(ABC):
         self._write_changes_to_file(round=round)
 
         if self.push:
+            token = os.getenv("GITHUB_TOKEN")
             force = " --force-with-lease" if self._force_push else ""
+            # origin is absent during the agent's turn (see _isolate_git); re-add it only to push,
+            # then remove it again so the next round's agent still can't reach opponent code.
             for cmd in [
+                f"git remote add origin https://x-access-token:{token}@github.com/{GH_ORG}/{self.game_context.name}.git",
                 f"git push{force} -u origin {self._branch_name}",
                 "git push origin --tags",
+                "git remote remove origin",
             ]:
                 assert_zero_exit_code(self.environment.execute(cmd), logger=self.logger)
             self.logger.info(f"Pushed {self.name} commit history to remote repository (branch {self._branch_name})")
@@ -213,6 +225,20 @@ class Player(ABC):
             logger=self.logger,
         )
         return out["output"].strip()
+
+    def _isolate_git(self) -> None:
+        """Strip the git remote + all remote-tracking refs and tags so the agent cannot read
+        opponents' pushed code (origin/human/*, <uuid>-round-N). The local working branch and its
+        history remain, so the agent can still commit; push (post_run_hook) re-adds origin briefly.
+        Best-effort — failures here must not abort a run."""
+        for cmd in [
+            "git remote remove origin",
+            "git for-each-ref --format='%(refname)' refs/remotes refs/tags | xargs -r -n1 git update-ref -d",
+            "git reflog expire --expire=now --all",
+            "git gc --prune=now --quiet",
+        ]:
+            self.environment.execute(cmd)
+        self.logger.info("Isolated git: removed origin + opponent branches/tags (anti-cheat)")
 
     def _commit(self) -> None:
         """Commit changes to the agent's codebase."""

@@ -11,6 +11,7 @@ from codeclash import REPO_DIR
 from codeclash.agents.player import Player
 from codeclash.agents.utils import GameContext
 from codeclash.utils.environment import copy_to_container
+from codeclash.utils.internet_control import turn_off_internet, turn_on_internet
 
 os.environ["MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT"] = "90"
 os.environ["LITELLM_MODEL_REGISTRY_PATH"] = str(
@@ -55,6 +56,16 @@ class MiniSWEAgent(Player):
             logger=self.logger,
             **self.config["config"]["agent"],
         )
+        # Disable the container's internet DURING the agent's editing turn so it can't look up
+        # solutions online (setup fetch + post-round push happen outside run(), with net on).
+        # Composes with Player._isolate_git (which removes opponent branches). Default on.
+        no_internet = self.config.get("no_internet", True)
+        if no_internet:
+            try:
+                turn_off_internet(self.environment)
+            except Exception as e:
+                self.logger.critical(f"FAILED to disable internet — agent runs WITH network: {e}")
+                no_internet = False  # nothing to restore later
         exit_status = None
         exc_message = None
         try:
@@ -65,6 +76,11 @@ class MiniSWEAgent(Player):
             exc_message = traceback.format_exc()
             self.logger.critical(exc_message)
         finally:
+            if no_internet:
+                try:
+                    turn_on_internet(self.environment)
+                except Exception as e:
+                    self.logger.error(f"Failed to restore internet after agent turn: {e}")
             traj_path = (
                 self.game_context.log_local
                 / "players"

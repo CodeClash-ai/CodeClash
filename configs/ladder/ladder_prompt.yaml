@@ -13,3 +13,7 @@ game_description: |-
 
   Your goal is to beat the opponent. The game's rules and your bot's entry point are documented in the
   codebase (`docs/`).
+
+  Rules: build and improve the bot yourself, using only the code, assets, and documentation already in
+  {{working_dir}}. Internet use is NOT allowed — do not attempt web searches, downloads, package
+  installs, or any external network requests (the environment has no internet access during your turn).
