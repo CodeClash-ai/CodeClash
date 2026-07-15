@@ -31,7 +31,7 @@ class Player(ABC):
         self.game_context = game_context
         self.push = config.get("push", False)
         # Force the branch push (used on ladder resume, to overwrite an interrupted rung's partial
-        # pushes). Safe here because a run's push branch has a single writer. Uses --force-with-lease.
+        # pushes). Safe here because a run's push branch has a single writer.
         self._force_push = config.get("force_push", False)
         self.logger = get_logger(
             self.name,
@@ -151,7 +151,7 @@ class Player(ABC):
 
         if self.push:
             token = os.getenv("GITHUB_TOKEN")
-            force = " --force-with-lease" if self._force_push else ""
+            force = " --force" if self._force_push else ""
             # origin is absent during the agent's turn (see _isolate_git); re-add it only to push,
             # then remove it again so the next round's agent still can't reach opponent code.
             for cmd in [
@@ -236,9 +236,10 @@ class Player(ABC):
             "git for-each-ref --format='%(refname)' refs/remotes refs/tags | xargs -r -n1 git update-ref -d",
             "git reflog expire --expire=now --all",
             "git gc --prune=now --quiet",
+            "rm -f .git/FETCH_HEAD .git/ORIG_HEAD",
         ]:
             self.environment.execute(cmd)
-        self.logger.info("Isolated git: removed origin + opponent branches/tags (anti-cheat)")
+        self.logger.info("Isolated git: removed origin + opponent branches/tags + FETCH_HEAD (anti-cheat)")
 
     def _commit(self) -> None:
         """Commit changes to the agent's codebase."""
